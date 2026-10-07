@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EcoLogic Market Lab</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧋</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cocoa: #3a2217;
+  --cocoa-2: #5b3826;
+  --ink: #23170f;
+  --muted: #6d6158;
+  --paper: #f3f4f7;
+  --panel: #ffffff;
+  --line: #dcd8de;
+  --foil: #d8a21f;
+  --foil-2: #f2cf6b;
+  --buyer: #12648c;
+  --buyer-soft: #e2eff6;
+  --seller: #b02a3f;
+  --seller-soft: #f8e5e8;
+  --mint: #22805a;
+  --mint-soft: #e1f2e9;
+  --warn: #9a5b00;
+  --warn-soft: #fbf0dc;
+  --shadow: 0 1px 2px rgba(35, 23, 15, .08), 0 6px 18px rgba(35, 23, 15, .06);
+  --r-sm: 8px;
+  --r-md: 14px;
+  --buyer-card: #12648c;
+  --seller-card: #b02a3f;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --font-display: "Bricolage Grotesque", "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #f3ebe4; --muted: #b8aca2; --paper: #17120f; --panel: #221b16; --line: #3c322b;
+    --buyer: #5fb3dc; --buyer-soft: #16303d; --seller: #ec7a8c; --seller-soft: #3d1c22;
+    --mint: #5cc79a; --mint-soft: #16332a; --warn: #f0b85a; --warn-soft: #3a2c12;
+    --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #f3ebe4; --muted: #b8aca2; --paper: #17120f; --panel: #221b16; --line: #3c322b;
+  --buyer: #5fb3dc; --buyer-soft: #16303d; --seller: #ec7a8c; --seller-soft: #3d1c22;
+  --mint: #5cc79a; --mint-soft: #16332a; --warn: #f0b85a; --warn-soft: #3a2c12;
+  --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; min-height: 100%; background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0 0 .4em; letter-spacing: -.01em; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); font-weight: 800; }
+h2 { font-size: 1.3rem; font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0 0 .8em; max-width: 68ch; }
+small, .muted { color: var(--muted); }
+a { color: var(--buyer); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--foil); outline-offset: 2px; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 16px; }
+.narrow { max-width: 520px; margin: 0 auto; padding: 16px; }
+
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 16px; background: var(--cocoa); color: #fbf3ea;
+}
+.topbar .brand { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; }
+.topbar .spacer { flex: 1; }
+.topbar .chip { background: rgba(255,255,255,.12); color: #fbf3ea; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; box-shadow: var(--shadow); }
+.panel + .panel { margin-top: 14px; }
+.stack > * + * { margin-top: 12px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  border-radius: 999px; padding: 10px 18px; font-weight: 700; cursor: pointer; min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+}
+.btn:hover { border-color: var(--muted); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--cocoa); border-color: var(--cocoa); color: #fbf3ea; }
+:root[data-theme="dark"] .btn.primary { background: var(--foil); border-color: var(--foil); color: #23170f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { background: var(--foil); border-color: var(--foil); color: #23170f; } }
+.btn.buyer { background: var(--buyer-card); border-color: var(--buyer-card); color: #fff; }
+.btn.seller { background: var(--seller-card); border-color: var(--seller-card); color: #fff; }
+.btn.small { min-height: 34px; padding: 5px 12px; font-size: .9rem; }
+.btn.block { width: 100%; }
+.btn.ghost { background: transparent; }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: .88rem; background: var(--paper); border: 1px solid var(--line); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.dot.ok { background: var(--mint); } .dot.bad { background: var(--seller); } .dot.wait { background: var(--foil); }
+
+label.field { display: block; font-weight: 700; margin-bottom: 4px; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 12px; background: var(--panel); min-height: 44px;
+}
+textarea { min-height: 120px; resize: vertical; line-height: 1.45; }
+.code-input { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: .25em; text-transform: uppercase; text-align: center; }
+
+.note { padding: 10px 12px; border-radius: var(--r-sm); background: var(--warn-soft); color: var(--ink); border-left: 4px solid var(--warn); }
+.good { padding: 10px 12px; border-radius: var(--r-sm); background: var(--mint-soft); border-left: 4px solid var(--mint); }
+.bad { padding: 10px 12px; border-radius: var(--r-sm); background: var(--seller-soft); border-left: 4px solid var(--seller); }
+
+/* Home */
+.home-hero { padding: 40px 0 20px; }
+.home-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.choice { text-align: left; padding: 22px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--panel); cursor: pointer; box-shadow: var(--shadow); }
+.choice h2 { margin-bottom: .2em; }
+
+/* The chocolate bar card: the one bold element */
+.bar {
+  position: relative; border-radius: 16px; overflow: hidden; color: #fff; box-shadow: 0 10px 28px rgba(35,23,15,.25);
+  background: var(--buyer-card);
+}
+.bar.seller { background: var(--seller-card); }
+.bar .foil { height: 14px; background: linear-gradient(90deg, var(--foil), var(--foil-2), var(--foil), var(--foil-2)); }
+.bar .body { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 16px 18px 18px; }
+.bar .role { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; }
+.bar .say { font-size: 1rem; opacity: .95; margin: 2px 0 0; }
+.bar .slab {
+  width: 112px; height: 112px; border-radius: 10px; display: grid; place-items: center;
+  background:
+    linear-gradient(var(--cocoa) 0 0) padding-box,
+    var(--cocoa);
+  background-image:
+    linear-gradient(90deg, transparent 47%, rgba(0,0,0,.35) 47% 53%, transparent 53%),
+    linear-gradient(0deg, transparent 47%, rgba(0,0,0,.35) 47% 53%, transparent 53%),
+    linear-gradient(145deg, var(--cocoa-2), var(--cocoa));
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.12), inset 0 -3px 0 rgba(0,0,0,.25);
+}
+.bar .slab span { font-family: var(--font-display); font-size: 3.4rem; font-weight: 800; color: var(--foil-2); text-shadow: 0 2px 0 rgba(0,0,0,.4); line-height: 1; }
+.bar .slab small { display: block; color: #f6e2b0; text-align: center; font-size: .78rem; margin-top: 2px; }
+
+/* Market */
+.quotes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.quote { border-radius: var(--r-sm); padding: 10px 12px; border: 1px solid var(--line); background: var(--panel); }
+.quote .q-label { font-size: .88rem; color: var(--muted); }
+.quote .q-val { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; }
+.quote.bid .q-val { color: var(--buyer); } .quote.ask .q-val { color: var(--seller); }
+.stepper { display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; gap: 8px; }
+.stepper button { min-height: 56px; border-radius: 12px; font-size: 1.6rem; font-weight: 800; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+.stepper .val { text-align: center; font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; }
+.tape { display: flex; flex-wrap: wrap; gap: 6px; }
+.tape .chip { font-weight: 700; }
+.timer { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; }
+.big-timer { font-size: 2.2rem; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 700; color: var(--muted); font-size: .9rem; }
+tr.eq td { background: var(--mint-soft); font-weight: 700; }
+
+/* Teacher stepper */
+ol.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+ol.steps li::before { content: counter(s); width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .9rem; background: var(--paper); border: 1px solid var(--line); }
+ol.steps li.done::before { content: "✓"; background: var(--mint); border-color: var(--mint); color: #fff; }
+ol.steps li.now::before { background: var(--foil); border-color: var(--foil); color: #23170f; }
+ol.steps li .btn { justify-self: start; }
+
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.roster .who { padding: 6px 8px; border-radius: var(--r-sm); border: 1px solid var(--line); font-size: .9rem; display: flex; justify-content: space-between; gap: 6px; }
+.roster .who.buyer { border-left: 4px solid var(--buyer); } .roster .who.seller { border-left: 4px solid var(--seller); }
+.roster .who.done { background: var(--mint-soft); }
+
+.chart-box { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 220px; }
+.chart-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Projector overlay */
+.projector { position: fixed; inset: 0; z-index: 50; background: var(--paper); display: grid; grid-template-columns: 1fr 340px; gap: 20px; padding: calc(16px + env(safe-area-inset-top, 0px)) 20px calc(16px + env(safe-area-inset-bottom, 0px)); }
+.projector .chart-box { aspect-ratio: auto; height: 100%; }
+.projector .side { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+.projector .code { font-family: var(--font-display); font-size: 3.4rem; font-weight: 800; letter-spacing: .12em; line-height: 1; }
+@media (max-width: 900px) { .projector { grid-template-columns: 1fr; grid-template-rows: 1fr auto; } }
+
+.envelope { border-radius: var(--r-md); padding: 18px; background: var(--cocoa); color: #fbf3ea; text-align: center; }
+.envelope .seal { width: 54px; height: 54px; border-radius: 50%; background: var(--foil); margin: 0 auto 8px; display: grid; place-items: center; font-weight: 800; color: #23170f; }
+.envelope.open { animation: openup .9s cubic-bezier(.2,.8,.2,1); }
+.envelope .pred { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--foil-2); }
+@keyframes openup { 0% { transform: rotateX(70deg) scale(.9); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .envelope.open { animation: none; } }
+
+.qr { background: #fff; padding: 8px; border-radius: 8px; width: max-content; }
+.qr img, .qr canvas { display: block; }
+
+/* Tasks */
+.tier { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; margin: 18px 0 8px; display: flex; align-items: center; gap: 8px; }
+.tier .chip { font-family: var(--font-body); font-weight: 400; }
+.task { border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; background: var(--panel); }
+.task + .task { margin-top: 10px; }
+.task.solved { border-color: var(--mint); }
+.task .ref { font-size: .82rem; color: var(--muted); }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.opt { min-width: 48px; min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); font-weight: 700; cursor: pointer; padding: 6px 12px; }
+.opt.sel { border-color: var(--cocoa); background: var(--cocoa); color: #fbf3ea; }
+.frames { font-size: .95rem; color: var(--muted); margin: 6px 0; padding-left: 18px; }
+.plot svg { width: 100%; max-width: 420px; height: auto; touch-action: manipulation; user-select: none; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 8px 14px; font-weight: 700; cursor: pointer; min-height: 40px; }
+.seg button.on.d { background: var(--buyer); color: #fff; } .seg button.on.s { background: var(--seller); color: #fff; }
+
+/* Glossary */
+.term { border: 0; background: none; padding: 0; font: inherit; color: inherit; text-decoration: underline dotted 2px; text-underline-offset: 3px; cursor: help; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 80; background: var(--panel); border-top: 3px solid var(--foil); padding: 16px 18px calc(18px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -8px 24px rgba(0,0,0,.18); max-width: 640px; margin: 0 auto; border-radius: 16px 16px 0 0; }
+.sheet .vi { color: var(--muted); }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 90; background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font-weight: 700; max-width: 92vw; text-align: center; }
+
+.poll-bar { height: 12px; border-radius: 6px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; }
+.poll-bar > i { display: block; height: 100%; background: var(--foil); }
+
+details summary { cursor: pointer; font-weight: 700; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.hidden { display: none !important; }
+.topbar .btn.primary { background: var(--foil); border-color: var(--foil); color: #23170f; }
+.dot.ok, .dot.bad, .dot.wait { padding: 0; border: 0; border-radius: 50%; width: 9px; height: 9px; }
+.dot.bad { background: var(--seller); }
+
+/* ===== Level 0 additions ===== */
+.fx { position: fixed; inset: 0; pointer-events: none; z-index: 95; width: 100vw; height: 100vh; }
+.lead { font-size: 1.15rem; }
+.code-big { font-family: var(--font-display); font-size: 2rem; font-weight: 800; letter-spacing: .12em; line-height: 1.1; }
+.art-join { width: 90px; }
+.art-join svg, .art svg, .art-big svg { width: 100%; height: auto; display: block; }
+kbd { font-family: var(--font-body); font-size: .72em; font-weight: 700; padding: 1px 6px; border-radius: 5px; border: 1px solid currentColor; opacity: .6; margin-left: 4px; }
+@media (hover: none) { kbd { display: none; } }
+
+/* student two-column layout for tablets and laptops */
+.sgrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 820px) { .sgrid { grid-template-columns: 1fr; } }
+.ask-mini { position: relative; }
+.ask-mini .art { width: 92px; float: right; margin: 0 0 6px 12px; }
+.ask-mini.demand { border-top: 6px solid var(--buyer-card); }
+.ask-mini.supply { border-top: 6px solid var(--seller-card); }
+.yn { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; clear: both; }
+.yn .btn { min-height: 72px; font-size: 1.5rem; border-radius: 16px; border-width: 2px; }
+.yn .btn.yes.sel { background: var(--mint); border-color: var(--mint); color: #fff; }
+.yn .btn.no.sel { background: var(--seller-card); border-color: var(--seller-card); color: #fff; }
+.opt.big { min-height: 60px; font-size: 1.15rem; padding: 8px 20px; }
+tr.cur td { background: var(--warn-soft); font-weight: 700; }
+
+.bdg { font-size: 1.6rem; line-height: 1; display: inline-block; }
+.bdg.off { filter: grayscale(1); opacity: .3; }
+.bdg.big { font-size: 2.6rem; }
+.badgewall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.bw { border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; background: var(--panel); }
+.bw.locked { opacity: .45; filter: grayscale(1); }
+.meter { height: 16px; border-radius: 8px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; margin-top: 4px; }
+.meter > i { display: block; height: 100%; background: linear-gradient(90deg, var(--foil), var(--foil-2)); transition: width .6s ease; }
+.feed-item { padding: 4px 0; border-bottom: 1px dashed var(--line); }
+
+/* robot deals */
+.chat { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px; }
+.msg { max-width: 82%; padding: 8px 12px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line); }
+.msg .who { display: block; font-size: .78rem; color: var(--muted); font-weight: 700; }
+.msg.y { align-self: flex-end; background: var(--buyer-soft); }
+.dline { width: 100%; max-width: 460px; height: auto; display: block; margin: 4px 0; }
+
+/* projector, Level 0 */
+.projector.l0 { grid-template-columns: 1fr 320px; }
+.pmain { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.news { display: flex; align-items: center; gap: 14px; background: var(--cocoa); color: #fbf3ea; border-radius: var(--r-md); padding: 12px 16px; font-size: clamp(1.05rem, 1.6vw, 1.4rem); }
+.news .flag { background: var(--foil); color: #23170f; font-weight: 800; padding: 4px 10px; border-radius: 6px; white-space: nowrap; font-family: var(--font-display); }
+.news.slide { animation: slidein .6s cubic-bezier(.2,.8,.2,1); }
+@keyframes slidein { from { transform: translateY(-30px); opacity: 0; } to { transform: none; opacity: 1; } }
+.pstage { flex: 1; min-height: 0; display: flex; }
+.pstage > * { flex: 1; min-height: 0; }
+.lobby-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; }
+.lobby-stage h1 { font-size: clamp(2rem, 4vw, 3.4rem); }
+.art-big { width: clamp(120px, 14vw, 200px); }
+.bubbles { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 900px; }
+.bubble { padding: 6px 14px; border-radius: 999px; background: var(--panel); border: 2px solid var(--foil); font-weight: 700; animation: pop .4s ease; }
+.ask-stage { display: grid; grid-template-columns: minmax(260px, 34%) 1fr; gap: 18px; min-height: 0; }
+.ask-stage.wide { grid-template-columns: 1fr minmax(240px, 30%); }
+.ask-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px; display: flex; flex-direction: column; gap: 10px; overflow: auto; }
+.ask-card.demand { border-top: 8px solid var(--buyer-card); } .ask-card.supply { border-top: 8px solid var(--seller-card); }
+.ask-card .art { width: 46%; max-width: 170px; align-self: center; }
+.ask-card h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); }
+.ask-card .story { font-size: 1.05rem; margin: 0; }
+.pricetag { align-self: center; font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 4.5vw, 3.8rem); background: var(--foil); color: #23170f; padding: 4px 22px; border-radius: 14px; transform: rotate(-3deg); box-shadow: 0 6px 0 rgba(0,0,0,.18); }
+.yescount { display: flex; align-items: baseline; gap: 10px; justify-content: center; }
+.yescount span { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.4rem, 5vw, 4.4rem); line-height: 1; }
+.yescount.pop span { animation: pop .35s ease; }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.chart-box.tall { aspect-ratio: auto; height: 100%; min-height: 300px; }
+.chart-box.mid { aspect-ratio: 16 / 7; }
+.meet-text { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; overflow: auto; }
+.selfpace, .finish { display: flex; flex-direction: column; gap: 12px; overflow: auto; }
+.roster.big .who { font-size: 1.05rem; padding: 10px; }
+@media (prefers-reduced-motion: reduce) { .bubble, .yescount.pop span, .news.slide { animation: none; } .meter > i { transition: none; } }
+@media (max-width: 900px) { .projector.l0 { grid-template-columns: 1fr; } .ask-stage, .ask-stage.wide { grid-template-columns: 1fr; } }
+.bar.compact .body { padding: 10px 14px 12px; }
+.bar.compact .slab { width: 84px; height: 84px; }
+.bar.compact .slab span { font-size: 2.5rem; }
+.bar.compact .role { font-size: 1.25rem; }
+.sgrid.wide-main { grid-template-columns: minmax(0, 1fr) 230px; }
+.deal-grid { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start; }
+@media (min-width: 900px) { .deal-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .deal-grid .chat { max-height: 520px; } }
+@media (max-width: 820px) { .sgrid.wide-main { grid-template-columns: 1fr; } }
+.profile { border-radius: var(--r-md); padding: 12px 14px; color: #fff; }
+.profile.buyer { background: var(--buyer-card); } .profile.seller { background: var(--seller-card); }
+.profile .pname { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; }
+.profile .psub { opacity: .9; font-size: .92rem; }
+.profile .pgrid { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; margin-top: 6px; }
+.profile .term { color: #fff; }
+.yn.three { grid-template-columns: repeat(3, 1fr); }
+.btn.qty { flex-direction: column; gap: 0; min-height: 84px; font-size: 1.8rem; line-height: 1.1; }
+.btn.qty small { font-size: .78rem; font-weight: 700; opacity: .8; }
+.btn.qty.sel { background: var(--cocoa); border-color: var(--cocoa); color: #fbf3ea; }
+table.helper td, table.helper th { text-align: left; }
+.ok, .okt { color: var(--mint); font-weight: 800; } .no, .not { color: var(--seller); font-weight: 800; }
+/* knowledge check */
+.paper .mcq { border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; background: var(--panel); }
+.paper .mcq.right { border-color: var(--mint); } .paper .mcq.wrong { border-color: var(--seller); }
+.mq { display: grid; grid-template-columns: 34px 1fr; gap: 8px; font-size: 1.05rem; }
+.qn { width: 30px; height: 30px; border-radius: 50%; background: var(--cocoa); color: #fbf3ea; display: grid; place-items: center; font-weight: 800; }
+.mopts { display: grid; gap: 8px; margin: 10px 0 8px 42px; }
+.mopt { display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 8px; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 8px 12px; min-height: 48px; cursor: pointer; }
+.mopt .ml { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--muted); display: grid; place-items: center; font-weight: 800; }
+.mopt.sel { border-color: var(--cocoa); background: var(--warn-soft); } .mopt.sel .ml { background: var(--cocoa); color: #fbf3ea; border-color: var(--cocoa); }
+.mopt.correct { border-color: var(--mint); } .mopt.correct .ml { border-color: var(--mint); color: var(--mint); }
+.mopt:disabled { cursor: default; }
+.mcq-table { margin-top: 8px; max-width: 420px; } .mcq-table td, .mcq-table th { text-align: center; }
+#ckTimer.late { color: var(--seller); }
+.cbar { display: grid; grid-template-columns: 1fr 160px 50px; gap: 10px; align-items: center; font-size: 1.1rem; }
+@media (max-width: 640px) { .mopts { margin-left: 0; } }
+/* status dots must not pick up the alert-box styles of .good/.bad */
+.dot.ok, .dot.bad, .dot.wait { padding: 0; border: 0; border-radius: 50%; width: 9px; height: 9px; }
+.dot.bad { background: var(--seller); }
+.profile .bignum { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; }
+
+.home-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .home-grid { grid-template-columns: 1fr; } }
+.level { border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; display: flex; flex-direction: column; gap: 8px; background: var(--panel); }
+.level .tag { font-family: var(--font-display); font-weight: 800; color: var(--foil); letter-spacing: .05em; }
+.ok-t { color: var(--mint); font-weight: 700; } .bad-t { color: var(--seller); font-weight: 700; }
+.join-card { border-top: 6px solid var(--foil); }
+</style>
+<script src="config.js"></script>
+</head><body>
+<header class="topbar"><span class="brand">EcoLogic Market Lab</span><span class="chip">Chợ Lớp 9 · IGCSE Economics 0455</span><span class="spacer"></span><span class="chip" id="status"></span></header>
+<main class="wrap stack">
+  <div class="home-grid">
+    <section class="panel stack join-card" id="studentCard">
+      <h1 style="margin:0">Join a lesson</h1>
+      <p style="margin:0">Type the room code on the board and your nickname.</p>
+      <div><label class="field" for="rc">Room code</label><input id="rc" class="code-input" type="text" maxlength="4" autocomplete="off" autocapitalize="characters"></div>
+      <div><label class="field" for="nn">Nickname <span class="muted">(or shop team name)</span></label><input id="nn" type="text" maxlength="18" autocomplete="off" placeholder="e.g. Trà Sữa Fan"><small class="muted">Use the same nickname every lesson. Not your full name.</small></div>
+      <button class="btn primary block" id="join">Join</button>
+      <div id="joinMsg"></div><div id="modeNote"></div>
+    </section>
+    <section class="stack">
+      <div class="panel stack">
+        <h2 style="margin:0">For teachers</h2>
+        <p style="margin:0">Three levels, in this order. Choose the same good (trà sữa, bánh mì or chocolate) in both. Open the lesson on the computer connected to the projector.</p>
+        <div class="level"><span class="tag">LESSON 1 · LEVEL 0</span><h3 style="margin:0">The market opens</h3>
+          <p style="margin:0">Buyer and business cards, how much to buy and make at each price, the class demand and supply curves, Robo-Trader deals and a Paper 1 style check.</p>
+          <p class="muted" style="margin:0">Syllabus 2.1–2.4 and 3.6 · about 60–70 minutes</p>
+          <div class="row"><a class="btn primary" href="level0.html?mode=teacher">Open Level 0</a></div></div>
+        <div class="level"><span class="tag">LESSON 2 · LEVEL 1</span><h3 style="margin:0">The trading floor</h3>
+          <p style="margin:0">A live market with one card each. Three rounds, the sealed envelope, a marked Paper 2 style debrief with AI marking, and a Paper 1 style check. Lesson grades out of 25.</p>
+          <p class="muted" style="margin:0">Syllabus 2.1.1, 2.2.1, 2.3.1, 2.4.1–2.4.3 · about 60–70 minutes</p>
+          <div class="row"><a class="btn primary" href="level1.html?mode=teacher">Open Level 1</a></div></div>
+        <div class="level"><span class="tag">LESSONS 3–4 · LEVEL 2 · BLENDED</span><h3 style="margin:0">The real market</h3>
+          <p style="margin:0">Real chocolate and candy in the room. Buyers have a number and play money; five shops haggle and record every sale on a laptop till. Cacao and sugar harvest shocks, Halloween, and a price lock.</p>
+          <p class="muted" style="margin:0">Syllabus 2.1–2.5 and opportunity cost · two lessons of about 60 minutes · shop teams join here with the room code</p>
+          <div class="row"><a class="btn primary" href="level2.html?mode=teacher">Open Level 2</a></div></div>
+      </div>
+      <details class="panel"><summary>Setup check</summary>
+        <div class="stack" style="margin-top:10px">
+          <div id="cfg"></div>
+          <div class="row"><button class="btn small" id="btnConn">Test the online connection</button><span id="tConn"></span></div>
+          <div class="row"><button class="btn small" id="btnMark">Test AI marking</button><span id="tMark"></span></div>
+          <p class="muted" style="margin:0">Run both tests on the school network before the first lesson.</p>
+        </div></details>
+    </section>
+  </div>
+</main>
+<div id="toast" class="toast hidden"></div>
+<script>
+/* EcoLogic Market Lab: home page. Students join any lesson with its room code;
+   teachers open a level; the setup check tests the online connection and AI marking. */
+const CONFIG = Object.assign({ supabaseUrl: '', supabaseAnonKey: '', markerUrl: '' }, window.MARKET_CONFIG || {});
+const ONLINE_READY = !!(String(CONFIG.supabaseUrl).trim() && String(CONFIG.supabaseAnonKey).trim());
+const SUPABASE_SRC = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
+const PARAMS = new URLSearchParams(location.search);
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const CHANNEL = room => 'ecologic-market:' + room;
+function toast(msg, ms = 3000) { const el = $('#toast'); el.textContent = msg; el.classList.remove('hidden'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.add('hidden'), ms); }
+let sbLoading = null;
+function loadSupabase() {
+  if (window.supabase) return Promise.resolve();
+  if (!sbLoading) sbLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = SUPABASE_SRC; s.onload = res; s.onerror = () => { sbLoading = null; rej(new Error('Could not load the Supabase library. Check the internet connection.')); }; document.head.appendChild(s); });
+  return sbLoading;
+}
+let sbClient = null;
+async function client() { await loadSupabase(); return sbClient ||= window.supabase.createClient(CONFIG.supabaseUrl.trim(), CONFIG.supabaseAnonKey.trim()); }
+
+/* ---- find which level a room belongs to, then open it ---- */
+async function findRoom(room, local) {
+  return new Promise(async (resolve, reject) => {
+    let done = false, cleanup = () => { };
+    const finish = (lvl) => { if (done) return; done = true; clearTimeout(timer); cleanup(); resolve(lvl); };
+    const timer = setTimeout(() => finish(null), 9000);
+    const onMsg = m => { if (m && m.from === 'teacher' && m.type === 'state' && (m.level === 0 || m.level === 1 || m.level === 2)) finish(m.level); };
+    try {
+      const ask = { type: 'whois', from: 'join-page', room };
+      if (local) { const bc = new BroadcastChannel(CHANNEL(room)); bc.onmessage = e => onMsg(e.data); bc.postMessage(ask); cleanup = () => bc.close(); }
+      else {
+        const c = await client(), ch = c.channel(CHANNEL(room), { config: { broadcast: { self: false } } });
+        ch.on('broadcast', { event: 'm' }, ({ payload }) => onMsg(payload));
+        ch.subscribe(st => { if (st === 'SUBSCRIBED') ch.send({ type: 'broadcast', event: 'm', payload: ask }); if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT') { if (!done) { done = true; clearTimeout(timer); reject(new Error('Could not connect (' + st + ').')); } } });
+        cleanup = () => c.removeChannel(ch);
+      }
+    } catch (e) { clearTimeout(timer); reject(e); }
+  });
+}
+async function join() {
+  const room = $('#rc').value.trim().toUpperCase(), nick = $('#nn').value.trim().slice(0, 18);
+  if (room.length !== 4) return toast('Type the 4-letter room code from the board.');
+  if (!nick) return toast('Type a nickname.');
+  try { localStorage.setItem('ecologic-market:nick', JSON.stringify(nick)); } catch { }
+  const local = PARAMS.get('t') === 'local' || !ONLINE_READY;
+  const btn = $('#join'), msg = $('#joinMsg');
+  btn.disabled = true; btn.textContent = 'Looking for the room…'; msg.innerHTML = '';
+  try {
+    const lvl = await findRoom(room, local);
+    if (lvl == null) {
+      msg.innerHTML = `<div class="bad">No open room called <b>${esc(room)}</b> was found. Check the code on the board, and check that your teacher's room is open.${local ? ' (Test mode: the teacher\'s tab must be open in this same browser.)' : ''}</div>`;
+    } else {
+      const u = new URL(`level${lvl}.html`, location.href);
+      u.searchParams.set('room', room); u.searchParams.set('nick', nick); if (local) u.searchParams.set('t', 'local');
+      location.href = u.toString(); return;
+    }
+  } catch (e) { msg.innerHTML = `<div class="bad">${esc(e.message)}</div>`; }
+  btn.disabled = false; btn.textContent = 'Join';
+}
+
+/* ---- setup check (teacher) ---- */
+async function testConnection() {
+  const out = $('#tConn');
+  if (!ONLINE_READY) { out.innerHTML = '<span class="bad-t">Not set up: add your Supabase URL and key to config.js.</span>'; return; }
+  out.textContent = 'Testing…';
+  try {
+    const c = await client(), id = 'selftest-' + Math.random().toString(36).slice(2, 8);
+    const ch = c.channel('ecologic-market:' + id, { config: { broadcast: { self: true } } });
+    const ok = await new Promise(res => {
+      const t = setTimeout(() => res(false), 10000);
+      ch.on('broadcast', { event: 'm' }, () => { clearTimeout(t); res(true); });
+      ch.subscribe(st => { if (st === 'SUBSCRIBED') ch.send({ type: 'broadcast', event: 'm', payload: { ping: 1 } }); if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT') { clearTimeout(t); res(false); } });
+    });
+    c.removeChannel(ch);
+    out.innerHTML = ok ? '<span class="ok-t">✓ Connected. Students can join from their own devices.</span>' : '<span class="bad-t">✗ Could not send a test message. Check the URL and key in config.js, and that Realtime allows public channels.</span>';
+  } catch (e) { out.innerHTML = `<span class="bad-t">✗ ${esc(e.message)}</span>`; }
+}
+async function testMarking() {
+  const out = $('#tMark');
+  const url = CONFIG.markerUrl || (CONFIG.supabaseUrl ? CONFIG.supabaseUrl.trim().replace(/\/$/, '') + '/functions/v1/mark' : '');
+  if (!url) { out.innerHTML = '<span class="bad-t">Not set up: AI marking needs the Supabase details in config.js and the "mark" function deployed.</span>'; return; }
+  out.textContent = 'Sending a sample answer…';
+  const headers = { 'content-type': 'application/json' }, key = String(CONFIG.supabaseAnonKey || '').trim();
+  if (key) { headers.apikey = key; if (key.startsWith('eyJ')) headers.Authorization = 'Bearer ' + key; }
+  const answer = 'The price settled at about 30.000đ. Businesses with ingredient costs below 30.000đ could sell and make a profit. Businesses with costs above the price would make a loss, so they did not sell.';
+  try {
+    const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ qid: 'l1-price-mechanism', answer, context: { good: 'trà sữa', unit: 'cup', price: '30.000đ', qty: 8, avg: '31.000đ' } }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || typeof j.mark !== 'number') { out.innerHTML = `<span class="bad-t">✗ The marker replied with an error (${r.status}${j.error ? ': ' + esc(j.error) : ''}). Check that the function is deployed with --no-verify-jwt and that ANTHROPIC_API_KEY is set.</span>`; return; }
+    out.innerHTML = `<span class="ok-t">✓ AI marking works.</span> The sample answer got <b>${j.mark} / 4</b>. <span class="muted">${esc(j.feedback || '')}</span><br><small class="muted">A good marker gives this sample 2 or 3: it makes the cost points but does not mention buyers.</small>`;
+  } catch (e) { out.innerHTML = `<span class="bad-t">✗ Could not reach the marker: ${esc(e.message)}</span>`; }
+}
+
+/* ---- page ---- */
+(function boot() {
+  const room = (PARAMS.get('room') || '').toUpperCase();
+  let nick = ''; try { nick = JSON.parse(localStorage.getItem('ecologic-market:nick') || '""'); } catch { }
+  const local = PARAMS.get('t') === 'local' || !ONLINE_READY;
+  $('#status').innerHTML = ONLINE_READY ? '<span class="dot ok"></span>Online' : '<span class="dot wait"></span>Test mode only';
+  $('#rc').value = room; $('#nn').value = nick;
+  if (local) $('#modeNote').innerHTML = `<p class="note" style="margin:0">Test mode: this only finds rooms opened in another tab of this browser.${ONLINE_READY ? '' : ' To let students join from their own devices, add the Supabase details to config.js.'}</p>`;
+  $('#join').onclick = join; $('#nn').onkeydown = e => { if (e.key === 'Enter') join(); }; $('#rc').onkeydown = e => { if (e.key === 'Enter') $('#nn').focus(); };
+  (room ? $('#nn') : $('#rc')).focus();
+  if (room) $('#studentCard').scrollIntoView();
+  $('#cfg').innerHTML = `<div class="kv"><span>config.js</span><b>${window.MARKET_CONFIG ? '✓ loaded' : '✗ not found (test mode only)'}</b><span>Online joining</span><b>${ONLINE_READY ? '✓ Supabase details present' : '✗ add supabaseUrl and supabaseAnonKey'}</b><span>AI marking</span><b>${CONFIG.markerUrl || ONLINE_READY ? 'uses ' + esc(CONFIG.markerUrl || 'your Supabase "mark" function') : '✗ needs Supabase (keyword estimate is used instead)'}</b></div>`;
+  $('#btnConn').onclick = testConnection; $('#btnMark').onclick = testMarking;
+})();
+
+</script>
+</body></html>
