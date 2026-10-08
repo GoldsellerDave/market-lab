@@ -379,10 +379,13 @@ table.helper td, table.helper th { text-align: left; }
           <p style="margin:0">A live market with one card each. Three rounds, the sealed envelope, a marked Paper 2 style debrief with AI marking, and a Paper 1 style check. Lesson grades out of 25.</p>
           <p class="muted" style="margin:0">Syllabus 2.1.1, 2.2.1, 2.3.1, 2.4.1–2.4.3 · about 60–70 minutes</p>
           <div class="row"><a class="btn primary" href="level1.html?mode=teacher">Open Level 1</a></div></div>
-        <div class="level"><span class="tag">LESSONS 3–4 · LEVEL 2 · BLENDED</span><h3 style="margin:0">The real market</h3>
-          <p style="margin:0">Real chocolate and candy in the room. Buyers have a number and play money; five shops haggle and record every sale on a laptop till. Cacao and sugar harvest shocks, Halloween, and a price lock.</p>
-          <p class="muted" style="margin:0">Syllabus 2.1–2.5 and opportunity cost · two lessons of about 60 minutes · shop teams join here with the room code</p>
+        <div class="level"><span class="tag">LESSONS 3–4 · LEVEL 2</span><h3 style="margin:0">The market with prizes</h3>
+          <p style="margin:0">Everyone trades online. Five shops sell chocolate and candy; buyers with value cards buy at the shop's price or make offers and counter-offers (or use fast mode, an open order book). Cacao and sugar harvests, Halloween and a price lock; the board explains signal, incentive and rationing. Gains and profits turn into real sweets.</p>
+          <p class="muted" style="margin:0">Syllabus 2.1–2.4, bridging into 2.5 · two lessons of about 60 minutes · robots fill empty places</p>
           <div class="row"><a class="btn primary" href="level2.html?mode=teacher">Open Level 2</a></div></div>
+        <div class="level"><span class="tag">OPTIONAL EXTRA · REAL GOODS</span><h3 style="margin:0">The real market (blended)</h3>
+          <p style="margin:0">Real chocolate and candy in the room, play money, and five laptop tills. For engagement after Level 2; see the README for the classroom rules it needs.</p>
+          <div class="row"><a class="btn" href="blended.html?mode=teacher">Open the real goods market</a></div></div>
       </div>
       <details class="panel"><summary>Setup check</summary>
         <div class="stack" style="margin-top:10px">
@@ -421,7 +424,7 @@ async function findRoom(room, local) {
     let done = false, cleanup = () => { };
     const finish = (lvl) => { if (done) return; done = true; clearTimeout(timer); cleanup(); resolve(lvl); };
     const timer = setTimeout(() => finish(null), 9000);
-    const onMsg = m => { if (m && m.from === 'teacher' && m.type === 'state' && (m.level === 0 || m.level === 1 || m.level === 2)) finish(m.level); };
+    const onMsg = m => { if (m && m.from === 'teacher' && m.type === 'state' && /^[a-z0-9-]+\.html$/.test(m.page || '')) finish(m.page); else if (m && m.from === 'teacher' && m.type === 'state' && (m.level === 0 || m.level === 1 || m.level === 2)) finish(m.level); };
     try {
       const ask = { type: 'whois', from: 'join-page', room };
       if (local) { const bc = new BroadcastChannel(CHANNEL(room)); bc.onmessage = e => onMsg(e.data); bc.postMessage(ask); cleanup = () => bc.close(); }
@@ -447,7 +450,7 @@ async function join() {
     if (lvl == null) {
       msg.innerHTML = `<div class="bad">No open room called <b>${esc(room)}</b> was found. Check the code on the board, and check that your teacher's room is open.${local ? ' (Test mode: the teacher\'s tab must be open in this same browser.)' : ''}</div>`;
     } else {
-      const u = new URL(`level${lvl}.html`, location.href);
+      const u = new URL(typeof lvl === 'string' ? lvl : `level${lvl}.html`, location.href);
       u.searchParams.set('room', room); u.searchParams.set('nick', nick); if (local) u.searchParams.set('t', 'local');
       location.href = u.toString(); return;
     }

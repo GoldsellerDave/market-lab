@@ -1,0 +1,1255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chợ Lớp 9 blended market: EcoLogic Market Lab Level 2</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍬</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cocoa: #3a2217;
+  --cocoa-2: #5b3826;
+  --ink: #23170f;
+  --muted: #6d6158;
+  --paper: #f3f4f7;
+  --panel: #ffffff;
+  --line: #dcd8de;
+  --foil: #d8a21f;
+  --foil-2: #f2cf6b;
+  --buyer: #12648c;
+  --buyer-soft: #e2eff6;
+  --seller: #b02a3f;
+  --seller-soft: #f8e5e8;
+  --mint: #22805a;
+  --mint-soft: #e1f2e9;
+  --warn: #9a5b00;
+  --warn-soft: #fbf0dc;
+  --shadow: 0 1px 2px rgba(35, 23, 15, .08), 0 6px 18px rgba(35, 23, 15, .06);
+  --r-sm: 8px;
+  --r-md: 14px;
+  --buyer-card: #12648c;
+  --seller-card: #b02a3f;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --font-display: "Bricolage Grotesque", "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #f3ebe4; --muted: #b8aca2; --paper: #17120f; --panel: #221b16; --line: #3c322b;
+    --buyer: #5fb3dc; --buyer-soft: #16303d; --seller: #ec7a8c; --seller-soft: #3d1c22;
+    --mint: #5cc79a; --mint-soft: #16332a; --warn: #f0b85a; --warn-soft: #3a2c12;
+    --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #f3ebe4; --muted: #b8aca2; --paper: #17120f; --panel: #221b16; --line: #3c322b;
+  --buyer: #5fb3dc; --buyer-soft: #16303d; --seller: #ec7a8c; --seller-soft: #3d1c22;
+  --mint: #5cc79a; --mint-soft: #16332a; --warn: #f0b85a; --warn-soft: #3a2c12;
+  --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; min-height: 100%; background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0 0 .4em; letter-spacing: -.01em; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); font-weight: 800; }
+h2 { font-size: 1.3rem; font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0 0 .8em; max-width: 68ch; }
+small, .muted { color: var(--muted); }
+a { color: var(--buyer); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--foil); outline-offset: 2px; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 16px; }
+.narrow { max-width: 520px; margin: 0 auto; padding: 16px; }
+
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 16px; background: var(--cocoa); color: #fbf3ea;
+}
+.topbar .brand { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; }
+.topbar .spacer { flex: 1; }
+.topbar .chip { background: rgba(255,255,255,.12); color: #fbf3ea; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; box-shadow: var(--shadow); }
+.panel + .panel { margin-top: 14px; }
+.stack > * + * { margin-top: 12px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  border-radius: 999px; padding: 10px 18px; font-weight: 700; cursor: pointer; min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+}
+.btn:hover { border-color: var(--muted); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--cocoa); border-color: var(--cocoa); color: #fbf3ea; }
+:root[data-theme="dark"] .btn.primary { background: var(--foil); border-color: var(--foil); color: #23170f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { background: var(--foil); border-color: var(--foil); color: #23170f; } }
+.btn.buyer { background: var(--buyer-card); border-color: var(--buyer-card); color: #fff; }
+.btn.seller { background: var(--seller-card); border-color: var(--seller-card); color: #fff; }
+.btn.small { min-height: 34px; padding: 5px 12px; font-size: .9rem; }
+.btn.block { width: 100%; }
+.btn.ghost { background: transparent; }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: .88rem; background: var(--paper); border: 1px solid var(--line); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.dot.ok { background: var(--mint); } .dot.bad { background: var(--seller); } .dot.wait { background: var(--foil); }
+
+label.field { display: block; font-weight: 700; margin-bottom: 4px; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 12px; background: var(--panel); min-height: 44px;
+}
+textarea { min-height: 120px; resize: vertical; line-height: 1.45; }
+.code-input { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: .25em; text-transform: uppercase; text-align: center; }
+
+.note { padding: 10px 12px; border-radius: var(--r-sm); background: var(--warn-soft); color: var(--ink); border-left: 4px solid var(--warn); }
+.good { padding: 10px 12px; border-radius: var(--r-sm); background: var(--mint-soft); border-left: 4px solid var(--mint); }
+.bad { padding: 10px 12px; border-radius: var(--r-sm); background: var(--seller-soft); border-left: 4px solid var(--seller); }
+
+/* Home */
+.home-hero { padding: 40px 0 20px; }
+.home-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.choice { text-align: left; padding: 22px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--panel); cursor: pointer; box-shadow: var(--shadow); }
+.choice h2 { margin-bottom: .2em; }
+
+/* The chocolate bar card: the one bold element */
+.bar {
+  position: relative; border-radius: 16px; overflow: hidden; color: #fff; box-shadow: 0 10px 28px rgba(35,23,15,.25);
+  background: var(--buyer-card);
+}
+.bar.seller { background: var(--seller-card); }
+.bar .foil { height: 14px; background: linear-gradient(90deg, var(--foil), var(--foil-2), var(--foil), var(--foil-2)); }
+.bar .body { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 16px 18px 18px; }
+.bar .role { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; }
+.bar .say { font-size: 1rem; opacity: .95; margin: 2px 0 0; }
+.bar .slab {
+  width: 112px; height: 112px; border-radius: 10px; display: grid; place-items: center;
+  background:
+    linear-gradient(var(--cocoa) 0 0) padding-box,
+    var(--cocoa);
+  background-image:
+    linear-gradient(90deg, transparent 47%, rgba(0,0,0,.35) 47% 53%, transparent 53%),
+    linear-gradient(0deg, transparent 47%, rgba(0,0,0,.35) 47% 53%, transparent 53%),
+    linear-gradient(145deg, var(--cocoa-2), var(--cocoa));
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.12), inset 0 -3px 0 rgba(0,0,0,.25);
+}
+.bar .slab span { font-family: var(--font-display); font-size: 3.4rem; font-weight: 800; color: var(--foil-2); text-shadow: 0 2px 0 rgba(0,0,0,.4); line-height: 1; }
+.bar .slab small { display: block; color: #f6e2b0; text-align: center; font-size: .78rem; margin-top: 2px; }
+
+/* Market */
+.quotes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.quote { border-radius: var(--r-sm); padding: 10px 12px; border: 1px solid var(--line); background: var(--panel); }
+.quote .q-label { font-size: .88rem; color: var(--muted); }
+.quote .q-val { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; }
+.quote.bid .q-val { color: var(--buyer); } .quote.ask .q-val { color: var(--seller); }
+.stepper { display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; gap: 8px; }
+.stepper button { min-height: 56px; border-radius: 12px; font-size: 1.6rem; font-weight: 800; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+.stepper .val { text-align: center; font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; }
+.tape { display: flex; flex-wrap: wrap; gap: 6px; }
+.tape .chip { font-weight: 700; }
+.timer { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; }
+.big-timer { font-size: 2.2rem; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 700; color: var(--muted); font-size: .9rem; }
+tr.eq td { background: var(--mint-soft); font-weight: 700; }
+
+/* Teacher stepper */
+ol.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+ol.steps li::before { content: counter(s); width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .9rem; background: var(--paper); border: 1px solid var(--line); }
+ol.steps li.done::before { content: "✓"; background: var(--mint); border-color: var(--mint); color: #fff; }
+ol.steps li.now::before { background: var(--foil); border-color: var(--foil); color: #23170f; }
+ol.steps li .btn { justify-self: start; }
+
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.roster .who { padding: 6px 8px; border-radius: var(--r-sm); border: 1px solid var(--line); font-size: .9rem; display: flex; justify-content: space-between; gap: 6px; }
+.roster .who.buyer { border-left: 4px solid var(--buyer); } .roster .who.seller { border-left: 4px solid var(--seller); }
+.roster .who.done { background: var(--mint-soft); }
+
+.chart-box { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 220px; }
+.chart-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Projector overlay */
+.projector { position: fixed; inset: 0; z-index: 50; background: var(--paper); display: grid; grid-template-columns: 1fr 340px; gap: 20px; padding: calc(16px + env(safe-area-inset-top, 0px)) 20px calc(16px + env(safe-area-inset-bottom, 0px)); }
+.projector .chart-box { aspect-ratio: auto; height: 100%; }
+.projector .side { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+.projector .code { font-family: var(--font-display); font-size: 3.4rem; font-weight: 800; letter-spacing: .12em; line-height: 1; }
+@media (max-width: 900px) { .projector { grid-template-columns: 1fr; grid-template-rows: 1fr auto; } }
+
+.envelope { border-radius: var(--r-md); padding: 18px; background: var(--cocoa); color: #fbf3ea; text-align: center; }
+.envelope .seal { width: 54px; height: 54px; border-radius: 50%; background: var(--foil); margin: 0 auto 8px; display: grid; place-items: center; font-weight: 800; color: #23170f; }
+.envelope.open { animation: openup .9s cubic-bezier(.2,.8,.2,1); }
+.envelope .pred { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--foil-2); }
+@keyframes openup { 0% { transform: rotateX(70deg) scale(.9); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .envelope.open { animation: none; } }
+
+.qr { background: #fff; padding: 8px; border-radius: 8px; width: max-content; }
+.qr img, .qr canvas { display: block; }
+
+/* Tasks */
+.tier { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; margin: 18px 0 8px; display: flex; align-items: center; gap: 8px; }
+.tier .chip { font-family: var(--font-body); font-weight: 400; }
+.task { border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; background: var(--panel); }
+.task + .task { margin-top: 10px; }
+.task.solved { border-color: var(--mint); }
+.task .ref { font-size: .82rem; color: var(--muted); }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.opt { min-width: 48px; min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); font-weight: 700; cursor: pointer; padding: 6px 12px; }
+.opt.sel { border-color: var(--cocoa); background: var(--cocoa); color: #fbf3ea; }
+.frames { font-size: .95rem; color: var(--muted); margin: 6px 0; padding-left: 18px; }
+.plot svg { width: 100%; max-width: 420px; height: auto; touch-action: manipulation; user-select: none; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 8px 14px; font-weight: 700; cursor: pointer; min-height: 40px; }
+.seg button.on.d { background: var(--buyer); color: #fff; } .seg button.on.s { background: var(--seller); color: #fff; }
+
+/* Glossary */
+.term { border: 0; background: none; padding: 0; font: inherit; color: inherit; text-decoration: underline dotted 2px; text-underline-offset: 3px; cursor: help; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 80; background: var(--panel); border-top: 3px solid var(--foil); padding: 16px 18px calc(18px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -8px 24px rgba(0,0,0,.18); max-width: 640px; margin: 0 auto; border-radius: 16px 16px 0 0; }
+.sheet .vi { color: var(--muted); }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 90; background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font-weight: 700; max-width: 92vw; text-align: center; }
+
+.poll-bar { height: 12px; border-radius: 6px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; }
+.poll-bar > i { display: block; height: 100%; background: var(--foil); }
+
+details summary { cursor: pointer; font-weight: 700; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.hidden { display: none !important; }
+.topbar .btn.primary { background: var(--foil); border-color: var(--foil); color: #23170f; }
+.dot.ok, .dot.bad, .dot.wait { padding: 0; border: 0; border-radius: 50%; width: 9px; height: 9px; }
+.dot.bad { background: var(--seller); }
+
+/* ===== Level 0 additions ===== */
+.fx { position: fixed; inset: 0; pointer-events: none; z-index: 95; width: 100vw; height: 100vh; }
+.lead { font-size: 1.15rem; }
+.code-big { font-family: var(--font-display); font-size: 2rem; font-weight: 800; letter-spacing: .12em; line-height: 1.1; }
+.art-join { width: 90px; }
+.art-join svg, .art svg, .art-big svg { width: 100%; height: auto; display: block; }
+kbd { font-family: var(--font-body); font-size: .72em; font-weight: 700; padding: 1px 6px; border-radius: 5px; border: 1px solid currentColor; opacity: .6; margin-left: 4px; }
+@media (hover: none) { kbd { display: none; } }
+
+/* student two-column layout for tablets and laptops */
+.sgrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 820px) { .sgrid { grid-template-columns: 1fr; } }
+.ask-mini { position: relative; }
+.ask-mini .art { width: 92px; float: right; margin: 0 0 6px 12px; }
+.ask-mini.demand { border-top: 6px solid var(--buyer-card); }
+.ask-mini.supply { border-top: 6px solid var(--seller-card); }
+.yn { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; clear: both; }
+.yn .btn { min-height: 72px; font-size: 1.5rem; border-radius: 16px; border-width: 2px; }
+.yn .btn.yes.sel { background: var(--mint); border-color: var(--mint); color: #fff; }
+.yn .btn.no.sel { background: var(--seller-card); border-color: var(--seller-card); color: #fff; }
+.opt.big { min-height: 60px; font-size: 1.15rem; padding: 8px 20px; }
+tr.cur td { background: var(--warn-soft); font-weight: 700; }
+
+.bdg { font-size: 1.6rem; line-height: 1; display: inline-block; }
+.bdg.off { filter: grayscale(1); opacity: .3; }
+.bdg.big { font-size: 2.6rem; }
+.badgewall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.bw { border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; background: var(--panel); }
+.bw.locked { opacity: .45; filter: grayscale(1); }
+.meter { height: 16px; border-radius: 8px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; margin-top: 4px; }
+.meter > i { display: block; height: 100%; background: linear-gradient(90deg, var(--foil), var(--foil-2)); transition: width .6s ease; }
+.feed-item { padding: 4px 0; border-bottom: 1px dashed var(--line); }
+
+/* robot deals */
+.chat { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px; }
+.msg { max-width: 82%; padding: 8px 12px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line); }
+.msg .who { display: block; font-size: .78rem; color: var(--muted); font-weight: 700; }
+.msg.y { align-self: flex-end; background: var(--buyer-soft); }
+.dline { width: 100%; max-width: 460px; height: auto; display: block; margin: 4px 0; }
+
+/* projector, Level 0 */
+.projector.l0 { grid-template-columns: 1fr 320px; }
+.pmain { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.news { display: flex; align-items: center; gap: 14px; background: var(--cocoa); color: #fbf3ea; border-radius: var(--r-md); padding: 12px 16px; font-size: clamp(1.05rem, 1.6vw, 1.4rem); }
+.news .flag { background: var(--foil); color: #23170f; font-weight: 800; padding: 4px 10px; border-radius: 6px; white-space: nowrap; font-family: var(--font-display); }
+.news.slide { animation: slidein .6s cubic-bezier(.2,.8,.2,1); }
+@keyframes slidein { from { transform: translateY(-30px); opacity: 0; } to { transform: none; opacity: 1; } }
+.pstage { flex: 1; min-height: 0; display: flex; }
+.pstage > * { flex: 1; min-height: 0; }
+.lobby-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; }
+.lobby-stage h1 { font-size: clamp(2rem, 4vw, 3.4rem); }
+.art-big { width: clamp(120px, 14vw, 200px); }
+.bubbles { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 900px; }
+.bubble { padding: 6px 14px; border-radius: 999px; background: var(--panel); border: 2px solid var(--foil); font-weight: 700; animation: pop .4s ease; }
+.ask-stage { display: grid; grid-template-columns: minmax(260px, 34%) 1fr; gap: 18px; min-height: 0; }
+.ask-stage.wide { grid-template-columns: 1fr minmax(240px, 30%); }
+.ask-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px; display: flex; flex-direction: column; gap: 10px; overflow: auto; }
+.ask-card.demand { border-top: 8px solid var(--buyer-card); } .ask-card.supply { border-top: 8px solid var(--seller-card); }
+.ask-card .art { width: 46%; max-width: 170px; align-self: center; }
+.ask-card h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); }
+.ask-card .story { font-size: 1.05rem; margin: 0; }
+.pricetag { align-self: center; font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 4.5vw, 3.8rem); background: var(--foil); color: #23170f; padding: 4px 22px; border-radius: 14px; transform: rotate(-3deg); box-shadow: 0 6px 0 rgba(0,0,0,.18); }
+.yescount { display: flex; align-items: baseline; gap: 10px; justify-content: center; }
+.yescount span { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.4rem, 5vw, 4.4rem); line-height: 1; }
+.yescount.pop span { animation: pop .35s ease; }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.chart-box.tall { aspect-ratio: auto; height: 100%; min-height: 300px; }
+.chart-box.mid { aspect-ratio: 16 / 7; }
+.meet-text { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; overflow: auto; }
+.selfpace, .finish { display: flex; flex-direction: column; gap: 12px; overflow: auto; }
+.roster.big .who { font-size: 1.05rem; padding: 10px; }
+@media (prefers-reduced-motion: reduce) { .bubble, .yescount.pop span, .news.slide { animation: none; } .meter > i { transition: none; } }
+@media (max-width: 900px) { .projector.l0 { grid-template-columns: 1fr; } .ask-stage, .ask-stage.wide { grid-template-columns: 1fr; } }
+.bar.compact .body { padding: 10px 14px 12px; }
+.bar.compact .slab { width: 84px; height: 84px; }
+.bar.compact .slab span { font-size: 2.5rem; }
+.bar.compact .role { font-size: 1.25rem; }
+.sgrid.wide-main { grid-template-columns: minmax(0, 1fr) 230px; }
+.deal-grid { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start; }
+@media (min-width: 900px) { .deal-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .deal-grid .chat { max-height: 520px; } }
+@media (max-width: 820px) { .sgrid.wide-main { grid-template-columns: 1fr; } }
+.profile { border-radius: var(--r-md); padding: 12px 14px; color: #fff; }
+.profile.buyer { background: var(--buyer-card); } .profile.seller { background: var(--seller-card); }
+.profile .pname { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; }
+.profile .psub { opacity: .9; font-size: .92rem; }
+.profile .pgrid { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; margin-top: 6px; }
+.profile .term { color: #fff; }
+.yn.three { grid-template-columns: repeat(3, 1fr); }
+.btn.qty { flex-direction: column; gap: 0; min-height: 84px; font-size: 1.8rem; line-height: 1.1; }
+.btn.qty small { font-size: .78rem; font-weight: 700; opacity: .8; }
+.btn.qty.sel { background: var(--cocoa); border-color: var(--cocoa); color: #fbf3ea; }
+table.helper td, table.helper th { text-align: left; }
+.ok, .okt { color: var(--mint); font-weight: 800; } .no, .not { color: var(--seller); font-weight: 800; }
+/* knowledge check */
+.paper .mcq { border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; background: var(--panel); }
+.paper .mcq.right { border-color: var(--mint); } .paper .mcq.wrong { border-color: var(--seller); }
+.mq { display: grid; grid-template-columns: 34px 1fr; gap: 8px; font-size: 1.05rem; }
+.qn { width: 30px; height: 30px; border-radius: 50%; background: var(--cocoa); color: #fbf3ea; display: grid; place-items: center; font-weight: 800; }
+.mopts { display: grid; gap: 8px; margin: 10px 0 8px 42px; }
+.mopt { display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 8px; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 8px 12px; min-height: 48px; cursor: pointer; }
+.mopt .ml { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--muted); display: grid; place-items: center; font-weight: 800; }
+.mopt.sel { border-color: var(--cocoa); background: var(--warn-soft); } .mopt.sel .ml { background: var(--cocoa); color: #fbf3ea; border-color: var(--cocoa); }
+.mopt.correct { border-color: var(--mint); } .mopt.correct .ml { border-color: var(--mint); color: var(--mint); }
+.mopt:disabled { cursor: default; }
+.mcq-table { margin-top: 8px; max-width: 420px; } .mcq-table td, .mcq-table th { text-align: center; }
+#ckTimer.late { color: var(--seller); }
+.cbar { display: grid; grid-template-columns: 1fr 160px 50px; gap: 10px; align-items: center; font-size: 1.1rem; }
+@media (max-width: 640px) { .mopts { margin-left: 0; } }
+/* status dots must not pick up the alert-box styles of .good/.bad */
+.dot.ok, .dot.bad, .dot.wait { padding: 0; border: 0; border-radius: 50%; width: 9px; height: 9px; }
+.dot.bad { background: var(--seller); }
+.profile .bignum { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; }
+
+/* ===== Level 1 additions ===== */
+.trade-stage { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: 16px; min-height: 0; flex: 1; }
+.trade-stage + .ticker { flex: 0 0 auto; }
+.pstage { flex-direction: column; gap: 10px; }
+.chart-box.short { aspect-ratio: 16 / 7; min-height: 150px; }
+.ticker { display: flex; gap: 8px; overflow: hidden; min-height: 48px; align-items: center; }
+.tick-item { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--panel); border: 2px solid var(--foil); font-weight: 800; font-size: 1.1rem; white-space: nowrap; animation: tickin .5s cubic-bezier(.2,.8,.2,1); }
+.tick-item .tk-art { width: 22px; display: inline-block; } .tick-item .tk-art svg { width: 100%; height: auto; display: block; }
+@keyframes tickin { from { transform: translateX(-40px) scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
+.profile .bignum { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; }
+.timer.late { color: var(--seller); }
+#sMain.flash > .panel:nth-child(2) { animation: flashbg .8s ease; }
+@keyframes flashbg { 0% { box-shadow: 0 0 0 0 var(--mint); } 30% { box-shadow: 0 0 0 6px var(--mint); } 100% { box-shadow: var(--shadow); } }
+@media (prefers-reduced-motion: reduce) { .tick-item, #sMain.flash > .panel { animation: none; } }
+@media (max-width: 900px) { .trade-stage { grid-template-columns: 1fr; } }
+/* debrief layout: schedule and plot first, questions beside them on wide screens */
+.debrief-grid { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start; }
+@media (min-width: 1000px) { .debrief-grid { grid-template-columns: minmax(380px, 1fr) minmax(0, 1fr); } }
+.sticky-col .task { border: 0; padding: 0; margin-top: 8px; }
+table.sched tr.plotrow td { background: var(--warn-soft); }
+.markpill { font-weight: 800; font-size: .9rem; color: var(--muted); }
+.markpill.full { color: var(--mint); } .markpill.part { color: var(--warn); } .markpill.zero { color: var(--seller); }
+.scorebox { display: flex; flex-direction: column; align-items: flex-end; } .scorebox b { font-family: var(--font-display); font-size: 1.6rem; } .scorebox small { color: var(--muted); }
+.scorebox.big b { font-size: 2.2rem; }
+.grades tr.flag td { background: var(--seller-soft); font-weight: 700; }
+.mini-in { width: 64px; min-height: 34px; padding: 4px 6px; }
+.sgrid.wide-main { grid-template-columns: minmax(0, 1fr) 200px; }
+.mini-sched { position: sticky; top: calc(58px + env(safe-area-inset-top, 0px)); z-index: 5; padding: 8px 12px; }
+table.msched th, table.msched td { padding: 3px 8px; text-align: center; font-size: .92rem; }
+table.msched th { text-align: left; }
+.grades tr.inc td { background: var(--warn-soft); }
+.warn-t { color: var(--warn); font-weight: 700; }
+.sgrid.solo { grid-template-columns: minmax(0, 1fr); }
+table.sched td, table.sched th { padding: 4px 10px; }
+@media (min-width: 1000px) { .debrief-grid { grid-template-columns: minmax(420px, 1fr) minmax(0, 1.1fr); } }
+
+/* ===== Level 2: till and board ===== */
+.tillgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.prod.choc { border-top: 8px solid var(--seller-card); } .prod.candy { border-top: 8px solid var(--buyer-card); }
+.prodname { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; }
+.prodname .pa { width: 64px; display: inline-block; } .prodname .pa svg, .mart svg, .art-row svg { width: 100%; height: auto; display: block; }
+.stockdots { font-size: 1.4rem; letter-spacing: 2px; } .stockdots small { font-size: .85rem; letter-spacing: 0; color: var(--muted); }
+.unitrow { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.unitrow .u { border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; font-weight: 700; }
+.unitrow .u.done { opacity: .4; text-decoration: line-through; } .unitrow .u.cur { border-color: var(--foil); background: var(--warn-soft); }
+.bigin { font-family: var(--font-display); font-size: 2rem; text-align: center; min-height: 64px; }
+.soldbtn { min-height: 72px; font-size: 1.4rem; }
+.soldout { text-align: center; font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--muted); padding: 30px 0; }
+.lockpill { background: var(--warn-soft); border-radius: 999px; padding: 2px 10px; font-weight: 700; }
+.tillfoot { margin-top: 16px; gap: 20px; font-size: 1.1rem; }
+.evbar { display: flex; gap: 14px; flex-wrap: wrap; background: var(--cocoa); color: #fbf3ea; border-radius: var(--r-md); padding: 10px 14px; margin-bottom: 14px; font-weight: 700; }
+.shoppick { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.shopbtn { min-height: 110px; font-size: 2.6rem; font-family: var(--font-display); flex-direction: column; border-radius: 18px; }
+.shopbtn small { font-size: .85rem; font-family: var(--font-body); }
+.modal { position: fixed; inset: 0; z-index: 70; background: rgba(20, 12, 8, .55); display: grid; place-items: center; padding: 16px; }
+.mbox { background: var(--panel); border-radius: 18px; padding: 22px; max-width: 560px; width: 100%; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.mbox h2 { font-size: 1.6rem; margin: 0; } .mart { width: 90px; } .btn.big { min-height: 64px; font-size: 1.3rem; flex: 1; }
+#tMain.flash2 .tillgrid { animation: flashbg .8s ease; }
+.shopgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.shopcell { border: 1px dashed var(--line); border-radius: 10px; padding: 8px; text-align: center; display: flex; flex-direction: column; }
+.shopcell b { font-family: var(--font-display); font-size: 1.5rem; } .shopcell.on { border-style: solid; border-color: var(--mint); background: var(--mint-soft); }
+.shopcell small { font-size: .78rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+table.livegrid td, table.livegrid th { text-align: left; } .stock { letter-spacing: 2px; }
+.board-live table.livegrid { font-size: clamp(1.1rem, 2vw, 1.8rem); } .board-live .stock { font-size: 1.3em; }
+.board-live .row { font-size: clamp(1rem, 1.6vw, 1.4rem); }
+table.rounds-t { font-size: clamp(.95rem, 1.4vw, 1.25rem); }
+.lockbox { margin-top: 10px; padding: 10px 12px; border-radius: var(--r-sm); background: var(--warn-soft); border-left: 4px solid var(--warn); }
+.sales-log { max-height: 380px; overflow: auto; } .sales-log tr.undone td { text-decoration: line-through; color: var(--muted); }
+.banner { position: fixed; inset: 0; z-index: 60; background: rgba(35, 23, 15, .88); color: #fbf3ea; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; animation: tickin .5s ease; }
+.banner .b-icon { font-size: 6rem; } .banner .b-title { font-family: var(--font-display); font-size: clamp(2.4rem, 6vw, 5rem); font-weight: 800; }
+.banner .b-vi { font-size: clamp(1.4rem, 3vw, 2.4rem); color: var(--foil-2); } .banner .b-detail { font-size: clamp(1.2rem, 2.4vw, 2rem); }
+.art-row { display: flex; gap: 30px; justify-content: center; } .art-row svg { width: 160px; }
+/* printing */
+.print-only { display: none; }
+@media print {
+  body > *:not(#printArea) { display: none !important; }
+  #printArea { display: block !important; color: #000; }
+  .psheet { page-break-after: always; } .psheet h2 { font-size: 16pt; }
+  .pgrid-num { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6mm; }
+  .numtag { border: 2px solid #000; border-radius: 4mm; height: 32mm; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 36pt; font-weight: 800; }
+  .numtag small { font-size: 10pt; font-weight: 400; }
+  .shopsign { border: 3px solid #000; height: 120mm; display: flex; align-items: center; justify-content: center; font-size: 110pt; font-weight: 800; page-break-after: always; }
+  .cashrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-bottom: 6mm; }
+  .note-cash { border: 2px dashed #000; height: 30mm; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 26pt; font-weight: 800; }
+  .note-cash small { font-size: 8pt; font-weight: 400; }
+}
+.prodname .pa { height: 44px; display: inline-flex; align-items: center; }
+.prodname .pa svg { max-height: 44px; }
+.board-live .tick-item { font-size: clamp(1rem, 1.6vw, 1.4rem); }
+table.rounds-t td { white-space: nowrap; } table.rounds-t td:first-child, table.rounds-t td:nth-child(2) { white-space: normal; }
+.tillgrid > .panel { margin-top: 0; }
+
+</style>
+<script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<noscript>This activity needs JavaScript turned on.</noscript>
+<script>
+/* =====================================================================
+   EcoLogic Market Lab, Level 2: the blended market (real goods, haggling, tills)
+   Cambridge IGCSE Economics 0455 (2027-2029): 2.1.1, 2.2.1, 2.2.2, 2.3.1, 2.3.2, 2.4.2, 2.4.3
+   ===================================================================== */
+
+/* ---- Deployment settings live in config.js (one file for the whole app).
+   Without it, the app runs in test mode only. */
+const CONFIG = Object.assign({ supabaseUrl: '', supabaseAnonKey: '', markerUrl: '' }, window.MARKET_CONFIG || {});
+const CHANNEL = room => 'ecologic-market:' + room; // shared by both levels so one join page can find any room
+
+const APP = 'ecologic-market-l2';
+const SUPABASE_SRC = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
+const PARAMS = new URLSearchParams(location.search);
+const ONLINE_READY = !!(String(CONFIG.supabaseUrl).trim() && String(CONFIG.supabaseAnonKey).trim());
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const rid = (n = 10) => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => (b % 36).toString(36)).join('');
+const roomCode = () => Array.from(crypto.getRandomValues(new Uint8Array(4)), b => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[b % 24]).join('');
+const amt = (n, u) => (u === 'tokens' && Number(n) === 1) ? n + ' token' : n + ' ' + u;
+const fmt1 = x => x == null ? '–' : (Math.round(x * 10) / 10).toString();
+const store = {
+  get(k, d = null) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage full or blocked */ } },
+  del(k) { try { localStorage.removeItem(k); } catch { } }
+};
+
+// Student identity: each phone keeps its own. In test mode every tab is a
+// separate student, so identity lives in sessionStorage (one per tab).
+const sstore = PARAMS.get('t') === 'local' ? {
+  get(k, d = null) { try { const v = sessionStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch { } }
+} : store;
+
+/* ---------------- Glossary (EAL support) ---------------- */
+const GLOSSARY = {
+  market: ['Where buyers and sellers meet to exchange a good or service.', 'thị trường'],
+  buyer: ['A person who wants to buy the good. In this game, a consumer.', 'người mua'],
+  seller: ['A person who makes and sells the good. In this game, a producer.', 'người bán'],
+  demand: ['The willingness and ability to buy a good at a given price.', 'cầu'],
+  supply: ['The willingness and ability to sell a good at a given price.', 'cung'],
+  'quantity demanded': ['How many units buyers are willing and able to buy at one price.', 'lượng cầu'],
+  'quantity supplied': ['How many units sellers are willing and able to sell at one price.', 'lượng cung'],
+  schedule: ['A table that shows quantity demanded or quantity supplied at each price.', 'biểu cầu / biểu cung'],
+  equilibrium: ['The price where quantity demanded equals quantity supplied. The market clears.', 'cân bằng thị trường'],
+  shortage: ['When quantity demanded is greater than quantity supplied at a price.', 'thiếu hụt'],
+  surplus: ['When quantity supplied is greater than quantity demanded at a price.', 'dư thừa'],
+  'price mechanism': ['How changes in price decide what is produced, how, and for whom.', 'cơ chế giá'],
+  'total revenue': ['Price × quantity sold.', 'tổng doanh thu'],
+  profit: ['Money a seller earns above their cost.', 'lợi nhuận'],
+  'law of demand': ['When the price falls, people want to buy more. When the price rises, they want to buy less.', 'luật cầu'],
+  'law of supply': ['When the price rises, sellers want to sell more. When the price falls, they want to sell less.', 'luật cung'],
+  'demand curve': ['A line on a graph showing quantity demanded at each price. It slopes down.', 'đường cầu'],
+  'supply curve': ['A line on a graph showing quantity supplied at each price. It slopes up.', 'đường cung'],
+  satisfaction: ['How much pleasure or use you get from something. Economists call it utility.', 'sự thỏa mãn (độ thỏa dụng)'],
+  budget: ['The money you have available to spend.', 'ngân sách'],
+  'fixed cost': ['A cost that stays the same however much you make, such as rent.', 'chi phí cố định'],
+  'variable cost': ['A cost that changes with how much you make, such as ingredients.', 'chi phí biến đổi'],
+  gain: ['What a buyer saves: the value to them minus the price they pay.', 'phần lợi của người mua']
+};
+const term = (word, label) => `<button type="button" class="term" data-term="${esc(word)}">${esc(label || word)}</button>`;
+document.addEventListener('click', e => {
+  const t = e.target.closest('.term');
+  const sheet = $('#sheet');
+  if (t) {
+    const [def, vi] = GLOSSARY[t.dataset.term] || ['', ''];
+    sheet.innerHTML = `<div class="row" style="justify-content:space-between"><h3 style="margin:0">${esc(t.dataset.term)}</h3><button class="btn small ghost" data-close>Close</button></div><p style="margin:.4em 0">${esc(def)}</p><p class="vi" style="margin:0">Tiếng Việt: <b>${esc(vi)}</b></p>`;
+    sheet.classList.remove('hidden');
+    e.stopPropagation();
+  } else if (sheet && !sheet.classList.contains('hidden') && (!sheet.contains(e.target) || e.target.closest('[data-close]'))) {
+    sheet.classList.add('hidden');
+  }
+});
+
+function toast(msg, ms = 2600) {
+  const el = $('#toast');
+  el.textContent = msg; el.classList.remove('hidden');
+  clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.add('hidden'), ms);
+}
+
+/* ---------------- Transports ---------------- */
+function localTransport(room) {
+  let bc;
+  return {
+    kind: 'local',
+    async connect(onMsg, onStatus) {
+      bc = new BroadcastChannel(CHANNEL(room));
+      bc.onmessage = e => onMsg(e.data);
+      onStatus && onStatus('SUBSCRIBED');
+    },
+    send(msg) { bc && bc.postMessage(msg); },
+    close() { bc && bc.close(); }
+  };
+}
+let sbLoading = null;
+function loadSupabase() {
+  if (window.supabase) return Promise.resolve();
+  if (!sbLoading) sbLoading = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = SUPABASE_SRC; s.onload = res;
+    s.onerror = () => { sbLoading = null; rej(new Error('Could not load the Supabase library. Check the internet connection.')); };
+    document.head.appendChild(s);
+  });
+  return sbLoading;
+}
+function supabaseTransport(room) {
+  let client, ch;
+  return {
+    kind: 'supabase',
+    async connect(onMsg, onStatus) {
+      await loadSupabase();
+      client = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+      ch = client.channel(CHANNEL(room), { config: { broadcast: { self: false } } });
+      ch.on('broadcast', { event: 'm' }, ({ payload }) => onMsg(payload));
+      await new Promise((res, rej) => ch.subscribe(status => {
+        onStatus && onStatus(status);
+        if (status === 'SUBSCRIBED') res();
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') rej(new Error('Could not connect to the online room (' + status + ').'));
+      }));
+    },
+    send(msg) { ch && ch.send({ type: 'broadcast', event: 'm', payload: msg }); },
+    close() { if (ch && client) client.removeChannel(ch); }
+  };
+}
+const makeTransport = (kind, room) => kind === 'supabase' ? supabaseTransport(room) : localTransport(room);
+
+/* ===== Level 2 shared (reused) ===== */
+const shell = inner => inner + `<div id="sheet" class="sheet hidden"></div><div id="toast" class="toast hidden"></div><canvas id="fx" class="fx" aria-hidden="true"></canvas>`;
+const vnd = p => (p * 1000).toLocaleString('vi-VN') + 'đ';
+const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---- sound (Web Audio, no files) ---- */
+const Sound = {
+  ctx: null, on: true, lastBlip: 0, noise: null,
+  ensure() {
+    if (!this.ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; this.ctx = new C(); }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  note(f, t0, dur, type = 'sine', vol = .12, f2) {
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t0);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .015); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(c.destination); o.start(t0); o.stop(t0 + dur + .05);
+  },
+  noiseBuf() {
+    if (this.noise) return this.noise;
+    const c = this.ctx, b = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return (this.noise = b);
+  },
+  play(name) {
+    if (!this.on) return;
+    const c = this.ensure(); if (!c) return;
+    const t = c.currentTime + .01;
+    if (name === 'blip') { if (performance.now() - this.lastBlip < 70) return; this.lastBlip = performance.now(); this.note(700 + Math.random() * 400, t, .09, 'triangle', .07); }
+    else if (name === 'step') this.note(330, t, .28, 'sine', .12, 880);
+    else if (name === 'chime') [1047, 1319, 1568].forEach((f, i) => this.note(f, t + i * .08, .4, 'sine', .1));
+    else if (name === 'cash') { this.note(1568, t, .07, 'square', .05); this.note(2093, t + .07, .25, 'square', .05); }
+    else if (name === 'sting') [392, 523, 659, 784].forEach((f, i) => this.note(f, t + i * .07, .22, 'sawtooth', .05));
+    else if (name === 'wrong') this.note(220, t, .22, 'square', .05, 180);
+    else if (name === 'drumroll') {
+      const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = this.noiseBuf(); f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = .7;
+      g.gain.setValueAtTime(0, t);
+      for (let k = 0; k < 40; k++) { const tt = t + k * .04; g.gain.setValueAtTime(.06 + k * .004, tt); g.gain.setValueAtTime(.015, tt + .02); }
+      g.gain.setValueAtTime(0.0001, t + 1.62);
+      src.connect(f).connect(g).connect(c.destination); src.start(t); src.stop(t + 1.65);
+    }
+    else if (name === 'fanfare') [[523, 0], [659, .12], [784, .24], [1047, .4]].forEach(([fq, d]) => { this.note(fq, t + d, .5, 'triangle', .1); this.note(fq / 2, t + d, .5, 'sine', .06); });
+  }
+};
+
+/* ---- confetti ---- */
+function confetti(n = 70) {
+  if (REDUCED) return;
+  const cv = $('#fx'); if (!cv) return;
+  const W = cv.width = innerWidth, H = cv.height = innerHeight, g = cv.getContext('2d');
+  const cols = ['#d8a21f', '#12648c', '#b02a3f', '#22805a', '#f2cf6b'];
+  const ps = Array.from({ length: n }, () => ({ x: W / 2 + (Math.random() - .5) * W * .3, y: H * .35, vx: (Math.random() - .5) * 12, vy: -Math.random() * 12 - 4, r: 4 + Math.random() * 5, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6 }));
+  const t0 = performance.now();
+  (function frame(now) {
+    g.clearRect(0, 0, W, H);
+    ps.forEach(p => { p.vy += .45; p.x += p.vx; p.y += p.vy; p.a += .2; g.save(); g.translate(p.x, p.y); g.rotate(p.a); g.fillStyle = p.c; g.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); g.restore(); });
+    if (now - t0 < 1600) requestAnimationFrame(frame); else g.clearRect(0, 0, W, H);
+  })(t0);
+}
+
+function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+
+
+/* ===== Level 2: products, seller cards, events, language ===== */
+const k = n => n == null ? '–' : (Math.round(n * 10) / 10) + 'k';
+const ART2 = {
+  choc: `<svg viewBox="0 0 160 110" aria-hidden="true"><rect x="10" y="14" width="140" height="82" rx="10" fill="#b02a3f"/><rect x="10" y="14" width="56" height="82" rx="10" fill="#5b3826"/><g fill="#3a2217"><rect x="16" y="20" width="20" height="22" rx="3"/><rect x="40" y="20" width="20" height="22" rx="3"/><rect x="16" y="46" width="20" height="22" rx="3"/><rect x="40" y="46" width="20" height="22" rx="3"/><rect x="16" y="72" width="20" height="18" rx="3"/><rect x="40" y="72" width="20" height="18" rx="3"/></g><rect x="60" y="14" width="10" height="82" fill="#d8a21f"/><text x="110" y="62" font-family="sans-serif" font-weight="800" font-size="18" fill="#fff" text-anchor="middle">CHOCO</text></svg>`,
+  candy: `<svg viewBox="0 0 160 110" aria-hidden="true"><path d="M8 34 L44 55 L8 76 Z" fill="#12648c"/><path d="M152 34 L116 55 L152 76 Z" fill="#12648c"/><ellipse cx="80" cy="55" rx="40" ry="30" fill="#e8a33a"/><path d="M52 40 Q80 70 108 40" stroke="#fff" stroke-width="6" fill="none" opacity=".75"/><path d="M50 62 Q80 92 110 62" stroke="#fff" stroke-width="6" fill="none" opacity=".75"/></svg>`
+};
+const PRODUCTS = { choc: { en: 'Chocolate', vi: 'Sô-cô-la', unit: 'bar' }, candy: { en: 'Candy', vi: 'Kẹo', unit: 'bag' } };
+const PIDS = ['choc', 'candy'];
+const SHOPS = ['A', 'B', 'C', 'D', 'E'];
+const UNITS_PER_ROUND = 4;
+// Lowest price each shop will accept for its 1st to 4th unit, in thousand đồng.
+// Rising within a shop: cheap stock first, extra units cost more to get.
+const DEFAULT_CARDS = {
+  A: { choc: [9, 11, 14, 19], candy: [4, 6, 9, 14] },
+  B: { choc: [10, 13, 16, 20], candy: [5, 8, 11, 15] },
+  C: { choc: [10, 14, 17, 21], candy: [5, 9, 12, 16] },
+  D: { choc: [11, 15, 18, 22], candy: [6, 10, 13, 17] },
+  E: { choc: [12, 16, 19, 23], candy: [7, 11, 14, 18] }
+};
+// Preset events. Cost events change every shop's lowest prices until removed; announcements change nothing in the app.
+const PRESETS = [
+  { key: 'cacao', label: 'Cacao harvest hit', vi: 'Mất mùa ca cao', detail: 'Chocolate costs +3k for every shop', kind: 'cost', product: 'choc', amount: 3, icon: '🌧️' },
+  { key: 'sugar', label: 'Sugar harvest hit', vi: 'Mất mùa mía đường', detail: 'Chocolate and candy costs +2k for every shop', kind: 'cost', product: 'both', amount: 2, icon: '🌾' },
+  { key: 'halloween', label: 'Halloween!', vi: 'Lễ Halloween!', detail: 'Everyone wants sweets for Halloween', kind: 'news', icon: '🎃' },
+  { key: 'pocket', label: 'Pocket money day', vi: 'Ngày nhận tiền tiêu vặt', detail: 'Every buyer gets 10k more this round', kind: 'news', icon: '💵' }
+];
+const LESSON_PLAN = [
+  { lesson: 1, label: 'Round 1: board off', board: false, events: [] },
+  { lesson: 1, label: 'Round 2: board on', board: true, events: [] },
+  { lesson: 1, label: 'Round 3: price lock', board: true, events: [], lock: true },
+  { lesson: 2, label: 'Round 4: cacao harvest hit', board: true, events: ['cacao'] },
+  { lesson: 2, label: 'Round 5: Halloween', board: true, events: ['halloween'] },
+  { lesson: 2, label: 'Round 6: Halloween + sugar harvest hit', board: true, events: ['halloween', 'sugar'] }
+];
+const SALE_Q = { en: (p, b, pr) => `Sell 1 ${p} to buyer ${b} for ${pr}?`, vi: (p, b, pr) => `Bán 1 ${p} cho người mua số ${b} với giá ${pr}?` };
+const L2 = {
+  en: { sold: 'Sold', price: 'Agreed price', buyer: 'Buyer number', confirm: 'Confirm sale', cancel: 'Cancel', undo: 'Undo last sale', left: 'left', profit: 'Profit', round: 'Round', waiting: 'Waiting for the next round', soldout: 'Sold out', lowest: 'Lowest price you accept', next: 'next', loss: 'This price is below your lowest price. You will make a loss of', sellanyway: 'Sell anyway', locked: 'Price locked at', thisround: 'this round', total: 'total', queued: 'Saved on this laptop. Sending when the Wi-Fi is back…', choose: 'Choose your shop', shop: 'Shop', taken: 'taken', units: 'Units', from: 'from', ok: 'Sale recorded', lang: 'Tiếng Việt' },
+  vi: { sold: 'Đã bán', price: 'Giá đã thỏa thuận', buyer: 'Số người mua', confirm: 'Xác nhận bán', cancel: 'Hủy', undo: 'Hoàn tác lần bán cuối', left: 'còn lại', profit: 'Lợi nhuận', round: 'Vòng', waiting: 'Đang chờ vòng tiếp theo', soldout: 'Hết hàng', lowest: 'Giá thấp nhất bạn chấp nhận', next: 'tiếp theo', loss: 'Giá này thấp hơn giá thấp nhất của bạn. Bạn sẽ lỗ', sellanyway: 'Vẫn bán', locked: 'Giá bị khóa ở mức', thisround: 'vòng này', total: 'tổng', queued: 'Đã lưu trên máy. Sẽ gửi khi có Wi-Fi…', choose: 'Chọn cửa hàng của bạn', shop: 'Cửa hàng', taken: 'đã có người', units: 'Đơn vị', from: 'từ', ok: 'Đã ghi nhận', lang: 'English' }
+};
+const median = a => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+function roundStats(sales) {
+  const out = {};
+  PIDS.forEach(p => { const ps = sales.filter(s => s.product === p).map(s => s.price); out[p] = { n: ps.length, mid: median(ps), min: ps.length ? Math.min(...ps) : null, max: ps.length ? Math.max(...ps) : null }; });
+  return out;
+}
+// A shop's lowest acceptable price for its next unit, after active cost events
+function unitCost(base, events, shop, product, unit) {
+  const add = events.filter(e => e.kind === 'cost' && e.active && (e.product === product || e.product === 'both') && (!e.shops || e.shops.includes(shop))).reduce((a, e) => a + e.amount, 0);
+  return base[shop][product][unit] + add;
+}
+
+
+/* =====================================================================
+   TEACHER CONSOLE (Level 2). The teacher's browser keeps the record of
+   every sale; the tills send sales here and wait for a receipt.
+   ===================================================================== */
+const TKEY = APP + ':teacher';
+const STATE_V = 1;
+const T = { s: null, tr: null, tick: null, lastSent: 0, sendTimer: null, connected: false, projector: false, settingsOpen: false };
+
+function newT(o) {
+  return { v: STATE_V, room: roomCode(), transport: o.transport, buyers: o.buyers, budget: o.budget, budgetMode: o.budgetMode, roundLen: o.roundLen, sound: true,
+    phase: 'lobby', board: { visible: false, view: 'live' }, shops: Object.fromEntries(SHOPS.map(x => [x, null])), names: {},
+    cards: JSON.parse(JSON.stringify(DEFAULT_CARDS)), rounds: [], current: null, events: [], lock: null, queueCount: {}, sales: [], planStep: 0, createdAt: Date.now() };
+}
+function migrate(st) {
+  const d = newT({ transport: st.transport || 'local', buyers: st.buyers || 19, budget: st.budget || 25, budgetMode: st.budgetMode || 'round', roundLen: st.roundLen || 360 });
+  const out = { ...d, ...st, v: STATE_V };
+  ['shops', 'names', 'queueCount', 'board', 'cards'].forEach(x => { if (!out[x] || typeof out[x] !== 'object') out[x] = d[x]; });
+  ['rounds', 'events', 'sales'].forEach(x => { if (!Array.isArray(out[x])) out[x] = []; });
+  if (out.current) { out.current = null; if (out.phase === 'running') out.phase = 'between'; }
+  return out;
+}
+const tSave = () => store.set(TKEY, T.s);
+const curRound = () => T.s.current ? T.s.rounds[T.s.current.idx] : null;
+const live = () => T.s.sales.filter(x => !x.undone);
+const roundSales = n => live().filter(x => x.round === n);
+const unitsSold = (shop, product, n) => roundSales(n).filter(x => x.shop === shop && x.product === product).length;
+
+/* ---- setup ---- */
+function teacherBoot() {
+  const saved = store.get(TKEY);
+  document.body.innerHTML = shell(`<div class="narrow stack" style="padding-top:24px">
+    <h1>Open the blended market</h1>
+    <p>Level 2: real chocolate and candy in the room. Buyers have a number and play money. Five shops sell from tables, haggle, and record each sale on a laptop till.</p>
+    ${saved ? `<div class="panel stack"><h2>Resume room ${esc(saved.room)}</h2><p class="muted" style="margin:0">${(saved.sales || []).filter(x => !x.undone).length} sales recorded. Tills reconnect by themselves.</p><button class="btn primary" id="resume">Resume room ${esc(saved.room)}</button></div>` : ''}
+    <div class="panel stack">
+      <div><label class="field" for="tp">Connection</label><select id="tp"><option value="supabase" ${ONLINE_READY ? 'selected' : 'disabled'}>Online: tills on their own laptops${ONLINE_READY ? '' : ' (add Supabase details to enable)'}</option><option value="local" ${ONLINE_READY ? '' : 'selected'}>Test mode: tills in other tabs on this computer</option></select></div>
+      <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="nb">Number of buyers</label><input id="nb" type="number" min="4" max="40" value="19"></div>
+        <div style="flex:1;min-width:150px"><label class="field" for="bg">Play money per buyer (k)</label><input id="bg" type="number" min="5" max="200" value="25"></div></div>
+      <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="bm">Budget</label><select id="bm"><option value="round">Fresh budget every round</option><option value="lesson">One budget for the whole lesson</option></select></div>
+        <div style="flex:1;min-width:150px"><label class="field" for="rl">Round length</label><select id="rl"><option value="300">5 minutes</option><option value="360" selected>6 minutes</option><option value="480">8 minutes</option></select></div></div>
+      <button class="btn primary" id="create">Open a new room</button>
+    </div><p class="muted"><a href="index.html">Back to all lessons</a></p></div>`);
+  $('#create').onclick = () => { Sound.ensure(); T.s = newT({ transport: $('#tp').value, buyers: Math.max(4, Math.min(40, +$('#nb').value || 19)), budget: Math.max(5, +$('#bg').value || 25), budgetMode: $('#bm').value, roundLen: +$('#rl').value }); tSave(); teacherStart(); };
+  const r = $('#resume'); if (r) r.onclick = () => { Sound.ensure(); T.s = migrate(saved); tSave(); teacherStart(); };
+}
+async function teacherStart() {
+  Sound.on = T.s.sound;
+  T.tr = makeTransport(T.s.transport, T.s.room);
+  renderT();
+  try { await T.tr.connect(tOnMsg, st => { T.connected = st === 'SUBSCRIBED'; connBadge(); }); T.connected = true; }
+  catch (e) { T.connected = false; toast(e.message, 6000); }
+  connBadge(); tBroadcast(true); tTillsAll();
+  setInterval(() => { if (!T.s.current) tBroadcast(true); }, 2500);
+  addEventListener('resize', () => drawCharts());
+}
+function connBadge() { const el = $('#conn'); if (el) el.innerHTML = T.connected ? `<span class="dot ok"></span>${T.s.transport === 'local' ? 'Test mode' : 'Online'}` : '<span class="dot bad"></span>Not connected'; }
+const joinUrl = () => { const u = new URL('index.html', location.href); u.search = ''; u.hash = ''; u.searchParams.set('room', T.s.room); if (T.s.transport === 'local') u.searchParams.set('t', 'local'); return u.toString(); };
+
+/* ---- messages from tills ---- */
+function tSend(m) { T.tr && T.tr.send({ ...m, from: 'teacher', room: T.s.room }); }
+function tOnMsg(m) {
+  if (!m || m.from === 'teacher') return;
+  if (m.type === 'whois') return tBroadcast(true);
+  const s = T.s;
+  if (m.type === 'hello') { if (m.nick) s.names[m.pid] = String(m.nick).slice(0, 18); tTill(m.pid); tBroadcast(true); return; }
+  if (m.type === 'claim') {
+    const L = String(m.shop || '').toUpperCase();
+    if (!SHOPS.includes(L)) return;
+    const holder = s.shops[L];
+    if (holder && holder !== m.pid && !m.force) return tSend({ type: 'claimed', to: m.pid, ok: false, shop: L });
+    SHOPS.forEach(x => { if (s.shops[x] === m.pid) s.shops[x] = null; });
+    s.shops[L] = m.pid; Sound.play('blip');
+    tSave(); renderBody(); tTill(m.pid); tBroadcast(true); return;
+  }
+  const shop = SHOPS.find(x => s.shops[x] === m.pid);
+  if (m.type === 'sale') return recordSale(m, shop);
+  if (m.type === 'undo') { const sale = s.sales.find(x => x.id === m.id && x.shop === shop); if (sale && !sale.undone) { sale.undone = 'till'; tSave(); Sound.play('blip'); renderLive(); tTill(m.pid); tBroadcast(); } return; }
+}
+function recordSale(m, shop) {
+  const s = T.s, dup = s.sales.find(x => x.id === m.id);
+  const ack = (ok, error, sale) => tSend({ type: 'receipt', to: m.pid, id: m.id, ok, error, sale });
+  if (dup) return ack(true, null, dup);                       // a resend after the Wi-Fi came back: already recorded
+  if (!shop) return ack(false, 'no-shop');
+  const r = s.rounds.find(x => x.n === m.round) || curRound();
+  if (!r) return ack(false, 'no-round');
+  if (!PIDS.includes(m.product)) return ack(false, 'bad-product');
+  const buyer = Math.round(Number(m.buyer)), price = Math.round(Number(m.price) * 10) / 10;
+  if (!(buyer >= 1 && buyer <= s.buyers)) return ack(false, 'bad-buyer');
+  if (!(price > 0 && price < 1000)) return ack(false, 'bad-price');
+  const unit = unitsSold(shop, m.product, r.n);
+  if (unit >= UNITS_PER_ROUND) return ack(false, 'sold-out');
+  if (s.lock && s.lock.product === m.product && price !== s.lock.price) return ack(false, 'locked');
+  const cost = unitCost(s.cards, s.events, shop, m.product, unit);
+  const sale = { id: m.id, shop, product: m.product, price, buyer, unit: unit + 1, cost, profit: Math.round((price - cost) * 10) / 10, round: r.n, at: m.at || Date.now(), late: !s.current || s.current.idx !== s.rounds.indexOf(r) };
+  s.sales.push(sale);
+  tSave(); ack(true, null, sale);
+  Sound.play('cash'); tickerAdd(sale);
+  tTill(m.pid); tBroadcast(); renderLive();
+}
+function tillFor(pid) {
+  const s = T.s, shop = SHOPS.find(x => s.shops[x] === pid), r = curRound(), last = s.rounds[s.rounds.length - 1];
+  const base = { type: 'till', to: pid, buyersMax: s.buyers, shops: Object.fromEntries(SHOPS.map(x => [x, !!s.shops[x] && s.shops[x] !== pid])), shop: shop || null,
+    round: r ? { n: r.n, label: r.label, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) } : null, lastRound: last ? last.n : null, lock: s.lock };
+  if (!shop) return base;
+  const n = r ? r.n : last ? last.n : 0;
+  const prod = {};
+  PIDS.forEach(p => {
+    const sold = r ? unitsSold(shop, p, r.n) : 0;
+    prod[p] = { costs: [0, 1, 2, 3].map(u => unitCost(s.cards, s.events, shop, p, u)), sold, nextCost: sold < UNITS_PER_ROUND ? unitCost(s.cards, s.events, shop, p, sold) : null };
+  });
+  const mine = live().filter(x => x.shop === shop);
+  const lastSale = r ? roundSales(r.n).filter(x => x.shop === shop).slice(-1)[0] : null;
+  return { ...base, prod, profitRound: Math.round(mine.filter(x => x.round === n).reduce((a, x) => a + x.profit, 0) * 10) / 10,
+    profitTotal: Math.round(mine.reduce((a, x) => a + x.profit, 0) * 10) / 10, lastSale: lastSale ? { id: lastSale.id, product: lastSale.product, price: lastSale.price, buyer: lastSale.buyer } : null,
+    events: s.events.filter(e => e.active).map(e => ({ label: e.label, vi: e.vi, icon: e.icon, kind: e.kind })) };
+}
+const tTill = pid => tSend(tillFor(pid));
+const tTillsAll = () => { const ids = new Set(Object.values(T.s.shops).filter(Boolean)); Object.keys(T.s.names).forEach(p => ids.add(p)); ids.forEach(tTill); };
+function pubState() {
+  const s = T.s, r = curRound();
+  return { type: 'state', level: 2, page: 'blended.html', phase: s.phase, round: r ? { n: r.n, label: r.label, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) } : null,
+    shops: Object.fromEntries(SHOPS.map(x => [x, !!s.shops[x]])), lock: s.lock, buyers: s.buyers };
+}
+function tBroadcast(now) {
+  const go = () => { T.lastSent = Date.now(); T.sendTimer = null; try { tSend(pubState()); } catch (e) { console.error(e); } };
+  if (now || Date.now() - T.lastSent > 300) { clearTimeout(T.sendTimer); go(); } else if (!T.sendTimer) T.sendTimer = setTimeout(go, 300);
+}
+
+/* ---- rounds, events, lock ---- */
+function startRound(label, boardOn) {
+  const s = T.s; if (s.current) return;
+  const n = s.rounds.length + 1;
+  s.rounds.push({ n, label: label || `Round ${n}`, startedAt: Date.now(), events: s.events.filter(e => e.active).map(e => e.label), lock: s.lock ? { ...s.lock } : null });
+  s.current = { idx: s.rounds.length - 1, endsAt: Date.now() + s.roundLen * 1000 };
+  s.phase = 'running'; if (boardOn != null) s.board.visible = boardOn;
+  Sound.play('sting'); tSave(); renderBody(); tBroadcast(true); tTillsAll(); if (T.projector) renderProj(true);
+  clearInterval(T.tick);
+  T.tick = setInterval(() => {
+    if (!s.current) return;
+    if (s.paused) { s.current.endsAt += 1000; return; }
+    const left = Math.round((s.current.endsAt - Date.now()) / 1000);
+    if (left <= 0) endRound(); else { if (left <= 5) Sound.play('blip'); updateTimer(); if (left % 5 === 0) { tBroadcast(true); tTillsAll(); } }
+  }, 1000);
+}
+function endRound() {
+  const s = T.s; if (!s.current) return;
+  clearInterval(T.tick); s.paused = false;
+  s.rounds[s.current.idx].endedAt = Date.now();
+  s.current = null; s.phase = 'between';
+  Sound.play('fanfare'); tSave(); renderBody(); tBroadcast(true); tTillsAll(); if (T.projector) renderProj(true);
+}
+function togglePause() { T.s.paused = !T.s.paused; tSave(); renderBody(); }
+function addEvent(ev) {
+  const s = T.s;
+  if (ev.key && s.events.find(e => e.key === ev.key && e.active)) return toast('That event is already on.');
+  s.events.push({ id: rid(6), active: true, at: Date.now(), round: (curRound() || {}).n || null, ...ev });
+  Sound.play('sting'); tSave(); renderBody(); tTillsAll(); if (T.projector) renderProj(true); showBanner(ev);
+}
+function endEvent(id) { const e = T.s.events.find(x => x.id === id); if (e) e.active = false; tSave(); renderBody(); tTillsAll(); if (T.projector) renderProj(true); }
+function setLock(product, price) { T.s.lock = product ? { product, price } : null; const cr = curRound(); if (cr && product) cr.lock = { product, price }; Sound.play('step'); tSave(); renderBody(); tBroadcast(true); tTillsAll(); if (T.projector) renderProj(true); if (product) showBanner({ icon: '🔒', label: `${PRODUCTS[product].en} price locked at ${k(price)}`, detail: 'No haggling: every sale must be at this price' }); }
+function undoSale(id) { const x = T.s.sales.find(s => s.id === id); if (!x) return; x.undone = x.undone ? false : 'teacher'; tSave(); renderLive(); const pid = T.s.shops[x.shop]; if (pid) tTill(pid); }
+
+/* ---- flags: budget overspends and late entries ---- */
+function flags() {
+  const s = T.s, out = [];
+  const spend = {};
+  live().forEach(x => { const key = s.budgetMode === 'round' ? x.buyer + '|' + x.round : x.buyer + '|all'; spend[key] = (spend[key] || 0) + x.price; });
+  Object.entries(spend).forEach(([key, v]) => { if (v > s.budget) { const [b, r] = key.split('|'); out.push(`Buyer ${b} spent ${k(v)}${r === 'all' ? ' in total' : ` in round ${r}`}, more than the ${k(s.budget)} budget. Check for a typing mistake.`); } });
+  live().filter(x => x.late).forEach(x => out.push(`Shop ${x.shop}: a ${PRODUCTS[x.product].en.toLowerCase()} sale (buyer ${x.buyer}, ${k(x.price)}) arrived after its round ended. It is counted in round ${x.round}.`));
+  return out;
+}
+
+/* ---- console ---- */
+function renderT() {
+  document.body.innerHTML = shell(`
+    <header class="topbar"><a class="brand" href="index.html" title="All lessons" style="color:inherit;text-decoration:none">← EcoLogic Market Lab</a><span class="chip">Optional: real goods market</span><span class="spacer"></span>
+      <span class="chip" id="conn"><span class="dot wait"></span>Connecting…</span><span class="chip">Room <b>${esc(T.s.room)}</b></span>
+      <button class="btn small ghost" id="snd" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">${T.s.sound ? 'Sound on' : 'Sound off'}</button>
+      <button class="btn small primary" id="projBtn">Board (projector)</button></header>
+    <main class="wrap"><div id="tbody"></div></main><div id="proj" class="hidden"></div><div id="printArea" class="print-only"></div>`);
+  $('#projBtn').onclick = () => { T.projector = true; renderProj(true); };
+  $('#snd').onclick = e => { T.s.sound = Sound.on = !T.s.sound; e.target.textContent = T.s.sound ? 'Sound on' : 'Sound off'; tSave(); };
+  connBadge(); renderBody();
+}
+function renderBody() {
+  const el = $('#tbody'); if (!el) return;
+  const s = T.s, r = curRound(), next = LESSON_PLAN[s.planStep];
+  el.innerHTML = `<div class="grid2">
+    <section class="stack">
+      <div class="panel stack">
+        <div class="row" style="justify-content:space-between"><h2 style="margin:0">${r ? esc(r.label) : 'Between rounds'}</h2><span class="timer big-timer" id="tTimer"></span></div>
+        ${r ? `<div class="row"><button class="btn" data-act="pause">${s.paused ? 'Resume' : 'Pause'}</button><button class="btn primary" data-act="end">End round</button></div>` :
+          `${next ? `<p style="margin:0"><b>Next in the plan:</b> ${esc(next.label)} <span class="muted">(lesson ${next.lesson})</span></p><button class="btn primary" data-act="plan">Start: ${esc(next.label)}</button>` : '<p class="muted" style="margin:0">All planned rounds are done.</p>'}
+          <details><summary>Start a different round</summary><div class="row" style="margin-top:8px"><input id="rlab" type="text" placeholder="Round name" style="max-width:220px"><button class="btn small" data-act="custom-round">Start</button></div></details>`}
+        <div class="row"><span>Board on the projector:</span><button class="btn small ${s.board.visible ? 'primary' : ''}" data-act="board">${s.board.visible ? 'Showing prices' : 'Hidden (round in progress only)'}</button>
+          <select id="bview" style="width:auto;min-height:36px"><option value="live" ${s.board.view === 'live' ? 'selected' : ''}>Live shops</option><option value="chart" ${s.board.view === 'chart' ? 'selected' : ''}>Price chart</option><option value="rounds" ${s.board.view === 'rounds' ? 'selected' : ''}>Round summary</option></select></div>
+      </div>
+      <div class="panel stack"><h2 style="margin:0">Events</h2>
+        <div class="row">${PRESETS.map(p => `<button class="btn small" data-act="preset" data-k="${p.key}">${p.icon} ${esc(p.label)}</button>`).join('')}</div>
+        <details><summary>Custom event</summary><div class="stack" style="margin-top:8px">
+          <div class="row"><select id="ceKind" style="width:auto"><option value="cost">Change shop costs</option><option value="news">Announcement only</option></select>
+            <select id="ceProd" style="width:auto"><option value="choc">Chocolate</option><option value="candy">Candy</option><option value="both">Both</option></select>
+            <input id="ceAmt" type="number" value="2" step="1" style="max-width:90px" title="Change in k (negative lowers costs)"></div>
+          <div class="row"><input id="ceLabel" type="text" placeholder="Headline, e.g. New chocolate machine" style="flex:1"><button class="btn small" data-act="custom-event">Add</button></div></div></details>
+        ${s.events.filter(e => e.active).map(e => `<div class="row" style="justify-content:space-between"><span>${e.icon || '📣'} <b>${esc(e.label)}</b> <span class="muted">${esc(e.detail || '')}</span></span><button class="btn small ghost" data-act="endevent" data-id="${e.id}">End</button></div>`).join('') || '<p class="muted" style="margin:0">No events on.</p>'}
+      </div>
+      <div class="panel stack"><h2 style="margin:0">Price lock</h2>
+        ${s.lock ? `<p style="margin:0">🔒 <b>${PRODUCTS[s.lock.product].en}</b> locked at <b>${k(s.lock.price)}</b>. Tills only accept this price.</p>
+          <div class="row"><label for="qc">Hands up: buyers who still want one at this price</label><input id="qc" type="number" min="0" value="${s.queueCount[s.lock.product] ?? ''}" style="max-width:90px"></div>
+          <button class="btn small" data-act="unlock">Release the lock</button>` :
+          `<div class="row"><select id="lkProd" style="width:auto"><option value="choc">Chocolate</option><option value="candy">Candy</option></select><input id="lkPrice" type="number" value="7" style="max-width:90px"><span class="muted">k</span><button class="btn small" data-act="lock">Lock price</button></div>`}
+      </div>
+      <div class="panel stack"><h2 style="margin:0">Shops and joining</h2>
+        <div class="row" style="align-items:flex-start"><div class="qr" id="qrS"></div><div style="flex:1;min-width:160px"><div class="muted">Room code</div><div class="code-big">${esc(s.room)}</div><p class="muted" style="font-size:.85rem;margin:.3em 0 0;word-break:break-all">${esc(joinUrl())}</p></div></div>
+        <div class="shopgrid">${SHOPS.map(x => `<div class="shopcell ${s.shops[x] ? 'on' : ''}"><b>${x}</b><small>${s.shops[x] ? esc(s.names[s.shops[x]] || 'connected') : 'waiting'}</small></div>`).join('')}</div>
+        ${s.transport === 'local' ? '<button class="btn small" data-act="test">Open a test till tab</button>' : ''}
+        <button class="btn small" data-act="print">Print buyer numbers, shop signs and play money</button>
+      </div>
+    </section>
+    <section class="stack">
+      <div class="panel" id="liveT"></div>
+      <div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Sale prices</h2><small class="muted">Each dot is one sale; lines mark rounds and events</small></div><div class="chart-box"><canvas id="cPrices"></canvas></div></div>
+      <div class="panel stack" id="flagsT"></div>
+      <div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">All sales</h2><button class="btn small" data-act="csv" ${s.sales.length ? '' : 'disabled'}>Download sales (CSV)</button></div><div id="salesT" class="sales-log"></div></div>
+      <details class="panel" id="settings" ${T.settingsOpen ? 'open' : ''}><summary>Settings</summary><div class="stack" style="margin-top:10px">
+        <div class="kv"><span>Buyers</span><b>${s.buyers} (numbers 1–${s.buyers})</b><span>Budget</span><b>${k(s.budget)} ${s.budgetMode === 'round' ? 'every round' : 'for the whole lesson'}</b><span>Round length</span><b>${s.roundLen / 60} minutes</b><span>Stock</span><b>${UNITS_PER_ROUND} of each product per shop per round</b></div>
+        <details><summary>Shops' lowest prices (k)</summary><div class="table-wrap"><table><tr><th>Shop</th><th>Chocolate 1st–4th</th><th>Candy 1st–4th</th></tr>${SHOPS.map(x => `<tr><td>${x}</td><td>${s.cards[x].choc.join(', ')}</td><td>${s.cards[x].candy.join(', ')}</td></tr>`).join('')}</table></div><small class="muted">Active cost events are added on top of these.</small></details>
+        <button class="btn small" data-act="newroom">Close room and start again</button></div></details>
+    </section></div>`;
+  el.onclick = tClick;
+  const bv = $('#bview'); if (bv) bv.onchange = () => { s.board.view = bv.value; tSave(); if (T.projector) renderProj(true); };
+  const qc = $('#qc'); if (qc) qc.onchange = () => { s.queueCount[s.lock.product] = Math.max(0, +qc.value || 0); tSave(); renderLive(); if (T.projector) renderProj(true); };
+  const det = $('#settings'); if (det) det.ontoggle = () => { T.settingsOpen = det.open; };
+  makeQR($('#qrS'), joinUrl(), 110);
+  renderLive(); updateTimer();
+  if (T.projector) renderProj();
+}
+function liveTable() {
+  const s = T.s, r = curRound(), last = r || s.rounds[s.rounds.length - 1], n = last ? last.n : null;
+  const cells = SHOPS.map(x => `<tr><td><b>${x}</b></td>${PIDS.map(p => { const sold = n ? unitsSold(x, p, n) : 0, lastP = n ? roundSales(n).filter(v => v.shop === x && v.product === p).slice(-1)[0] : null; return `<td><span class="stock">${'●'.repeat(UNITS_PER_ROUND - sold)}${'○'.repeat(sold)}</span> <span class="muted">${lastP ? 'last ' + k(lastP.price) : ''}</span></td>`; }).join('')}</tr>`).join('');
+  const st = n ? roundStats(roundSales(n)) : null;
+  return `<div class="table-wrap"><table class="livegrid"><tr><th>Shop</th>${PIDS.map(p => `<th>${PRODUCTS[p].en} <small class="muted">(● in stock)</small></th>`).join('')}</tr>${cells}</table></div>
+    ${st ? `<div class="row" style="gap:18px">${PIDS.map(p => `<span><b>${PRODUCTS[p].en}:</b> ${st[p].n} sold${st[p].n ? `, middle price ${k(st[p].mid)}, range ${k(st[p].min)}–${k(st[p].max)}` : ''}</span>`).join('')}</div>` : ''}`;
+}
+function renderLive() {
+  const s = T.s, el = $('#liveT');
+  if (el) el.innerHTML = `<h2 style="margin:0 0 8px">${curRound() ? 'Live: ' + esc(curRound().label) : s.rounds.length ? 'Last round' : 'Shops'}</h2>${liveTable()}${lockHtml()}`;
+  const f = flags(), fl = $('#flagsT');
+  if (fl) { fl.innerHTML = f.length ? `<h2 style="margin:0">Check these</h2>${f.map(x => `<div class="note" style="margin:0">${esc(x)}</div>`).join('')}` : ''; fl.classList.toggle('hidden', !f.length); }
+  const log = $('#salesT');
+  if (log) log.innerHTML = s.sales.length ? `<table><tr><th>Round</th><th>Shop</th><th>Product</th><th>Buyer</th><th>Price</th><th>Unit</th><th>Profit</th><th></th></tr>${s.sales.slice().reverse().slice(0, 60).map(x => `<tr class="${x.undone ? 'undone' : ''}"><td>${x.round}</td><td>${x.shop}</td><td>${PRODUCTS[x.product].en}</td><td>${x.buyer}</td><td>${k(x.price)}</td><td>${x.unit}</td><td>${k(x.profit)}</td><td><button class="btn small ghost" data-act="undo" data-id="${x.id}">${x.undone ? 'Restore' : 'Undo'}</button></td></tr>`).join('')}</table>` : '<p class="muted" style="margin:0">Sales appear here as shops record them.</p>';
+  drawCharts();
+  if (T.projector) projDynamic();
+}
+function lockHtml() {
+  const s = T.s; if (!s.lock) return '';
+  const r = curRound() || s.rounds[s.rounds.length - 1], sold = r ? roundSales(r.n).filter(x => x.product === s.lock.product).length : 0, q = s.queueCount[s.lock.product];
+  return `<div class="lockbox"><b>🔒 ${PRODUCTS[s.lock.product].en} at ${k(s.lock.price)}</b>: ${sold} sold${q != null ? `, ${q} still want one: <b>shortage of ${q}</b>` : '. Ask for hands up: who still wants one at this price?'}</div>`;
+}
+function updateTimer() {
+  const s = T.s, txt = s.current ? (() => { const l = Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)); return (s.paused ? '⏸ ' : '') + Math.floor(l / 60) + ':' + String(l % 60).padStart(2, '0'); })() : '';
+  ['#tTimer', '#pTimer'].forEach(id => { const el = $(id); if (el) el.textContent = txt; });
+}
+function tClick(e) {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const s = T.s, a = b.dataset.act;
+  if (a === 'plan') { const p = LESSON_PLAN[s.planStep]; p.events.forEach(key => { const pr = PRESETS.find(x => x.key === key); if (pr && !s.events.find(e => e.key === key && e.active)) addEvent({ ...pr }); }); s.planStep++; startRound(p.label, p.board); if (p.lock && !s.lock) toast('Price lock round: set the locked price under "Price lock".', 5000); }
+  else if (a === 'custom-round') startRound(($('#rlab').value || '').trim() || null, null);
+  else if (a === 'end') endRound();
+  else if (a === 'pause') togglePause();
+  else if (a === 'board') { s.board.visible = !s.board.visible; tSave(); renderBody(); if (T.projector) renderProj(true); }
+  else if (a === 'preset') addEvent({ ...PRESETS.find(x => x.key === b.dataset.k) });
+  else if (a === 'custom-event') { const kind = $('#ceKind').value, label = ($('#ceLabel').value || '').trim(); if (!label) return toast('Type a headline for the event.'); addEvent({ kind, product: $('#ceProd').value, amount: Math.round(+$('#ceAmt').value || 0), label, icon: '📣', detail: kind === 'cost' ? `${PRODUCTS[$('#ceProd').value] ? PRODUCTS[$('#ceProd').value].en : 'Chocolate and candy'} costs ${(+$('#ceAmt').value >= 0 ? '+' : '')}${+$('#ceAmt').value}k` : '' }); }
+  else if (a === 'endevent') endEvent(b.dataset.id);
+  else if (a === 'lock') setLock($('#lkProd').value, Math.round((+$('#lkPrice').value || 0) * 10) / 10);
+  else if (a === 'unlock') setLock(null);
+  else if (a === 'undo') undoSale(b.dataset.id);
+  else if (a === 'csv') downloadCsv();
+  else if (a === 'print') printMaterials();
+  else if (a === 'test') window.open(joinUrl(), '_blank');
+  else if (a === 'newroom') { if (confirm('Close this room? Download the sales first: they are only stored on this computer.')) { clearInterval(T.tick); T.tr && T.tr.close(); store.del(TKEY); location.href = '?mode=teacher'; } }
+}
+function downloadCsv() {
+  const s = T.s, d = n => Math.round(n * 1000);
+  const lines = [['round', 'round_name', 'shop', 'product', 'buyer', 'price_dong', 'unit', 'lowest_price_dong', 'profit_dong', 'events', 'time', 'undone'].join(',')];
+  s.sales.forEach(x => { const r = s.rounds.find(y => y.n === x.round) || {}; lines.push([x.round, JSON.stringify(r.label || ''), x.shop, x.product, x.buyer, d(x.price), x.unit, d(x.cost), d(x.profit), JSON.stringify((r.events || []).join('; ')), new Date(x.at).toISOString(), x.undone ? 'yes' : ''].join(',')); });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })); a.download = `blended-market-${s.room}.csv`; a.click();
+}
+
+/* ---- price chart: every sale, by product, with round and event markers ---- */
+function drawPriceChart(canvas) {
+  if (!canvas) return;
+  const s = T.s, box = canvas.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const W = Math.max(240, box.width), H = Math.max(170, box.height);
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const g = canvas.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const fs = Math.round(Math.max(12, Math.min(20, W / 55))), font = cssVar('--font-body'), muted = cssVar('--muted'), line = cssVar('--line'), ink = cssVar('--ink');
+  const col = { choc: cssVar('--seller'), candy: cssVar('--buyer') };
+  const sales = live(), maxP = Math.max(30, ...sales.map(x => x.price)) * 1.1;
+  const L = fs * 3.4, R = 12, T_ = fs * 1.6, B = fs * 2.6, pw = W - L - R, ph = H - T_ - B, y = p => T_ + ph - p / maxP * ph;
+  g.font = `${fs}px ${font}`;
+  const step = maxP > 60 ? 10 : 5;
+  for (let p = 0; p <= maxP; p += step) { g.strokeStyle = line; g.beginPath(); g.moveTo(L, y(p)); g.lineTo(L + pw, y(p)); g.stroke(); g.fillStyle = muted; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(p + 'k', L - 6, y(p)); }
+  const rounds = s.rounds; if (!rounds.length) { g.fillStyle = muted; g.textAlign = 'center'; g.fillText('Sale prices appear here', L + pw / 2, T_ + ph / 2); return; }
+  // each round gets an equal slot; sales are placed by time within the slot
+  const slot = pw / rounds.length;
+  rounds.forEach((r, i) => {
+    const x0 = L + i * slot, t0 = r.startedAt, t1 = r.endedAt || Math.max(Date.now(), t0 + 1);
+    if (i) { g.strokeStyle = muted; g.setLineDash([3, 4]); g.beginPath(); g.moveTo(x0, T_); g.lineTo(x0, T_ + ph); g.stroke(); g.setLineDash([]); }
+    g.fillStyle = ink; g.textAlign = 'center'; g.textBaseline = 'top'; g.font = `700 ${fs * .85}px ${font}`;
+    g.fillText(r.label.replace(/^Round (\d+).*/, 'R$1'), x0 + slot / 2, T_ + ph + 6);
+    if (r.events && r.events.length) { g.font = `${fs * .8}px ${font}`; g.fillStyle = muted; g.fillText(r.events.map(e => (PRESETS.find(p => p.label === e) || { icon: '📣' }).icon).join(' '), x0 + slot / 2, T_ + ph + 6 + fs); }
+    g.font = `${fs}px ${font}`;
+    PIDS.forEach(p => {
+      const rs = sales.filter(x => x.round === r.n && x.product === p);
+      rs.forEach(x => { const f = Math.min(1, Math.max(0, (x.at - t0) / (t1 - t0))); g.fillStyle = col[p]; g.beginPath(); g.arc(x0 + 8 + f * (slot - 16), y(x.price), Math.max(4, fs / 3.2), 0, Math.PI * 2); g.fill(); });
+      if (rs.length) { const m = median(rs.map(x => x.price)); g.strokeStyle = col[p]; g.lineWidth = 3; g.beginPath(); g.moveTo(x0 + 6, y(m)); g.lineTo(x0 + slot - 6, y(m)); g.stroke(); g.lineWidth = 1; }
+    });
+  });
+  g.textAlign = 'left'; g.textBaseline = 'top'; g.font = `700 ${fs * .9}px ${font}`;
+  let lx = L + 6; PIDS.forEach(p => { g.fillStyle = col[p]; g.fillText('● ' + PRODUCTS[p].en, lx, 2); lx += g.measureText('● ' + PRODUCTS[p].en).width + 18; });
+  g.fillStyle = muted; g.font = `${fs * .85}px ${font}`; g.fillText('lines: middle price', lx, 2);
+}
+function drawCharts() { drawPriceChart($('#cPrices')); drawPriceChart($('#cPricesP')); }
+
+/* ---- board (projector) ---- */
+function renderProj(fresh) {
+  const el = $('#proj'); if (!el || !T.projector) return;
+  const s = T.s, r = curRound();
+  el.classList.remove('hidden');
+  const sig = JSON.stringify([s.phase, r && r.n, s.board, s.lock, s.events.filter(e => e.active).map(e => e.id)]);
+  if (fresh || el.dataset.sig !== sig) {
+    el.dataset.sig = sig;
+    const ev = s.events.filter(e => e.active);
+    el.innerHTML = `<div class="projector l0">
+      <div class="pmain">
+        <div class="news"><span class="flag">${r ? esc(r.label) : 'Chợ Lớp 9 market'}</span><span>${ev.length ? ev.map(e => `${e.icon || '📣'} ${esc(e.label)}`).join(' · ') : r ? 'Haggle! Shops record every sale on the till.' : 'Next round soon.'}</span></div>
+        <div class="pstage" id="pStage"></div><div class="ticker" id="ticker"></div>
+      </div>
+      <aside class="side">
+        <div class="panel stack"><div class="row" style="justify-content:space-between"><div>Room code</div><span class="timer big-timer" id="pTimer"></span></div><div class="code">${esc(s.room)}</div></div>
+        <div class="panel stack"><div><b>Each buyer:</b> ${k(s.budget)} ${s.budgetMode === 'round' ? 'every round' : 'for the whole lesson'}</div>${ev.filter(e => e.kind === 'cost').map(e => `<div>${e.icon} ${esc(e.detail)}</div>`).join('')}</div>
+        <div class="panel" id="pLock"></div>
+        <button class="btn" id="closeProj">Back to the console</button>
+      </aside></div><div id="banner" class="banner hidden"></div>`;
+    $('#closeProj').onclick = () => { T.projector = false; el.classList.add('hidden'); el.dataset.sig = ''; };
+  }
+  projDynamic(); updateTimer();
+}
+function projDynamic() {
+  const s = T.s, st = $('#pStage'); if (!st) return;
+  const r = curRound();
+  if (r && !s.board.visible) st.innerHTML = `<div class="lobby-stage"><h1>${esc(r.label)} in progress</h1><p class="lead">Prices are hidden. Walk around, compare and haggle.</p><div class="art-row">${ART2.choc}${ART2.candy}</div></div>`;
+  else if (s.board.view === 'chart') { st.innerHTML = `<div class="chart-box tall"><canvas id="cPricesP"></canvas></div>`; drawCharts(); }
+  else if (s.board.view === 'rounds') st.innerHTML = roundsTable();
+  else {
+    const latest = live().slice(-10).reverse();
+    st.innerHTML = `<div class="board-live">${liveTable()}<h3 style="margin:14px 0 6px">Latest deals</h3><div class="tape">${latest.length ? latest.map(x => `<span class="tick-item"><span class="tk-art">${ART2[x.product]}</span>Shop ${x.shop} · ${k(x.price)}</span>`).join('') : '<span class="muted">No deals yet.</span>'}</div></div>`;
+  }
+  const lk = $('#pLock'); if (lk) { lk.innerHTML = s.lock ? lockHtml() : '<span class="muted">No price lock.</span>'; }
+}
+function roundsTable() {
+  const s = T.s; if (!s.rounds.length) return '<p class="lead">No rounds yet.</p>';
+  return `<div class="table-wrap"><table class="rounds-t"><tr><th>Round</th><th>Events</th>${PIDS.map(p => `<th>${PRODUCTS[p].en}: sold</th><th>middle price</th><th>range</th>`).join('')}</tr>
+    ${s.rounds.map(r => { const st = roundStats(roundSales(r.n)); return `<tr><td>${esc(r.label)}</td><td>${(r.events || []).map(esc).join(', ') || '–'}${r.lock ? ` 🔒 ${PRODUCTS[r.lock.product].en} ${k(r.lock.price)}` : ''}</td>${PIDS.map(p => `<td>${st[p].n}</td><td>${k(st[p].mid)}</td><td>${st[p].n ? k(st[p].min) + '–' + k(st[p].max) : '–'}</td>`).join('')}</tr>`; }).join('')}</table></div>`;
+}
+function tickerAdd(x) {
+  const el = $('#ticker'); if (!el || !T.s.board.visible) return;
+  const it = document.createElement('span'); it.className = 'tick-item';
+  it.innerHTML = `<span class="tk-art">${ART2[x.product]}</span>${x.shop} · ${k(x.price)}`;
+  el.prepend(it); while (el.children.length > 8) el.lastChild.remove();
+}
+function showBanner(ev) {
+  const el = $('#banner'); if (!el) return;
+  el.innerHTML = `<div class="b-icon">${ev.icon || '📣'}</div><div class="b-title">${esc(ev.label)}</div>${ev.vi ? `<div class="b-vi">${esc(ev.vi)}</div>` : ''}${ev.detail ? `<div class="b-detail">${esc(ev.detail)}</div>` : ''}`;
+  el.classList.remove('hidden'); Sound.play('sting');
+  clearTimeout(showBanner.t); showBanner.t = setTimeout(() => el.classList.add('hidden'), 6000);
+}
+
+/* ---- printable materials ---- */
+function printMaterials() {
+  const s = T.s, notes = [10, 5, 5, 2, 2, 1], perBuyer = notes.reduce((a, b) => a + b, 0);
+  const scale = s.budget / perBuyer;
+  const set = scale === 1 ? notes : null;
+  const money = n => `<div class="note-cash"><span>${n}k</span><small>Chợ Lớp 9</small></div>`;
+  $('#printArea').innerHTML = `
+    <section class="psheet"><h2>Buyer numbers (cut out, one per buyer)</h2><div class="pgrid-num">${Array.from({ length: s.buyers }, (_, i) => `<div class="numtag">${i + 1}<small>Buyer</small></div>`).join('')}</div></section>
+    <section class="psheet"><h2>Shop signs</h2>${SHOPS.map(x => `<div class="shopsign">Shop ${x}</div>`).join('')}</section>
+    <section class="psheet"><h2>Play money: one buyer's ${k(s.budget)}${set ? '' : ' (adjust the notes to your budget)'}</h2><p>Print one copy per buyer per round${s.budgetMode === 'round' ? ' (fresh money each round)' : ''}, plus some 1k and 2k notes for shops to give change.</p>
+      ${Array.from({ length: 4 }, () => `<div class="cashrow">${(set || [10, 5, 5, 2, 2, 1]).map(money).join('')}</div>`).join('')}</section>`;
+  setTimeout(() => window.print(), 50);
+}
+function makeQR(el, text, size) { if (!el) return; el.innerHTML = ''; if (window.QRCode) { try { new QRCode(el, { text, width: size, height: size, correctLevel: QRCode.CorrectLevel.M }); return; } catch { } } el.classList.add('hidden'); }
+
+
+/* =====================================================================
+   SELLER TILL (one laptop per shop). Every sale is saved on this laptop
+   first and re-sent until the teacher's console sends a receipt.
+   ===================================================================== */
+const S = { pid: null, nick: '', room: '', tr: null, till: null, lastMsg: 0, lang: 'en', price: {}, offline: false, queue: [], pending: null };
+const tx = key => L2[S.lang][key];
+const QK = () => APP + ':queue:' + S.room + ':' + S.pid;
+function sSave() { sstore.set(APP + ':till:' + S.room, { pid: S.pid, nick: S.nick, lang: S.lang }); }
+function qSave() { try { localStorage.setItem(QK(), JSON.stringify(S.queue)); } catch { } }
+function qLoad() { try { S.queue = JSON.parse(localStorage.getItem(QK()) || '[]'); } catch { S.queue = []; } }
+const sSend = m => { if (S.offline) return; S.tr.send({ ...m, pid: S.pid, from: S.pid }); };
+
+function studentBoot() {
+  const room = (PARAMS.get('room') || '').toUpperCase();
+  const saved = room ? sstore.get(APP + ':till:' + room) : null;
+  const pnick = (PARAMS.get('nick') || '').trim().slice(0, 18);
+  if (saved && saved.pid) { S.room = room; Object.assign(S, { pid: saved.pid, nick: saved.nick, lang: saved.lang || 'en' }); return tillConnect(); }
+  if (room.length === 4) { S.room = room; S.nick = pnick || 'Shop team'; S.pid = 'till-' + rid(10); sSave(); const u = new URL(location.href); u.searchParams.delete('nick'); history.replaceState(null, '', u); return tillConnect(); }
+  location.replace('index.html' + (PARAMS.get('t') ? '?t=' + PARAMS.get('t') : ''));
+}
+async function tillConnect() {
+  const kind = PARAMS.get('t') === 'local' || !ONLINE_READY ? 'local' : 'supabase';
+  S.tr = makeTransport(kind, S.room);
+  qLoad();
+  document.body.innerHTML = shell(`<header class="topbar"><span class="brand" id="tShop">Chợ Lớp 9 till</span><span class="chip" id="tRound"></span><span class="spacer"></span>
+    <span class="timer" id="tTimer"></span><button class="btn small ghost" id="langBtn" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)"></button>
+    <span class="chip" id="tConn"><span class="dot wait"></span>…</span></header><main class="wrap" id="tMain"><div class="panel">Connecting to room <b>${esc(S.room)}</b>…</div></main><div id="modal" class="modal hidden"></div>`);
+  $('#langBtn').onclick = () => { S.lang = S.lang === 'en' ? 'vi' : 'en'; sSave(); render(true); };
+  try { await S.tr.connect(onMsg, () => { }); } catch (e) { $('#tMain').innerHTML = `<div class="bad">${esc(e.message)}</div>`; return; }
+  const hello = () => sSend({ type: 'hello', nick: S.nick });
+  hello();
+  setInterval(() => {
+    const quiet = Date.now() - S.lastMsg > 7000;
+    if (quiet) hello();
+    const c = $('#tConn'); if (c) c.innerHTML = quiet || S.offline ? `<span class="dot bad"></span>${S.lang === 'vi' ? 'Mất kết nối' : 'No connection'}` : `<span class="dot ok"></span>${S.lang === 'vi' ? 'Đã kết nối' : 'Connected'}`;
+  }, 3000);
+  setInterval(() => resendQueue(), 1500);
+  setInterval(tickTimer, 1000);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  render(true);
+}
+function onMsg(m) {
+  if (!m || m.from !== 'teacher' || (m.to && m.to !== S.pid)) return;
+  const wasQuiet = Date.now() - S.lastMsg > 5000;
+  S.lastMsg = Date.now();
+  if (wasQuiet && S.queue.length) resendQueue(true); // connection is back: send saved sales now
+  if (m.type === 'till') { const prevRound = S.till && S.till.round ? S.till.round.n : null; S.till = m; if (m.round) S.leftAt = { left: m.round.left, at: Date.now() }; if (m.round && m.round.n !== prevRound) S.price = {}; render(); }
+  else if (m.type === 'state' && !S.till) { S.pubOnly = m; render(); }
+  else if (m.type === 'receipt') {
+    const i = S.queue.findIndex(x => x.id === m.id);
+    if (i >= 0) { S.queue.splice(i, 1); qSave(); }
+    if (m.ok) { toast(`✓ ${tx('ok')}: ${PRODUCTS[m.sale.product][S.lang]} · ${tx('buyer').toLowerCase()} ${m.sale.buyer} · ${k(m.sale.price)}`); flash(); }
+    else toast(errText(m.error), 4500);
+    render();
+  } else if (m.type === 'claimed' && !m.ok) toast(S.lang === 'vi' ? `Cửa hàng ${m.shop} đã có người.` : `Shop ${m.shop} is already taken.`, 4000);
+}
+function errText(e) {
+  const t = S.till || {}, vi = S.lang === 'vi';
+  return ({ 'no-shop': vi ? 'Hãy chọn cửa hàng trước.' : 'Choose your shop first.', 'no-round': vi ? 'Vòng chưa bắt đầu.' : 'The round has not started.',
+    'bad-buyer': vi ? 'Số người mua không hợp lệ.' : 'That buyer number does not exist.', 'bad-price': vi ? 'Giá không hợp lệ.' : 'Check the price.',
+    'sold-out': vi ? 'Hết hàng trong vòng này.' : 'Sold out for this round.', 'locked': (vi ? 'Giá bị khóa ở mức ' : 'The price is locked at ') + k(t.lock && t.lock.price) })[e] || (vi ? 'Không ghi được. Thử lại.' : 'Not recorded. Try again.');
+}
+function tickTimer() {
+  const el = $('#tTimer'); if (!el) return;
+  if (!S.till || !S.till.round || !S.leftAt) { el.textContent = ''; return; }
+  const l = Math.max(0, S.leftAt.left - Math.floor((Date.now() - S.leftAt.at) / 1000));
+  el.textContent = Math.floor(l / 60) + ':' + String(l % 60).padStart(2, '0');
+}
+function flash() { const el = $('#tMain'); if (!el || REDUCED) return; el.classList.remove('flash2'); void el.offsetWidth; el.classList.add('flash2'); }
+
+/* ---- screens ---- */
+function render(force) {
+  const main = $('#tMain'); if (!main) return;
+  $('#langBtn').textContent = tx('lang');
+  const t = S.till;
+  if (!t) return;
+  $('#tShop').textContent = t.shop ? `${tx('shop')} ${t.shop}` : 'Chợ Lớp 9';
+  $('#tRound').textContent = t.round ? `${t.round.label}` : tx('waiting');
+  const key = JSON.stringify([S.lang, t.shop, t.round && t.round.n, t.lock, (t.events || []).map(e => e.label), t.prod && PIDS.map(p => t.prod[p].sold + ':' + t.prod[p].nextCost), t.lastSale && t.lastSale.id, S.queue.length]);
+  if (!force && key === S.key) return; S.key = key;
+  if (!t.shop) {
+    main.innerHTML = `<div class="panel stack"><h1 style="margin:0">${tx('choose')}</h1><div class="shoppick">${SHOPS.map(x => `<button class="btn shopbtn" data-shop="${x}" ${t.shops[x] ? 'disabled' : ''}>${x}${t.shops[x] ? `<small>${tx('taken')}</small>` : ''}</button>`).join('')}</div>
+      <small class="muted">${S.lang === 'vi' ? 'Nếu máy tính bị tắt, hãy chọn lại cùng cửa hàng.' : 'If this laptop restarts, choose the same shop again.'}</small></div>`;
+    main.onclick = e => { const b = e.target.closest('[data-shop]'); if (b) sSend({ type: 'claim', shop: b.dataset.shop }); };
+    return;
+  }
+  const running = !!t.round;
+  main.innerHTML = `
+    ${(t.events || []).length ? `<div class="evbar">${t.events.map(e => `<span>${e.icon || '📣'} ${esc(S.lang === 'vi' && e.vi ? e.vi : e.label)}</span>`).join('')}</div>` : ''}
+    ${S.queue.length ? `<div class="note">${tx('queued')} (${S.queue.length})</div>` : ''}
+    <div class="tillgrid">${PIDS.map(p => productPanel(p, running)).join('')}</div>
+    <div class="panel row tillfoot"><span>${tx('profit')} ${tx('thisround')}: <b>${k(t.profitRound)}</b></span><span>${tx('total')}: <b>${k(t.profitTotal)}</b></span><span class="spacer"></span>
+      ${t.lastSale && running ? `<button class="btn" data-a="undo">${tx('undo')} (${PRODUCTS[t.lastSale.product][S.lang]}, ${k(t.lastSale.price)})</button>` : ''}</div>`;
+  main.onclick = tillClick;
+  PIDS.forEach(p => { const inp = $('#bn-' + p); if (inp) inp.onkeydown = e => { if (e.key === 'Enter') askSale(p); }; });
+}
+function productPanel(p, running) {
+  const t = S.till, pr = t.prod[p], locked = t.lock && t.lock.product === p, out = pr.sold >= UNITS_PER_ROUND;
+  if (S.price[p] == null) S.price[p] = locked ? t.lock.price : pr.nextCost != null ? pr.nextCost + 2 : 10;
+  if (locked) S.price[p] = t.lock.price;
+  const dis = !running || out;
+  return `<section class="panel stack prod ${p}">
+    <div class="row" style="justify-content:space-between;align-items:center"><div class="prodname"><span class="pa">${ART2[p]}</span>${PRODUCTS[p][S.lang]}</div>
+      <div class="stockdots" title="${tx('left')}">${'●'.repeat(UNITS_PER_ROUND - pr.sold)}${'○'.repeat(pr.sold)} <small>${UNITS_PER_ROUND - pr.sold} ${tx('left')}</small></div></div>
+    <div><small class="muted">${tx('lowest')}</small><div class="unitrow">${pr.costs.map((c, i) => `<span class="u ${i < pr.sold ? 'done' : i === pr.sold ? 'cur' : ''}">${i + 1}: ${k(c)}${i === pr.sold ? ` <small>${tx('next')}</small>` : ''}</span>`).join('')}</div></div>
+    ${out ? `<div class="soldout">${tx('soldout')}</div>` : `
+    <label class="field">${tx('price')}${locked ? ` <span class="lockpill">🔒 ${tx('locked')} ${k(t.lock.price)}</span>` : ''}</label>
+    <div class="stepper"><button data-a="minus" data-p="${p}" ${dis || locked ? 'disabled' : ''}>−</button><div class="val">${k(S.price[p])}</div><button data-a="plus" data-p="${p}" ${dis || locked ? 'disabled' : ''}>+</button></div>
+    <label class="field" for="bn-${p}">${tx('buyer')} <small class="muted">(1–${t.buyersMax || ''})</small></label>
+    <input id="bn-${p}" class="bigin" type="number" inputmode="numeric" min="1" ${dis ? 'disabled' : ''}>
+    <button class="btn primary block soldbtn" data-a="sold" data-p="${p}" ${dis ? 'disabled' : ''}>${tx('sold')}: ${PRODUCTS[p][S.lang]} · ${k(S.price[p])}</button>`}
+    ${!running ? `<small class="muted">${tx('waiting')}</small>` : ''}
+  </section>`;
+}
+function tillClick(e) {
+  const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+  const a = b.dataset.a, p = b.dataset.p;
+  if (a === 'minus' || a === 'plus') { S.price[p] = Math.max(1, Math.min(200, S.price[p] + (a === 'plus' ? 1 : -1))); updatePrice(p); }
+  else if (a === 'sold') askSale(p);
+  else if (a === 'undo') { const ls = S.till.lastSale; if (ls && confirm(S.lang === 'vi' ? 'Hoàn tác lần bán cuối?' : `Undo the last sale (${PRODUCTS[ls.product].en}, buyer ${ls.buyer}, ${k(ls.price)})?`)) sSend({ type: 'undo', id: ls.id }); }
+}
+function updatePrice(p) {
+  const panel = $('.prod.' + p); if (!panel) return;
+  $('.val', panel).textContent = k(S.price[p]);
+  $('.soldbtn', panel).textContent = `${tx('sold')}: ${PRODUCTS[p][S.lang]} · ${k(S.price[p])}`;
+}
+function askSale(p) {
+  const t = S.till, pr = t.prod[p], inp = $('#bn-' + p), buyer = Math.round(+inp.value);
+  if (!buyer) { inp.focus(); return toast(S.lang === 'vi' ? 'Nhập số người mua.' : 'Type the buyer number.'); }
+  const price = S.price[p], loss = pr.nextCost != null && price < pr.nextCost ? Math.round((pr.nextCost - price) * 10) / 10 : 0;
+  S.pending = { product: p, price, buyer };
+  $('#modal').innerHTML = `<div class="mbox"><div class="mart">${ART2[p]}</div>
+    <h2>${SALE_Q[S.lang](PRODUCTS[p][S.lang].toLowerCase(), `<b>${buyer}</b>`, `<b>${k(price)}</b>`)}</h2>
+    ${loss ? `<div class="bad">${tx('loss')} ${k(loss)}.</div>` : ''}
+    <div class="row"><button class="btn primary big" data-m="ok">${loss ? tx('sellanyway') : tx('confirm')}</button><button class="btn big" data-m="no">${tx('cancel')}</button></div></div>`;
+  $('#modal').classList.remove('hidden');
+  $('#modal').onclick = ev => { const b = ev.target.closest('[data-m]'); if (!b) return; if (b.dataset.m === 'ok') commitSale(); closeModal(); };
+  const ok = $('[data-m=ok]'); ok && ok.focus();
+}
+function closeModal() { const m = $('#modal'); if (m) m.classList.add('hidden'); }
+function commitSale() {
+  const x = S.pending; if (!x) return; S.pending = null;
+  const sale = { type: 'sale', id: 's-' + rid(10), product: x.product, price: x.price, buyer: x.buyer, round: S.till.round ? S.till.round.n : null, at: Date.now(), sentAt: Date.now() };
+  S.queue.push(sale); qSave();
+  sSend(sale);
+  const inp = $('#bn-' + x.product); if (inp) inp.value = '';
+  render(true);
+}
+function resendQueue(now) {
+  if (!S.queue.length || S.offline) return;
+  S.queue.forEach(x => { if (now || Date.now() - (x.sentAt || 0) > 2500) { x.sentAt = Date.now(); sSend(x); } });
+  qSave();
+}
+
+
+(function boot() {
+  const mode = PARAMS.get('mode') || (PARAMS.get('room') ? 'student' : 'home');
+  if (mode === 'teacher') teacherBoot(); else if (mode === 'student') studentBoot(); else location.replace('index.html' + (PARAMS.get('t') ? '?t=' + PARAMS.get('t') : ''));
+})();
+
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chợ Lớp 9 blended market: EcoLogic Market Lab Level 2</title>
+<title>Chợ Lớp 9 market with prizes: EcoLogic Market Lab Level 2</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍬</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -440,6 +440,27 @@ table.rounds-t { font-size: clamp(.95rem, 1.4vw, 1.25rem); }
 .prodname .pa svg { max-height: 44px; }
 .board-live .tick-item { font-size: clamp(1rem, 1.6vw, 1.4rem); }
 table.rounds-t td { white-space: nowrap; } table.rounds-t td:first-child, table.rounds-t td:nth-child(2) { white-space: normal; }
+.tillgrid > .panel { margin-top: 0; }
+
+/* ===== Level 2 online ===== */
+.tradegrid { display: grid; grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .tradegrid { grid-template-columns: 1fr; } }
+table.shoptable td, table.shoptable th { text-align: left; vertical-align: top; }
+table.shoptable td.cell { min-width: 150px; }
+.askline { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; } .askp { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; }
+.offer { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 10px; } .offer.counter { border-color: var(--foil); background: var(--warn-soft); }
+.prizebox { font-size: 1.15rem; } .prizebox b { font-family: var(--font-display); font-size: 1.4rem; }
+.unitline { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; } .unitline > span:first-child { min-width: 86px; font-weight: 700; }
+.unitline .u { background: rgba(255,255,255,.15); border-radius: 6px; padding: 2px 7px; font-weight: 700; } .unitline .u.done { opacity: .45; text-decoration: line-through; } .unitline .u.cur { background: var(--foil); color: #23170f; }
+.pricerow { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.fastp.choc { border-top: 6px solid var(--seller-card); } .fastp.candy { border-top: 6px solid var(--buyer-card); }
+.stepper.small { grid-template-columns: 44px 1fr 44px; } .stepper.small button { min-height: 44px; font-size: 1.3rem; } .stepper.small .val { font-size: 1.6rem; }
+.pstat { margin-top: 6px; } .eqtag { background: var(--mint-soft); border-radius: 999px; padding: 1px 8px; font-weight: 700; }
+.funcbox { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+.board-live .funcbox, .pstage > .funcbox { font-size: clamp(1rem, 1.6vw, 1.35rem); }
+.func h3 { margin: 6px 0 4px; } ol.funcs { margin: 0; padding-left: 22px; } ol.funcs li { margin: 4px 0; }
+table.prizelist { width: 100%; border-collapse: collapse; } table.prizelist td, table.prizelist th { border: 1px solid #000; padding: 4px 8px; }
+.tillgrid > .panel, .pricerow > .panel, .tradegrid > .panel { margin-top: 0; }
 
 </style>
 <script src="config.js"></script>
@@ -449,7 +470,7 @@ table.rounds-t td { white-space: nowrap; } table.rounds-t td:first-child, table.
 <noscript>This activity needs JavaScript turned on.</noscript>
 <script>
 /* =====================================================================
-   EcoLogic Market Lab, Level 2: the blended market (real goods, haggling, tills)
+   EcoLogic Market Lab, Level 2: the online market with prizes
    Cambridge IGCSE Economics 0455 (2027-2029): 2.1.1, 2.2.1, 2.2.2, 2.3.1, 2.3.2, 2.4.2, 2.4.3
    ===================================================================== */
 
@@ -458,7 +479,7 @@ table.rounds-t td { white-space: nowrap; } table.rounds-t td:first-child, table.
 const CONFIG = Object.assign({ supabaseUrl: '', supabaseAnonKey: '', markerUrl: '' }, window.MARKET_CONFIG || {});
 const CHANNEL = room => 'ecologic-market:' + room; // shared by both levels so one join page can find any room
 
-const APP = 'ecologic-market-l2';
+const APP = 'ecologic-market-l2online';
 const SUPABASE_SRC = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
 const PARAMS = new URLSearchParams(location.search);
 const ONLINE_READY = !!(String(CONFIG.supabaseUrl).trim() && String(CONFIG.supabaseAnonKey).trim());
@@ -641,235 +662,554 @@ function confetti(n = 70) {
 function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 
 
+/* ===== Level 2 online: market engine (pure logic, testable without a browser) =====
+   Two products. Each shop has 4 units of each per round with rising lowest prices.
+   Each buyer card wants at most one of each product, up to its value (k đồng).
+   Units are thousand đồng throughout. */
+const M2 = (() => {
+  const PIDS = ['choc', 'candy'];
+  const SHOP_IDS = ['A', 'B', 'C', 'D', 'E'];
+  const UNITS = 4;
+  const SHOP_CARDS = {
+    A: { choc: [9, 11, 14, 19], candy: [4, 6, 9, 14] },
+    B: { choc: [10, 13, 16, 20], candy: [5, 8, 11, 15] },
+    C: { choc: [10, 14, 17, 21], candy: [5, 9, 12, 16] },
+    D: { choc: [11, 15, 18, 22], candy: [6, 10, 13, 17] },
+    E: { choc: [12, 16, 19, 23], candy: [7, 11, 14, 18] }
+  };
+  // [candy value, chocolate value] for the 19 designed buyer cards (from the unit plan)
+  const BUYER_CARDS = [[22, 13], [20, 23], [18, 7], [17, 8], [16, 18], [15, 19], [14, 9], [13, 22], [12, 27], [11, 16], [9, 20], [8, 11], [8, 17], [7, 12], [6, 10], [5, 25], [4, 13], [3, 21], [2, 14]];
+  // Extra cards for classes with more than 19 buyers: below the market price in every round
+  const EXTRA_CARDS = [[3, 6], [4, 5], [2, 7], [5, 4], [3, 8], [2, 5], [4, 6], [1, 7]];
 
-/* ===== Level 2: products, seller cards, events, language ===== */
+  function buyerCards(n) {
+    const out = BUYER_CARDS.slice(0, Math.min(n, BUYER_CARDS.length)).map((c, i) => ({ id: 'c' + (i + 1), candy: c[0], choc: c[1] }));
+    for (let i = 0; out.length < n; i++) { const c = EXTRA_CARDS[i % EXTRA_CARDS.length]; out.push({ id: 'x' + (i + 1), candy: c[0], choc: c[1] }); }
+    return out;
+  }
+  const evAdd = (events, side, product) => events.filter(e => e.active !== false && e.side === side && (e.product === product || e.product === 'both')).reduce((a, e) => a + e.amount, 0);
+  const valueOf = (card, product, events) => card[product] + evAdd(events, 'buyers', product);
+  const costOf = (shop, product, unit, events) => SHOP_CARDS[shop][product][unit] + evAdd(events, 'sellers', product);
+
+  /** Competitive equilibrium from the cards in play */
+  function equilibrium(cards, product, events) {
+    const v = cards.map(c => valueOf(c, product, events)).sort((a, b) => b - a);
+    const c = SHOP_IDS.flatMap(s => [0, 1, 2, 3].map(u => costOf(s, product, u, events))).sort((a, b) => a - b);
+    let q = 0; while (q < v.length && q < c.length && v[q] >= c[q]) q++;
+    if (!q) return { qty: 0, price: null, lo: null, hi: null };
+    const lo = Math.max(c[q - 1], q < v.length ? v[q] : -Infinity), hi = Math.min(v[q - 1], q < c.length ? c[q] : Infinity);
+    return { qty: q, lo, hi, price: (lo + hi) / 2 };
+  }
+  /** Quantity demanded and supplied at a given price (for price locks) */
+  function atPrice(cards, product, events, p) {
+    const qd = cards.filter(c => valueOf(c, product, events) >= p).length;
+    const qs = SHOP_IDS.reduce((a, s) => a + [0, 1, 2, 3].filter(u => costOf(s, product, u, events) <= p).length, 0);
+    return { qd, qs };
+  }
+  /** Total gains at equilibrium: used to scale prizes fairly between buyers and shops */
+  function surplus(cards, product, events) {
+    const eq = equilibrium(cards, product, events); if (!eq.qty) return { cs: 0, ps: 0 };
+    const P = eq.price;
+    const v = cards.map(c => valueOf(c, product, events)).sort((a, b) => b - a).slice(0, eq.qty);
+    const c = SHOP_IDS.flatMap(s => [0, 1, 2, 3].map(u => costOf(s, product, u, events))).sort((a, b) => a - b).slice(0, eq.qty);
+    return { cs: v.reduce((a, x) => a + (x - P), 0), ps: c.reduce((a, x) => a + (P - x), 0) };
+  }
+
+  /** Signal, incentive, rationing: how the market moves from the old equilibrium after events change.
+      Evaluated at the old price on the NEW curves, then at the new equilibrium. */
+  function adjustment(cards, product, evBefore, evAfter) {
+    const before = equilibrium(cards, product, evBefore), after = equilibrium(cards, product, evAfter);
+    if (!before.qty || !after.qty) return null;
+    const P1 = before.lo, P2 = after.lo;                      // whole-thousand prices students can read
+    const at1 = atPrice(cards, product, evAfter, P1), at2 = atPrice(cards, product, evAfter, P2);
+    return { P1, Q1: before.qty, P2, Q2: after.qty, before, after, qdAtOld: at1.qd, qsAtOld: at1.qs, gapAtOld: at1.qd - at1.qs, qdNew: at2.qd, qsNew: at2.qs,
+      direction: at1.qd > at1.qs ? 'up' : at1.qd < at1.qs ? 'down' : 'none' };
+  }
+  /** One trading round. slots: [{slot, card}] buyer slots; the teacher layer maps people to slots and shops. */
+  function createRound(o) {
+    const { n, slots, events, lock, mode } = o;
+    const card = new Map(slots.map(s => [s.slot, s.card]));
+    const sold = {}; SHOP_IDS.forEach(s => { sold[s] = { choc: 0, candy: 0 }; });
+    const bought = new Map(slots.map(s => [s.slot, { choc: false, candy: false }]));
+    const trades = [];
+    const book = { choc: { bids: new Map(), asks: new Map() }, candy: { bids: new Map(), asks: new Map() } };
+    let seq = 0;
+    const nextCost = (shop, p) => sold[shop][p] < UNITS ? costOf(shop, p, sold[shop][p], events) : null;
+    const val = (slot, p) => valueOf(card.get(slot), p, events);
+
+    function check(slot, shop, p, price) {
+      if (!PIDS.includes(p)) return 'bad-product';
+      if (!card.has(slot)) return 'no-card';
+      if (!SHOP_IDS.includes(shop)) return 'bad-shop';
+      if (!(price > 0) || price > 200) return 'bad-price';
+      if (bought.get(slot)[p]) return 'already-bought';
+      if (sold[shop][p] >= UNITS) return 'sold-out';
+      if (price > val(slot, p)) return 'above-value';
+      if (price < nextCost(shop, p)) return 'below-cost';
+      if (lock && lock.product === p && price !== lock.price) return 'locked';
+      return null;
+    }
+    function trade(slot, shop, p, price, how) {
+      const err = check(slot, shop, p, price); if (err) return { ok: false, error: err };
+      const unit = sold[shop][p], cost = nextCost(shop, p), value = val(slot, p);
+      sold[shop][p]++; bought.get(slot)[p] = true;
+      book[p].bids.delete(slot); book[p].asks.delete(shop);
+      const t = { round: n, product: p, shop, slot, price, unit: unit + 1, cost, value, gain: value - price, profit: price - cost, how: how || mode, i: trades.length };
+      trades.push(t);
+      return { ok: true, trade: t };
+    }
+    const bestAsk = p => { let top = null; for (const [shop, o] of book[p].asks) if (sold[shop][p] < UNITS && (!top || o.price < top.price || (o.price === top.price && o.t < top.t))) top = { shop, ...o }; return top; };
+    const bestBid = p => { let top = null; for (const [slot, o] of book[p].bids) if (!bought.get(slot)[p] && (!top || o.price > top.price || (o.price === top.price && o.t < top.t))) top = { slot, ...o }; return top; };
+    /** Fast mode: a buyer posts an offer; it trades at once with the cheapest ask it meets */
+    function bid(slot, p, price) {
+      if (!PIDS.includes(p) || !card.has(slot)) return { ok: false, error: 'bad' };
+      if (bought.get(slot)[p]) return { ok: false, error: 'already-bought' };
+      if (price > val(slot, p)) return { ok: false, error: 'above-value' };
+      if (lock && lock.product === p && price !== lock.price) return { ok: false, error: 'locked' };
+      const a = bestAsk(p);
+      if (a && price >= a.price) return trade(slot, a.shop, p, a.price, 'fast');
+      book[p].bids.set(slot, { price, t: ++seq }); return { ok: true };
+    }
+    /** Fast mode: a shop posts an ask for its next unit; it trades at once with the highest bid it meets */
+    function ask(shop, p, price) {
+      if (!PIDS.includes(p) || !SHOP_IDS.includes(shop)) return { ok: false, error: 'bad' };
+      if (sold[shop][p] >= UNITS) return { ok: false, error: 'sold-out' };
+      if (price < nextCost(shop, p)) return { ok: false, error: 'below-cost' };
+      if (lock && lock.product === p && price !== lock.price) return { ok: false, error: 'locked' };
+      const b = bestBid(p);
+      if (b && price <= b.price) return trade(b.slot, shop, p, b.price, 'fast');
+      book[p].asks.set(shop, { price, t: ++seq }); return { ok: true };
+    }
+    const cancelBid = (slot, p) => book[p].bids.delete(slot);
+    const cancelAsk = (shop, p) => book[p].asks.delete(shop);
+    return { n, mode, events, lock, trades, sold, bought, book, check, trade, bid, ask, cancelBid, cancelAsk, bestAsk, bestBid, nextCost, val,
+      stock: (shop, p) => UNITS - sold[shop][p], hasCard: slot => card.has(slot) };
+  }
+
+  /* ---- robots ---- */
+  const ri = (lo, hi, rnd = Math.random) => lo + Math.floor(rnd() * (hi - lo + 1));
+  // band narrows over rounds; anchor = last round's average price for that product
+  function botBid(value, roundIdx, anchor, rnd = Math.random) {
+    const band = roundIdx <= 1 ? 6 : roundIdx === 2 ? 4 : 3;
+    if (anchor == null || roundIdx <= 1) return ri(Math.max(1, value - band), value, rnd);
+    const a = Math.round(anchor), hi = Math.min(value, a + 1), lo = Math.max(1, Math.min(hi, a - band));
+    return ri(lo, hi, rnd);
+  }
+  function botAsk(cost, roundIdx, anchor, rnd = Math.random) {
+    const band = roundIdx <= 1 ? 6 : roundIdx === 2 ? 4 : 3;
+    if (anchor == null || roundIdx <= 1) return ri(cost, cost + band, rnd);
+    const a = Math.round(anchor), lo = Math.max(cost, a - 1), hi = Math.max(lo, a + band);
+    return ri(lo, hi, rnd);
+  }
+  function stats(trades, p) {
+    const ps = trades.filter(t => !p || t.product === p).map(t => t.price);
+    if (!ps.length) return { n: 0, mean: null, min: null, max: null, sd: null };
+    const mean = ps.reduce((a, b) => a + b, 0) / ps.length;
+    return { n: ps.length, mean, min: Math.min(...ps), max: Math.max(...ps), sd: Math.sqrt(ps.reduce((a, b) => a + (b - mean) ** 2, 0) / ps.length) };
+  }
+  return { PIDS, SHOP_IDS, UNITS, SHOP_CARDS, BUYER_CARDS, buyerCards, valueOf, costOf, equilibrium, atPrice, surplus, adjustment, createRound, botBid, botAsk, stats, ri };
+})();
+if (typeof module !== 'undefined') module.exports = M2;
+
+
+/* ===== Level 2 online: products, events, lesson plan ===== */
 const k = n => n == null ? '–' : (Math.round(n * 10) / 10) + 'k';
-const ART2 = {
+const kd = n => n == null ? '–' : vnd(Math.round(n * 10) / 10);
+const PROD = { choc: { name: 'Chocolate', one: 'chocolate bar', color: '--seller' }, candy: { name: 'Candy', one: 'bag of candy', color: '--buyer' } };
+const ART3 = {
   choc: `<svg viewBox="0 0 160 110" aria-hidden="true"><rect x="10" y="14" width="140" height="82" rx="10" fill="#b02a3f"/><rect x="10" y="14" width="56" height="82" rx="10" fill="#5b3826"/><g fill="#3a2217"><rect x="16" y="20" width="20" height="22" rx="3"/><rect x="40" y="20" width="20" height="22" rx="3"/><rect x="16" y="46" width="20" height="22" rx="3"/><rect x="40" y="46" width="20" height="22" rx="3"/><rect x="16" y="72" width="20" height="18" rx="3"/><rect x="40" y="72" width="20" height="18" rx="3"/></g><rect x="60" y="14" width="10" height="82" fill="#d8a21f"/><text x="110" y="62" font-family="sans-serif" font-weight="800" font-size="18" fill="#fff" text-anchor="middle">CHOCO</text></svg>`,
   candy: `<svg viewBox="0 0 160 110" aria-hidden="true"><path d="M8 34 L44 55 L8 76 Z" fill="#12648c"/><path d="M152 34 L116 55 L152 76 Z" fill="#12648c"/><ellipse cx="80" cy="55" rx="40" ry="30" fill="#e8a33a"/><path d="M52 40 Q80 70 108 40" stroke="#fff" stroke-width="6" fill="none" opacity=".75"/><path d="M50 62 Q80 92 110 62" stroke="#fff" stroke-width="6" fill="none" opacity=".75"/></svg>`
 };
-const PRODUCTS = { choc: { en: 'Chocolate', vi: 'Sô-cô-la', unit: 'bar' }, candy: { en: 'Candy', vi: 'Kẹo', unit: 'bag' } };
-const PIDS = ['choc', 'candy'];
-const SHOPS = ['A', 'B', 'C', 'D', 'E'];
-const UNITS_PER_ROUND = 4;
-// Lowest price each shop will accept for its 1st to 4th unit, in thousand đồng.
-// Rising within a shop: cheap stock first, extra units cost more to get.
-const DEFAULT_CARDS = {
-  A: { choc: [9, 11, 14, 19], candy: [4, 6, 9, 14] },
-  B: { choc: [10, 13, 16, 20], candy: [5, 8, 11, 15] },
-  C: { choc: [10, 14, 17, 21], candy: [5, 9, 12, 16] },
-  D: { choc: [11, 15, 18, 22], candy: [6, 10, 13, 17] },
-  E: { choc: [12, 16, 19, 23], candy: [7, 11, 14, 18] }
-};
-// Preset events. Cost events change every shop's lowest prices until removed; announcements change nothing in the app.
-const PRESETS = [
-  { key: 'cacao', label: 'Cacao harvest hit', vi: 'Mất mùa ca cao', detail: 'Chocolate costs +3k for every shop', kind: 'cost', product: 'choc', amount: 3, icon: '🌧️' },
-  { key: 'sugar', label: 'Sugar harvest hit', vi: 'Mất mùa mía đường', detail: 'Chocolate and candy costs +2k for every shop', kind: 'cost', product: 'both', amount: 2, icon: '🌾' },
-  { key: 'halloween', label: 'Halloween!', vi: 'Lễ Halloween!', detail: 'Everyone wants sweets for Halloween', kind: 'news', icon: '🎃' },
-  { key: 'pocket', label: 'Pocket money day', vi: 'Ngày nhận tiền tiêu vặt', detail: 'Every buyer gets 10k more this round', kind: 'news', icon: '💵' }
+// Events. side 'sellers' changes every shop's lowest prices (a supply shift);
+// side 'buyers' changes every buyer card's value (a demand shift).
+const EVENTS3 = [
+  { key: 'cacao', icon: '🌧️', label: 'Cacao harvest hit', detail: 'Chocolate costs +3k for every shop', parts: [{ side: 'sellers', product: 'choc', amount: 3 }] },
+  { key: 'sugar', icon: '🌾', label: 'Sugar harvest hit', detail: 'Chocolate and candy costs +2k for every shop', parts: [{ side: 'sellers', product: 'both', amount: 2 }] },
+  { key: 'halloween', icon: '🎃', label: 'Halloween!', detail: 'Buyers value chocolate +4k and candy +3k', parts: [{ side: 'buyers', product: 'choc', amount: 4 }, { side: 'buyers', product: 'candy', amount: 3 }] },
+  { key: 'pocket', icon: '💵', label: 'Pocket money day', detail: 'Buyers have more to spend: every value +2k', parts: [{ side: 'buyers', product: 'both', amount: 2 }] }
 ];
-const LESSON_PLAN = [
-  { lesson: 1, label: 'Round 1: board off', board: false, events: [] },
-  { lesson: 1, label: 'Round 2: board on', board: true, events: [] },
-  { lesson: 1, label: 'Round 3: price lock', board: true, events: [], lock: true },
-  { lesson: 2, label: 'Round 4: cacao harvest hit', board: true, events: ['cacao'] },
-  { lesson: 2, label: 'Round 5: Halloween', board: true, events: ['halloween'] },
-  { lesson: 2, label: 'Round 6: Halloween + sugar harvest hit', board: true, events: ['halloween', 'sugar'] }
+const PLAN3 = [
+  { lesson: 1, label: 'Practice round', practice: true, mode: 'offers', board: true, events: [], len: 120 },
+  { lesson: 1, label: 'Round 1: board off', mode: 'offers', board: false, events: [] },
+  { lesson: 1, label: 'Round 2: board on', mode: 'offers', board: true, events: [] },
+  { lesson: 1, label: 'Round 3: fast mode', mode: 'fast', board: true, events: [] },
+  { lesson: 1, label: 'Round 4: price lock', mode: 'offers', board: true, events: [], lock: { product: 'candy', price: 7 } },
+  { lesson: 2, label: 'Round 5: cacao harvest hit', mode: 'offers', board: true, events: ['cacao'] },
+  { lesson: 2, label: 'Round 6: Halloween', mode: 'offers', board: true, events: ['halloween'] },
+  { lesson: 2, label: 'Round 7: Halloween + sugar harvest hit', mode: 'offers', board: true, events: ['halloween', 'sugar'] }
 ];
-const SALE_Q = { en: (p, b, pr) => `Sell 1 ${p} to buyer ${b} for ${pr}?`, vi: (p, b, pr) => `Bán 1 ${p} cho người mua số ${b} với giá ${pr}?` };
-const L2 = {
-  en: { sold: 'Sold', price: 'Agreed price', buyer: 'Buyer number', confirm: 'Confirm sale', cancel: 'Cancel', undo: 'Undo last sale', left: 'left', profit: 'Profit', round: 'Round', waiting: 'Waiting for the next round', soldout: 'Sold out', lowest: 'Lowest price you accept', next: 'next', loss: 'This price is below your lowest price. You will make a loss of', sellanyway: 'Sell anyway', locked: 'Price locked at', thisround: 'this round', total: 'total', queued: 'Saved on this laptop. Sending when the Wi-Fi is back…', choose: 'Choose your shop', shop: 'Shop', taken: 'taken', units: 'Units', from: 'from', ok: 'Sale recorded', lang: 'Tiếng Việt' },
-  vi: { sold: 'Đã bán', price: 'Giá đã thỏa thuận', buyer: 'Số người mua', confirm: 'Xác nhận bán', cancel: 'Hủy', undo: 'Hoàn tác lần bán cuối', left: 'còn lại', profit: 'Lợi nhuận', round: 'Vòng', waiting: 'Đang chờ vòng tiếp theo', soldout: 'Hết hàng', lowest: 'Giá thấp nhất bạn chấp nhận', next: 'tiếp theo', loss: 'Giá này thấp hơn giá thấp nhất của bạn. Bạn sẽ lỗ', sellanyway: 'Vẫn bán', locked: 'Giá bị khóa ở mức', thisround: 'vòng này', total: 'tổng', queued: 'Đã lưu trên máy. Sẽ gửi khi có Wi-Fi…', choose: 'Chọn cửa hàng của bạn', shop: 'Cửa hàng', taken: 'đã có người', units: 'Đơn vị', from: 'từ', ok: 'Đã ghi nhận', lang: 'English' }
+const ERR3 = {
+  'above-value': 'That is more than it is worth to you.', 'below-cost': 'That is below the lowest price you accept for this unit.',
+  'already-bought': 'You already bought this product this round.', 'sold-out': 'Sold out for this round.', 'locked': 'The price is locked.',
+  'no-card': 'You have no buyer card this round.', 'no-round': 'The round has not started.', 'busy': 'This shop has too many offers waiting. Try another shop.',
+  'one-offer': 'You already have an offer waiting for this product.', 'expired': 'That offer has expired.', 'not-yours': 'That is not your offer.', 'bad-price': 'Check the price.'
 };
-const median = a => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
-function roundStats(sales) {
-  const out = {};
-  PIDS.forEach(p => { const ps = sales.filter(s => s.product === p).map(s => s.price); out[p] = { n: ps.length, mid: median(ps), min: ps.length ? Math.min(...ps) : null, max: ps.length ? Math.max(...ps) : null }; });
-  return out;
-}
-// A shop's lowest acceptable price for its next unit, after active cost events
-function unitCost(base, events, shop, product, unit) {
-  const add = events.filter(e => e.kind === 'cost' && e.active && (e.product === product || e.product === 'both') && (!e.shops || e.shops.includes(shop))).reduce((a, e) => a + e.amount, 0);
-  return base[shop][product][unit] + add;
-}
+const errMsg = e => ERR3[e] || 'That did not work. Try again.';
+const OFFER_SECS = 30, MAX_OFFERS_PER_SHOP = 4;
 
 
 /* =====================================================================
-   TEACHER CONSOLE (Level 2). The teacher's browser keeps the record of
-   every sale; the tills send sales here and wait for a receipt.
+   TEACHER (host) for Level 2 online. The teacher's browser runs the market:
+   it checks every trade, runs offers and robots, and keeps the prizes.
    ===================================================================== */
 const TKEY = APP + ':teacher';
 const STATE_V = 1;
-const T = { s: null, tr: null, tick: null, lastSent: 0, sendTimer: null, connected: false, projector: false, settingsOpen: false };
+const T = { s: null, tr: null, R: null, tick: null, bots: new Map(), offers: new Map(), lastSent: 0, sendTimer: null, connected: false, projector: false, kp: null, pk: null, keys: {} };
 
 function newT(o) {
-  return { v: STATE_V, room: roomCode(), transport: o.transport, buyers: o.buyers, budget: o.budget, budgetMode: o.budgetMode, roundLen: o.roundLen, sound: true,
-    phase: 'lobby', board: { visible: false, view: 'live' }, shops: Object.fromEntries(SHOPS.map(x => [x, null])), names: {},
-    cards: JSON.parse(JSON.stringify(DEFAULT_CARDS)), rounds: [], current: null, events: [], lock: null, queueCount: {}, sales: [], planStep: 0, createdAt: Date.now() };
+  return { v: STATE_V, room: roomCode(), transport: o.transport, roundLen: o.roundLen, team: o.team, sweets: o.sweets, perStudent: o.perStudent, botsOn: o.botsOn, sound: true,
+    phase: 'lobby', humans: [], roles: {}, shopsOf: {}, wasShop: {}, rounds: [], current: null, events: [], lock: null, revealed: {}, board: { visible: true, view: 'live' },
+    planStep: 0, earnings: {}, pks: {}, createdAt: Date.now() };
 }
 function migrate(st) {
-  const d = newT({ transport: st.transport || 'local', buyers: st.buyers || 19, budget: st.budget || 25, budgetMode: st.budgetMode || 'round', roundLen: st.roundLen || 360 });
+  const d = newT({ transport: st.transport || 'local', roundLen: st.roundLen || 300, team: st.team || 1, sweets: st.sweets || 60, perStudent: st.perStudent ?? 1, botsOn: st.botsOn !== false });
   const out = { ...d, ...st, v: STATE_V };
-  ['shops', 'names', 'queueCount', 'board', 'cards'].forEach(x => { if (!out[x] || typeof out[x] !== 'object') out[x] = d[x]; });
-  ['rounds', 'events', 'sales'].forEach(x => { if (!Array.isArray(out[x])) out[x] = []; });
+  ['roles', 'shopsOf', 'wasShop', 'revealed', 'earnings', 'pks', 'board'].forEach(x => { if (!out[x] || typeof out[x] !== 'object') out[x] = d[x]; });
+  ['humans', 'rounds', 'events'].forEach(x => { if (!Array.isArray(out[x])) out[x] = []; });
   if (out.current) { out.current = null; if (out.phase === 'running') out.phase = 'between'; }
   return out;
 }
 const tSave = () => store.set(TKEY, T.s);
+const nick = pid => (T.s.humans.find(h => h.pid === pid) || {}).nick || 'Student';
 const curRound = () => T.s.current ? T.s.rounds[T.s.current.idx] : null;
-const live = () => T.s.sales.filter(x => !x.undone);
-const roundSales = n => live().filter(x => x.round === n);
-const unitsSold = (shop, product, n) => roundSales(n).filter(x => x.shop === shop && x.product === product).length;
+const activeEvents = () => T.s.events.filter(e => e.active).flatMap(e => e.parts.map(p => ({ ...p, active: true })));
+const shopMembers = shop => T.s.humans.filter(h => T.s.roles[h.pid] === 'shop:' + shop).map(h => h.pid);
+const isShopHuman = shop => shopMembers(shop).length > 0;
 
 /* ---- setup ---- */
 function teacherBoot() {
   const saved = store.get(TKEY);
   document.body.innerHTML = shell(`<div class="narrow stack" style="padding-top:24px">
-    <h1>Open the blended market</h1>
-    <p>Level 2: real chocolate and candy in the room. Buyers have a number and play money. Five shops sell from tables, haggle, and record each sale on a laptop till.</p>
-    ${saved ? `<div class="panel stack"><h2>Resume room ${esc(saved.room)}</h2><p class="muted" style="margin:0">${(saved.sales || []).filter(x => !x.undone).length} sales recorded. Tills reconnect by themselves.</p><button class="btn primary" id="resume">Resume room ${esc(saved.room)}</button></div>` : ''}
+    <h1>Open the online market with prizes</h1>
+    <p>Level 2: every student trades online. Buyers have value cards, shops have rising costs, and earnings turn into real prizes at the end. Shocks and price locks show how markets change.</p>
+    ${saved ? `<div class="panel stack"><h2>Resume room ${esc(saved.room)}</h2><p class="muted" style="margin:0">${(saved.humans || []).length} students, ${(saved.rounds || []).length} rounds. Earnings are kept.</p><button class="btn primary" id="resume">Resume room ${esc(saved.room)}</button></div>` : ''}
     <div class="panel stack">
-      <div><label class="field" for="tp">Connection</label><select id="tp"><option value="supabase" ${ONLINE_READY ? 'selected' : 'disabled'}>Online: tills on their own laptops${ONLINE_READY ? '' : ' (add Supabase details to enable)'}</option><option value="local" ${ONLINE_READY ? '' : 'selected'}>Test mode: tills in other tabs on this computer</option></select></div>
-      <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="nb">Number of buyers</label><input id="nb" type="number" min="4" max="40" value="19"></div>
-        <div style="flex:1;min-width:150px"><label class="field" for="bg">Play money per buyer (k)</label><input id="bg" type="number" min="5" max="200" value="25"></div></div>
-      <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="bm">Budget</label><select id="bm"><option value="round">Fresh budget every round</option><option value="lesson">One budget for the whole lesson</option></select></div>
-        <div style="flex:1;min-width:150px"><label class="field" for="rl">Round length</label><select id="rl"><option value="300">5 minutes</option><option value="360" selected>6 minutes</option><option value="480">8 minutes</option></select></div></div>
-      <button class="btn primary" id="create">Open a new room</button>
-    </div><p class="muted"><a href="index.html">Back to all lessons</a></p></div>`);
-  $('#create').onclick = () => { Sound.ensure(); T.s = newT({ transport: $('#tp').value, buyers: Math.max(4, Math.min(40, +$('#nb').value || 19)), budget: Math.max(5, +$('#bg').value || 25), budgetMode: $('#bm').value, roundLen: +$('#rl').value }); tSave(); teacherStart(); };
+      <div><label class="field" for="tp">Connection</label><select id="tp"><option value="supabase" ${ONLINE_READY ? 'selected' : 'disabled'}>Online: students on their own devices${ONLINE_READY ? '' : ' (add Supabase details to enable)'}</option><option value="local" ${ONLINE_READY ? '' : 'selected'}>Test mode: students in other tabs on this computer</option></select></div>
+      <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="tm">Students per shop</label><select id="tm"><option value="1">1 (5 shop students)</option><option value="2">2 (10 shop students, in pairs)</option></select></div>
+        <div style="flex:1;min-width:150px"><label class="field" for="rl">Round length</label><select id="rl"><option value="240">4 minutes</option><option value="300" selected>5 minutes</option><option value="360">6 minutes</option></select></div></div>
+      <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="sw">Prizes: total sweets for the class</label><input id="sw" type="number" min="0" value="60"></div>
+        <div style="flex:1;min-width:150px"><label class="field" for="ps">Sweets every student gets for taking part</label><input id="ps" type="number" min="0" value="1"></div></div>
+      <label class="row" style="gap:8px"><input type="checkbox" id="bots" checked style="width:22px;height:22px"> Robots fill empty shops and buyer cards (keeps 5 shops and 19 buyer cards)</label>
+      <button class="btn primary" id="create">Open a new room</button></div>
+    <p class="muted"><a href="index.html">Back to all lessons</a></p></div>`);
+  $('#create').onclick = () => { Sound.ensure(); T.s = newT({ transport: $('#tp').value, team: +$('#tm').value, roundLen: +$('#rl').value, sweets: Math.max(0, +$('#sw').value || 0), perStudent: Math.max(0, +$('#ps').value || 0), botsOn: $('#bots').checked }); tSave(); teacherStart(); };
   const r = $('#resume'); if (r) r.onclick = () => { Sound.ensure(); T.s = migrate(saved); tSave(); teacherStart(); };
 }
 async function teacherStart() {
   Sound.on = T.s.sound;
   T.tr = makeTransport(T.s.transport, T.s.room);
   renderT();
-  try { await T.tr.connect(tOnMsg, st => { T.connected = st === 'SUBSCRIBED'; connBadge(); }); T.connected = true; }
-  catch (e) { T.connected = false; toast(e.message, 6000); }
-  connBadge(); tBroadcast(true); tTillsAll();
+  try { await initCrypto(); } catch (e) { console.warn('No card encryption', e); }
+  try { await T.tr.connect(tOnMsg, st => { T.connected = st === 'SUBSCRIBED'; connBadge(); }); T.connected = true; } catch (e) { T.connected = false; toast(e.message, 6000); }
+  connBadge(); tBroadcast(true); youAll();
   setInterval(() => { if (!T.s.current) tBroadcast(true); }, 2500);
-  addEventListener('resize', () => drawCharts());
+  addEventListener('resize', drawCharts);
 }
 function connBadge() { const el = $('#conn'); if (el) el.innerHTML = T.connected ? `<span class="dot ok"></span>${T.s.transport === 'local' ? 'Test mode' : 'Online'}` : '<span class="dot bad"></span>Not connected'; }
 const joinUrl = () => { const u = new URL('index.html', location.href); u.search = ''; u.hash = ''; u.searchParams.set('room', T.s.room); if (T.s.transport === 'local') u.searchParams.set('t', 'local'); return u.toString(); };
 
-/* ---- messages from tills ---- */
+/* ---- private messages: each card is encrypted for its owner (ECDH + AES-GCM) ---- */
+async function initCrypto() { if (!(window.crypto && crypto.subtle)) return; T.kp = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']); T.pk = await crypto.subtle.exportKey('jwk', T.kp.publicKey); }
+async function keyFor(pid) {
+  if (!T.kp || !T.s.pks[pid]) return null;
+  if (!T.keys[pid]) T.keys[pid] = (async () => { const pub = await crypto.subtle.importKey('jwk', T.s.pks[pid], { name: 'ECDH', namedCurve: 'P-256' }, false, []); return crypto.subtle.deriveKey({ name: 'ECDH', public: pub }, T.kp.privateKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt']); })().catch(() => null);
+  return T.keys[pid];
+}
+const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+async function sendPrivate(pid, payload) {
+  const key = await keyFor(pid);
+  if (key) { const iv = crypto.getRandomValues(new Uint8Array(12)); const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(payload))); tSend({ type: 'you', to: pid, iv: b64(iv), ct: b64(ct) }); }
+  else tSend({ type: 'you', to: pid, you: payload });
+}
 function tSend(m) { T.tr && T.tr.send({ ...m, from: 'teacher', room: T.s.room }); }
+
+/* ---- roles ---- */
+function dealRoles(newShops) {
+  const s = T.s, hs = s.humans.map(h => h.pid);
+  const nShopPeople = Math.min(hs.length, 5 * s.team);
+  let pool = hs.slice().sort(() => Math.random() - .5);
+  if (newShops) pool.sort((a, b) => (s.wasShop[a] ? 1 : 0) - (s.wasShop[b] ? 1 : 0)); // people who haven't run a shop go first
+  const shopPeople = pool.slice(0, hs.length >= 8 ? nShopPeople : Math.min(nShopPeople, Math.floor(hs.length / 2)));
+  s.roles = {};
+  shopPeople.forEach((pid, i) => { const shop = M2.SHOP_IDS[i % 5]; s.roles[pid] = 'shop:' + shop; s.wasShop[pid] = true; });
+  hs.forEach(pid => { if (!s.roles[pid]) s.roles[pid] = 'buyer'; });
+  s.phase = 'dealt'; Sound.play('sting');
+  tSave(); renderBody(); youAll(); tBroadcast(true);
+}
+function buyerSlots() { const nb = T.s.humans.filter(h => T.s.roles[h.pid] === 'buyer').length; return M2.buyerCards(Math.max(T.s.botsOn ? 19 : 0, nb)); }
+
+/* ---- rounds ---- */
+function startRound(step) {
+  const s = T.s; if (s.current) return;
+  if (!Object.keys(s.roles).length) dealRoles();
+  const cards = buyerSlots();
+  const humansB = s.humans.filter(h => s.roles[h.pid] === 'buyer').map(h => h.pid);
+  const order = cards.map(c => c.id).sort(() => Math.random() - .5);        // new cards every round
+  const holder = {}; humansB.forEach((pid, i) => { holder[order[i]] = pid; });
+  (step.events || []).forEach(key => { const ev = EVENTS3.find(e => e.key === key); if (ev && !s.events.find(e => e.key === key && e.active)) s.events.push({ ...ev, id: rid(5), active: true }); });
+  if (step.lock) s.lock = { ...step.lock };
+  const ev = activeEvents();
+  const n = s.rounds.length + 1, len = step.len || s.roundLen;
+  const eq = Object.fromEntries(M2.PIDS.map(p => [p, M2.equilibrium(cards, p, ev)]));
+  const sur = Object.fromEntries(M2.PIDS.map(p => [p, M2.surplus(cards, p, ev)]));
+  const lockQ = s.lock ? M2.atPrice(cards, s.lock.product, ev, s.lock.price) : null;
+  s.rounds.push({ n, label: step.label || `Round ${n}`, practice: !!step.practice, mode: step.mode || 'offers', cards: cards.map(c => ({ ...c })), holder, events: s.events.filter(e => e.active).map(e => ({ key: e.key, icon: e.icon, label: e.label, detail: e.detail })), ev, lock: s.lock ? { ...s.lock } : null, lockQ, eq, sur, trades: [], startedAt: Date.now() });
+  s.current = { idx: s.rounds.length - 1, endsAt: Date.now() + len * 1000 };
+  s.phase = 'running'; if (step.board != null) s.board.visible = step.board;
+  T.R = M2.createRound({ n, slots: cards.map(c => ({ slot: c.id, card: c })), events: ev, lock: s.lock, mode: step.mode || 'offers' });
+  T.asks = {}; M2.SHOP_IDS.forEach(sh => { T.asks[sh] = {}; });
+  T.offers.clear();
+  Sound.play('sting'); showBanner(s.events.filter(e => e.active).slice(-1)[0] || { icon: '🔔', label: step.label || `Round ${n}`, detail: (step.mode || 'offers') === 'fast' ? 'Fast mode: post offers and asks; trades happen automatically' : 'Shops post prices. Buyers buy, or make an offer.' });
+  tSave(); renderBody(); youAll(); tBroadcast(true); if (T.projector) renderProj(true);
+  clearInterval(T.tick);
+  T.tick = setInterval(() => {
+    if (!s.current) return;
+    const left = Math.round((s.current.endsAt - Date.now()) / 1000);
+    expireOffers();
+    if (left <= 0) endRound(); else { if (left <= 5) Sound.play('blip'); updateTimer(); if (left % 3 === 0) tBroadcast(true); }
+  }, 1000);
+  startBots(len);
+}
+function endRound() {
+  const s = T.s; if (!s.current) return;
+  clearInterval(T.tick); stopBots();
+  T.offers.forEach(o => { if (o.status === 'open') o.status = 'expired'; });
+  const r = curRound(); r.endedAt = Date.now();
+  s.current = null; s.phase = 'between'; T.R = null;
+  Sound.play('fanfare'); tSave(); renderBody(); youAll(); tBroadcast(true); if (T.projector) renderProj(true);
+}
+const slotOf = (r, pid) => Object.keys(r.holder).find(k => r.holder[k] === pid) || null;
+const pidOfSlot = (r, slot) => r.holder[slot] || null;
+
+/* ---- recording a trade, earnings ---- */
+function recordTrade(t) {
+  const s = T.s, r = curRound();
+  const buyer = pidOfSlot(r, t.slot);
+  const rec = { ...t, buyer, shopPids: shopMembers(t.shop), at: Date.now() };
+  r.trades.push(rec);
+  if (!r.practice) {
+    if (buyer) addEarn(buyer, r.n, t.gain);
+    const sp = rec.shopPids; sp.forEach(pid => addEarn(pid, r.n, t.profit / sp.length));
+  }
+  // close other offers that can no longer happen
+  T.offers.forEach(o => { if (o.status === 'open' && ((o.slot === t.slot && o.product === t.product) || (o.shop === t.shop && o.product === t.product && T.R.stock(t.shop, t.product) <= 0))) { o.status = 'closed'; notifyOffer(o); } });
+  if (T.asks[t.shop] && T.R.stock(t.shop, t.product) <= 0) delete T.asks[t.shop][t.product];
+  Sound.play('cash'); tickerAdd(rec);
+  tSave(); [buyer, ...rec.shopPids].filter(Boolean).forEach(you); tBroadcast(); renderLive();
+}
+function addEarn(pid, n, v) { const e = (T.s.earnings[pid] ||= {}); e[n] = Math.round(((e[n] || 0) + v) * 10) / 10; }
+
+/* ---- offers (shops + offers mode) ---- */
+function openOffersFor(shop) { let n = 0; T.offers.forEach(o => { if (o.status === 'open' && o.shop === shop) n++; }); return n; }
+function makeOffer(pid, slot, shop, product, price) {
+  const R = T.R, r = curRound();
+  if (!R || r.mode !== 'offers') return 'no-round';
+  const pre = R.check(slot, shop, product, price);
+  if (pre && pre !== 'below-cost') return pre;               // shops decide on offers below their cost
+  for (const o of T.offers.values()) if (o.status === 'open' && o.slot === slot && o.product === product) return 'one-offer';
+  if (openOffersFor(shop) >= MAX_OFFERS_PER_SHOP) return 'busy';
+  const o = { id: rid(8), slot, buyer: pid, shop, product, price, by: 'buyer', status: 'open', expires: Date.now() + OFFER_SECS * 1000 };
+  T.offers.set(o.id, o); notifyOffer(o); Sound.play('blip');
+  if (!isShopHuman(shop)) botShopRespond(o);
+  return null;
+}
+function respondOffer(o, by, action, price) {
+  if (!o || o.status !== 'open') return 'expired';
+  if (action === 'decline') { o.status = 'declined'; notifyOffer(o); return null; }
+  if (action === 'accept') {
+    if (o.by === by) return 'not-yours';
+    const res = T.R.trade(o.slot, o.shop, o.product, o.price, 'offer');
+    if (!res.ok) { o.status = 'closed'; notifyOffer(o); return res.error; }
+    o.status = 'accepted'; notifyOffer(o); recordTrade(res.trade); return null;
+  }
+  if (action === 'counter') {
+    price = Math.round(price);
+    if (by === 'shop') { const c = T.R.nextCost(o.shop, o.product); if (c == null) return 'sold-out'; if (price < c) return 'below-cost'; }
+    if (by === 'buyer' && price > T.R.val(o.slot, o.product)) return 'above-value';
+    if (T.R.lock && T.R.lock.product === o.product && price !== T.R.lock.price) return 'locked';
+    o.price = price; o.by = by; o.expires = Date.now() + OFFER_SECS * 1000; notifyOffer(o);
+    if (by === 'shop' && !o.buyer) botBuyerRespond(o);
+    if (by === 'buyer' && !isShopHuman(o.shop)) botShopRespond(o);
+    return null;
+  }
+  return 'bad';
+}
+function expireOffers() { const now = Date.now(); T.offers.forEach(o => { if (o.status === 'open' && now > o.expires) { o.status = 'expired'; notifyOffer(o); } }); }
+function offerView(o) { return { id: o.id, shop: o.shop, product: o.product, price: o.price, by: o.by, status: o.status, left: Math.max(0, Math.round((o.expires - Date.now()) / 1000)), buyerNo: o.slot ? o.slot.replace(/^\D+/, '') : '' }; }
+function notifyOffer(o) {
+  if (o.buyer) you(o.buyer);
+  shopMembers(o.shop).forEach(you);
+  if (T.projector) projDynamic();
+}
+
+/* ---- messages from students ---- */
 function tOnMsg(m) {
   if (!m || m.from === 'teacher') return;
   if (m.type === 'whois') return tBroadcast(true);
   const s = T.s;
-  if (m.type === 'hello') { if (m.nick) s.names[m.pid] = String(m.nick).slice(0, 18); tTill(m.pid); tBroadcast(true); return; }
-  if (m.type === 'claim') {
-    const L = String(m.shop || '').toUpperCase();
-    if (!SHOPS.includes(L)) return;
-    const holder = s.shops[L];
-    if (holder && holder !== m.pid && !m.force) return tSend({ type: 'claimed', to: m.pid, ok: false, shop: L });
-    SHOPS.forEach(x => { if (s.shops[x] === m.pid) s.shops[x] = null; });
-    s.shops[L] = m.pid; Sound.play('blip');
-    tSave(); renderBody(); tTill(m.pid); tBroadcast(true); return;
+  if (m.type === 'hello') {
+    if (m.pk && JSON.stringify(s.pks[m.pid]) !== JSON.stringify(m.pk)) { s.pks[m.pid] = m.pk; delete T.keys[m.pid]; }
+    if (!s.humans.find(h => h.pid === m.pid)) { s.humans.push({ pid: m.pid, nick: String(m.nick || 'Student').slice(0, 18), at: Date.now() }); Sound.play('blip'); if (Object.keys(s.roles).length) s.roles[m.pid] = 'buyer'; }
+    tSave(); renderBody(); you(m.pid); tBroadcast(true); return;
   }
-  const shop = SHOPS.find(x => s.shops[x] === m.pid);
-  if (m.type === 'sale') return recordSale(m, shop);
-  if (m.type === 'undo') { const sale = s.sales.find(x => x.id === m.id && x.shop === shop); if (sale && !sale.undone) { sale.undone = 'till'; tSave(); Sound.play('blip'); renderLive(); tTill(m.pid); tBroadcast(); } return; }
+  if (!s.humans.find(h => h.pid === m.pid)) return;
+  const r = curRound(), R = T.R, role = s.roles[m.pid] || '', shop = role.startsWith('shop:') ? role.slice(5) : null;
+  const slot = r ? slotOf(r, m.pid) : null;
+  const fail = e => { tSend({ type: 'ack', to: m.pid, ok: false, error: e }); return e; };
+  if (!R || !r) return fail('no-round');
+  const price = Math.round(Number(m.price));
+  let err = null;
+  switch (m.type) {
+    case 'buy': { // buyer buys at a shop's posted price
+      if (!slot) return fail('no-card');
+      const ask = (T.asks[m.shop] || {})[m.product];
+      if (ask == null) return fail('bad-price');
+      const res = R.trade(slot, m.shop, m.product, ask, 'posted'); if (!res.ok) return fail(res.error);
+      recordTrade(res.trade); break;
+    }
+    case 'offer': if (!slot) return fail('no-card'); err = makeOffer(m.pid, slot, m.shop, m.product, price); break;
+    case 'respond': {
+      const o = T.offers.get(m.id); if (!o) return fail('expired');
+      const by = shop && o.shop === shop ? 'shop' : o.buyer === m.pid ? 'buyer' : null; if (!by) return fail('not-yours');
+      err = respondOffer(o, by, m.action, price); break;
+    }
+    case 'setask': {
+      if (!shop) return fail('bad');
+      const c = R.nextCost(shop, m.product); if (c == null) return fail('sold-out');
+      if (price < c) return fail('below-cost');
+      if (R.lock && R.lock.product === m.product && price !== R.lock.price) return fail('locked');
+      T.asks[shop][m.product] = price; shopMembers(shop).forEach(you); tBroadcast(); renderLive(); break;
+    }
+    case 'bid': { if (!slot) return fail('no-card'); const res = R.bid(slot, m.product, price); if (!res.ok) return fail(res.error); if (res.trade) recordTrade(res.trade); else { you(m.pid); tBroadcast(); } break; }
+    case 'ask': { if (!shop) return fail('bad'); const res = R.ask(shop, m.product, price); if (!res.ok) return fail(res.error); if (res.trade) recordTrade(res.trade); else { shopMembers(shop).forEach(you); tBroadcast(); } break; }
+    case 'cancel': { if (slot) R.cancelBid(slot, m.product); if (shop) R.cancelAsk(shop, m.product); you(m.pid); tBroadcast(); break; }
+    default: return;
+  }
+  if (err) return fail(err);
+  tSend({ type: 'ack', to: m.pid, ok: true });
 }
-function recordSale(m, shop) {
-  const s = T.s, dup = s.sales.find(x => x.id === m.id);
-  const ack = (ok, error, sale) => tSend({ type: 'receipt', to: m.pid, id: m.id, ok, error, sale });
-  if (dup) return ack(true, null, dup);                       // a resend after the Wi-Fi came back: already recorded
-  if (!shop) return ack(false, 'no-shop');
-  const r = s.rounds.find(x => x.n === m.round) || curRound();
-  if (!r) return ack(false, 'no-round');
-  if (!PIDS.includes(m.product)) return ack(false, 'bad-product');
-  const buyer = Math.round(Number(m.buyer)), price = Math.round(Number(m.price) * 10) / 10;
-  if (!(buyer >= 1 && buyer <= s.buyers)) return ack(false, 'bad-buyer');
-  if (!(price > 0 && price < 1000)) return ack(false, 'bad-price');
-  const unit = unitsSold(shop, m.product, r.n);
-  if (unit >= UNITS_PER_ROUND) return ack(false, 'sold-out');
-  if (s.lock && s.lock.product === m.product && price !== s.lock.price) return ack(false, 'locked');
-  const cost = unitCost(s.cards, s.events, shop, m.product, unit);
-  const sale = { id: m.id, shop, product: m.product, price, buyer, unit: unit + 1, cost, profit: Math.round((price - cost) * 10) / 10, round: r.n, at: m.at || Date.now(), late: !s.current || s.current.idx !== s.rounds.indexOf(r) };
-  s.sales.push(sale);
-  tSave(); ack(true, null, sale);
-  Sound.play('cash'); tickerAdd(sale);
-  tTill(m.pid); tBroadcast(); renderLive();
+
+/* ---- what each student sees privately ---- */
+function youFor(pid) {
+  const s = T.s, r = curRound() || s.rounds[s.rounds.length - 1], role = s.roles[pid] || null;
+  const base = { pid, nick: nick(pid), role, prize: prizeFor(pid), earnRound: r ? ((s.earnings[pid] || {})[r.n] || 0) : 0, earnTotal: totalEarn(pid) };
+  if (!role || !r) return base;
+  const live = !!s.current, R = T.R;
+  if (role === 'buyer') {
+    const slot = slotOf(r, pid), card = slot ? r.cards.find(c => c.id === slot) : null;
+    const offers = []; T.offers.forEach(o => { if (o.buyer === pid && (o.status === 'open' || Date.now() - o.expires < 6000)) offers.push(offerView(o)); });
+    return { ...base, slot, cardNo: slot ? slot.replace(/^\D+/, '') : null, values: card ? Object.fromEntries(M2.PIDS.map(p => [p, M2.valueOf(card, p, r.ev)])) : null,
+      bought: live && R && slot ? { ...R.bought.get(slot) } : null, myBids: live && R && slot ? Object.fromEntries(M2.PIDS.map(p => [p, (R.book[p].bids.get(slot) || {}).price ?? null])) : null,
+      offers, mine: r.trades.filter(t => t.buyer === pid).map(t => ({ product: t.product, shop: t.shop, price: t.price, gain: t.gain })) };
+  }
+  const shop = role.slice(5);
+  const offers = []; T.offers.forEach(o => { if (o.shop === shop && (o.status === 'open' || Date.now() - o.expires < 6000)) offers.push(offerView(o)); });
+  return { ...base, shop, team: shopMembers(shop).map(nick),
+    costs: Object.fromEntries(M2.PIDS.map(p => [p, [0, 1, 2, 3].map(u => M2.costOf(shop, p, u, r.ev))])),
+    sold: R ? Object.fromEntries(M2.PIDS.map(p => [p, R.sold[shop][p]])) : { choc: 0, candy: 0 },
+    asks: { ...(T.asks && T.asks[shop] || {}) }, myAsks: live && R ? Object.fromEntries(M2.PIDS.map(p => [p, (R.book[p].asks.get(shop) || {}).price ?? null])) : null,
+    offers, mine: r.trades.filter(t => t.shop === shop).map(t => ({ product: t.product, price: t.price, profit: t.profit, buyerNo: t.slot.replace(/^\D+/, '') })) };
 }
-function tillFor(pid) {
-  const s = T.s, shop = SHOPS.find(x => s.shops[x] === pid), r = curRound(), last = s.rounds[s.rounds.length - 1];
-  const base = { type: 'till', to: pid, buyersMax: s.buyers, shops: Object.fromEntries(SHOPS.map(x => [x, !!s.shops[x] && s.shops[x] !== pid])), shop: shop || null,
-    round: r ? { n: r.n, label: r.label, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) } : null, lastRound: last ? last.n : null, lock: s.lock };
-  if (!shop) return base;
-  const n = r ? r.n : last ? last.n : 0;
-  const prod = {};
-  PIDS.forEach(p => {
-    const sold = r ? unitsSold(shop, p, r.n) : 0;
-    prod[p] = { costs: [0, 1, 2, 3].map(u => unitCost(s.cards, s.events, shop, p, u)), sold, nextCost: sold < UNITS_PER_ROUND ? unitCost(s.cards, s.events, shop, p, sold) : null };
-  });
-  const mine = live().filter(x => x.shop === shop);
-  const lastSale = r ? roundSales(r.n).filter(x => x.shop === shop).slice(-1)[0] : null;
-  return { ...base, prod, profitRound: Math.round(mine.filter(x => x.round === n).reduce((a, x) => a + x.profit, 0) * 10) / 10,
-    profitTotal: Math.round(mine.reduce((a, x) => a + x.profit, 0) * 10) / 10, lastSale: lastSale ? { id: lastSale.id, product: lastSale.product, price: lastSale.price, buyer: lastSale.buyer } : null,
-    events: s.events.filter(e => e.active).map(e => ({ label: e.label, vi: e.vi, icon: e.icon, kind: e.kind })) };
-}
-const tTill = pid => tSend(tillFor(pid));
-const tTillsAll = () => { const ids = new Set(Object.values(T.s.shops).filter(Boolean)); Object.keys(T.s.names).forEach(p => ids.add(p)); ids.forEach(tTill); };
+const you = pid => { if (pid) sendPrivate(pid, youFor(pid)); };
+const youAll = () => T.s.humans.forEach(h => you(h.pid));
 function pubState() {
-  const s = T.s, r = curRound();
-  return { type: 'state', level: 2, phase: s.phase, round: r ? { n: r.n, label: r.label, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) } : null,
-    shops: Object.fromEntries(SHOPS.map(x => [x, !!s.shops[x]])), lock: s.lock, buyers: s.buyers };
+  const s = T.s, r = curRound(), R = T.R, last = r || s.rounds[s.rounds.length - 1];
+  const shops = Object.fromEntries(M2.SHOP_IDS.map(sh => [sh, { asks: { ...(T.asks && T.asks[sh] || {}) }, stock: R ? Object.fromEntries(M2.PIDS.map(p => [p, R.stock(sh, p)])) : { choc: 4, candy: 4 }, human: isShopHuman(sh), busy: openOffersFor(sh) >= MAX_OFFERS_PER_SHOP }]));
+  const book = R && r.mode === 'fast' ? Object.fromEntries(M2.PIDS.map(p => [p, { bid: (R.bestBid(p) || {}).price ?? null, ask: (R.bestAsk(p) || {}).price ?? null }])) : null;
+  return { type: 'state', level: 2, pk: T.pk, phase: s.phase, n: s.humans.length,
+    round: r ? { n: r.n, label: r.label, mode: r.mode, practice: r.practice, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) } : null,
+    last: last ? { n: last.n, label: last.label } : null, shops, book, lock: s.lock, events: s.events.filter(e => e.active).map(e => ({ icon: e.icon, label: e.label, detail: e.detail })),
+    prices: r && s.board.visible ? r.trades.slice(-12).map(t => ({ p: t.product, price: t.price, shop: t.shop })) : [], pricesHidden: !!(r && !s.board.visible), classSweets: Math.round(totalPrizePool()) };
 }
 function tBroadcast(now) {
   const go = () => { T.lastSent = Date.now(); T.sendTimer = null; try { tSend(pubState()); } catch (e) { console.error(e); } };
   if (now || Date.now() - T.lastSent > 300) { clearTimeout(T.sendTimer); go(); } else if (!T.sendTimer) T.sendTimer = setTimeout(go, 300);
 }
 
-/* ---- rounds, events, lock ---- */
-function startRound(label, boardOn) {
-  const s = T.s; if (s.current) return;
-  const n = s.rounds.length + 1;
-  s.rounds.push({ n, label: label || `Round ${n}`, startedAt: Date.now(), events: s.events.filter(e => e.active).map(e => e.label), lock: s.lock ? { ...s.lock } : null });
-  s.current = { idx: s.rounds.length - 1, endsAt: Date.now() + s.roundLen * 1000 };
-  s.phase = 'running'; if (boardOn != null) s.board.visible = boardOn;
-  Sound.play('sting'); tSave(); renderBody(); tBroadcast(true); tTillsAll(); if (T.projector) renderProj(true);
-  clearInterval(T.tick);
-  T.tick = setInterval(() => {
-    if (!s.current) return;
-    if (s.paused) { s.current.endsAt += 1000; return; }
-    const left = Math.round((s.current.endsAt - Date.now()) / 1000);
-    if (left <= 0) endRound(); else { if (left <= 5) Sound.play('blip'); updateTimer(); if (left % 5 === 0) { tBroadcast(true); tTillsAll(); } }
-  }, 1000);
+/* ---- prizes: earnings scaled by what an average member of each role earns at equilibrium ---- */
+function expectedFor(pid, r) {
+  const role = T.s.roles[pid]; if (!role) return 0;
+  const cs = M2.PIDS.reduce((a, p) => a + r.sur[p].cs, 0), ps = M2.PIDS.reduce((a, p) => a + r.sur[p].ps, 0);
+  if (role === 'buyer') return cs / r.cards.length;
+  const shop = role.slice(5), mem = Math.max(1, shopMembers(shop).length);
+  return ps / 5 / mem;
 }
-function endRound() {
-  const s = T.s; if (!s.current) return;
-  clearInterval(T.tick); s.paused = false;
-  s.rounds[s.current.idx].endedAt = Date.now();
-  s.current = null; s.phase = 'between';
-  Sound.play('fanfare'); tSave(); renderBody(); tBroadcast(true); tTillsAll(); if (T.projector) renderProj(true);
+const totalEarn = pid => Math.round(Object.values(T.s.earnings[pid] || {}).reduce((a, b) => a + b, 0) * 10) / 10;
+function scoreFor(pid) { return T.s.rounds.filter(r => !r.practice).reduce((a, r) => { const e = expectedFor(pid, r), got = (T.s.earnings[pid] || {})[r.n] || 0; return a + (e > 0 ? got / e : 0); }, 0); }
+function prizeTable() {
+  const s = T.s, scores = s.humans.map(h => ({ pid: h.pid, nick: h.nick, role: s.roles[h.pid] || '', score: scoreFor(h.pid), earn: totalEarn(h.pid) }));
+  const pool = Math.max(0, s.sweets - s.perStudent * scores.length), sum = scores.reduce((a, x) => a + x.score, 0);
+  scores.forEach(x => { x.exact = s.perStudent + (sum > 0 ? pool * x.score / sum : 0); });
+  // whole sweets that add up to the total: largest remainders
+  scores.forEach(x => { x.sweets = Math.floor(x.exact); });
+  let left = Math.min(s.sweets, Math.round(scores.reduce((a, x) => a + x.exact, 0))) - scores.reduce((a, x) => a + x.sweets, 0);
+  scores.slice().sort((a, b) => (b.exact % 1) - (a.exact % 1)).forEach(x => { if (left > 0) { x.sweets++; left--; } });
+  return scores;
 }
-function togglePause() { T.s.paused = !T.s.paused; tSave(); renderBody(); }
-function addEvent(ev) {
-  const s = T.s;
-  if (ev.key && s.events.find(e => e.key === ev.key && e.active)) return toast('That event is already on.');
-  s.events.push({ id: rid(6), active: true, at: Date.now(), round: (curRound() || {}).n || null, ...ev });
-  Sound.play('sting'); tSave(); renderBody(); tTillsAll(); if (T.projector) renderProj(true); showBanner(ev);
-}
-function endEvent(id) { const e = T.s.events.find(x => x.id === id); if (e) e.active = false; tSave(); renderBody(); tTillsAll(); if (T.projector) renderProj(true); }
-function setLock(product, price) { T.s.lock = product ? { product, price } : null; const cr = curRound(); if (cr && product) cr.lock = { product, price }; Sound.play('step'); tSave(); renderBody(); tBroadcast(true); tTillsAll(); if (T.projector) renderProj(true); if (product) showBanner({ icon: '🔒', label: `${PRODUCTS[product].en} price locked at ${k(price)}`, detail: 'No haggling: every sale must be at this price' }); }
-function undoSale(id) { const x = T.s.sales.find(s => s.id === id); if (!x) return; x.undone = x.undone ? false : 'teacher'; tSave(); renderLive(); const pid = T.s.shops[x.shop]; if (pid) tTill(pid); }
+const prizeFor = pid => { const row = prizeTable().find(x => x.pid === pid); return row ? row.sweets : 0; };
+const totalPrizePool = () => prizeTable().reduce((a, x) => a + x.sweets, 0);
 
-/* ---- flags: budget overspends and late entries ---- */
-function flags() {
-  const s = T.s, out = [];
-  const spend = {};
-  live().forEach(x => { const key = s.budgetMode === 'round' ? x.buyer + '|' + x.round : x.buyer + '|all'; spend[key] = (spend[key] || 0) + x.price; });
-  Object.entries(spend).forEach(([key, v]) => { if (v > s.budget) { const [b, r] = key.split('|'); out.push(`Buyer ${b} spent ${k(v)}${r === 'all' ? ' in total' : ` in round ${r}`}, more than the ${k(s.budget)} budget. Check for a typing mistake.`); } });
-  live().filter(x => x.late).forEach(x => out.push(`Shop ${x.shop}: a ${PRODUCTS[x.product].en.toLowerCase()} sale (buyer ${x.buyer}, ${k(x.price)}) arrived after its round ended. It is counted in round ${x.round}.`));
-  return out;
+/* ---- robots ---- */
+function anchorFor(p) { const prev = T.s.rounds.slice(0, -1).reverse().find(r => r.trades.some(t => t.product === p)); if (!prev) return null; const ps = prev.trades.filter(t => t.product === p).map(t => t.price); return ps.reduce((a, b) => a + b, 0) / ps.length; }
+function startBots(lenSec) {
+  stopBots(); if (!T.s.botsOn) return;
+  const r = curRound(), R = T.R, base = Math.max(1500, lenSec * 1000 / 45), idx = Math.min(3, T.s.rounds.filter(x => !x.practice).length);
+  const anchors = Object.fromEntries(M2.PIDS.map(p => [p, anchorFor(p)]));
+  const later = (key, fn, ms) => T.bots.set(key, setTimeout(() => { if (T.R === R && T.s.current) fn(); }, ms));
+  // robot shops
+  M2.SHOP_IDS.filter(sh => !isShopHuman(sh)).forEach(sh => {
+    const act = () => {
+      M2.PIDS.forEach(p => { const c = R.nextCost(sh, p); if (c == null) return;
+        if (r.mode === 'fast') { const res = R.ask(sh, p, M2.botAsk(c, idx, anchors[p])); if (res.trade) recordTrade(res.trade); }
+        else if (T.asks[sh][p] == null || T.asks[sh][p] < c || Math.random() < .25) T.asks[sh][p] = R.lock && R.lock.product === p ? Math.max(c, R.lock.price) === R.lock.price ? R.lock.price : undefined : M2.botAsk(c, idx, anchors[p]);
+      });
+      tBroadcast(); later('S' + sh, act, base * (0.6 + Math.random()));
+    };
+    later('S' + sh, act, 300 + Math.random() * 800);
+  });
+  // robot buyers: card slots with no student this round
+  r.cards.filter(c => !r.holder[c.id]).forEach(c => {
+    const act = () => {
+      M2.PIDS.forEach(p => {
+        if (R.bought.get(c.id)[p]) return;
+        const v = R.val(c.id, p);
+        if (r.mode === 'fast') { const res = R.bid(c.id, p, M2.botBid(v, idx, anchors[p])); if (res.trade) recordTrade(res.trade); return; }
+        const open = M2.SHOP_IDS.filter(sh => T.asks[sh][p] != null && R.stock(sh, p) > 0).sort((a, b) => T.asks[a][p] - T.asks[b][p]);
+        const margin = idx <= 1 ? M2.ri(0, 4) : M2.ri(0, 2);
+        if (open.length && T.asks[open[0]][p] <= v - margin) { const res = R.trade(c.id, open[0], p, T.asks[open[0]][p], 'posted'); if (res.ok) recordTrade(res.trade); return; }
+        const target = open[0] || M2.SHOP_IDS.filter(sh => R.stock(sh, p) > 0)[Math.floor(Math.random() * 5)];
+        if (!target || Math.random() < .5) return;
+        let busy = false; T.offers.forEach(o => { if (o.status === 'open' && o.slot === c.id && o.product === p) busy = true; });
+        if (!busy) makeOffer(null, c.id, target, p, R.lock && R.lock.product === p ? R.lock.price : M2.botBid(v, idx, anchors[p]));
+      });
+      later('B' + c.id, act, base * (0.8 + Math.random() * 1.4));
+    };
+    later('B' + c.id, act, 500 + Math.random() * base);
+  });
+}
+function stopBots() { T.bots.forEach(t => clearTimeout(t)); T.bots.clear(); }
+function botShopRespond(o) {
+  const R = T.R; setTimeout(() => {
+    if (T.R !== R || o.status !== 'open') return;
+    const c = R.nextCost(o.shop, o.product); if (c == null) { o.status = 'closed'; return notifyOffer(o); }
+    const ask = T.asks[o.shop][o.product] ?? c + 4, frac = curRound() ? Math.min(1, (Date.now() - curRound().startedAt) / (T.s.roundLen * 1000)) : 0;
+    if (o.price >= Math.max(c, Math.round(ask - 4 * frac))) return respondOffer(o, 'shop', 'accept');
+    if (o.price < c - 3) return respondOffer(o, 'shop', 'decline');
+    respondOffer(o, 'shop', 'counter', Math.max(c, Math.round((ask + o.price) / 2)));
+  }, 900 + Math.random() * 1800);
+}
+function botBuyerRespond(o) {
+  const R = T.R; setTimeout(() => {
+    if (T.R !== R || o.status !== 'open') return;
+    const v = R.val(o.slot, o.product);
+    respondOffer(o, 'buyer', o.price <= v - M2.ri(0, 2) ? 'accept' : 'decline');
+  }, 900 + Math.random() * 1800);
 }
 
 /* ---- console ---- */
 function renderT() {
   document.body.innerHTML = shell(`
-    <header class="topbar"><a class="brand" href="index.html" title="All lessons" style="color:inherit;text-decoration:none">← EcoLogic Market Lab</a><span class="chip">Level 2: blended market</span><span class="spacer"></span>
+    <header class="topbar"><a class="brand" href="index.html" style="color:inherit;text-decoration:none">← EcoLogic Market Lab</a><span class="chip">Level 2: online market with prizes</span><span class="spacer"></span>
       <span class="chip" id="conn"><span class="dot wait"></span>Connecting…</span><span class="chip">Room <b>${esc(T.s.room)}</b></span>
       <button class="btn small ghost" id="snd" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">${T.s.sound ? 'Sound on' : 'Sound off'}</button>
       <button class="btn small primary" id="projBtn">Board (projector)</button></header>
@@ -880,369 +1220,359 @@ function renderT() {
 }
 function renderBody() {
   const el = $('#tbody'); if (!el) return;
-  const s = T.s, r = curRound(), next = LESSON_PLAN[s.planStep];
+  const s = T.s, r = curRound(), next = PLAN3[s.planStep], dealt = Object.keys(s.roles).length > 0;
+  const shopsHtml = M2.SHOP_IDS.map(sh => { const mem = shopMembers(sh).map(nick); return `<div class="shopcell ${mem.length ? 'on' : ''}"><b>${sh}</b><small>${mem.length ? esc(mem.join(', ')) : 'robot'}</small></div>`; }).join('');
   el.innerHTML = `<div class="grid2">
     <section class="stack">
-      <div class="panel stack">
-        <div class="row" style="justify-content:space-between"><h2 style="margin:0">${r ? esc(r.label) : 'Between rounds'}</h2><span class="timer big-timer" id="tTimer"></span></div>
-        ${r ? `<div class="row"><button class="btn" data-act="pause">${s.paused ? 'Resume' : 'Pause'}</button><button class="btn primary" data-act="end">End round</button></div>` :
-          `${next ? `<p style="margin:0"><b>Next in the plan:</b> ${esc(next.label)} <span class="muted">(lesson ${next.lesson})</span></p><button class="btn primary" data-act="plan">Start: ${esc(next.label)}</button>` : '<p class="muted" style="margin:0">All planned rounds are done.</p>'}
-          <details><summary>Start a different round</summary><div class="row" style="margin-top:8px"><input id="rlab" type="text" placeholder="Round name" style="max-width:220px"><button class="btn small" data-act="custom-round">Start</button></div></details>`}
-        <div class="row"><span>Board on the projector:</span><button class="btn small ${s.board.visible ? 'primary' : ''}" data-act="board">${s.board.visible ? 'Showing prices' : 'Hidden (round in progress only)'}</button>
-          <select id="bview" style="width:auto;min-height:36px"><option value="live" ${s.board.view === 'live' ? 'selected' : ''}>Live shops</option><option value="chart" ${s.board.view === 'chart' ? 'selected' : ''}>Price chart</option><option value="rounds" ${s.board.view === 'rounds' ? 'selected' : ''}>Round summary</option></select></div>
+      <div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">${r ? esc(r.label) : 'Between rounds'}</h2><span class="timer big-timer" id="tTimer"></span></div>
+        ${!dealt ? `<p style="margin:0">${s.humans.length} students joined. Deal roles when everyone is in.</p><button class="btn primary" data-act="deal">Deal roles</button>` :
+          r ? `<p class="muted" style="margin:0">Mode: <b>${r.mode === 'fast' ? 'fast (open order book)' : 'shops + offers'}</b>${r.practice ? ' · practice: earnings do not count' : ''}</p><button class="btn primary" data-act="end">End round</button>` :
+          `${next ? `<p style="margin:0"><b>Next in the plan:</b> ${esc(next.label)} <span class="muted">(lesson ${next.lesson}${next.mode === 'fast' ? ', fast mode' : ''}${next.lock ? `, ${PROD[next.lock.product].name.toLowerCase()} locked at ${k(next.lock.price)}` : ''})</span></p><button class="btn primary" data-act="plan">Start: ${esc(next.label)}</button>` : '<p class="muted" style="margin:0">All planned rounds are done. Show the prizes.</p>'}
+          <details><summary>Start a different round</summary><div class="row" style="margin-top:8px"><input id="rlab" type="text" placeholder="Round name" style="max-width:200px"><select id="rmode" style="width:auto"><option value="offers">Shops + offers</option><option value="fast">Fast mode</option></select><button class="btn small" data-act="custom-round">Start</button></div></details>
+          <div class="row"><button class="btn small" data-act="deal-new">Deal new roles (new shop teams)</button></div>`}
+        <div class="row"><span>Board:</span><button class="btn small ${s.board.visible ? 'primary' : ''}" data-act="board">${s.board.visible ? 'Showing prices' : 'Hidden during rounds'}</button>
+          <select id="bview" style="width:auto;min-height:36px">${[['live', 'Live market'], ['chart', 'Price chart'], ['rounds', 'Round summary'], ['functions', 'Signal, incentive, rationing'], ['prizes', 'Class prizes']].map(([v, l]) => `<option value="${v}" ${s.board.view === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+        ${s.rounds.length ? `<div class="row"><span>Equilibrium on the board for the last round:</span><button class="btn small" data-act="reveal">${s.revealed[(r || s.rounds[s.rounds.length - 1]).n] ? 'Hide' : 'Reveal'}</button></div>` : ''}
       </div>
       <div class="panel stack"><h2 style="margin:0">Events</h2>
-        <div class="row">${PRESETS.map(p => `<button class="btn small" data-act="preset" data-k="${p.key}">${p.icon} ${esc(p.label)}</button>`).join('')}</div>
-        <details><summary>Custom event</summary><div class="stack" style="margin-top:8px">
-          <div class="row"><select id="ceKind" style="width:auto"><option value="cost">Change shop costs</option><option value="news">Announcement only</option></select>
-            <select id="ceProd" style="width:auto"><option value="choc">Chocolate</option><option value="candy">Candy</option><option value="both">Both</option></select>
-            <input id="ceAmt" type="number" value="2" step="1" style="max-width:90px" title="Change in k (negative lowers costs)"></div>
-          <div class="row"><input id="ceLabel" type="text" placeholder="Headline, e.g. New chocolate machine" style="flex:1"><button class="btn small" data-act="custom-event">Add</button></div></div></details>
-        ${s.events.filter(e => e.active).map(e => `<div class="row" style="justify-content:space-between"><span>${e.icon || '📣'} <b>${esc(e.label)}</b> <span class="muted">${esc(e.detail || '')}</span></span><button class="btn small ghost" data-act="endevent" data-id="${e.id}">End</button></div>`).join('') || '<p class="muted" style="margin:0">No events on.</p>'}
-      </div>
+        <div class="row">${EVENTS3.map(e => `<button class="btn small" data-act="event" data-k="${e.key}">${e.icon} ${esc(e.label)}</button>`).join('')}</div>
+        <details><summary>Custom event</summary><div class="row" style="margin-top:8px"><select id="ceSide" style="width:auto"><option value="sellers">Shops' costs</option><option value="buyers">Buyers' values</option></select><select id="ceProd" style="width:auto"><option value="choc">Chocolate</option><option value="candy">Candy</option><option value="both">Both</option></select><input id="ceAmt" type="number" value="2" style="max-width:80px"><input id="ceLab" type="text" placeholder="Headline" style="flex:1;min-width:140px"><button class="btn small" data-act="custom-event">Add</button></div></details>
+        ${s.events.filter(e => e.active).map(e => `<div class="row" style="justify-content:space-between"><span>${e.icon} <b>${esc(e.label)}</b> <span class="muted">${esc(e.detail)}</span></span><button class="btn small ghost" data-act="endevent" data-id="${e.id}">End</button></div>`).join('') || '<p class="muted" style="margin:0">No events on. Events start with the next round.</p>'}</div>
       <div class="panel stack"><h2 style="margin:0">Price lock</h2>
-        ${s.lock ? `<p style="margin:0">🔒 <b>${PRODUCTS[s.lock.product].en}</b> locked at <b>${k(s.lock.price)}</b>. Tills only accept this price.</p>
-          <div class="row"><label for="qc">Hands up: buyers who still want one at this price</label><input id="qc" type="number" min="0" value="${s.queueCount[s.lock.product] ?? ''}" style="max-width:90px"></div>
-          <button class="btn small" data-act="unlock">Release the lock</button>` :
-          `<div class="row"><select id="lkProd" style="width:auto"><option value="choc">Chocolate</option><option value="candy">Candy</option></select><input id="lkPrice" type="number" value="7" style="max-width:90px"><span class="muted">k</span><button class="btn small" data-act="lock">Lock price</button></div>`}
-      </div>
-      <div class="panel stack"><h2 style="margin:0">Shops and joining</h2>
+        ${s.lock ? `<p style="margin:0">🔒 ${PROD[s.lock.product].name} locked at <b>${k(s.lock.price)}</b>.</p><button class="btn small" data-act="unlock">Release after this round</button>` :
+          `<div class="row"><select id="lkP" style="width:auto"><option value="candy">Candy</option><option value="choc">Chocolate</option></select><input id="lkV" type="number" value="7" style="max-width:80px"><span class="muted">k</span><button class="btn small" data-act="lock">Lock from the next round</button></div><small class="muted">Below equilibrium shows a shortage; above it shows a surplus.</small>`}</div>
+      <div class="panel stack"><h2 style="margin:0">Joining and roles</h2>
         <div class="row" style="align-items:flex-start"><div class="qr" id="qrS"></div><div style="flex:1;min-width:160px"><div class="muted">Room code</div><div class="code-big">${esc(s.room)}</div><p class="muted" style="font-size:.85rem;margin:.3em 0 0;word-break:break-all">${esc(joinUrl())}</p></div></div>
-        <div class="shopgrid">${SHOPS.map(x => `<div class="shopcell ${s.shops[x] ? 'on' : ''}"><b>${x}</b><small>${s.shops[x] ? esc(s.names[s.shops[x]] || 'connected') : 'waiting'}</small></div>`).join('')}</div>
-        ${s.transport === 'local' ? '<button class="btn small" data-act="test">Open a test till tab</button>' : ''}
-        <button class="btn small" data-act="print">Print buyer numbers, shop signs and play money</button>
-      </div>
+        <div class="shopgrid">${shopsHtml}</div>
+        <p class="muted" style="margin:0">${s.humans.length} students: ${s.humans.filter(h => s.roles[h.pid] === 'buyer').length} buyers, ${s.humans.filter(h => (s.roles[h.pid] || '').startsWith('shop')).length} in shops. Robots fill the rest.</p>
+        ${s.transport === 'local' ? '<button class="btn small" data-act="test">Open a test student tab</button>' : ''}</div>
     </section>
     <section class="stack">
       <div class="panel" id="liveT"></div>
-      <div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Sale prices</h2><small class="muted">Each dot is one sale; lines mark rounds and events</small></div><div class="chart-box"><canvas id="cPrices"></canvas></div></div>
-      <div class="panel stack" id="flagsT"></div>
-      <div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">All sales</h2><button class="btn small" data-act="csv" ${s.sales.length ? '' : 'disabled'}>Download sales (CSV)</button></div><div id="salesT" class="sales-log"></div></div>
-      <details class="panel" id="settings" ${T.settingsOpen ? 'open' : ''}><summary>Settings</summary><div class="stack" style="margin-top:10px">
-        <div class="kv"><span>Buyers</span><b>${s.buyers} (numbers 1–${s.buyers})</b><span>Budget</span><b>${k(s.budget)} ${s.budgetMode === 'round' ? 'every round' : 'for the whole lesson'}</b><span>Round length</span><b>${s.roundLen / 60} minutes</b><span>Stock</span><b>${UNITS_PER_ROUND} of each product per shop per round</b></div>
-        <details><summary>Shops' lowest prices (k)</summary><div class="table-wrap"><table><tr><th>Shop</th><th>Chocolate 1st–4th</th><th>Candy 1st–4th</th></tr>${SHOPS.map(x => `<tr><td>${x}</td><td>${s.cards[x].choc.join(', ')}</td><td>${s.cards[x].candy.join(', ')}</td></tr>`).join('')}</table></div><small class="muted">Active cost events are added on top of these.</small></details>
-        <button class="btn small" data-act="newroom">Close room and start again</button></div></details>
+      <div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Prices</h2><small class="muted">Dots: trades. Lines: average. Bands: equilibrium (when revealed)</small></div><div class="chart-box"><canvas id="cP"></canvas></div></div>
+      <div class="panel stack" id="prizeT"></div>
+      <div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Trades</h2><button class="btn small" data-act="csv" ${s.rounds.some(r => r.trades.length) ? '' : 'disabled'}>Download (CSV)</button></div><div class="sales-log" id="logT"></div></div>
+      <details class="panel"><summary>Settings</summary><div class="kv" style="margin-top:8px"><span>Students per shop</span><b>${s.team}</b><span>Round length</span><b>${s.roundLen / 60} minutes</b><span>Prizes</span><b>${s.sweets} sweets in total, ${s.perStudent} each for taking part</b><span>Robots</span><b>${s.botsOn ? 'On' : 'Off'}</b></div>
+        <button class="btn small" data-act="newroom" style="margin-top:8px">Close room and start again</button></details>
     </section></div>`;
   el.onclick = tClick;
   const bv = $('#bview'); if (bv) bv.onchange = () => { s.board.view = bv.value; tSave(); if (T.projector) renderProj(true); };
-  const qc = $('#qc'); if (qc) qc.onchange = () => { s.queueCount[s.lock.product] = Math.max(0, +qc.value || 0); tSave(); renderLive(); if (T.projector) renderProj(true); };
-  const det = $('#settings'); if (det) det.ontoggle = () => { T.settingsOpen = det.open; };
   makeQR($('#qrS'), joinUrl(), 110);
-  renderLive(); updateTimer();
-  if (T.projector) renderProj();
+  renderLive(); updateTimer(); if (T.projector) renderProj();
 }
-function liveTable() {
-  const s = T.s, r = curRound(), last = r || s.rounds[s.rounds.length - 1], n = last ? last.n : null;
-  const cells = SHOPS.map(x => `<tr><td><b>${x}</b></td>${PIDS.map(p => { const sold = n ? unitsSold(x, p, n) : 0, lastP = n ? roundSales(n).filter(v => v.shop === x && v.product === p).slice(-1)[0] : null; return `<td><span class="stock">${'●'.repeat(UNITS_PER_ROUND - sold)}${'○'.repeat(sold)}</span> <span class="muted">${lastP ? 'last ' + k(lastP.price) : ''}</span></td>`; }).join('')}</tr>`).join('');
-  const st = n ? roundStats(roundSales(n)) : null;
-  return `<div class="table-wrap"><table class="livegrid"><tr><th>Shop</th>${PIDS.map(p => `<th>${PRODUCTS[p].en} <small class="muted">(● in stock)</small></th>`).join('')}</tr>${cells}</table></div>
-    ${st ? `<div class="row" style="gap:18px">${PIDS.map(p => `<span><b>${PRODUCTS[p].en}:</b> ${st[p].n} sold${st[p].n ? `, middle price ${k(st[p].mid)}, range ${k(st[p].min)}–${k(st[p].max)}` : ''}</span>`).join('')}</div>` : ''}`;
+function roundStatsHtml(rd, big) {
+  const show = T.s.revealed[rd.n];
+  return M2.PIDS.map(p => { const st = M2.stats(rd.trades, p), e = rd.eq[p]; return `<div class="pstat"><b>${PROD[p].name}</b>: ${st.n} sold${st.n ? `, average ${k(st.mean)}, range ${k(st.min)}–${k(st.max)}` : ''}${show && e.qty ? ` <span class="eqtag">equilibrium ${e.lo === e.hi ? k(e.lo) : k(e.lo) + '–' + k(e.hi)}, ${e.qty} sold</span>` : ''}</div>`; }).join('')
+    + (rd.lock && rd.lockQ ? `<div class="lockbox">🔒 ${PROD[rd.lock.product].name} at ${k(rd.lock.price)}: buyers want <b>${rd.lockQ.qd}</b>, shops will sell <b>${rd.lockQ.qs}</b>: ${rd.lockQ.qd > rd.lockQ.qs ? `<b>shortage of ${rd.lockQ.qd - rd.lockQ.qs}</b>` : rd.lockQ.qs > rd.lockQ.qd ? `<b>surplus of ${rd.lockQ.qs - rd.lockQ.qd}</b>` : 'no gap'}</div>` : '');
+}
+function functionsHtml(rd) {
+  const s = T.s, idx = s.rounds.indexOf(rd), prev = s.rounds.slice(0, idx).reverse().find(x => !x.practice);
+  if (!prev || JSON.stringify(prev.ev) === JSON.stringify(rd.ev)) return '';
+  const parts = M2.PIDS.map(p => {
+    const a = M2.adjustment(rd.cards, p, prev.ev, rd.ev); if (!a || a.direction === 'none') return '';
+    const up = a.direction === 'up', gap = Math.abs(a.gapAtOld), st = M2.stats(rd.trades, p);
+    return `<div class="func"><h3>${PROD[p].name}: from ${k(a.P1)} towards ${k(a.P2)}</h3><ol class="funcs">
+      <li><b>Signal.</b> At the old price of ${k(a.P1)}, buyers want <b>${a.qdAtOld}</b> but shops offer <b>${a.qsAtOld}</b>: a <b>${up ? 'shortage' : 'surplus'} of ${gap}</b>. The price ${up ? 'rises' : 'falls'}.</li>
+      <li><b>Incentive.</b> ${up ? `At a higher price, more units are worth selling: quantity supplied <b>extends</b> from ${a.qsAtOld} to ${a.Q2}.` : `At a lower price, fewer units are worth selling: quantity supplied <b>contracts</b> from ${a.qsAtOld} to ${a.Q2}.`}</li>
+      <li><b>Rationing.</b> ${up ? `The higher price makes some buyers drop out: quantity demanded <b>contracts</b> from ${a.qdAtOld} to ${a.Q2}.` : `The lower price brings in more buyers: quantity demanded <b>extends</b> from ${a.qdAtOld} to ${a.Q2}.`}</li>
+      <li><b>New equilibrium:</b> about ${k(a.P2)} with ${a.Q2} sold.${st.n ? ` <span class="muted">In your class: average ${k(st.mean)}, ${st.n} sold.</span>` : ''}</li></ol></div>`;
+  }).join('');
+  return parts ? `<div class="funcbox"><h2 style="margin:0 0 6px">Signal, incentive, rationing</h2><p class="muted" style="margin:0 0 8px">Since the previous round: ${rd.events.map(e => e.icon + ' ' + esc(e.label)).join(', ') || 'the events ended'}</p>${parts}</div>` : '';
+}
+function liveGrid() {
+  const R = T.R, r = curRound();
+  return `<div class="table-wrap"><table class="livegrid"><tr><th>Shop</th>${M2.PIDS.map(p => `<th>${PROD[p].name}: price · stock</th>`).join('')}<th>Offers waiting</th></tr>${M2.SHOP_IDS.map(sh => `<tr><td><b>${sh}</b> <small class="muted">${isShopHuman(sh) ? '' : 'robot'}</small></td>${M2.PIDS.map(p => `<td>${r && r.mode === 'fast' ? '' : `<b>${k((T.asks && T.asks[sh] || {})[p])}</b> `}<span class="stock">${'●'.repeat(R ? R.stock(sh, p) : 4)}${'○'.repeat(R ? 4 - R.stock(sh, p) : 0)}</span></td>`).join('')}<td>${R ? openOffersFor(sh) : 0}</td></tr>`).join('')}</table></div>
+    ${r && r.mode === 'fast' && R ? `<div class="row" style="gap:18px">${M2.PIDS.map(p => `<span><b>${PROD[p].name}</b>: best offer ${k((R.bestBid(p) || {}).price)}, lowest ask ${k((R.bestAsk(p) || {}).price)}</span>`).join('')}</div>` : ''}`;
 }
 function renderLive() {
-  const s = T.s, el = $('#liveT');
-  if (el) el.innerHTML = `<h2 style="margin:0 0 8px">${curRound() ? 'Live: ' + esc(curRound().label) : s.rounds.length ? 'Last round' : 'Shops'}</h2>${liveTable()}${lockHtml()}`;
-  const f = flags(), fl = $('#flagsT');
-  if (fl) { fl.innerHTML = f.length ? `<h2 style="margin:0">Check these</h2>${f.map(x => `<div class="note" style="margin:0">${esc(x)}</div>`).join('')}` : ''; fl.classList.toggle('hidden', !f.length); }
-  const log = $('#salesT');
-  if (log) log.innerHTML = s.sales.length ? `<table><tr><th>Round</th><th>Shop</th><th>Product</th><th>Buyer</th><th>Price</th><th>Unit</th><th>Profit</th><th></th></tr>${s.sales.slice().reverse().slice(0, 60).map(x => `<tr class="${x.undone ? 'undone' : ''}"><td>${x.round}</td><td>${x.shop}</td><td>${PRODUCTS[x.product].en}</td><td>${x.buyer}</td><td>${k(x.price)}</td><td>${x.unit}</td><td>${k(x.profit)}</td><td><button class="btn small ghost" data-act="undo" data-id="${x.id}">${x.undone ? 'Restore' : 'Undo'}</button></td></tr>`).join('')}</table>` : '<p class="muted" style="margin:0">Sales appear here as shops record them.</p>';
-  drawCharts();
-  if (T.projector) projDynamic();
+  const s = T.s, r = curRound(), last = r || s.rounds[s.rounds.length - 1];
+  const el = $('#liveT'); if (el) el.innerHTML = `<h2 style="margin:0 0 8px">${r ? 'Live: ' + esc(r.label) : last ? 'Last round: ' + esc(last.label) : 'Market'}</h2>${liveGrid()}${last ? roundStatsHtml(last) : ''}${last && s.revealed[last.n] ? functionsHtml(last) : ''}`;
+  const pt = $('#prizeT'); if (pt) { const rows = prizeTable(); pt.innerHTML = `<div class="row" style="justify-content:space-between"><h2 style="margin:0">Prizes so far</h2><button class="btn small" data-act="prizes" ${rows.length ? '' : 'disabled'}>Print the prize list</button></div><p class="muted" style="margin:0">Earnings are scaled so buyers and shops can win equally; every student gets ${s.perStudent} for taking part. ${Math.round(rows.reduce((a, x) => a + x.sweets, 0))} of ${s.sweets} sweets allocated.</p><div class="table-wrap"><table><tr><th>Student</th><th>Role</th><th>Earned</th><th>Sweets</th></tr>${rows.sort((a, b) => b.sweets - a.sweets).map(x => `<tr><td>${esc(x.nick)}</td><td>${x.role === 'buyer' ? 'Buyer' : x.role ? 'Shop ' + x.role.slice(5) : '–'}</td><td>${k(x.earn)}</td><td><b>${x.sweets}</b></td></tr>`).join('')}</table></div>`; }
+  const log = $('#logT'); if (log) { const all = s.rounds.flatMap(rd => rd.trades.map(t => ({ ...t, label: rd.n }))).slice(-60).reverse(); log.innerHTML = all.length ? `<table><tr><th>Round</th><th>Product</th><th>Shop</th><th>Buyer card</th><th>Price</th><th>How</th><th>Gain</th><th>Profit</th></tr>${all.map(t => `<tr><td>${t.label}</td><td>${PROD[t.product].name}</td><td>${t.shop}</td><td>${t.slot.replace(/^\D+/, '')}${t.buyer ? ' (' + esc(nick(t.buyer)) + ')' : ''}</td><td>${k(t.price)}</td><td>${t.how}</td><td>${k(t.gain)}</td><td>${k(t.profit)}</td></tr>`).join('')}</table>` : '<p class="muted" style="margin:0">Trades appear here.</p>'; }
+  drawCharts(); if (T.projector) projDynamic();
 }
-function lockHtml() {
-  const s = T.s; if (!s.lock) return '';
-  const r = curRound() || s.rounds[s.rounds.length - 1], sold = r ? roundSales(r.n).filter(x => x.product === s.lock.product).length : 0, q = s.queueCount[s.lock.product];
-  return `<div class="lockbox"><b>🔒 ${PRODUCTS[s.lock.product].en} at ${k(s.lock.price)}</b>: ${sold} sold${q != null ? `, ${q} still want one: <b>shortage of ${q}</b>` : '. Ask for hands up: who still wants one at this price?'}</div>`;
-}
-function updateTimer() {
-  const s = T.s, txt = s.current ? (() => { const l = Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)); return (s.paused ? '⏸ ' : '') + Math.floor(l / 60) + ':' + String(l % 60).padStart(2, '0'); })() : '';
-  ['#tTimer', '#pTimer'].forEach(id => { const el = $(id); if (el) el.textContent = txt; });
-}
+function updateTimer() { const s = T.s, txt = s.current ? (() => { const l = Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)); return Math.floor(l / 60) + ':' + String(l % 60).padStart(2, '0'); })() : ''; ['#tTimer', '#pTimer'].forEach(id => { const el = $(id); if (el) el.textContent = txt; }); }
 function tClick(e) {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
   const s = T.s, a = b.dataset.act;
-  if (a === 'plan') { const p = LESSON_PLAN[s.planStep]; p.events.forEach(key => { const pr = PRESETS.find(x => x.key === key); if (pr && !s.events.find(e => e.key === key && e.active)) addEvent({ ...pr }); }); s.planStep++; startRound(p.label, p.board); if (p.lock && !s.lock) toast('Price lock round: set the locked price under "Price lock".', 5000); }
-  else if (a === 'custom-round') startRound(($('#rlab').value || '').trim() || null, null);
+  if (a === 'deal') dealRoles();
+  else if (a === 'deal-new') { if (confirm('Deal new roles? Students who have not run a shop yet get the shops.')) dealRoles(true); }
+  else if (a === 'plan') { const st = PLAN3[s.planStep]; s.planStep++; startRound(st); }
+  else if (a === 'custom-round') startRound({ label: ($('#rlab').value || '').trim() || null, mode: $('#rmode').value, board: null, events: [] });
   else if (a === 'end') endRound();
-  else if (a === 'pause') togglePause();
   else if (a === 'board') { s.board.visible = !s.board.visible; tSave(); renderBody(); if (T.projector) renderProj(true); }
-  else if (a === 'preset') addEvent({ ...PRESETS.find(x => x.key === b.dataset.k) });
-  else if (a === 'custom-event') { const kind = $('#ceKind').value, label = ($('#ceLabel').value || '').trim(); if (!label) return toast('Type a headline for the event.'); addEvent({ kind, product: $('#ceProd').value, amount: Math.round(+$('#ceAmt').value || 0), label, icon: '📣', detail: kind === 'cost' ? `${PRODUCTS[$('#ceProd').value] ? PRODUCTS[$('#ceProd').value].en : 'Chocolate and candy'} costs ${(+$('#ceAmt').value >= 0 ? '+' : '')}${+$('#ceAmt').value}k` : '' }); }
-  else if (a === 'endevent') endEvent(b.dataset.id);
-  else if (a === 'lock') setLock($('#lkProd').value, Math.round((+$('#lkPrice').value || 0) * 10) / 10);
-  else if (a === 'unlock') setLock(null);
-  else if (a === 'undo') undoSale(b.dataset.id);
+  else if (a === 'reveal') { const rd = curRound() || s.rounds[s.rounds.length - 1]; s.revealed[rd.n] = !s.revealed[rd.n]; if (s.revealed[rd.n]) { Sound.play('drumroll'); setTimeout(() => Sound.play('fanfare'), 1600); } tSave(); renderBody(); if (T.projector) renderProj(true); }
+  else if (a === 'event') { const ev = EVENTS3.find(x => x.key === b.dataset.k); if (s.events.find(x => x.key === ev.key && x.active)) return toast('That event is already on.'); s.events.push({ ...ev, id: rid(5), active: true }); tSave(); renderBody(); toast('The event starts with the next round.'); }
+  else if (a === 'custom-event') { const lab = ($('#ceLab').value || '').trim(); if (!lab) return toast('Type a headline.'); const side = $('#ceSide').value, product = $('#ceProd').value, amount = Math.round(+$('#ceAmt').value || 0); s.events.push({ id: rid(5), key: 'c' + rid(4), icon: '📣', label: lab, detail: `${side === 'sellers' ? "Shops' costs" : "Buyers' values"} for ${product === 'both' ? 'chocolate and candy' : PROD[product].name.toLowerCase()} ${amount >= 0 ? '+' : ''}${amount}k`, parts: [{ side, product, amount }], active: true }); tSave(); renderBody(); }
+  else if (a === 'endevent') { const ev = s.events.find(x => x.id === b.dataset.id); if (ev) ev.active = false; tSave(); renderBody(); }
+  else if (a === 'lock') { s.lock = { product: $('#lkP').value, price: Math.round(+$('#lkV').value || 0) }; tSave(); renderBody(); toast('The lock starts with the next round.'); }
+  else if (a === 'unlock') { s.lock = null; tSave(); renderBody(); }
   else if (a === 'csv') downloadCsv();
-  else if (a === 'print') printMaterials();
+  else if (a === 'prizes') printPrizes();
   else if (a === 'test') window.open(joinUrl(), '_blank');
-  else if (a === 'newroom') { if (confirm('Close this room? Download the sales first: they are only stored on this computer.')) { clearInterval(T.tick); T.tr && T.tr.close(); store.del(TKEY); location.href = '?mode=teacher'; } }
+  else if (a === 'newroom') { if (confirm('Close this room? Download the trades and print the prize list first.')) { stopBots(); clearInterval(T.tick); T.tr && T.tr.close(); store.del(TKEY); location.href = '?mode=teacher'; } }
 }
 function downloadCsv() {
   const s = T.s, d = n => Math.round(n * 1000);
-  const lines = [['round', 'round_name', 'shop', 'product', 'buyer', 'price_dong', 'unit', 'lowest_price_dong', 'profit_dong', 'events', 'time', 'undone'].join(',')];
-  s.sales.forEach(x => { const r = s.rounds.find(y => y.n === x.round) || {}; lines.push([x.round, JSON.stringify(r.label || ''), x.shop, x.product, x.buyer, d(x.price), x.unit, d(x.cost), d(x.profit), JSON.stringify((r.events || []).join('; ')), new Date(x.at).toISOString(), x.undone ? 'yes' : ''].join(',')); });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })); a.download = `blended-market-${s.room}.csv`; a.click();
+  const lines = [['round', 'round_name', 'mode', 'practice', 'product', 'shop', 'buyer_card', 'buyer', 'price_dong', 'value_dong', 'lowest_price_dong', 'gain_dong', 'profit_dong', 'how', 'events', 'equilibrium_dong', 'equilibrium_qty'].join(',')];
+  s.rounds.forEach(r => r.trades.forEach(t => lines.push([r.n, JSON.stringify(r.label), r.mode, r.practice, t.product, t.shop, t.slot, JSON.stringify(t.buyer ? nick(t.buyer) : 'robot'), d(t.price), d(t.value), d(t.cost), d(t.gain), d(t.profit), t.how, JSON.stringify(r.events.map(e => e.label).join('; ')), d(r.eq[t.product].price || 0), r.eq[t.product].qty].join(','))));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })); a.download = `market-prizes-${s.room}.csv`; a.click();
+}
+function printPrizes() {
+  const rows = prizeTable().sort((a, b) => a.nick.localeCompare(b.nick));
+  $('#printArea').innerHTML = `<section class="psheet"><h2>Prize list: room ${esc(T.s.room)}</h2><table class="prizelist"><tr><th>Student</th><th>Role</th><th>Sweets</th><th>Given ✓</th></tr>${rows.map(x => `<tr><td>${esc(x.nick)}</td><td>${x.role === 'buyer' ? 'Buyer' : 'Shop ' + x.role.slice(5)}</td><td>${x.sweets}</td><td></td></tr>`).join('')}</table></section>`;
+  setTimeout(() => window.print(), 50);
 }
 
-/* ---- price chart: every sale, by product, with round and event markers ---- */
-function drawPriceChart(canvas) {
+/* ---- chart: trades by round, average lines, equilibrium bands when revealed ---- */
+function drawP(canvas) {
   if (!canvas) return;
-  const s = T.s, box = canvas.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-  const W = Math.max(240, box.width), H = Math.max(170, box.height);
-  canvas.width = W * dpr; canvas.height = H * dpr;
-  const g = canvas.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
-  const fs = Math.round(Math.max(12, Math.min(20, W / 55))), font = cssVar('--font-body'), muted = cssVar('--muted'), line = cssVar('--line'), ink = cssVar('--ink');
-  const col = { choc: cssVar('--seller'), candy: cssVar('--buyer') };
-  const sales = live(), maxP = Math.max(30, ...sales.map(x => x.price)) * 1.1;
-  const L = fs * 3.4, R = 12, T_ = fs * 1.6, B = fs * 2.6, pw = W - L - R, ph = H - T_ - B, y = p => T_ + ph - p / maxP * ph;
+  const s = T.s, box = canvas.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, W = Math.max(240, box.width), H = Math.max(170, box.height);
+  canvas.width = W * dpr; canvas.height = H * dpr; const g = canvas.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const fs = Math.round(Math.max(12, Math.min(20, W / 55))), font = cssVar('--font-body'), muted = cssVar('--muted'), line = cssVar('--line'), ink = cssVar('--ink'), mint = cssVar('--mint');
+  const col = { choc: cssVar('--seller'), candy: cssVar('--buyer') }, maxP = 30;
+  const L = fs * 3.2, R = 10, Tp = fs * 1.6, B = fs * 2.6, pw = W - L - R, ph = H - Tp - B, y = p => Tp + ph - Math.min(p, maxP) / maxP * ph;
   g.font = `${fs}px ${font}`;
-  const step = maxP > 60 ? 10 : 5;
-  for (let p = 0; p <= maxP; p += step) { g.strokeStyle = line; g.beginPath(); g.moveTo(L, y(p)); g.lineTo(L + pw, y(p)); g.stroke(); g.fillStyle = muted; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(p + 'k', L - 6, y(p)); }
-  const rounds = s.rounds; if (!rounds.length) { g.fillStyle = muted; g.textAlign = 'center'; g.fillText('Sale prices appear here', L + pw / 2, T_ + ph / 2); return; }
-  // each round gets an equal slot; sales are placed by time within the slot
-  const slot = pw / rounds.length;
-  rounds.forEach((r, i) => {
+  for (let p = 0; p <= maxP; p += 5) { g.strokeStyle = line; g.beginPath(); g.moveTo(L, y(p)); g.lineTo(L + pw, y(p)); g.stroke(); g.fillStyle = muted; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(p + 'k', L - 6, y(p)); }
+  const rs = s.rounds; if (!rs.length) { g.fillStyle = muted; g.textAlign = 'center'; g.fillText('Prices appear here', L + pw / 2, Tp + ph / 2); return; }
+  const slot = pw / rs.length;
+  rs.forEach((r, i) => {
     const x0 = L + i * slot, t0 = r.startedAt, t1 = r.endedAt || Math.max(Date.now(), t0 + 1);
-    if (i) { g.strokeStyle = muted; g.setLineDash([3, 4]); g.beginPath(); g.moveTo(x0, T_); g.lineTo(x0, T_ + ph); g.stroke(); g.setLineDash([]); }
+    if (i) { g.strokeStyle = muted; g.setLineDash([3, 4]); g.beginPath(); g.moveTo(x0, Tp); g.lineTo(x0, Tp + ph); g.stroke(); g.setLineDash([]); }
     g.fillStyle = ink; g.textAlign = 'center'; g.textBaseline = 'top'; g.font = `700 ${fs * .85}px ${font}`;
-    g.fillText(r.label.replace(/^Round (\d+).*/, 'R$1'), x0 + slot / 2, T_ + ph + 6);
-    if (r.events && r.events.length) { g.font = `${fs * .8}px ${font}`; g.fillStyle = muted; g.fillText(r.events.map(e => (PRESETS.find(p => p.label === e) || { icon: '📣' }).icon).join(' '), x0 + slot / 2, T_ + ph + 6 + fs); }
+    g.fillText(r.practice ? 'P' : 'R' + (r.label.match(/^Round (\d+)/) || [0, r.n])[1], x0 + slot / 2, Tp + ph + 4);
+    g.font = `${fs * .8}px ${font}`; g.fillStyle = muted; g.fillText((r.events || []).map(e => e.icon).join('') + (r.lock ? '🔒' : '') + (r.mode === 'fast' ? '⚡' : ''), x0 + slot / 2, Tp + ph + 4 + fs);
     g.font = `${fs}px ${font}`;
-    PIDS.forEach(p => {
-      const rs = sales.filter(x => x.round === r.n && x.product === p);
-      rs.forEach(x => { const f = Math.min(1, Math.max(0, (x.at - t0) / (t1 - t0))); g.fillStyle = col[p]; g.beginPath(); g.arc(x0 + 8 + f * (slot - 16), y(x.price), Math.max(4, fs / 3.2), 0, Math.PI * 2); g.fill(); });
-      if (rs.length) { const m = median(rs.map(x => x.price)); g.strokeStyle = col[p]; g.lineWidth = 3; g.beginPath(); g.moveTo(x0 + 6, y(m)); g.lineTo(x0 + slot - 6, y(m)); g.stroke(); g.lineWidth = 1; }
+    M2.PIDS.forEach(p => {
+      const e = r.eq[p];
+      if (s.revealed[r.n] && e.qty) { g.fillStyle = col[p]; g.globalAlpha = .16; g.fillRect(x0 + 3, y(e.hi + .5), slot - 6, Math.max(4, y(e.lo - .5) - y(e.hi + .5))); g.globalAlpha = 1; }
+      const ts = r.trades.filter(t => t.product === p);
+      ts.forEach(t => { const f = Math.min(1, Math.max(0, (t.at - t0) / (t1 - t0))); g.fillStyle = col[p]; g.beginPath(); g.arc(x0 + 8 + f * (slot - 16), y(t.price), Math.max(3.5, fs / 3.4), 0, Math.PI * 2); g.fill(); });
+      if (ts.length) { const m = ts.reduce((a, t) => a + t.price, 0) / ts.length; g.strokeStyle = col[p]; g.lineWidth = 3; g.beginPath(); g.moveTo(x0 + 6, y(m)); g.lineTo(x0 + slot - 6, y(m)); g.stroke(); g.lineWidth = 1; }
     });
   });
-  g.textAlign = 'left'; g.textBaseline = 'top'; g.font = `700 ${fs * .9}px ${font}`;
-  let lx = L + 6; PIDS.forEach(p => { g.fillStyle = col[p]; g.fillText('● ' + PRODUCTS[p].en, lx, 2); lx += g.measureText('● ' + PRODUCTS[p].en).width + 18; });
-  g.fillStyle = muted; g.font = `${fs * .85}px ${font}`; g.fillText('lines: middle price', lx, 2);
+  g.textAlign = 'left'; g.textBaseline = 'top'; g.font = `700 ${fs * .9}px ${font}`; let lx = L + 4;
+  M2.PIDS.forEach(p => { g.fillStyle = col[p]; g.fillText('● ' + PROD[p].name, lx, 2); lx += g.measureText('● ' + PROD[p].name).width + 16; });
+  g.fillStyle = muted; g.font = `${fs * .82}px ${font}`; g.fillText('⚡ fast mode  🔒 price lock', lx, 2);
 }
-function drawCharts() { drawPriceChart($('#cPrices')); drawPriceChart($('#cPricesP')); }
+function drawCharts() { drawP($('#cP')); drawP($('#cPP')); }
 
 /* ---- board (projector) ---- */
 function renderProj(fresh) {
   const el = $('#proj'); if (!el || !T.projector) return;
   const s = T.s, r = curRound();
   el.classList.remove('hidden');
-  const sig = JSON.stringify([s.phase, r && r.n, s.board, s.lock, s.events.filter(e => e.active).map(e => e.id)]);
+  const sig = JSON.stringify([s.phase, r && r.n, s.board, s.revealed, s.events.filter(e => e.active).map(e => e.id)]);
   if (fresh || el.dataset.sig !== sig) {
     el.dataset.sig = sig;
     const ev = s.events.filter(e => e.active);
-    el.innerHTML = `<div class="projector l0">
-      <div class="pmain">
-        <div class="news"><span class="flag">${r ? esc(r.label) : 'Chợ Lớp 9 market'}</span><span>${ev.length ? ev.map(e => `${e.icon || '📣'} ${esc(e.label)}`).join(' · ') : r ? 'Haggle! Shops record every sale on the till.' : 'Next round soon.'}</span></div>
-        <div class="pstage" id="pStage"></div><div class="ticker" id="ticker"></div>
-      </div>
-      <aside class="side">
-        <div class="panel stack"><div class="row" style="justify-content:space-between"><div>Room code</div><span class="timer big-timer" id="pTimer"></span></div><div class="code">${esc(s.room)}</div></div>
-        <div class="panel stack"><div><b>Each buyer:</b> ${k(s.budget)} ${s.budgetMode === 'round' ? 'every round' : 'for the whole lesson'}</div>${ev.filter(e => e.kind === 'cost').map(e => `<div>${e.icon} ${esc(e.detail)}</div>`).join('')}</div>
-        <div class="panel" id="pLock"></div>
-        <button class="btn" id="closeProj">Back to the console</button>
-      </aside></div><div id="banner" class="banner hidden"></div>`;
+    el.innerHTML = `<div class="projector l0"><div class="pmain">
+        <div class="news"><span class="flag">${r ? esc(r.label) : 'Chợ Lớp 9 market'}</span><span>${ev.length ? ev.map(e => `${e.icon} ${esc(e.label)}: ${esc(e.detail)}`).join(' · ') : r ? (r.mode === 'fast' ? 'Fast mode: post offers and asks. Trades happen automatically.' : 'Shops post prices. Buy, or make an offer.') : 'Next round soon.'}</span></div>
+        <div class="pstage" id="pStage"></div><div class="ticker" id="ticker"></div></div>
+      <aside class="side"><div class="panel stack"><div class="row" style="justify-content:space-between"><div>Room code</div><span class="timer big-timer" id="pTimer"></span></div><div class="code">${esc(s.room)}</div></div>
+        <div class="panel stack" id="pSide"></div><button class="btn" id="closeProj">Back to the console</button></aside></div><div id="banner" class="banner hidden"></div>`;
     $('#closeProj').onclick = () => { T.projector = false; el.classList.add('hidden'); el.dataset.sig = ''; };
   }
   projDynamic(); updateTimer();
 }
 function projDynamic() {
   const s = T.s, st = $('#pStage'); if (!st) return;
-  const r = curRound();
-  if (r && !s.board.visible) st.innerHTML = `<div class="lobby-stage"><h1>${esc(r.label)} in progress</h1><p class="lead">Prices are hidden. Walk around, compare and haggle.</p><div class="art-row">${ART2.choc}${ART2.candy}</div></div>`;
-  else if (s.board.view === 'chart') { st.innerHTML = `<div class="chart-box tall"><canvas id="cPricesP"></canvas></div>`; drawCharts(); }
-  else if (s.board.view === 'rounds') st.innerHTML = roundsTable();
-  else {
-    const latest = live().slice(-10).reverse();
-    st.innerHTML = `<div class="board-live">${liveTable()}<h3 style="margin:14px 0 6px">Latest deals</h3><div class="tape">${latest.length ? latest.map(x => `<span class="tick-item"><span class="tk-art">${ART2[x.product]}</span>Shop ${x.shop} · ${k(x.price)}</span>`).join('') : '<span class="muted">No deals yet.</span>'}</div></div>`;
-  }
-  const lk = $('#pLock'); if (lk) { lk.innerHTML = s.lock ? lockHtml() : '<span class="muted">No price lock.</span>'; }
+  const r = curRound(), last = r || s.rounds[s.rounds.length - 1];
+  if (r && !s.board.visible) st.innerHTML = `<div class="lobby-stage"><h1>${esc(r.label)}</h1><p class="lead">Prices are hidden this round. Compare the shops yourself.</p><div class="art-row">${ART3.choc}${ART3.candy}</div></div>`;
+  else if (s.board.view === 'chart') { st.innerHTML = `<div class="chart-box tall"><canvas id="cPP"></canvas></div>`; drawCharts(); }
+  else if (s.board.view === 'rounds') st.innerHTML = `<div class="table-wrap"><table class="rounds-t"><tr><th>Round</th><th>Events</th>${M2.PIDS.map(p => `<th>${PROD[p].name}: sold</th><th>average</th><th>equilibrium</th>`).join('')}</tr>${s.rounds.map(rd => `<tr><td>${esc(rd.label)}</td><td>${rd.events.map(e => e.icon + ' ' + esc(e.label)).join(', ') || '–'}${rd.lock ? ` 🔒 ${k(rd.lock.price)}` : ''}</td>${M2.PIDS.map(p => { const x = M2.stats(rd.trades, p), e = rd.eq[p]; return `<td>${x.n}</td><td>${k(x.mean)}</td><td>${s.revealed[rd.n] ? (e.lo === e.hi ? k(e.lo) : k(e.lo) + '–' + k(e.hi)) + ', ' + e.qty : '?'}</td>`; }).join('')}</tr>`).join('')}</table></div>`;
+  else if (s.board.view === 'functions') st.innerHTML = last && s.revealed[last.n] ? (functionsHtml(last) || '<p class="lead">No shock in this round to explain. Choose a round with an event.</p>') : '<div class="lobby-stage"><h1>Reveal the equilibrium first</h1><p class="lead">Then the board explains how the price moved.</p></div>';
+  else if (s.board.view === 'prizes') { const tot = prizeTable().reduce((a, x) => a + x.sweets, 0); st.innerHTML = `<div class="lobby-stage"><h1>Class prizes</h1><div class="yescount"><span>${tot}</span><small>sweets earned so far</small></div><p class="lead">Every good trade adds to your prize. Buyers and shops can win equally.</p></div>`; }
+  else st.innerHTML = `<div class="board-live">${liveGrid()}${last ? roundStatsHtml(last) : ''}</div>`;
+  const side = $('#pSide'); if (side) side.innerHTML = `${s.lock ? `<div>🔒 <b>${PROD[s.lock.product].name}</b> locked at <b>${k(s.lock.price)}</b></div>` : ''}<div><b>Buyers:</b> one of each product per round, up to your card value.</div><div><b>Shops:</b> 4 of each product per round, each unit at or above its lowest price.</div>`;
 }
-function roundsTable() {
-  const s = T.s; if (!s.rounds.length) return '<p class="lead">No rounds yet.</p>';
-  return `<div class="table-wrap"><table class="rounds-t"><tr><th>Round</th><th>Events</th>${PIDS.map(p => `<th>${PRODUCTS[p].en}: sold</th><th>middle price</th><th>range</th>`).join('')}</tr>
-    ${s.rounds.map(r => { const st = roundStats(roundSales(r.n)); return `<tr><td>${esc(r.label)}</td><td>${(r.events || []).map(esc).join(', ') || '–'}${r.lock ? ` 🔒 ${PRODUCTS[r.lock.product].en} ${k(r.lock.price)}` : ''}</td>${PIDS.map(p => `<td>${st[p].n}</td><td>${k(st[p].mid)}</td><td>${st[p].n ? k(st[p].min) + '–' + k(st[p].max) : '–'}</td>`).join('')}</tr>`; }).join('')}</table></div>`;
-}
-function tickerAdd(x) {
-  const el = $('#ticker'); if (!el || !T.s.board.visible) return;
-  const it = document.createElement('span'); it.className = 'tick-item';
-  it.innerHTML = `<span class="tk-art">${ART2[x.product]}</span>${x.shop} · ${k(x.price)}`;
-  el.prepend(it); while (el.children.length > 8) el.lastChild.remove();
-}
-function showBanner(ev) {
-  const el = $('#banner'); if (!el) return;
-  el.innerHTML = `<div class="b-icon">${ev.icon || '📣'}</div><div class="b-title">${esc(ev.label)}</div>${ev.vi ? `<div class="b-vi">${esc(ev.vi)}</div>` : ''}${ev.detail ? `<div class="b-detail">${esc(ev.detail)}</div>` : ''}`;
-  el.classList.remove('hidden'); Sound.play('sting');
-  clearTimeout(showBanner.t); showBanner.t = setTimeout(() => el.classList.add('hidden'), 6000);
-}
-
-/* ---- printable materials ---- */
-function printMaterials() {
-  const s = T.s, notes = [10, 5, 5, 2, 2, 1], perBuyer = notes.reduce((a, b) => a + b, 0);
-  const scale = s.budget / perBuyer;
-  const set = scale === 1 ? notes : null;
-  const money = n => `<div class="note-cash"><span>${n}k</span><small>Chợ Lớp 9</small></div>`;
-  $('#printArea').innerHTML = `
-    <section class="psheet"><h2>Buyer numbers (cut out, one per buyer)</h2><div class="pgrid-num">${Array.from({ length: s.buyers }, (_, i) => `<div class="numtag">${i + 1}<small>Buyer</small></div>`).join('')}</div></section>
-    <section class="psheet"><h2>Shop signs</h2>${SHOPS.map(x => `<div class="shopsign">Shop ${x}</div>`).join('')}</section>
-    <section class="psheet"><h2>Play money: one buyer's ${k(s.budget)}${set ? '' : ' (adjust the notes to your budget)'}</h2><p>Print one copy per buyer per round${s.budgetMode === 'round' ? ' (fresh money each round)' : ''}, plus some 1k and 2k notes for shops to give change.</p>
-      ${Array.from({ length: 4 }, () => `<div class="cashrow">${(set || [10, 5, 5, 2, 2, 1]).map(money).join('')}</div>`).join('')}</section>`;
-  setTimeout(() => window.print(), 50);
-}
+function tickerAdd(t) { const el = $('#ticker'); if (!el || !T.s.board.visible) return; const it = document.createElement('span'); it.className = 'tick-item'; it.innerHTML = `<span class="tk-art">${ART3[t.product]}</span>${t.shop} · ${k(t.price)}`; el.prepend(it); while (el.children.length > 8) el.lastChild.remove(); }
+function showBanner(ev) { const el = $('#banner'); if (!el) return; el.innerHTML = `<div class="b-icon">${ev.icon || '📣'}</div><div class="b-title">${esc(ev.label)}</div>${ev.detail ? `<div class="b-detail">${esc(ev.detail)}</div>` : ''}`; el.classList.remove('hidden'); clearTimeout(showBanner.t); showBanner.t = setTimeout(() => el.classList.add('hidden'), 5000); }
 function makeQR(el, text, size) { if (!el) return; el.innerHTML = ''; if (window.QRCode) { try { new QRCode(el, { text, width: size, height: size, correctLevel: QRCode.CorrectLevel.M }); return; } catch { } } el.classList.add('hidden'); }
 
 
 /* =====================================================================
-   SELLER TILL (one laptop per shop). Every sale is saved on this laptop
-   first and re-sent until the teacher's console sends a receipt.
+   STUDENT: buyer or shop, in shops + offers mode or fast mode
    ===================================================================== */
-const S = { pid: null, nick: '', room: '', tr: null, till: null, lastMsg: 0, lang: 'en', price: {}, offline: false, queue: [], pending: null };
-const tx = key => L2[S.lang][key];
-const QK = () => APP + ':queue:' + S.room + ':' + S.pid;
-function sSave() { sstore.set(APP + ':till:' + S.room, { pid: S.pid, nick: S.nick, lang: S.lang }); }
-function qSave() { try { localStorage.setItem(QK(), JSON.stringify(S.queue)); } catch { } }
-function qLoad() { try { S.queue = JSON.parse(localStorage.getItem(QK()) || '[]'); } catch { S.queue = []; } }
-const sSend = m => { if (S.offline) return; S.tr.send({ ...m, pid: S.pid, from: S.pid }); };
+const S = { pid: null, nick: '', room: '', tr: null, pub: null, me: null, lastMsg: 0, sound: false, kp: null, pkJwk: null, aes: null, teacherPk: '', price: {}, compose: null, prevPrize: null };
+const SK = () => APP + ':student:' + S.room;
+function sSave() { sstore.set(SK(), { pid: S.pid, nick: S.nick, sound: S.sound }); }
+const sSend = m => S.tr.send({ ...m, pid: S.pid, from: S.pid });
+const sfx = n => { if (S.sound) Sound.play(n); };
 
 function studentBoot() {
   const room = (PARAMS.get('room') || '').toUpperCase();
-  const saved = room ? sstore.get(APP + ':till:' + room) : null;
-  const pnick = (PARAMS.get('nick') || '').trim().slice(0, 18);
-  if (saved && saved.pid) { S.room = room; Object.assign(S, { pid: saved.pid, nick: saved.nick, lang: saved.lang || 'en' }); return tillConnect(); }
-  if (room.length === 4) { S.room = room; S.nick = pnick || 'Shop team'; S.pid = 'till-' + rid(10); sSave(); const u = new URL(location.href); u.searchParams.delete('nick'); history.replaceState(null, '', u); return tillConnect(); }
-  location.replace('index.html' + (PARAMS.get('t') ? '?t=' + PARAMS.get('t') : ''));
+  const sv = room ? sstore.get(APP + ':student:' + room) : null, pnick = (PARAMS.get('nick') || '').trim().slice(0, 18);
+  if (sv && sv.pid) { S.room = room; Object.assign(S, { pid: sv.pid, nick: sv.nick, sound: !!sv.sound }); return connect(); }
+  if (room.length === 4 && pnick) { S.room = room; S.nick = pnick; S.pid = 'p-' + rid(10); sSave(); const u = new URL(location.href); u.searchParams.delete('nick'); history.replaceState(null, '', u); return connect(); }
+  location.replace('index.html' + (room ? '?room=' + room + (PARAMS.get('t') ? '&t=' + PARAMS.get('t') : '') : ''));
 }
-async function tillConnect() {
+async function connect() {
   const kind = PARAMS.get('t') === 'local' || !ONLINE_READY ? 'local' : 'supabase';
   S.tr = makeTransport(kind, S.room);
-  qLoad();
-  document.body.innerHTML = shell(`<header class="topbar"><span class="brand" id="tShop">Chợ Lớp 9 till</span><span class="chip" id="tRound"></span><span class="spacer"></span>
-    <span class="timer" id="tTimer"></span><button class="btn small ghost" id="langBtn" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)"></button>
-    <span class="chip" id="tConn"><span class="dot wait"></span>…</span></header><main class="wrap" id="tMain"><div class="panel">Connecting to room <b>${esc(S.room)}</b>…</div></main><div id="modal" class="modal hidden"></div>`);
-  $('#langBtn').onclick = () => { S.lang = S.lang === 'en' ? 'vi' : 'en'; sSave(); render(true); };
-  try { await S.tr.connect(onMsg, () => { }); } catch (e) { $('#tMain').innerHTML = `<div class="bad">${esc(e.message)}</div>`; return; }
-  const hello = () => sSend({ type: 'hello', nick: S.nick });
+  document.body.innerHTML = shell(`<header class="topbar"><span class="brand" id="hRole">Chợ Lớp 9</span><span class="chip" id="hPrize">🍬 0</span><span class="spacer"></span><span class="timer" id="hTimer"></span>
+    <button class="btn small ghost" id="sSnd" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">${S.sound ? 'Sound on' : 'Sound off'}</button><span class="chip" id="hConn"><span class="dot wait"></span>…</span></header>
+    <main class="wrap" id="sMain"><div class="panel">Looking for room <b>${esc(S.room)}</b>…</div></main>`);
+  $('#sSnd').onclick = e => { S.sound = !S.sound; e.target.textContent = S.sound ? 'Sound on' : 'Sound off'; if (S.sound) { Sound.ensure(); Sound.play('chime'); } sSave(); };
+  try { if (window.crypto && crypto.subtle) { S.kp = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']); S.pkJwk = await crypto.subtle.exportKey('jwk', S.kp.publicKey); } } catch { }
+  try { await S.tr.connect(onMsg, () => { }); } catch (e) { $('#sMain').innerHTML = `<div class="bad">${esc(e.message)}</div>`; return; }
+  const hello = () => sSend({ type: 'hello', nick: S.nick, pk: S.pkJwk });
   hello();
-  setInterval(() => {
-    const quiet = Date.now() - S.lastMsg > 7000;
-    if (quiet) hello();
-    const c = $('#tConn'); if (c) c.innerHTML = quiet || S.offline ? `<span class="dot bad"></span>${S.lang === 'vi' ? 'Mất kết nối' : 'No connection'}` : `<span class="dot ok"></span>${S.lang === 'vi' ? 'Đã kết nối' : 'Connected'}`;
-  }, 3000);
-  setInterval(() => resendQueue(), 1500);
-  setInterval(tickTimer, 1000);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-  render(true);
+  setInterval(() => { const q = Date.now() - S.lastMsg > 7000; if (q) hello(); const c = $('#hConn'); if (c) c.innerHTML = q ? '<span class="dot bad"></span>Looking for teacher' : '<span class="dot ok"></span>Connected'; }, 3000);
+  setInterval(() => { tick(); }, 1000);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.compose) { S.compose = null; render(); } });
 }
-function onMsg(m) {
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function teacherKey(pk) {
+  if (!pk || !S.kp) return null; const key = JSON.stringify(pk);
+  if (S.teacherPk !== key) { S.teacherPk = key; S.aes = (async () => { const pub = await crypto.subtle.importKey('jwk', pk, { name: 'ECDH', namedCurve: 'P-256' }, false, []); return crypto.subtle.deriveKey({ name: 'ECDH', public: pub }, S.kp.privateKey, { name: 'AES-GCM', length: 256 }, false, ['decrypt']); })().catch(() => null); }
+  return S.aes;
+}
+async function onMsg(m) {
   if (!m || m.from !== 'teacher' || (m.to && m.to !== S.pid)) return;
-  const wasQuiet = Date.now() - S.lastMsg > 5000;
   S.lastMsg = Date.now();
-  if (wasQuiet && S.queue.length) resendQueue(true); // connection is back: send saved sales now
-  if (m.type === 'till') { const prevRound = S.till && S.till.round ? S.till.round.n : null; S.till = m; if (m.round) S.leftAt = { left: m.round.left, at: Date.now() }; if (m.round && m.round.n !== prevRound) S.price = {}; render(); }
-  else if (m.type === 'state' && !S.till) { S.pubOnly = m; render(); }
-  else if (m.type === 'receipt') {
-    const i = S.queue.findIndex(x => x.id === m.id);
-    if (i >= 0) { S.queue.splice(i, 1); qSave(); }
-    if (m.ok) { toast(`✓ ${tx('ok')}: ${PRODUCTS[m.sale.product][S.lang]} · ${tx('buyer').toLowerCase()} ${m.sale.buyer} · ${k(m.sale.price)}`); flash(); }
-    else toast(errText(m.error), 4500);
+  if (m.type === 'state') {
+    const prevPk = S.pub && JSON.stringify(S.pub.pk || ''), prevRound = S.pub && S.pub.round && S.pub.round.n;
+    S.pub = m; if (m.round) S.leftAt = { left: m.round.left, at: Date.now() };
+    if (prevPk != null && prevPk !== JSON.stringify(m.pk || '')) sSend({ type: 'hello', nick: S.nick, pk: S.pkJwk });
+    if (m.round && m.round.n !== prevRound) { S.compose = null; S.price = {}; if (prevRound != null || m.round) sfx('sting'); }
     render();
-  } else if (m.type === 'claimed' && !m.ok) toast(S.lang === 'vi' ? `Cửa hàng ${m.shop} đã có người.` : `Shop ${m.shop} is already taken.`, 4000);
+  } else if (m.type === 'you') {
+    let you = m.you;
+    if (m.ct) { if (!S.pub) return; const key = await teacherKey(S.pub.pk); if (!key) return; try { you = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(m.iv) }, key, unb64(m.ct)))); } catch { return; } }
+    const prevTrades = S.me && S.me.mine ? S.me.mine.length : null;
+    S.me = you;
+    if (prevTrades != null && you.mine && you.mine.length > prevTrades) { const t = you.mine[you.mine.length - 1]; toast(you.role === 'buyer' ? `✓ Bought ${PROD[t.product].one} for ${k(t.price)}: you gain ${k(t.gain)}` : `✓ Sold ${PROD[t.product].one} for ${k(t.price)}: profit ${k(t.profit)}`, 3500); sfx('cash'); }
+    if (S.prevPrize != null && you.prize > S.prevPrize) { sfx('chime'); }
+    S.prevPrize = you.prize;
+    render();
+  } else if (m.type === 'ack' && !m.ok) { toast(errMsg(m.error), 3500); sfx('wrong'); }
 }
-function errText(e) {
-  const t = S.till || {}, vi = S.lang === 'vi';
-  return ({ 'no-shop': vi ? 'Hãy chọn cửa hàng trước.' : 'Choose your shop first.', 'no-round': vi ? 'Vòng chưa bắt đầu.' : 'The round has not started.',
-    'bad-buyer': vi ? 'Số người mua không hợp lệ.' : 'That buyer number does not exist.', 'bad-price': vi ? 'Giá không hợp lệ.' : 'Check the price.',
-    'sold-out': vi ? 'Hết hàng trong vòng này.' : 'Sold out for this round.', 'locked': (vi ? 'Giá bị khóa ở mức ' : 'The price is locked at ') + k(t.lock && t.lock.price) })[e] || (vi ? 'Không ghi được. Thử lại.' : 'Not recorded. Try again.');
+function tick() {
+  const el = $('#hTimer'); if (el) { if (!S.pub || !S.pub.round || !S.leftAt) el.textContent = ''; else { const l = Math.max(0, S.leftAt.left - Math.floor((Date.now() - S.leftAt.at) / 1000)); el.textContent = Math.floor(l / 60) + ':' + String(l % 60).padStart(2, '0'); } }
+  $$('[data-left]').forEach(x => { const v = Math.max(0, +x.dataset.left - 1); x.dataset.left = v; x.textContent = v + 's'; });
 }
-function tickTimer() {
-  const el = $('#tTimer'); if (!el) return;
-  if (!S.till || !S.till.round || !S.leftAt) { el.textContent = ''; return; }
-  const l = Math.max(0, S.leftAt.left - Math.floor((Date.now() - S.leftAt.at) / 1000));
-  el.textContent = Math.floor(l / 60) + ':' + String(l % 60).padStart(2, '0');
-}
-function flash() { const el = $('#tMain'); if (!el || REDUCED) return; el.classList.remove('flash2'); void el.offsetWidth; el.classList.add('flash2'); }
 
 /* ---- screens ---- */
-function render(force) {
-  const main = $('#tMain'); if (!main) return;
-  $('#langBtn').textContent = tx('lang');
-  const t = S.till;
-  if (!t) return;
-  $('#tShop').textContent = t.shop ? `${tx('shop')} ${t.shop}` : 'Chợ Lớp 9';
-  $('#tRound').textContent = t.round ? `${t.round.label}` : tx('waiting');
-  const key = JSON.stringify([S.lang, t.shop, t.round && t.round.n, t.lock, (t.events || []).map(e => e.label), t.prod && PIDS.map(p => t.prod[p].sold + ':' + t.prod[p].nextCost), t.lastSale && t.lastSale.id, S.queue.length]);
-  if (!force && key === S.key) return; S.key = key;
-  if (!t.shop) {
-    main.innerHTML = `<div class="panel stack"><h1 style="margin:0">${tx('choose')}</h1><div class="shoppick">${SHOPS.map(x => `<button class="btn shopbtn" data-shop="${x}" ${t.shops[x] ? 'disabled' : ''}>${x}${t.shops[x] ? `<small>${tx('taken')}</small>` : ''}</button>`).join('')}</div>
-      <small class="muted">${S.lang === 'vi' ? 'Nếu máy tính bị tắt, hãy chọn lại cùng cửa hàng.' : 'If this laptop restarts, choose the same shop again.'}</small></div>`;
-    main.onclick = e => { const b = e.target.closest('[data-shop]'); if (b) sSend({ type: 'claim', shop: b.dataset.shop }); };
-    return;
-  }
-  const running = !!t.round;
-  main.innerHTML = `
-    ${(t.events || []).length ? `<div class="evbar">${t.events.map(e => `<span>${e.icon || '📣'} ${esc(S.lang === 'vi' && e.vi ? e.vi : e.label)}</span>`).join('')}</div>` : ''}
-    ${S.queue.length ? `<div class="note">${tx('queued')} (${S.queue.length})</div>` : ''}
-    <div class="tillgrid">${PIDS.map(p => productPanel(p, running)).join('')}</div>
-    <div class="panel row tillfoot"><span>${tx('profit')} ${tx('thisround')}: <b>${k(t.profitRound)}</b></span><span>${tx('total')}: <b>${k(t.profitTotal)}</b></span><span class="spacer"></span>
-      ${t.lastSale && running ? `<button class="btn" data-a="undo">${tx('undo')} (${PRODUCTS[t.lastSale.product][S.lang]}, ${k(t.lastSale.price)})</button>` : ''}</div>`;
-  main.onclick = tillClick;
-  PIDS.forEach(p => { const inp = $('#bn-' + p); if (inp) inp.onkeydown = e => { if (e.key === 'Enter') askSale(p); }; });
+function render() {
+  const main = $('#sMain'); if (!main || !S.pub) return;
+  const p = S.pub, me = S.me || {};
+  $('#hPrize').textContent = `🍬 ${me.prize || 0}`;
+  $('#hRole').textContent = me.role === 'buyer' ? `Buyer${me.cardNo ? ' · card ' + me.cardNo : ''}` : me.shop ? `Shop ${me.shop}` : 'Chợ Lớp 9';
+  const ev = (p.events || []).length ? `<div class="evbar">${p.events.map(e => `<span>${e.icon} ${esc(e.label)}: ${esc(e.detail)}</span>`).join('')}</div>` : '';
+  const lock = p.lock ? `<div class="note" style="margin:0 0 12px">🔒 ${PROD[p.lock.product].name} is locked at <b>${k(p.lock.price)}</b>: every trade must be at this price.</div>` : '';
+  if (!me.role) { main.innerHTML = `<div class="panel stack"><h2 style="margin:0">Hi ${esc(S.nick)}, you're in.</h2><p style="margin:0">Your teacher will give you a role: a <b>buyer</b> with a value card, or part of a <b>shop</b>. Prizes depend on how well you trade.</p></div>`; return; }
+  if (!p.round) { main.innerHTML = ev + lock + betweenHtml(); main.onclick = null; return; }
+  if (me.role === 'buyer' ? !('values' in me) : !me.costs) { main.innerHTML = ev + lock + '<div class="panel">Getting your card for this round…</div>'; return; }
+  main.innerHTML = ev + lock + (me.role === 'buyer' ? (p.round.mode === 'fast' ? buyerFast() : buyerOffers()) : (p.round.mode === 'fast' ? shopFast() : shopOffers()));
+  main.onclick = onClick;
 }
-function productPanel(p, running) {
-  const t = S.till, pr = t.prod[p], locked = t.lock && t.lock.product === p, out = pr.sold >= UNITS_PER_ROUND;
-  if (S.price[p] == null) S.price[p] = locked ? t.lock.price : pr.nextCost != null ? pr.nextCost + 2 : 10;
-  if (locked) S.price[p] = t.lock.price;
-  const dis = !running || out;
-  return `<section class="panel stack prod ${p}">
-    <div class="row" style="justify-content:space-between;align-items:center"><div class="prodname"><span class="pa">${ART2[p]}</span>${PRODUCTS[p][S.lang]}</div>
-      <div class="stockdots" title="${tx('left')}">${'●'.repeat(UNITS_PER_ROUND - pr.sold)}${'○'.repeat(pr.sold)} <small>${UNITS_PER_ROUND - pr.sold} ${tx('left')}</small></div></div>
-    <div><small class="muted">${tx('lowest')}</small><div class="unitrow">${pr.costs.map((c, i) => `<span class="u ${i < pr.sold ? 'done' : i === pr.sold ? 'cur' : ''}">${i + 1}: ${k(c)}${i === pr.sold ? ` <small>${tx('next')}</small>` : ''}</span>`).join('')}</div></div>
-    ${out ? `<div class="soldout">${tx('soldout')}</div>` : `
-    <label class="field">${tx('price')}${locked ? ` <span class="lockpill">🔒 ${tx('locked')} ${k(t.lock.price)}</span>` : ''}</label>
-    <div class="stepper"><button data-a="minus" data-p="${p}" ${dis || locked ? 'disabled' : ''}>−</button><div class="val">${k(S.price[p])}</div><button data-a="plus" data-p="${p}" ${dis || locked ? 'disabled' : ''}>+</button></div>
-    <label class="field" for="bn-${p}">${tx('buyer')} <small class="muted">(1–${t.buyersMax || ''})</small></label>
-    <input id="bn-${p}" class="bigin" type="number" inputmode="numeric" min="1" ${dis ? 'disabled' : ''}>
-    <button class="btn primary block soldbtn" data-a="sold" data-p="${p}" ${dis ? 'disabled' : ''}>${tx('sold')}: ${PRODUCTS[p][S.lang]} · ${k(S.price[p])}</button>`}
-    ${!running ? `<small class="muted">${tx('waiting')}</small>` : ''}
-  </section>`;
+function betweenHtml() {
+  const me = S.me, last = S.pub.last;
+  return `<div class="panel stack"><h2 style="margin:0">${last ? esc(last.label) + ': finished' : 'Get ready'}</h2>
+    ${last ? `<p style="margin:0">You earned <b>${k(me.earnRound)}</b> this round, <b>${k(me.earnTotal)}</b> in total.</p>` : ''}
+    <div class="prizebox">🍬 <b>${me.prize || 0}</b> sweets so far</div>
+    <p class="muted" style="margin:0">${me.role === 'buyer' ? 'You get a new buyer card every round.' : 'Your shop gets 4 new units of each product every round.'} Wait for the next round.</p>
+    ${me.mine && me.mine.length ? `<div class="tape">${me.mine.map(t => `<span class="chip">${PROD[t.product].name} ${k(t.price)} · ${me.role === 'buyer' ? 'gain ' + k(t.gain) : 'profit ' + k(t.profit)}</span>`).join('')}</div>` : ''}</div>`;
 }
-function tillClick(e) {
-  const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
-  const a = b.dataset.a, p = b.dataset.p;
-  if (a === 'minus' || a === 'plus') { S.price[p] = Math.max(1, Math.min(200, S.price[p] + (a === 'plus' ? 1 : -1))); updatePrice(p); }
-  else if (a === 'sold') askSale(p);
-  else if (a === 'undo') { const ls = S.till.lastSale; if (ls && confirm(S.lang === 'vi' ? 'Hoàn tác lần bán cuối?' : `Undo the last sale (${PRODUCTS[ls.product].en}, buyer ${ls.buyer}, ${k(ls.price)})?`)) sSend({ type: 'undo', id: ls.id }); }
+const stepper = (key, val, label) => `<div class="stepper small"><button data-a="minus" data-key="${key}">−</button><div class="val">${k(val)}</div><button data-a="plus" data-key="${key}">+</button></div>${label ? `<small class="muted">${label}</small>` : ''}`;
+function cardHtml() {
+  const me = S.me;
+  return `<div class="profile buyer"><div class="pname">Your buyer card${me.cardNo ? ' #' + me.cardNo : ''}</div><div class="psub">Buy one of each product, for less than it's worth to you. Your gain = value − price.</div>
+    <div class="pgrid">${M2.PIDS.map(p => `<span>${PROD[p].name} is worth</span><b class="bignum">${k(me.values ? me.values[p] : null)}${me.bought && me.bought[p] ? ' ✓' : ''}</b>`).join('')}</div></div>`;
 }
-function updatePrice(p) {
-  const panel = $('.prod.' + p); if (!panel) return;
-  $('.val', panel).textContent = k(S.price[p]);
-  $('.soldbtn', panel).textContent = `${tx('sold')}: ${PRODUCTS[p][S.lang]} · ${k(S.price[p])}`;
+function buyerOffers() {
+  const p = S.pub, me = S.me; if (!me.values) return `<div class="panel">No buyer card this round. Wait for the next round.</div>`;
+  const offers = (me.offers || []).filter(o => o.status === 'open');
+  const rows = M2.SHOP_IDS.map(sh => {
+    const shop = p.shops[sh];
+    return `<tr><td><b>${sh}</b>${shop.busy ? ' <small class="muted">busy</small>' : ''}</td>${M2.PIDS.map(pr => {
+      const ask = shop.asks[pr], stock = shop.stock[pr], done = me.bought && me.bought[pr];
+      const canBuy = ask != null && stock > 0 && !done && ask <= me.values[pr];
+      const comp = S.compose && S.compose.shop === sh && S.compose.product === pr;
+      return `<td class="cell">${stock > 0 ? `<div class="askline"><span class="askp">${ask != null ? k(ask) : '–'}</span> <small class="muted">${stock} left</small></div>
+        ${done ? '<small class="muted">bought ✓</small>' : comp ? `${stepper('o', S.compose.price)}<div class="row" style="gap:6px"><button class="btn small primary" data-a="send">Offer ${k(S.compose.price)}</button><button class="btn small ghost" data-a="close">✕</button></div>` :
+          `<div class="row" style="gap:6px"><button class="btn small buyer" data-a="buy" data-shop="${sh}" data-p="${pr}" ${canBuy ? '' : 'disabled'}>Buy</button><button class="btn small" data-a="compose" data-shop="${sh}" data-p="${pr}" ${shop.busy ? 'disabled' : ''}>Offer</button></div>`}` : '<small class="muted">sold out</small>'}</td>`;
+    }).join('')}</tr>`;
+  }).join('');
+  return `<div class="tradegrid"><div class="stack">${cardHtml()}${offersBuyerHtml(offers)}${earnBox()}</div>
+    <div class="panel stack"><h3 style="margin:0">Shops</h3><p class="muted" style="margin:0">Buy at the shop's price, or make your own offer. Offers last ${OFFER_SECS} seconds.</p>
+      <div class="table-wrap"><table class="shoptable"><tr><th>Shop</th>${M2.PIDS.map(pr => `<th>${PROD[pr].name}</th>`).join('')}</tr>${rows}</table></div>${tapeHtml()}</div></div>`;
 }
-function askSale(p) {
-  const t = S.till, pr = t.prod[p], inp = $('#bn-' + p), buyer = Math.round(+inp.value);
-  if (!buyer) { inp.focus(); return toast(S.lang === 'vi' ? 'Nhập số người mua.' : 'Type the buyer number.'); }
-  const price = S.price[p], loss = pr.nextCost != null && price < pr.nextCost ? Math.round((pr.nextCost - price) * 10) / 10 : 0;
-  S.pending = { product: p, price, buyer };
-  $('#modal').innerHTML = `<div class="mbox"><div class="mart">${ART2[p]}</div>
-    <h2>${SALE_Q[S.lang](PRODUCTS[p][S.lang].toLowerCase(), `<b>${buyer}</b>`, `<b>${k(price)}</b>`)}</h2>
-    ${loss ? `<div class="bad">${tx('loss')} ${k(loss)}.</div>` : ''}
-    <div class="row"><button class="btn primary big" data-m="ok">${loss ? tx('sellanyway') : tx('confirm')}</button><button class="btn big" data-m="no">${tx('cancel')}</button></div></div>`;
-  $('#modal').classList.remove('hidden');
-  $('#modal').onclick = ev => { const b = ev.target.closest('[data-m]'); if (!b) return; if (b.dataset.m === 'ok') commitSale(); closeModal(); };
-  const ok = $('[data-m=ok]'); ok && ok.focus();
+function offersBuyerHtml(offers) {
+  if (!offers.length) return '';
+  return `<div class="panel stack"><h3 style="margin:0">Your offers</h3>${offers.map(o => o.by === 'buyer' ? `<div class="offer">To shop <b>${o.shop}</b>: ${PROD[o.product].name} for <b>${k(o.price)}</b> · waiting <span data-left="${o.left}">${o.left}s</span> <button class="btn small ghost" data-a="decline" data-id="${o.id}">Withdraw</button></div>` :
+    `<div class="offer counter">Shop <b>${o.shop}</b> says: ${PROD[o.product].name} for <b>${k(o.price)}</b>? <span class="muted" data-left="${o.left}">${o.left}s</span><div class="row" style="gap:6px;margin-top:6px"><button class="btn small buyer" data-a="accept" data-id="${o.id}" ${o.price <= S.me.values[o.product] ? '' : 'disabled'}>Accept</button><button class="btn small" data-a="decline" data-id="${o.id}">No thanks</button></div></div>`).join('')}</div>`;
 }
-function closeModal() { const m = $('#modal'); if (m) m.classList.add('hidden'); }
-function commitSale() {
-  const x = S.pending; if (!x) return; S.pending = null;
-  const sale = { type: 'sale', id: 's-' + rid(10), product: x.product, price: x.price, buyer: x.buyer, round: S.till.round ? S.till.round.n : null, at: Date.now(), sentAt: Date.now() };
-  S.queue.push(sale); qSave();
-  sSend(sale);
-  const inp = $('#bn-' + x.product); if (inp) inp.value = '';
-  render(true);
+function buyerFast() {
+  const p = S.pub, me = S.me; if (!me.values) return `<div class="panel">No buyer card this round.</div>`;
+  return `<div class="tradegrid"><div class="stack">${cardHtml()}${earnBox()}</div><div class="stack">${M2.PIDS.map(pr => {
+    const b = p.book && p.book[pr] || {}, done = me.bought && me.bought[pr], key = 'b' + pr;
+    if (S.price[key] == null) S.price[key] = Math.max(1, me.values[pr] - 4);
+    return `<div class="panel stack fastp ${pr}"><h3 style="margin:0">${PROD[pr].name} <small class="muted">worth ${k(me.values[pr])} to you</small></h3>
+      ${done ? '<p class="good" style="margin:0">Bought ✓</p>' : `<div class="quotes"><div class="quote ask"><div class="q-label">Lowest ask</div><div class="q-val">${k(b.ask)}</div></div><div class="quote bid"><div class="q-label">Highest offer</div><div class="q-val">${k(b.bid)}</div></div></div>
+      <button class="btn block buyer" data-a="fastbuy" data-p="${pr}" ${b.ask != null && b.ask <= me.values[pr] ? '' : 'disabled'}>Buy now ${b.ask != null ? 'for ' + k(b.ask) : ''}</button>
+      ${stepper(key, S.price[key])}<div class="row"><button class="btn primary" data-a="bid" data-p="${pr}">Offer ${k(S.price[key])}</button>${me.myBids && me.myBids[pr] != null ? `<span>Your offer: <b>${k(me.myBids[pr])}</b></span><button class="btn small ghost" data-a="cancel" data-p="${pr}">Cancel</button>` : ''}</div>`}</div>`;
+  }).join('')}${tapeHtml()}</div></div>`;
 }
-function resendQueue(now) {
-  if (!S.queue.length || S.offline) return;
-  S.queue.forEach(x => { if (now || Date.now() - (x.sentAt || 0) > 2500) { x.sentAt = Date.now(); sSend(x); } });
-  qSave();
+function shopCard() {
+  const me = S.me;
+  return `<div class="profile seller"><div class="pname">Shop ${me.shop}${me.team && me.team.length > 1 ? ` <small>(${me.team.map(esc).join(', ')})</small>` : ''}</div><div class="psub">Lowest price you'll accept for each unit this round. Profit = price − lowest price.</div>
+    ${M2.PIDS.map(pr => `<div class="unitline"><span>${PROD[pr].name}</span>${me.costs[pr].map((c, i) => `<span class="u ${i < me.sold[pr] ? 'done' : i === me.sold[pr] ? 'cur' : ''}">${i + 1}: ${k(c)}</span>`).join('')}</div>`).join('')}</div>`;
 }
+function shopOffers() {
+  const me = S.me, offers = (me.offers || []).filter(o => o.status === 'open');
+  const priceBoxes = M2.PIDS.map(pr => {
+    const next = me.sold[pr] < 4 ? me.costs[pr][me.sold[pr]] : null, key = 'a' + pr;
+    if (S.price[key] == null || (next != null && S.price[key] < next)) S.price[key] = me.asks[pr] ?? (next != null ? next + 4 : 10);
+    return `<div class="panel stack fastp ${pr}"><h3 style="margin:0">${PROD[pr].name}: <span class="muted">${4 - me.sold[pr]} left</span></h3>
+      ${next == null ? '<p class="muted" style="margin:0">Sold out this round.</p>' : `<div>Your price now: <b class="askp">${k(me.asks[pr])}</b> <small class="muted">(next unit: lowest ${k(next)})</small></div>
+      ${stepper(key, S.price[key])}<button class="btn primary" data-a="setask" data-p="${pr}">Post price ${k(S.price[key])}</button>`}</div>`;
+  }).join('');
+  const inbox = offers.length ? offers.map(o => o.by === 'buyer' ? `<div class="offer">Buyer card <b>${o.buyerNo}</b> offers <b>${k(o.price)}</b> for ${PROD[o.product].name.toLowerCase()} · <span data-left="${o.left}">${o.left}s</span>
+      ${S.compose && S.compose.id === o.id ? `<div class="row" style="gap:6px;margin-top:6px">${stepper('c', S.compose.price)}<button class="btn small primary" data-a="sendcounter">Counter ${k(S.compose.price)}</button><button class="btn small ghost" data-a="close">✕</button></div>` :
+      `<div class="row" style="gap:6px;margin-top:6px"><button class="btn small seller" data-a="accept" data-id="${o.id}">Accept</button><button class="btn small" data-a="counter" data-id="${o.id}">Counter</button><button class="btn small ghost" data-a="decline" data-id="${o.id}">Decline</button></div>`}</div>` :
+      `<div class="offer counter">You countered card <b>${o.buyerNo}</b>: ${PROD[o.product].name.toLowerCase()} for <b>${k(o.price)}</b> · waiting <span data-left="${o.left}">${o.left}s</span></div>`).join('') : '<p class="muted" style="margin:0">No offers yet. Buyers can buy at your price, or send you an offer.</p>';
+  return `<div class="tradegrid"><div class="stack">${shopCard()}${earnBox()}</div><div class="stack"><div class="panel stack"><h3 style="margin:0">Offers from buyers</h3>${inbox}</div><div class="pricerow">${priceBoxes}</div>${tapeHtml()}</div></div>`;
+}
+function shopFast() {
+  const p = S.pub, me = S.me;
+  return `<div class="tradegrid"><div class="stack">${shopCard()}${earnBox()}</div><div class="stack">${M2.PIDS.map(pr => {
+    const b = p.book && p.book[pr] || {}, next = me.sold[pr] < 4 ? me.costs[pr][me.sold[pr]] : null, key = 'f' + pr;
+    if (S.price[key] == null || (next != null && S.price[key] < next)) S.price[key] = next != null ? next + 4 : 10;
+    return `<div class="panel stack fastp ${pr}"><h3 style="margin:0">${PROD[pr].name}: <span class="muted">${4 - me.sold[pr]} left</span></h3>
+      ${next == null ? '<p class="muted" style="margin:0">Sold out.</p>' : `<div class="quotes"><div class="quote bid"><div class="q-label">Highest offer</div><div class="q-val">${k(b.bid)}</div></div><div class="quote ask"><div class="q-label">Lowest ask</div><div class="q-val">${k(b.ask)}</div></div></div>
+      <button class="btn block seller" data-a="fastsell" data-p="${pr}" ${b.bid != null && b.bid >= next ? '' : 'disabled'}>Sell now ${b.bid != null ? 'for ' + k(b.bid) : ''}</button>
+      ${stepper(key, S.price[key], 'next unit: lowest ' + k(next))}<div class="row"><button class="btn primary" data-a="ask" data-p="${pr}">Ask ${k(S.price[key])}</button>${me.myAsks && me.myAsks[pr] != null ? `<span>Your ask: <b>${k(me.myAsks[pr])}</b></span><button class="btn small ghost" data-a="cancel" data-p="${pr}">Cancel</button>` : ''}</div>`}</div>`;
+  }).join('')}${tapeHtml()}</div></div>`;
+}
+function earnBox() { const me = S.me; return `<div class="panel row" style="justify-content:space-between"><span>This round: <b>${k(me.earnRound)}</b> · total <b>${k(me.earnTotal)}</b></span><span class="prizebox">🍬 <b>${me.prize || 0}</b></span></div>`; }
+function tapeHtml() { if (S.pub.pricesHidden) return `<div class="panel"><h3 style="margin:0 0 6px">Latest trades</h3><small class="muted">Hidden this round: compare the shops yourself.</small></div>`; const ps = (S.pub.prices || []).slice().reverse(); return `<div class="panel"><h3 style="margin:0 0 6px">Latest trades</h3><div class="tape">${ps.length ? ps.map(x => `<span class="chip">${PROD[x.p].name} ${k(x.price)}</span>`).join('') : '<small class="muted">No trades yet.</small>'}</div></div>`; }
 
+function onClick(e) {
+  const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+  const a = b.dataset.a, me = S.me, p = S.pub;
+  const lockFor = pr => p.lock && p.lock.product === pr ? p.lock.price : null;
+  if (a === 'minus' || a === 'plus') {
+    const d = a === 'plus' ? 1 : -1, key = b.dataset.key;
+    if (key === 'o' || key === 'c') S.compose.price = Math.max(1, S.compose.price + d); else S.price[key] = Math.max(1, (S.price[key] || 0) + d);
+    sfx('blip'); return render();
+  }
+  if (a === 'compose') { const pr = b.dataset.p, v = me.values[pr], ask = p.shops[b.dataset.shop].asks[pr]; S.compose = { shop: b.dataset.shop, product: pr, price: lockFor(pr) ?? Math.min(v, ask != null ? ask - 2 : v - 4) }; return render(); }
+  if (a === 'close') { S.compose = null; return render(); }
+  if (a === 'send') { const c = S.compose; if (c.price > me.values[c.product]) return toast(errMsg('above-value')); sSend({ type: 'offer', shop: c.shop, product: c.product, price: c.price }); S.compose = null; sfx('blip'); return render(); }
+  if (a === 'buy') { sSend({ type: 'buy', shop: b.dataset.shop, product: b.dataset.p }); return; }
+  if (a === 'accept') return sSend({ type: 'respond', id: b.dataset.id, action: 'accept' });
+  if (a === 'decline') return sSend({ type: 'respond', id: b.dataset.id, action: 'decline' });
+  if (a === 'counter') { const o = me.offers.find(x => x.id === b.dataset.id), next = me.costs[o.product][me.sold[o.product]]; S.compose = { id: o.id, price: lockFor(o.product) ?? Math.max(next, o.price + 2) }; return render(); }
+  if (a === 'sendcounter') { sSend({ type: 'respond', id: S.compose.id, action: 'counter', price: S.compose.price }); S.compose = null; return render(); }
+  if (a === 'setask') { const pr = b.dataset.p; return sSend({ type: 'setask', product: pr, price: lockFor(pr) ?? S.price['a' + pr] }); }
+  if (a === 'fastbuy') return sSend({ type: 'bid', product: b.dataset.p, price: p.book[b.dataset.p].ask });
+  if (a === 'fastsell') return sSend({ type: 'ask', product: b.dataset.p, price: p.book[b.dataset.p].bid });
+  if (a === 'bid') { const pr = b.dataset.p; return sSend({ type: 'bid', product: pr, price: lockFor(pr) ?? S.price['b' + pr] }); }
+  if (a === 'ask') { const pr = b.dataset.p; return sSend({ type: 'ask', product: pr, price: lockFor(pr) ?? S.price['f' + pr] }); }
+  if (a === 'cancel') return sSend({ type: 'cancel', product: b.dataset.p });
+}
 
 (function boot() {
   const mode = PARAMS.get('mode') || (PARAMS.get('room') ? 'student' : 'home');

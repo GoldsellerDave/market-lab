@@ -7,7 +7,8 @@ Two classroom market lessons for Cambridge IGCSE Economics 0455, in one web app.
 | `index.html` | The app's home page: students join any lesson here; teachers open Level 0 or Level 1; setup check |
 | `level0.html` | Lesson 1, Level 0: the market opens |
 | `level1.html` | Lesson 2, Level 1: the trading floor |
-| `level2.html` | Lessons 3–4, Level 2: the blended market with real goods (first version) |
+| `level2.html` | Lessons 3–4, Level 2: the online market with shocks, price locks and real prizes |
+| `blended.html` | Optional extra lesson: the blended market with real goods and laptop tills |
 | `config.js` | **The only file you edit**: Supabase details for online joining and AI marking |
 | `supabase/functions/mark/index.ts` | The AI marking function (runs on Supabase, holds the Claude API key) |
 
@@ -100,9 +101,42 @@ AI marking setup: see **Deploying → 4. Turn on AI marking** at the top of this
 ---
 
 
-# Level 2: the blended market (first version)
+# Level 2: the online market with prizes
 
-File: `level2.html`. Real chocolate and candy in the room. **Buyers** have only a buyer number and play money; they keep what they buy, so they buy because they want it. **Five shops** (A–E) sell from tables, haggle, and record each sale on a laptop till. Only you and the five shops use devices.
+File: `level2.html`. Every student trades online. **Buyers** get a value card each round (what one chocolate and one candy are worth to them; one of each at most). **Shops** (A–E) each have 4 chocolates and 4 candies per round, with a supply schedule: the lowest price they'll accept for the 1st, 2nd, 3rd and 4th unit. Earnings turn into real prizes at the end. Robots fill empty shops and buyer cards, so the market always has 5 shops and 19 buyer cards.
+
+**Two ways to trade (chosen per round):**
+- **Shops + offers** (default): shops post a price for each product. A buyer can buy at that price, or send an offer; the shop can accept, counter or decline. Offers last 30 seconds; a shop can have up to 4 waiting.
+- **Fast mode**: an open order book. Buyers post offers, shops post asks, and trades happen automatically when they meet.
+
+**Lesson plan** (step through it on the console, or start any round yourself):
+
+| Round | Lesson | What it shows |
+|---|---|---|
+| Practice | 1 | Learn the buttons; earnings don't count |
+| 1: board off | 1 | Shops' prices only on students' screens |
+| 2: board on | 1 | Prices on the projector too |
+| 3: fast mode | 1 | The open order book, for comparison |
+| 4: price lock | 1 | Candy locked at 7k: buyers want 14, shops offer 6, a shortage of 8 (2.4.3) |
+| 5: cacao harvest hit | 2 | Chocolate costs +3k: supply decreases; equilibrium about 15–16k → 17k |
+| 6: Halloween | 2 | Buyers value chocolate +4k and candy +3k: demand increases |
+| 7: Halloween + sugar harvest hit | 2 | Both curves shift at once |
+
+Every equilibrium is worked out from the cards actually in play. **Reveal** shows it on the board for the last round (price band and quantity), and the **Signal, incentive, rationing** view explains each shock with the class's own numbers: the shortage or surplus at the old price, the extension or contraction in supply and demand, and the new equilibrium. A lock above equilibrium shows a surplus instead.
+
+**Prizes.** You choose the total number of sweets and how many each student gets for taking part. The rest are shared in proportion to each student's earnings, scaled so that an average buyer and an average shop earn the same share (buyers and shops have different earning power by design). Practice rounds don't count. Students see their running prize on screen; the console shows everyone's and prints a prize list with a tick column.
+
+**Cards and fairness.** Buyer cards are reshuffled every round, so nobody is stuck with a card that can never trade. Each card is encrypted for its owner, so other students can't read it. **Deal new roles** gives the shops to students who haven't run one yet (use it at the start of lesson 2).
+
+**After the lesson:** download the trades CSV (every trade with round, mode, product, shop, buyer card, price, value, lowest price, gain, profit, events and the equilibrium) and print the prize list.
+
+**Not in this version:** the debrief questions and grades for Level 2 (next).
+
+---
+
+# Optional extra: the blended market (real goods)
+
+File: `blended.html`. Real chocolate and candy in the room. **Buyers** have only a buyer number and play money; they keep what they buy, so they buy because they want it. **Five shops** (A–E) sell from tables, haggle, and record each sale on a laptop till. Only you and the five shops use devices.
 
 **Setting up a room:** number of buyers, play money per buyer (default 25k), a fresh budget each round or one for the whole lesson, and round length. Shop teams go to the home page, type the room code and a team name, and choose their shop letter. **Print buyer numbers, shop signs and play money** from the console.
 
