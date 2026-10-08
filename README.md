@@ -103,34 +103,39 @@ AI marking setup: see **Deploying → 4. Turn on AI marking** at the top of this
 
 # Level 2: the online market with prizes
 
-File: `level2.html`. Every student trades online. **Buyers** get a value card each round (what one chocolate and one candy are worth to them; one of each at most). **Shops** (A–E) each have 4 chocolates and 4 candies per round, with a supply schedule: the lowest price they'll accept for the 1st, 2nd, 3rd and 4th unit. Earnings turn into real prizes at the end. Robots fill empty shops and buyer cards, so the market always has 5 shops and 19 buyer cards.
+File: `level2.html`. Every student trades online. **Buyers** get a value card each round (what one unit is worth to them; one of each product at most). **Shops** (A–E) get 4 units of each product per round and a **supply schedule**: the lowest price they'll accept for the 1st, 2nd, 3rd and 4th unit. Earnings turn into real prizes at the end. Robots fill empty shops and buyer cards, so the market always has 5 shops and 19 buyer cards.
 
-**Two ways to trade (chosen per round):**
-- **Shops + offers** (default): shops post a price for each product. A buyer can buy at that price, or send an offer; the shop can accept, counter or decline. Offers last 30 seconds; a shop can have up to 4 waiting.
-- **Fast mode**: an open order book. Buyers post offers, shops post asks, and trades happen automatically when they meet.
+**When you open a room** you choose:
+- **Products:** chocolate only (default), candy only, or both.
+- **Lesson plan:** Standard (default) or Advanced.
 
-**Lesson plan** (step through it on the console, or start any round yourself):
+**Standard plan** (fast mode: an open order book; buyers post offers, shops post asks, trades happen automatically):
 
-| Round | Lesson | What it shows |
+| Round | What it shows | Chocolate, from the cards |
 |---|---|---|
-| Practice | 1 | Learn the buttons; earnings don't count |
-| 1: board off | 1 | Shops' prices only on students' screens |
-| 2: board on | 1 | Prices on the projector too |
-| 3: fast mode | 1 | The open order book, for comparison |
-| 4: price lock | 1 | Candy locked at 7k: buyers want 14, shops offer 6, a shortage of 8 (2.4.3) |
-| 5: cacao harvest hit | 2 | Chocolate costs +3k: supply decreases; equilibrium about 15–16k → 17k |
-| 6: Halloween | 2 | Buyers value chocolate +4k and candy +3k: demand increases |
-| 7: Halloween + sugar harvest hit | 2 | Both curves shift at once |
+| Practice (1 minute, unscored) | Learning the buttons | |
+| 1: Find the price | Equilibrium (2.4.2) | about 15–16k, 10 sold |
+| 2: Menu prices | Each shop chooses ONE price for the whole round. Too high: unsold stock (a surplus). Too low: buyers turned away (a shortage). (2.4.3) | |
+| 3: Cacao harvest hit | Costs +3k: decrease in supply (2.3.3) | about 17k, 9 sold |
+| 4: Halloween | Values +4k: increase in demand (2.2.3) | about 17k, 13 sold |
 
-Every equilibrium is worked out from the cards actually in play. **Reveal** shows it on the board for the last round (price band and quantity), and the **Signal, incentive, rationing** view explains each shock with the class's own numbers: the shortage or surplus at the old price, the extension or contraction in supply and demand, and the new equilibrium. A lock above equilibrium shows a surplus instead.
+For candy only, round 3 is the sugar harvest instead. In fast mode a shop's ask stays up for its next unit if it is still at or above that unit's lowest price, so shops don't re-enter prices after every sale.
 
-**Prizes.** You choose the total number of sweets and how many each student gets for taking part. The rest are shared in proportion to each student's earnings, scaled so that an average buyer and an average shop earn the same share (buyers and shops have different earning power by design). Practice rounds don't count. Students see their running prize on screen; the console shows everyone's and prints a prize list with a tick column.
+**Advanced plan** (7 rounds, shops + offers: buyers buy at a shop's price or send an offer the shop can accept, counter or decline): practice, board off, board on, fast mode, menu prices, cacao, Halloween, Halloween + sugar.
 
-**Cards and fairness.** Buyer cards are reshuffled every round, so nobody is stuck with a card that can never trade. Each card is encrypted for its owner, so other students can't read it. **Deal new roles** gives the shops to students who haven't run one yet (use it at the start of lesson 2).
+**Events** (only those that fit your products are shown): cacao harvest hit, sugar harvest hit, Halloween, pocket money day, new factory opens (costs −2k: increase in supply), health campaign (values −3k: decrease in demand). Plan rounds set the events for that round; events you add yourself start with the next round.
 
-**After the lesson:** download the trades CSV (every trade with round, mode, product, shop, buyer card, price, value, lowest price, gain, profit, events and the equilibrium) and print the prize list.
+**Fixed price (optional):** fix the price for a round. Below equilibrium shows a shortage, above shows a surplus (2.4.3). It uses disequilibrium language only; later you can reuse it as an example of maximum and minimum prices (2.10.3).
 
-**Not in this version:** the debrief questions and grades for Level 2 (next).
+**Reveal and explain:** **Reveal** shows the last round's equilibrium (price band and quantity) on the board. The **Signal, incentive, rationing** view explains each shock against the latest round without it, using the class's own cards: the shortage or surplus at the old price, the extension or contraction in supply and demand, and the new equilibrium. After menu prices, the board lists each shop's price, sales, and whether it had a surplus or a shortage.
+
+**Prizes.** You choose the total number of sweets and how many each student gets for taking part. The rest are shared in proportion to earnings, scaled so an average buyer and an average shop earn the same share. Practice rounds don't count. Students see their running prize; the console prints a prize list with a tick column.
+
+**Cards and fairness.** Buyer cards are reshuffled every round and encrypted for their owner. **Deal new roles** gives the shops to students who haven't run one yet (use it at the start of lesson 2).
+
+**After the lesson:** download the trades CSV and print the prize list.
+
+**Not in this version:** the debrief questions and grades for Level 2.
 
 ---
 

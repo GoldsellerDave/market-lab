@@ -826,21 +826,37 @@ const EVENTS3 = [
   { key: 'cacao', icon: '🌧️', label: 'Cacao harvest hit', detail: 'Chocolate costs +3k for every shop', parts: [{ side: 'sellers', product: 'choc', amount: 3 }] },
   { key: 'sugar', icon: '🌾', label: 'Sugar harvest hit', detail: 'Chocolate and candy costs +2k for every shop', parts: [{ side: 'sellers', product: 'both', amount: 2 }] },
   { key: 'halloween', icon: '🎃', label: 'Halloween!', detail: 'Buyers value chocolate +4k and candy +3k', parts: [{ side: 'buyers', product: 'choc', amount: 4 }, { side: 'buyers', product: 'candy', amount: 3 }] },
-  { key: 'pocket', icon: '💵', label: 'Pocket money day', detail: 'Buyers have more to spend: every value +2k', parts: [{ side: 'buyers', product: 'both', amount: 2 }] }
+  { key: 'pocket', icon: '💵', label: 'Pocket money day', detail: 'Buyers have more to spend: every value +2k', parts: [{ side: 'buyers', product: 'both', amount: 2 }] },
+  { key: 'factory', icon: '🏭', label: 'New factory opens', detail: 'Costs −2k for every shop', parts: [{ side: 'sellers', product: 'both', amount: -2 }] },
+  { key: 'health', icon: '🥗', label: 'Health campaign', detail: 'Buyers value sweets −3k', parts: [{ side: 'buyers', product: 'both', amount: -3 }] }
 ];
+// products chosen for this room (teacher) or announced by the teacher (students)
+const PX = () => (typeof T !== 'undefined' && T.s && T.s.products) || (typeof S !== 'undefined' && S.pub && S.pub.products) || M2.PIDS;
+const eventFits = (ev, products) => ev.parts.some(p => p.product === 'both' || products.includes(p.product));
+// Standard plan: one product, fast mode, an unscored practice round plus 4 rounds
+function planStandard(products) {
+  const p = products.length === 1 ? products[0] : 'choc';
+  return [
+    { lesson: 1, label: 'Practice round', practice: true, mode: 'fast', board: true, events: [], len: 60 },
+    { lesson: 1, label: 'Round 1: find the price', mode: 'fast', board: true, events: [] },
+    { lesson: 1, label: 'Round 2: menu prices', mode: 'menu', board: true, events: [] },
+    { lesson: 2, label: p === 'choc' ? 'Round 3: cacao harvest hit' : 'Round 3: sugar harvest hit', mode: 'fast', board: true, events: [p === 'choc' ? 'cacao' : 'sugar'] },
+    { lesson: 2, label: 'Round 4: Halloween', mode: 'fast', board: true, events: ['halloween'] }
+  ];
+}
 const PLAN3 = [
   { lesson: 1, label: 'Practice round', practice: true, mode: 'offers', board: true, events: [], len: 120 },
   { lesson: 1, label: 'Round 1: board off', mode: 'offers', board: false, events: [] },
   { lesson: 1, label: 'Round 2: board on', mode: 'offers', board: true, events: [] },
   { lesson: 1, label: 'Round 3: fast mode', mode: 'fast', board: true, events: [] },
-  { lesson: 1, label: 'Round 4: price lock', mode: 'offers', board: true, events: [], lock: { product: 'candy', price: 7 } },
+  { lesson: 1, label: 'Round 4: menu prices', mode: 'menu', board: true, events: [] },
   { lesson: 2, label: 'Round 5: cacao harvest hit', mode: 'offers', board: true, events: ['cacao'] },
   { lesson: 2, label: 'Round 6: Halloween', mode: 'offers', board: true, events: ['halloween'] },
   { lesson: 2, label: 'Round 7: Halloween + sugar harvest hit', mode: 'offers', board: true, events: ['halloween', 'sugar'] }
 ];
 const ERR3 = {
   'above-value': 'That is more than it is worth to you.', 'below-cost': 'That is below the lowest price you accept for this unit.',
-  'already-bought': 'You already bought this product this round.', 'sold-out': 'Sold out for this round.', 'locked': 'The price is locked.',
+  'already-bought': 'You already bought this product this round.', 'sold-out': 'Sold out for this round.', 'locked': 'This round the price is fixed.', 'menu-set': 'Your menu price is set for this round.', 'not-for-sale': 'That shop has none left at its menu price.', 'bad-product': 'That product is not in this market.',
   'no-card': 'You have no buyer card this round.', 'no-round': 'The round has not started.', 'busy': 'This shop has too many offers waiting. Try another shop.',
   'one-offer': 'You already have an offer waiting for this product.', 'expired': 'That offer has expired.', 'not-yours': 'That is not your offer.', 'bad-price': 'Check the price.'
 };
@@ -858,11 +874,11 @@ const T = { s: null, tr: null, R: null, tick: null, bots: new Map(), offers: new
 
 function newT(o) {
   return { v: STATE_V, room: roomCode(), transport: o.transport, roundLen: o.roundLen, team: o.team, sweets: o.sweets, perStudent: o.perStudent, botsOn: o.botsOn, sound: true,
-    phase: 'lobby', humans: [], roles: {}, shopsOf: {}, wasShop: {}, rounds: [], current: null, events: [], lock: null, revealed: {}, board: { visible: true, view: 'live' },
+    products: o.products || ['choc'], plan: o.plan || 'standard', phase: 'lobby', humans: [], roles: {}, shopsOf: {}, wasShop: {}, rounds: [], current: null, events: [], lock: null, revealed: {}, board: { visible: true, view: 'live' },
     planStep: 0, earnings: {}, pks: {}, createdAt: Date.now() };
 }
 function migrate(st) {
-  const d = newT({ transport: st.transport || 'local', roundLen: st.roundLen || 300, team: st.team || 1, sweets: st.sweets || 60, perStudent: st.perStudent ?? 1, botsOn: st.botsOn !== false });
+  const d = newT({ products: st.products || ['choc', 'candy'], plan: st.plan || 'advanced', transport: st.transport || 'local', roundLen: st.roundLen || 300, team: st.team || 1, sweets: st.sweets || 60, perStudent: st.perStudent ?? 1, botsOn: st.botsOn !== false });
   const out = { ...d, ...st, v: STATE_V };
   ['roles', 'shopsOf', 'wasShop', 'revealed', 'earnings', 'pks', 'board'].forEach(x => { if (!out[x] || typeof out[x] !== 'object') out[x] = d[x]; });
   ['humans', 'rounds', 'events'].forEach(x => { if (!Array.isArray(out[x])) out[x] = []; });
@@ -876,15 +892,18 @@ const activeEvents = () => T.s.events.filter(e => e.active).flatMap(e => e.parts
 const shopMembers = shop => T.s.humans.filter(h => T.s.roles[h.pid] === 'shop:' + shop).map(h => h.pid);
 const isShopHuman = shop => shopMembers(shop).length > 0;
 
+const planList = () => T.s.plan === 'advanced' ? PLAN3 : planStandard(T.s.products);
 /* ---- setup ---- */
 function teacherBoot() {
   const saved = store.get(TKEY);
   document.body.innerHTML = shell(`<div class="narrow stack" style="padding-top:24px">
     <h1>Open the online market with prizes</h1>
-    <p>Level 2: every student trades online. Buyers have value cards, shops have rising costs, and earnings turn into real prizes at the end. Shocks and price locks show how markets change.</p>
+    <p>Level 2: every student trades online. Buyers have value cards, shops have a supply schedule (the lowest price they'll accept for each unit), and earnings turn into real prizes at the end. Shocks show how markets change.</p>
     ${saved ? `<div class="panel stack"><h2>Resume room ${esc(saved.room)}</h2><p class="muted" style="margin:0">${(saved.humans || []).length} students, ${(saved.rounds || []).length} rounds. Earnings are kept.</p><button class="btn primary" id="resume">Resume room ${esc(saved.room)}</button></div>` : ''}
     <div class="panel stack">
       <div><label class="field" for="tp">Connection</label><select id="tp"><option value="supabase" ${ONLINE_READY ? 'selected' : 'disabled'}>Online: students on their own devices${ONLINE_READY ? '' : ' (add Supabase details to enable)'}</option><option value="local" ${ONLINE_READY ? '' : 'selected'}>Test mode: students in other tabs on this computer</option></select></div>
+      <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="pr">Products</label><select id="pr"><option value="choc">Chocolate only</option><option value="candy">Candy only</option><option value="both">Chocolate and candy</option></select></div>
+        <div style="flex:1;min-width:150px"><label class="field" for="pl">Lesson plan</label><select id="pl"><option value="standard">Standard: practice + 4 rounds, fast mode</option><option value="advanced">Advanced: 7 rounds, shops + offers</option></select></div></div>
       <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="tm">Students per shop</label><select id="tm"><option value="1">1 (5 shop students)</option><option value="2">2 (10 shop students, in pairs)</option></select></div>
         <div style="flex:1;min-width:150px"><label class="field" for="rl">Round length</label><select id="rl"><option value="240">4 minutes</option><option value="300" selected>5 minutes</option><option value="360">6 minutes</option></select></div></div>
       <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="sw">Prizes: total sweets for the class</label><input id="sw" type="number" min="0" value="60"></div>
@@ -892,7 +911,7 @@ function teacherBoot() {
       <label class="row" style="gap:8px"><input type="checkbox" id="bots" checked style="width:22px;height:22px"> Robots fill empty shops and buyer cards (keeps 5 shops and 19 buyer cards)</label>
       <button class="btn primary" id="create">Open a new room</button></div>
     <p class="muted"><a href="index.html">Back to all lessons</a></p></div>`);
-  $('#create').onclick = () => { Sound.ensure(); T.s = newT({ transport: $('#tp').value, team: +$('#tm').value, roundLen: +$('#rl').value, sweets: Math.max(0, +$('#sw').value || 0), perStudent: Math.max(0, +$('#ps').value || 0), botsOn: $('#bots').checked }); tSave(); teacherStart(); };
+  $('#create').onclick = () => { Sound.ensure(); T.s = newT({ products: $('#pr').value === 'both' ? ['choc', 'candy'] : [$('#pr').value], plan: $('#pl').value, transport: $('#tp').value, team: +$('#tm').value, roundLen: +$('#rl').value, sweets: Math.max(0, +$('#sw').value || 0), perStudent: Math.max(0, +$('#ps').value || 0), botsOn: $('#bots').checked }); tSave(); teacherStart(); };
   const r = $('#resume'); if (r) r.onclick = () => { Sound.ensure(); T.s = migrate(saved); tSave(); teacherStart(); };
 }
 async function teacherStart() {
@@ -946,18 +965,19 @@ function startRound(step) {
   const humansB = s.humans.filter(h => s.roles[h.pid] === 'buyer').map(h => h.pid);
   const order = cards.map(c => c.id).sort(() => Math.random() - .5);        // new cards every round
   const holder = {}; humansB.forEach((pid, i) => { holder[order[i]] = pid; });
+  if (step.fromPlan) s.events.forEach(e => { if (!(step.events || []).includes(e.key)) e.active = false; });
   (step.events || []).forEach(key => { const ev = EVENTS3.find(e => e.key === key); if (ev && !s.events.find(e => e.key === key && e.active)) s.events.push({ ...ev, id: rid(5), active: true }); });
   if (step.lock) s.lock = { ...step.lock };
   const ev = activeEvents();
   const n = s.rounds.length + 1, len = step.len || s.roundLen;
-  const eq = Object.fromEntries(M2.PIDS.map(p => [p, M2.equilibrium(cards, p, ev)]));
-  const sur = Object.fromEntries(M2.PIDS.map(p => [p, M2.surplus(cards, p, ev)]));
+  const eq = Object.fromEntries(PX().map(p => [p, M2.equilibrium(cards, p, ev)]));
+  const sur = Object.fromEntries(PX().map(p => [p, M2.surplus(cards, p, ev)]));
   const lockQ = s.lock ? M2.atPrice(cards, s.lock.product, ev, s.lock.price) : null;
   s.rounds.push({ n, label: step.label || `Round ${n}`, practice: !!step.practice, mode: step.mode || 'offers', cards: cards.map(c => ({ ...c })), holder, events: s.events.filter(e => e.active).map(e => ({ key: e.key, icon: e.icon, label: e.label, detail: e.detail })), ev, lock: s.lock ? { ...s.lock } : null, lockQ, eq, sur, trades: [], startedAt: Date.now() });
   s.current = { idx: s.rounds.length - 1, endsAt: Date.now() + len * 1000 };
   s.phase = 'running'; if (step.board != null) s.board.visible = step.board;
   T.R = M2.createRound({ n, slots: cards.map(c => ({ slot: c.id, card: c })), events: ev, lock: s.lock, mode: step.mode || 'offers' });
-  T.asks = {}; M2.SHOP_IDS.forEach(sh => { T.asks[sh] = {}; });
+  T.asks = {}; T.lastAsk = {}; T.away = {}; M2.SHOP_IDS.forEach(sh => { T.asks[sh] = {}; T.lastAsk[sh] = {}; T.away[sh] = {}; });
   T.offers.clear();
   Sound.play('sting'); showBanner(s.events.filter(e => e.active).slice(-1)[0] || { icon: '🔔', label: step.label || `Round ${n}`, detail: (step.mode || 'offers') === 'fast' ? 'Fast mode: post offers and asks; trades happen automatically' : 'Shops post prices. Buyers buy, or make an offer.' });
   tSave(); renderBody(); youAll(); tBroadcast(true); if (T.projector) renderProj(true);
@@ -975,6 +995,7 @@ function endRound() {
   clearInterval(T.tick); stopBots();
   T.offers.forEach(o => { if (o.status === 'open') o.status = 'expired'; });
   const r = curRound(); r.endedAt = Date.now();
+  if (r.mode === 'menu') r.menu = M2.SHOP_IDS.map(sh => PX().map(p => { const price = T.asks[sh][p]; const willing = price == null ? 0 : [0, 1, 2, 3].filter(u => M2.costOf(sh, p, u, r.ev) <= price).length; const sold = r.trades.filter(x => x.shop === sh && x.product === p).length; return { shop: sh, product: p, price: price ?? null, sold, unsold: Math.max(0, willing - sold), away: Object.keys(T.away[sh][p] || {}).length }; })).flat();
   s.current = null; s.phase = 'between'; T.R = null;
   Sound.play('fanfare'); tSave(); renderBody(); youAll(); tBroadcast(true); if (T.projector) renderProj(true);
 }
@@ -993,7 +1014,16 @@ function recordTrade(t) {
   }
   // close other offers that can no longer happen
   T.offers.forEach(o => { if (o.status === 'open' && ((o.slot === t.slot && o.product === t.product) || (o.shop === t.shop && o.product === t.product && T.R.stock(t.shop, t.product) <= 0))) { o.status = 'closed'; notifyOffer(o); } });
-  if (T.asks[t.shop] && T.R.stock(t.shop, t.product) <= 0) delete T.asks[t.shop][t.product];
+  if (T.asks[t.shop] && T.R.stock(t.shop, t.product) <= 0 && r.mode !== 'menu') delete T.asks[t.shop][t.product];
+  if (r.mode === 'fast') {
+    const last = (T.lastAsk[t.shop] || {})[t.product], R = T.R;
+    if (last != null) setTimeout(() => {
+      if (T.R !== R) return;
+      const nc = R.nextCost(t.shop, t.product);
+      if (nc != null && last >= nc && !R.book[t.product].asks.has(t.shop)) { const res = R.ask(t.shop, t.product, last); if (res.trade) recordTrade(res.trade); else { shopMembers(t.shop).forEach(you); tBroadcast(); } }
+      else { delete T.lastAsk[t.shop][t.product]; shopMembers(t.shop).forEach(you); }
+    }, 250);
+  }
   Sound.play('cash'); tickerAdd(rec);
   tSave(); [buyer, ...rec.shopPids].filter(Boolean).forEach(you); tBroadcast(); renderLive();
 }
@@ -1059,12 +1089,14 @@ function tOnMsg(m) {
   if (!R || !r) return fail('no-round');
   const price = Math.round(Number(m.price));
   let err = null;
+  if (m.product && !PX().includes(m.product)) return fail('bad-product');
   switch (m.type) {
-    case 'buy': { // buyer buys at a shop's posted price
+    case 'buy': { // buyer buys at a shop's posted (or menu) price
       if (!slot) return fail('no-card');
       const ask = (T.asks[m.shop] || {})[m.product];
       if (ask == null) return fail('bad-price');
-      const res = R.trade(slot, m.shop, m.product, ask, 'posted'); if (!res.ok) return fail(res.error);
+      const res = R.trade(slot, m.shop, m.product, ask, r.mode === 'menu' ? 'menu' : 'posted');
+      if (!res.ok) { if (r.mode === 'menu' && (res.error === 'sold-out' || res.error === 'below-cost') && ask <= R.val(slot, m.product)) { (T.away[m.shop][m.product] ||= {})[slot] = 1; return fail('not-for-sale'); } return fail(res.error); }
       recordTrade(res.trade); break;
     }
     case 'offer': if (!slot) return fail('no-card'); err = makeOffer(m.pid, slot, m.shop, m.product, price); break;
@@ -1078,11 +1110,12 @@ function tOnMsg(m) {
       const c = R.nextCost(shop, m.product); if (c == null) return fail('sold-out');
       if (price < c) return fail('below-cost');
       if (R.lock && R.lock.product === m.product && price !== R.lock.price) return fail('locked');
+      if (r.mode === 'menu' && T.asks[shop][m.product] != null) return fail('menu-set');
       T.asks[shop][m.product] = price; shopMembers(shop).forEach(you); tBroadcast(); renderLive(); break;
     }
     case 'bid': { if (!slot) return fail('no-card'); const res = R.bid(slot, m.product, price); if (!res.ok) return fail(res.error); if (res.trade) recordTrade(res.trade); else { you(m.pid); tBroadcast(); } break; }
-    case 'ask': { if (!shop) return fail('bad'); const res = R.ask(shop, m.product, price); if (!res.ok) return fail(res.error); if (res.trade) recordTrade(res.trade); else { shopMembers(shop).forEach(you); tBroadcast(); } break; }
-    case 'cancel': { if (slot) R.cancelBid(slot, m.product); if (shop) R.cancelAsk(shop, m.product); you(m.pid); tBroadcast(); break; }
+    case 'ask': { if (!shop) return fail('bad'); T.lastAsk[shop][m.product] = price; const res = R.ask(shop, m.product, price); if (!res.ok) return fail(res.error); if (res.trade) recordTrade(res.trade); else { shopMembers(shop).forEach(you); tBroadcast(); } break; }
+    case 'cancel': { if (slot) R.cancelBid(slot, m.product); if (shop) { R.cancelAsk(shop, m.product); delete T.lastAsk[shop][m.product]; } you(m.pid); tBroadcast(); break; }
     default: return;
   }
   if (err) return fail(err);
@@ -1098,25 +1131,25 @@ function youFor(pid) {
   if (role === 'buyer') {
     const slot = slotOf(r, pid), card = slot ? r.cards.find(c => c.id === slot) : null;
     const offers = []; T.offers.forEach(o => { if (o.buyer === pid && (o.status === 'open' || Date.now() - o.expires < 6000)) offers.push(offerView(o)); });
-    return { ...base, slot, cardNo: slot ? slot.replace(/^\D+/, '') : null, values: card ? Object.fromEntries(M2.PIDS.map(p => [p, M2.valueOf(card, p, r.ev)])) : null,
-      bought: live && R && slot ? { ...R.bought.get(slot) } : null, myBids: live && R && slot ? Object.fromEntries(M2.PIDS.map(p => [p, (R.book[p].bids.get(slot) || {}).price ?? null])) : null,
+    return { ...base, slot, cardNo: slot ? slot.replace(/^\D+/, '') : null, values: card ? Object.fromEntries(PX().map(p => [p, M2.valueOf(card, p, r.ev)])) : null,
+      bought: live && R && slot ? { ...R.bought.get(slot) } : null, myBids: live && R && slot ? Object.fromEntries(PX().map(p => [p, (R.book[p].bids.get(slot) || {}).price ?? null])) : null,
       offers, mine: r.trades.filter(t => t.buyer === pid).map(t => ({ product: t.product, shop: t.shop, price: t.price, gain: t.gain })) };
   }
   const shop = role.slice(5);
   const offers = []; T.offers.forEach(o => { if (o.shop === shop && (o.status === 'open' || Date.now() - o.expires < 6000)) offers.push(offerView(o)); });
   return { ...base, shop, team: shopMembers(shop).map(nick),
-    costs: Object.fromEntries(M2.PIDS.map(p => [p, [0, 1, 2, 3].map(u => M2.costOf(shop, p, u, r.ev))])),
-    sold: R ? Object.fromEntries(M2.PIDS.map(p => [p, R.sold[shop][p]])) : { choc: 0, candy: 0 },
-    asks: { ...(T.asks && T.asks[shop] || {}) }, myAsks: live && R ? Object.fromEntries(M2.PIDS.map(p => [p, (R.book[p].asks.get(shop) || {}).price ?? null])) : null,
+    costs: Object.fromEntries(PX().map(p => [p, [0, 1, 2, 3].map(u => M2.costOf(shop, p, u, r.ev))])),
+    sold: R ? Object.fromEntries(PX().map(p => [p, R.sold[shop][p]])) : { choc: 0, candy: 0 },
+    asks: { ...(T.asks && T.asks[shop] || {}) }, keep: { ...(T.lastAsk && T.lastAsk[shop] || {}) }, myAsks: live && R ? Object.fromEntries(PX().map(p => [p, (R.book[p].asks.get(shop) || {}).price ?? null])) : null,
     offers, mine: r.trades.filter(t => t.shop === shop).map(t => ({ product: t.product, price: t.price, profit: t.profit, buyerNo: t.slot.replace(/^\D+/, '') })) };
 }
 const you = pid => { if (pid) sendPrivate(pid, youFor(pid)); };
 const youAll = () => T.s.humans.forEach(h => you(h.pid));
 function pubState() {
   const s = T.s, r = curRound(), R = T.R, last = r || s.rounds[s.rounds.length - 1];
-  const shops = Object.fromEntries(M2.SHOP_IDS.map(sh => [sh, { asks: { ...(T.asks && T.asks[sh] || {}) }, stock: R ? Object.fromEntries(M2.PIDS.map(p => [p, R.stock(sh, p)])) : { choc: 4, candy: 4 }, human: isShopHuman(sh), busy: openOffersFor(sh) >= MAX_OFFERS_PER_SHOP }]));
-  const book = R && r.mode === 'fast' ? Object.fromEntries(M2.PIDS.map(p => [p, { bid: (R.bestBid(p) || {}).price ?? null, ask: (R.bestAsk(p) || {}).price ?? null }])) : null;
-  return { type: 'state', level: 2, pk: T.pk, phase: s.phase, n: s.humans.length,
+  const shops = Object.fromEntries(M2.SHOP_IDS.map(sh => [sh, { asks: { ...(T.asks && T.asks[sh] || {}) }, stock: R ? Object.fromEntries(PX().map(p => [p, R.stock(sh, p)])) : { choc: 4, candy: 4 }, human: isShopHuman(sh), busy: openOffersFor(sh) >= MAX_OFFERS_PER_SHOP }]));
+  const book = R && r.mode === 'fast' ? Object.fromEntries(PX().map(p => [p, { bid: (R.bestBid(p) || {}).price ?? null, ask: (R.bestAsk(p) || {}).price ?? null }])) : null;
+  return { type: 'state', level: 2, pk: T.pk, phase: s.phase, n: s.humans.length, products: s.products,
     round: r ? { n: r.n, label: r.label, mode: r.mode, practice: r.practice, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) } : null,
     last: last ? { n: last.n, label: last.label } : null, shops, book, lock: s.lock, events: s.events.filter(e => e.active).map(e => ({ icon: e.icon, label: e.label, detail: e.detail })),
     prices: r && s.board.visible ? r.trades.slice(-12).map(t => ({ p: t.product, price: t.price, shop: t.shop })) : [], pricesHidden: !!(r && !s.board.visible), classSweets: Math.round(totalPrizePool()) };
@@ -1129,7 +1162,7 @@ function tBroadcast(now) {
 /* ---- prizes: earnings scaled by what an average member of each role earns at equilibrium ---- */
 function expectedFor(pid, r) {
   const role = T.s.roles[pid]; if (!role) return 0;
-  const cs = M2.PIDS.reduce((a, p) => a + r.sur[p].cs, 0), ps = M2.PIDS.reduce((a, p) => a + r.sur[p].ps, 0);
+  const cs = PX().reduce((a, p) => a + r.sur[p].cs, 0), ps = PX().reduce((a, p) => a + r.sur[p].ps, 0);
   if (role === 'buyer') return cs / r.cards.length;
   const shop = role.slice(5), mem = Math.max(1, shopMembers(shop).length);
   return ps / 5 / mem;
@@ -1154,13 +1187,14 @@ function anchorFor(p) { const prev = T.s.rounds.slice(0, -1).reverse().find(r =>
 function startBots(lenSec) {
   stopBots(); if (!T.s.botsOn) return;
   const r = curRound(), R = T.R, base = Math.max(1500, lenSec * 1000 / 45), idx = Math.min(3, T.s.rounds.filter(x => !x.practice).length);
-  const anchors = Object.fromEntries(M2.PIDS.map(p => [p, anchorFor(p)]));
+  const anchors = Object.fromEntries(PX().map(p => [p, anchorFor(p)]));
   const later = (key, fn, ms) => T.bots.set(key, setTimeout(() => { if (T.R === R && T.s.current) fn(); }, ms));
   // robot shops
   M2.SHOP_IDS.filter(sh => !isShopHuman(sh)).forEach(sh => {
     const act = () => {
-      M2.PIDS.forEach(p => { const c = R.nextCost(sh, p); if (c == null) return;
+      PX().forEach(p => { const c = R.nextCost(sh, p); if (c == null) return;
         if (r.mode === 'fast') { const res = R.ask(sh, p, M2.botAsk(c, idx, anchors[p])); if (res.trade) recordTrade(res.trade); }
+        else if (r.mode === 'menu') { if (T.asks[sh][p] == null) T.asks[sh][p] = M2.botAsk(M2.costOf(sh, p, 0, r.ev) + M2.ri(2, 4), 0, anchors[p]); }
         else if (T.asks[sh][p] == null || T.asks[sh][p] < c || Math.random() < .25) T.asks[sh][p] = R.lock && R.lock.product === p ? Math.max(c, R.lock.price) === R.lock.price ? R.lock.price : undefined : M2.botAsk(c, idx, anchors[p]);
       });
       tBroadcast(); later('S' + sh, act, base * (0.6 + Math.random()));
@@ -1170,10 +1204,15 @@ function startBots(lenSec) {
   // robot buyers: card slots with no student this round
   r.cards.filter(c => !r.holder[c.id]).forEach(c => {
     const act = () => {
-      M2.PIDS.forEach(p => {
+      PX().forEach(p => {
         if (R.bought.get(c.id)[p]) return;
         const v = R.val(c.id, p);
         if (r.mode === 'fast') { const res = R.bid(c.id, p, M2.botBid(v, idx, anchors[p])); if (res.trade) recordTrade(res.trade); return; }
+        if (r.mode === 'menu') {
+          const shopsByPrice = M2.SHOP_IDS.filter(sh => T.asks[sh][p] != null && T.asks[sh][p] <= v).sort((a, b) => T.asks[a][p] - T.asks[b][p]);
+          for (const sh of shopsByPrice) { const res = R.trade(c.id, sh, p, T.asks[sh][p], 'menu'); if (res.ok) { recordTrade(res.trade); return; } (T.away[sh][p] ||= {})[c.id] = 1; }
+          return;
+        }
         const open = M2.SHOP_IDS.filter(sh => T.asks[sh][p] != null && R.stock(sh, p) > 0).sort((a, b) => T.asks[a][p] - T.asks[b][p]);
         const margin = idx <= 1 ? M2.ri(0, 4) : M2.ri(0, 2);
         if (open.length && T.asks[open[0]][p] <= v - margin) { const res = R.trade(c.id, open[0], p, T.asks[open[0]][p], 'posted'); if (res.ok) recordTrade(res.trade); return; }
@@ -1220,14 +1259,14 @@ function renderT() {
 }
 function renderBody() {
   const el = $('#tbody'); if (!el) return;
-  const s = T.s, r = curRound(), next = PLAN3[s.planStep], dealt = Object.keys(s.roles).length > 0;
+  const s = T.s, r = curRound(), next = planList()[s.planStep], dealt = Object.keys(s.roles).length > 0;
   const shopsHtml = M2.SHOP_IDS.map(sh => { const mem = shopMembers(sh).map(nick); return `<div class="shopcell ${mem.length ? 'on' : ''}"><b>${sh}</b><small>${mem.length ? esc(mem.join(', ')) : 'robot'}</small></div>`; }).join('');
   el.innerHTML = `<div class="grid2">
     <section class="stack">
       <div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">${r ? esc(r.label) : 'Between rounds'}</h2><span class="timer big-timer" id="tTimer"></span></div>
         ${!dealt ? `<p style="margin:0">${s.humans.length} students joined. Deal roles when everyone is in.</p><button class="btn primary" data-act="deal">Deal roles</button>` :
           r ? `<p class="muted" style="margin:0">Mode: <b>${r.mode === 'fast' ? 'fast (open order book)' : 'shops + offers'}</b>${r.practice ? ' · practice: earnings do not count' : ''}</p><button class="btn primary" data-act="end">End round</button>` :
-          `${next ? `<p style="margin:0"><b>Next in the plan:</b> ${esc(next.label)} <span class="muted">(lesson ${next.lesson}${next.mode === 'fast' ? ', fast mode' : ''}${next.lock ? `, ${PROD[next.lock.product].name.toLowerCase()} locked at ${k(next.lock.price)}` : ''})</span></p><button class="btn primary" data-act="plan">Start: ${esc(next.label)}</button>` : '<p class="muted" style="margin:0">All planned rounds are done. Show the prizes.</p>'}
+          `${next ? `<p style="margin:0"><b>Next in the plan:</b> ${esc(next.label)} <span class="muted">(lesson ${next.lesson}${next.mode === 'fast' ? ', fast mode' : ''}${next.mode === 'menu' ? ', menu prices' : ''})</span></p><button class="btn primary" data-act="plan">Start: ${esc(next.label)}</button>` : '<p class="muted" style="margin:0">All planned rounds are done. Show the prizes.</p>'}
           <details><summary>Start a different round</summary><div class="row" style="margin-top:8px"><input id="rlab" type="text" placeholder="Round name" style="max-width:200px"><select id="rmode" style="width:auto"><option value="offers">Shops + offers</option><option value="fast">Fast mode</option></select><button class="btn small" data-act="custom-round">Start</button></div></details>
           <div class="row"><button class="btn small" data-act="deal-new">Deal new roles (new shop teams)</button></div>`}
         <div class="row"><span>Board:</span><button class="btn small ${s.board.visible ? 'primary' : ''}" data-act="board">${s.board.visible ? 'Showing prices' : 'Hidden during rounds'}</button>
@@ -1235,12 +1274,12 @@ function renderBody() {
         ${s.rounds.length ? `<div class="row"><span>Equilibrium on the board for the last round:</span><button class="btn small" data-act="reveal">${s.revealed[(r || s.rounds[s.rounds.length - 1]).n] ? 'Hide' : 'Reveal'}</button></div>` : ''}
       </div>
       <div class="panel stack"><h2 style="margin:0">Events</h2>
-        <div class="row">${EVENTS3.map(e => `<button class="btn small" data-act="event" data-k="${e.key}">${e.icon} ${esc(e.label)}</button>`).join('')}</div>
+        <div class="row">${EVENTS3.filter(e => eventFits(e, PX())).map(e => `<button class="btn small" data-act="event" data-k="${e.key}">${e.icon} ${esc(e.label)}</button>`).join('')}</div>
         <details><summary>Custom event</summary><div class="row" style="margin-top:8px"><select id="ceSide" style="width:auto"><option value="sellers">Shops' costs</option><option value="buyers">Buyers' values</option></select><select id="ceProd" style="width:auto"><option value="choc">Chocolate</option><option value="candy">Candy</option><option value="both">Both</option></select><input id="ceAmt" type="number" value="2" style="max-width:80px"><input id="ceLab" type="text" placeholder="Headline" style="flex:1;min-width:140px"><button class="btn small" data-act="custom-event">Add</button></div></details>
         ${s.events.filter(e => e.active).map(e => `<div class="row" style="justify-content:space-between"><span>${e.icon} <b>${esc(e.label)}</b> <span class="muted">${esc(e.detail)}</span></span><button class="btn small ghost" data-act="endevent" data-id="${e.id}">End</button></div>`).join('') || '<p class="muted" style="margin:0">No events on. Events start with the next round.</p>'}</div>
-      <div class="panel stack"><h2 style="margin:0">Price lock</h2>
-        ${s.lock ? `<p style="margin:0">🔒 ${PROD[s.lock.product].name} locked at <b>${k(s.lock.price)}</b>.</p><button class="btn small" data-act="unlock">Release after this round</button>` :
-          `<div class="row"><select id="lkP" style="width:auto"><option value="candy">Candy</option><option value="choc">Chocolate</option></select><input id="lkV" type="number" value="7" style="max-width:80px"><span class="muted">k</span><button class="btn small" data-act="lock">Lock from the next round</button></div><small class="muted">Below equilibrium shows a shortage; above it shows a surplus.</small>`}</div>
+      <div class="panel stack"><h2 style="margin:0">Fixed price (optional)</h2>
+        ${s.lock ? `<p style="margin:0">📌 ${PROD[s.lock.product].name} fixed at <b>${k(s.lock.price)}</b>.</p><button class="btn small" data-act="unlock">Stop fixing the price</button>` :
+          `<div class="row"><select id="lkP" style="width:auto">${PX().map(p => `<option value="${p}">${PROD[p].name}</option>`).join('')}</select><input id="lkV" type="number" value="7" style="max-width:80px"><span class="muted">k</span><button class="btn small" data-act="lock">Fix from the next round</button></div><small class="muted">A price fixed below equilibrium shows a shortage; above it, a surplus (2.4.3). Later, the same round is an example of maximum and minimum prices (2.10.3).</small>`}</div>
       <div class="panel stack"><h2 style="margin:0">Joining and roles</h2>
         <div class="row" style="align-items:flex-start"><div class="qr" id="qrS"></div><div style="flex:1;min-width:160px"><div class="muted">Room code</div><div class="code-big">${esc(s.room)}</div><p class="muted" style="font-size:.85rem;margin:.3em 0 0;word-break:break-all">${esc(joinUrl())}</p></div></div>
         <div class="shopgrid">${shopsHtml}</div>
@@ -1262,13 +1301,16 @@ function renderBody() {
 }
 function roundStatsHtml(rd, big) {
   const show = T.s.revealed[rd.n];
-  return M2.PIDS.map(p => { const st = M2.stats(rd.trades, p), e = rd.eq[p]; return `<div class="pstat"><b>${PROD[p].name}</b>: ${st.n} sold${st.n ? `, average ${k(st.mean)}, range ${k(st.min)}–${k(st.max)}` : ''}${show && e.qty ? ` <span class="eqtag">equilibrium ${e.lo === e.hi ? k(e.lo) : k(e.lo) + '–' + k(e.hi)}, ${e.qty} sold</span>` : ''}</div>`; }).join('')
-    + (rd.lock && rd.lockQ ? `<div class="lockbox">🔒 ${PROD[rd.lock.product].name} at ${k(rd.lock.price)}: buyers want <b>${rd.lockQ.qd}</b>, shops will sell <b>${rd.lockQ.qs}</b>: ${rd.lockQ.qd > rd.lockQ.qs ? `<b>shortage of ${rd.lockQ.qd - rd.lockQ.qs}</b>` : rd.lockQ.qs > rd.lockQ.qd ? `<b>surplus of ${rd.lockQ.qs - rd.lockQ.qd}</b>` : 'no gap'}</div>` : '');
+  return PX().map(p => { const st = M2.stats(rd.trades, p), e = rd.eq[p]; return `<div class="pstat"><b>${PROD[p].name}</b>: ${st.n} sold${st.n ? `, average ${k(st.mean)}, range ${k(st.min)}–${k(st.max)}` : ''}${show && e.qty ? ` <span class="eqtag">equilibrium ${e.lo === e.hi ? k(e.lo) : k(e.lo) + '–' + k(e.hi)}, ${e.qty} sold</span>` : ''}</div>`; }).join('')
+    + (rd.menu ? menuHtml(rd) : '')
+    + (rd.lock && rd.lockQ ? `<div class="lockbox">📌 ${PROD[rd.lock.product].name} fixed at ${k(rd.lock.price)}: buyers want <b>${rd.lockQ.qd}</b>, shops will sell <b>${rd.lockQ.qs}</b>: ${rd.lockQ.qd > rd.lockQ.qs ? `<b>shortage of ${rd.lockQ.qd - rd.lockQ.qs}</b>` : rd.lockQ.qs > rd.lockQ.qd ? `<b>surplus of ${rd.lockQ.qs - rd.lockQ.qd}</b>` : 'no gap'}</div>` : '');
 }
 function functionsHtml(rd) {
-  const s = T.s, idx = s.rounds.indexOf(rd), prev = s.rounds.slice(0, idx).reverse().find(x => !x.practice);
+  // compare with the latest earlier round whose events are all still on, so only the new shock is explained
+  const s = T.s, idx = s.rounds.indexOf(rd), keys = (rd.events || []).map(e => e.key);
+  const prev = s.rounds.slice(0, idx).reverse().find(x => !x.practice && (x.events || []).every(e => keys.includes(e.key)) && JSON.stringify(x.ev) !== JSON.stringify(rd.ev));
   if (!prev || JSON.stringify(prev.ev) === JSON.stringify(rd.ev)) return '';
-  const parts = M2.PIDS.map(p => {
+  const parts = PX().map(p => {
     const a = M2.adjustment(rd.cards, p, prev.ev, rd.ev); if (!a || a.direction === 'none') return '';
     const up = a.direction === 'up', gap = Math.abs(a.gapAtOld), st = M2.stats(rd.trades, p);
     return `<div class="func"><h3>${PROD[p].name}: from ${k(a.P1)} towards ${k(a.P2)}</h3><ol class="funcs">
@@ -1277,12 +1319,12 @@ function functionsHtml(rd) {
       <li><b>Rationing.</b> ${up ? `The higher price makes some buyers drop out: quantity demanded <b>contracts</b> from ${a.qdAtOld} to ${a.Q2}.` : `The lower price brings in more buyers: quantity demanded <b>extends</b> from ${a.qdAtOld} to ${a.Q2}.`}</li>
       <li><b>New equilibrium:</b> about ${k(a.P2)} with ${a.Q2} sold.${st.n ? ` <span class="muted">In your class: average ${k(st.mean)}, ${st.n} sold.</span>` : ''}</li></ol></div>`;
   }).join('');
-  return parts ? `<div class="funcbox"><h2 style="margin:0 0 6px">Signal, incentive, rationing</h2><p class="muted" style="margin:0 0 8px">Since the previous round: ${rd.events.map(e => e.icon + ' ' + esc(e.label)).join(', ') || 'the events ended'}</p>${parts}</div>` : '';
+  return parts ? `<div class="funcbox"><h2 style="margin:0 0 6px">Signal, incentive, rationing</h2><p class="muted" style="margin:0 0 8px">Compared with ${esc(prev.label)}: ${rd.events.filter(e => !(prev.events || []).some(f => f.key === e.key)).map(e => e.icon + ' ' + esc(e.label)).join(', ') || 'the events ended'}</p>${parts}</div>` : '';
 }
 function liveGrid() {
-  const R = T.R, r = curRound();
-  return `<div class="table-wrap"><table class="livegrid"><tr><th>Shop</th>${M2.PIDS.map(p => `<th>${PROD[p].name}: price · stock</th>`).join('')}<th>Offers waiting</th></tr>${M2.SHOP_IDS.map(sh => `<tr><td><b>${sh}</b> <small class="muted">${isShopHuman(sh) ? '' : 'robot'}</small></td>${M2.PIDS.map(p => `<td>${r && r.mode === 'fast' ? '' : `<b>${k((T.asks && T.asks[sh] || {})[p])}</b> `}<span class="stock">${'●'.repeat(R ? R.stock(sh, p) : 4)}${'○'.repeat(R ? 4 - R.stock(sh, p) : 0)}</span></td>`).join('')}<td>${R ? openOffersFor(sh) : 0}</td></tr>`).join('')}</table></div>
-    ${r && r.mode === 'fast' && R ? `<div class="row" style="gap:18px">${M2.PIDS.map(p => `<span><b>${PROD[p].name}</b>: best offer ${k((R.bestBid(p) || {}).price)}, lowest ask ${k((R.bestAsk(p) || {}).price)}</span>`).join('')}</div>` : ''}`;
+  const R = T.R, r = curRound(), lastR = r || T.s.rounds[T.s.rounds.length - 1], offersCol = !lastR || lastR.mode === 'offers';
+  return `<div class="table-wrap"><table class="livegrid"><tr><th>Shop</th>${PX().map(p => `<th>${PROD[p].name}: price · stock</th>`).join('')}${offersCol ? '<th>Offers waiting</th>' : ''}</tr>${M2.SHOP_IDS.map(sh => `<tr><td><b>${sh}</b> <small class="muted">${isShopHuman(sh) ? '' : 'robot'}</small></td>${PX().map(p => `<td>${r && r.mode === 'fast' ? '' : `<b>${k((T.asks && T.asks[sh] || {})[p])}</b> `}<span class="stock">${'●'.repeat(R ? R.stock(sh, p) : 4)}${'○'.repeat(R ? 4 - R.stock(sh, p) : 0)}</span></td>`).join('')}${offersCol ? `<td>${R ? openOffersFor(sh) : 0}</td>` : ''}</tr>`).join('')}</table></div>
+    ${r && r.mode === 'fast' && R ? `<div class="row" style="gap:18px">${PX().map(p => `<span><b>${PROD[p].name}</b>: best offer ${k((R.bestBid(p) || {}).price)}, lowest ask ${k((R.bestAsk(p) || {}).price)}</span>`).join('')}</div>` : ''}`;
 }
 function renderLive() {
   const s = T.s, r = curRound(), last = r || s.rounds[s.rounds.length - 1];
@@ -1297,7 +1339,7 @@ function tClick(e) {
   const s = T.s, a = b.dataset.act;
   if (a === 'deal') dealRoles();
   else if (a === 'deal-new') { if (confirm('Deal new roles? Students who have not run a shop yet get the shops.')) dealRoles(true); }
-  else if (a === 'plan') { const st = PLAN3[s.planStep]; s.planStep++; startRound(st); }
+  else if (a === 'plan') { const st = planList()[s.planStep]; s.planStep++; startRound({ ...st, fromPlan: true }); }
   else if (a === 'custom-round') startRound({ label: ($('#rlab').value || '').trim() || null, mode: $('#rmode').value, board: null, events: [] });
   else if (a === 'end') endRound();
   else if (a === 'board') { s.board.visible = !s.board.visible; tSave(); renderBody(); if (T.projector) renderProj(true); }
@@ -1305,7 +1347,7 @@ function tClick(e) {
   else if (a === 'event') { const ev = EVENTS3.find(x => x.key === b.dataset.k); if (s.events.find(x => x.key === ev.key && x.active)) return toast('That event is already on.'); s.events.push({ ...ev, id: rid(5), active: true }); tSave(); renderBody(); toast('The event starts with the next round.'); }
   else if (a === 'custom-event') { const lab = ($('#ceLab').value || '').trim(); if (!lab) return toast('Type a headline.'); const side = $('#ceSide').value, product = $('#ceProd').value, amount = Math.round(+$('#ceAmt').value || 0); s.events.push({ id: rid(5), key: 'c' + rid(4), icon: '📣', label: lab, detail: `${side === 'sellers' ? "Shops' costs" : "Buyers' values"} for ${product === 'both' ? 'chocolate and candy' : PROD[product].name.toLowerCase()} ${amount >= 0 ? '+' : ''}${amount}k`, parts: [{ side, product, amount }], active: true }); tSave(); renderBody(); }
   else if (a === 'endevent') { const ev = s.events.find(x => x.id === b.dataset.id); if (ev) ev.active = false; tSave(); renderBody(); }
-  else if (a === 'lock') { s.lock = { product: $('#lkP').value, price: Math.round(+$('#lkV').value || 0) }; tSave(); renderBody(); toast('The lock starts with the next round.'); }
+  else if (a === 'lock') { s.lock = { product: $('#lkP').value, price: Math.round(+$('#lkV').value || 0) }; tSave(); renderBody(); toast('The fixed price starts with the next round.'); }
   else if (a === 'unlock') { s.lock = null; tSave(); renderBody(); }
   else if (a === 'csv') downloadCsv();
   else if (a === 'prizes') printPrizes();
@@ -1341,9 +1383,9 @@ function drawP(canvas) {
     if (i) { g.strokeStyle = muted; g.setLineDash([3, 4]); g.beginPath(); g.moveTo(x0, Tp); g.lineTo(x0, Tp + ph); g.stroke(); g.setLineDash([]); }
     g.fillStyle = ink; g.textAlign = 'center'; g.textBaseline = 'top'; g.font = `700 ${fs * .85}px ${font}`;
     g.fillText(r.practice ? 'P' : 'R' + (r.label.match(/^Round (\d+)/) || [0, r.n])[1], x0 + slot / 2, Tp + ph + 4);
-    g.font = `${fs * .8}px ${font}`; g.fillStyle = muted; g.fillText((r.events || []).map(e => e.icon).join('') + (r.lock ? '🔒' : '') + (r.mode === 'fast' ? '⚡' : ''), x0 + slot / 2, Tp + ph + 4 + fs);
+    g.font = `${fs * .8}px ${font}`; g.fillStyle = muted; g.fillText((r.events || []).map(e => e.icon).join('') + (r.lock ? '📌' : '') + (r.mode === 'menu' ? '📋' : '') + (r.mode === 'fast' ? '⚡' : ''), x0 + slot / 2, Tp + ph + 4 + fs);
     g.font = `${fs}px ${font}`;
-    M2.PIDS.forEach(p => {
+    PX().forEach(p => {
       const e = r.eq[p];
       if (s.revealed[r.n] && e.qty) { g.fillStyle = col[p]; g.globalAlpha = .16; g.fillRect(x0 + 3, y(e.hi + .5), slot - 6, Math.max(4, y(e.lo - .5) - y(e.hi + .5))); g.globalAlpha = 1; }
       const ts = r.trades.filter(t => t.product === p);
@@ -1352,8 +1394,8 @@ function drawP(canvas) {
     });
   });
   g.textAlign = 'left'; g.textBaseline = 'top'; g.font = `700 ${fs * .9}px ${font}`; let lx = L + 4;
-  M2.PIDS.forEach(p => { g.fillStyle = col[p]; g.fillText('● ' + PROD[p].name, lx, 2); lx += g.measureText('● ' + PROD[p].name).width + 16; });
-  g.fillStyle = muted; g.font = `${fs * .82}px ${font}`; g.fillText('⚡ fast mode  🔒 price lock', lx, 2);
+  PX().forEach(p => { g.fillStyle = col[p]; g.fillText('● ' + PROD[p].name, lx, 2); lx += g.measureText('● ' + PROD[p].name).width + 16; });
+  g.fillStyle = muted; g.font = `${fs * .82}px ${font}`; g.fillText('⚡ fast mode  📋 menu prices  📌 fixed price', lx, 2);
 }
 function drawCharts() { drawP($('#cP')); drawP($('#cPP')); }
 
@@ -1380,15 +1422,27 @@ function projDynamic() {
   const r = curRound(), last = r || s.rounds[s.rounds.length - 1];
   if (r && !s.board.visible) st.innerHTML = `<div class="lobby-stage"><h1>${esc(r.label)}</h1><p class="lead">Prices are hidden this round. Compare the shops yourself.</p><div class="art-row">${ART3.choc}${ART3.candy}</div></div>`;
   else if (s.board.view === 'chart') { st.innerHTML = `<div class="chart-box tall"><canvas id="cPP"></canvas></div>`; drawCharts(); }
-  else if (s.board.view === 'rounds') st.innerHTML = `<div class="table-wrap"><table class="rounds-t"><tr><th>Round</th><th>Events</th>${M2.PIDS.map(p => `<th>${PROD[p].name}: sold</th><th>average</th><th>equilibrium</th>`).join('')}</tr>${s.rounds.map(rd => `<tr><td>${esc(rd.label)}</td><td>${rd.events.map(e => e.icon + ' ' + esc(e.label)).join(', ') || '–'}${rd.lock ? ` 🔒 ${k(rd.lock.price)}` : ''}</td>${M2.PIDS.map(p => { const x = M2.stats(rd.trades, p), e = rd.eq[p]; return `<td>${x.n}</td><td>${k(x.mean)}</td><td>${s.revealed[rd.n] ? (e.lo === e.hi ? k(e.lo) : k(e.lo) + '–' + k(e.hi)) + ', ' + e.qty : '?'}</td>`; }).join('')}</tr>`).join('')}</table></div>`;
+  else if (s.board.view === 'rounds') st.innerHTML = `<div class="table-wrap"><table class="rounds-t"><tr><th>Round</th><th>Events</th>${PX().map(p => `<th>${PROD[p].name}: sold</th><th>average</th><th>equilibrium</th>`).join('')}</tr>${s.rounds.map(rd => `<tr><td>${esc(rd.label)}</td><td>${rd.events.map(e => e.icon + ' ' + esc(e.label)).join(', ') || '–'}${rd.lock ? ` 📌 ${k(rd.lock.price)}` : ''}${rd.mode === 'menu' ? ' 📋 menu prices' : ''}</td>${PX().map(p => { const x = M2.stats(rd.trades, p), e = rd.eq[p]; return `<td>${x.n}</td><td>${k(x.mean)}</td><td>${s.revealed[rd.n] ? (e.lo === e.hi ? k(e.lo) : k(e.lo) + '–' + k(e.hi)) + ', ' + e.qty : '?'}</td>`; }).join('')}</tr>`).join('')}</table></div>`;
   else if (s.board.view === 'functions') st.innerHTML = last && s.revealed[last.n] ? (functionsHtml(last) || '<p class="lead">No shock in this round to explain. Choose a round with an event.</p>') : '<div class="lobby-stage"><h1>Reveal the equilibrium first</h1><p class="lead">Then the board explains how the price moved.</p></div>';
   else if (s.board.view === 'prizes') { const tot = prizeTable().reduce((a, x) => a + x.sweets, 0); st.innerHTML = `<div class="lobby-stage"><h1>Class prizes</h1><div class="yescount"><span>${tot}</span><small>sweets earned so far</small></div><p class="lead">Every good trade adds to your prize. Buyers and shops can win equally.</p></div>`; }
   else st.innerHTML = `<div class="board-live">${liveGrid()}${last ? roundStatsHtml(last) : ''}</div>`;
-  const side = $('#pSide'); if (side) side.innerHTML = `${s.lock ? `<div>🔒 <b>${PROD[s.lock.product].name}</b> locked at <b>${k(s.lock.price)}</b></div>` : ''}<div><b>Buyers:</b> one of each product per round, up to your card value.</div><div><b>Shops:</b> 4 of each product per round, each unit at or above its lowest price.</div>`;
+  const side = $('#pSide'); if (side) side.innerHTML = `${s.lock ? `<div>📌 This round the price of <b>${PROD[s.lock.product].name.toLowerCase()}</b> is fixed at <b>${k(s.lock.price)}</b>. It cannot change.</div>` : ''}${r && r.mode === 'menu' ? '<div>📋 <b>Menu prices:</b> each shop chose one price for the whole round.</div>' : ''}<div><b>Buyers:</b> one of each product per round, up to your card value.</div><div><b>Shops:</b> 4 of each product per round, each unit at or above its lowest price.</div>`;
 }
 function tickerAdd(t) { const el = $('#ticker'); if (!el || !T.s.board.visible) return; const it = document.createElement('span'); it.className = 'tick-item'; it.innerHTML = `<span class="tk-art">${ART3[t.product]}</span>${t.shop} · ${k(t.price)}`; el.prepend(it); while (el.children.length > 8) el.lastChild.remove(); }
 function showBanner(ev) { const el = $('#banner'); if (!el) return; el.innerHTML = `<div class="b-icon">${ev.icon || '📣'}</div><div class="b-title">${esc(ev.label)}</div>${ev.detail ? `<div class="b-detail">${esc(ev.detail)}</div>` : ''}`; el.classList.remove('hidden'); clearTimeout(showBanner.t); showBanner.t = setTimeout(() => el.classList.add('hidden'), 5000); }
 function makeQR(el, text, size) { if (!el) return; el.innerHTML = ''; if (window.QRCode) { try { new QRCode(el, { text, width: size, height: size, correctLevel: QRCode.CorrectLevel.M }); return; } catch { } } el.classList.add('hidden'); }
+
+/* ---- menu prices round: shortages and surpluses from shops' own pricing (2.4.3) ---- */
+function menuHtml(rd) {
+  const show = T.s.revealed[rd.n];
+  return PX().map(p => {
+    const rows = rd.menu.filter(x => x.product === p), e = rd.eq[p];
+    const verdict = x => x.price == null ? 'no price set' : x.away > 0 ? `<b>shortage</b>: ${x.away} buyer${x.away > 1 ? 's' : ''} turned away` : x.unsold > 0 ? `<b>surplus</b>: ${x.unsold} unsold` : 'cleared';
+    return `<div class="lockbox"><b>📋 Menu prices: ${PROD[p].name.toLowerCase()}</b>${show && e.qty ? ` <span class="muted">(equilibrium about ${e.lo === e.hi ? k(e.lo) : k(e.lo) + '–' + k(e.hi)})</span>` : ''}
+      <div class="table-wrap"><table><tr><th>Shop</th><th>Menu price</th><th>Sold</th><th>What happened</th></tr>${rows.sort((a, b) => (a.price ?? 99) - (b.price ?? 99)).map(x => `<tr><td>${x.shop}</td><td>${k(x.price)}</td><td>${x.sold}</td><td>${verdict(x)}</td></tr>`).join('')}</table></div>
+      <small class="muted">Priced too high: quantity supplied is greater than quantity demanded, so some stays unsold. Priced too low: quantity demanded is greater than quantity supplied, so buyers are turned away.</small></div>`;
+  }).join('');
+}
 
 
 /* =====================================================================
@@ -1460,7 +1514,7 @@ function render() {
   $('#hPrize').textContent = `🍬 ${me.prize || 0}`;
   $('#hRole').textContent = me.role === 'buyer' ? `Buyer${me.cardNo ? ' · card ' + me.cardNo : ''}` : me.shop ? `Shop ${me.shop}` : 'Chợ Lớp 9';
   const ev = (p.events || []).length ? `<div class="evbar">${p.events.map(e => `<span>${e.icon} ${esc(e.label)}: ${esc(e.detail)}</span>`).join('')}</div>` : '';
-  const lock = p.lock ? `<div class="note" style="margin:0 0 12px">🔒 ${PROD[p.lock.product].name} is locked at <b>${k(p.lock.price)}</b>: every trade must be at this price.</div>` : '';
+  const lock = (p.lock ? `<div class="note" style="margin:0 0 12px">📌 This round the price of ${PROD[p.lock.product].name.toLowerCase()} is fixed at <b>${k(p.lock.price)}</b>. It cannot change.</div>` : '') + (p.round && p.round.mode === 'menu' ? `<div class="note" style="margin:0 0 12px">📋 <b>Menu prices.</b> ${me.role === 'buyer' ? 'Each shop has one price for the whole round. Buy where you like.' : 'Choose ONE price for each product. You cannot change it this round.'}</div>` : '');
   if (!me.role) { main.innerHTML = `<div class="panel stack"><h2 style="margin:0">Hi ${esc(S.nick)}, you're in.</h2><p style="margin:0">Your teacher will give you a role: a <b>buyer</b> with a value card, or part of a <b>shop</b>. Prizes depend on how well you trade.</p></div>`; return; }
   if (!p.round) { main.innerHTML = ev + lock + betweenHtml(); main.onclick = null; return; }
   if (me.role === 'buyer' ? !('values' in me) : !me.costs) { main.innerHTML = ev + lock + '<div class="panel">Getting your card for this round…</div>'; return; }
@@ -1479,25 +1533,25 @@ const stepper = (key, val, label) => `<div class="stepper small"><button data-a=
 function cardHtml() {
   const me = S.me;
   return `<div class="profile buyer"><div class="pname">Your buyer card${me.cardNo ? ' #' + me.cardNo : ''}</div><div class="psub">Buy one of each product, for less than it's worth to you. Your gain = value − price.</div>
-    <div class="pgrid">${M2.PIDS.map(p => `<span>${PROD[p].name} is worth</span><b class="bignum">${k(me.values ? me.values[p] : null)}${me.bought && me.bought[p] ? ' ✓' : ''}</b>`).join('')}</div></div>`;
+    <div class="pgrid">${PX().map(p => `<span>${PROD[p].name} is worth</span><b class="bignum">${k(me.values ? me.values[p] : null)}${me.bought && me.bought[p] ? ' ✓' : ''}</b>`).join('')}</div></div>`;
 }
 function buyerOffers() {
   const p = S.pub, me = S.me; if (!me.values) return `<div class="panel">No buyer card this round. Wait for the next round.</div>`;
   const offers = (me.offers || []).filter(o => o.status === 'open');
   const rows = M2.SHOP_IDS.map(sh => {
     const shop = p.shops[sh];
-    return `<tr><td><b>${sh}</b>${shop.busy ? ' <small class="muted">busy</small>' : ''}</td>${M2.PIDS.map(pr => {
+    return `<tr><td><b>${sh}</b>${shop.busy ? ' <small class="muted">busy</small>' : ''}</td>${PX().map(pr => {
       const ask = shop.asks[pr], stock = shop.stock[pr], done = me.bought && me.bought[pr];
       const canBuy = ask != null && stock > 0 && !done && ask <= me.values[pr];
       const comp = S.compose && S.compose.shop === sh && S.compose.product === pr;
       return `<td class="cell">${stock > 0 ? `<div class="askline"><span class="askp">${ask != null ? k(ask) : '–'}</span> <small class="muted">${stock} left</small></div>
         ${done ? '<small class="muted">bought ✓</small>' : comp ? `${stepper('o', S.compose.price)}<div class="row" style="gap:6px"><button class="btn small primary" data-a="send">Offer ${k(S.compose.price)}</button><button class="btn small ghost" data-a="close">✕</button></div>` :
-          `<div class="row" style="gap:6px"><button class="btn small buyer" data-a="buy" data-shop="${sh}" data-p="${pr}" ${canBuy ? '' : 'disabled'}>Buy</button><button class="btn small" data-a="compose" data-shop="${sh}" data-p="${pr}" ${shop.busy ? 'disabled' : ''}>Offer</button></div>`}` : '<small class="muted">sold out</small>'}</td>`;
+          `<div class="row" style="gap:6px"><button class="btn small buyer" data-a="buy" data-shop="${sh}" data-p="${pr}" ${canBuy ? '' : 'disabled'}>Buy</button>${p.round.mode === 'menu' ? '' : `<button class="btn small" data-a="compose" data-shop="${sh}" data-p="${pr}" ${shop.busy ? 'disabled' : ''}>Offer</button>`}</div>`}` : '<small class="muted">sold out</small>'}</td>`;
     }).join('')}</tr>`;
   }).join('');
   return `<div class="tradegrid"><div class="stack">${cardHtml()}${offersBuyerHtml(offers)}${earnBox()}</div>
-    <div class="panel stack"><h3 style="margin:0">Shops</h3><p class="muted" style="margin:0">Buy at the shop's price, or make your own offer. Offers last ${OFFER_SECS} seconds.</p>
-      <div class="table-wrap"><table class="shoptable"><tr><th>Shop</th>${M2.PIDS.map(pr => `<th>${PROD[pr].name}</th>`).join('')}</tr>${rows}</table></div>${tapeHtml()}</div></div>`;
+    <div class="panel stack"><h3 style="margin:0">Shops</h3><p class="muted" style="margin:0">${p.round.mode === 'menu' ? "Buy at a shop's menu price. If a shop has none left at its price, try another." : `Buy at the shop's price, or make your own offer. Offers last ${OFFER_SECS} seconds.`}</p>
+      <div class="table-wrap"><table class="shoptable"><tr><th>Shop</th>${PX().map(pr => `<th>${PROD[pr].name}</th>`).join('')}</tr>${rows}</table></div>${tapeHtml()}</div></div>`;
 }
 function offersBuyerHtml(offers) {
   if (!offers.length) return '';
@@ -1506,7 +1560,7 @@ function offersBuyerHtml(offers) {
 }
 function buyerFast() {
   const p = S.pub, me = S.me; if (!me.values) return `<div class="panel">No buyer card this round.</div>`;
-  return `<div class="tradegrid"><div class="stack">${cardHtml()}${earnBox()}</div><div class="stack">${M2.PIDS.map(pr => {
+  return `<div class="tradegrid"><div class="stack">${cardHtml()}${earnBox()}</div><div class="stack">${PX().map(pr => {
     const b = p.book && p.book[pr] || {}, done = me.bought && me.bought[pr], key = 'b' + pr;
     if (S.price[key] == null) S.price[key] = Math.max(1, me.values[pr] - 4);
     return `<div class="panel stack fastp ${pr}"><h3 style="margin:0">${PROD[pr].name} <small class="muted">worth ${k(me.values[pr])} to you</small></h3>
@@ -1518,32 +1572,33 @@ function buyerFast() {
 function shopCard() {
   const me = S.me;
   return `<div class="profile seller"><div class="pname">Shop ${me.shop}${me.team && me.team.length > 1 ? ` <small>(${me.team.map(esc).join(', ')})</small>` : ''}</div><div class="psub">Lowest price you'll accept for each unit this round. Profit = price − lowest price.</div>
-    ${M2.PIDS.map(pr => `<div class="unitline"><span>${PROD[pr].name}</span>${me.costs[pr].map((c, i) => `<span class="u ${i < me.sold[pr] ? 'done' : i === me.sold[pr] ? 'cur' : ''}">${i + 1}: ${k(c)}</span>`).join('')}</div>`).join('')}</div>`;
+    ${PX().map(pr => `<div class="unitline"><span>${PROD[pr].name}</span>${me.costs[pr].map((c, i) => `<span class="u ${i < me.sold[pr] ? 'done' : i === me.sold[pr] ? 'cur' : ''}">${i + 1}: ${k(c)}</span>`).join('')}</div>`).join('')}</div>`;
 }
 function shopOffers() {
   const me = S.me, offers = (me.offers || []).filter(o => o.status === 'open');
-  const priceBoxes = M2.PIDS.map(pr => {
+  const priceBoxes = PX().map(pr => {
     const next = me.sold[pr] < 4 ? me.costs[pr][me.sold[pr]] : null, key = 'a' + pr;
     if (S.price[key] == null || (next != null && S.price[key] < next)) S.price[key] = me.asks[pr] ?? (next != null ? next + 4 : 10);
     return `<div class="panel stack fastp ${pr}"><h3 style="margin:0">${PROD[pr].name}: <span class="muted">${4 - me.sold[pr]} left</span></h3>
       ${next == null ? '<p class="muted" style="margin:0">Sold out this round.</p>' : `<div>Your price now: <b class="askp">${k(me.asks[pr])}</b> <small class="muted">(next unit: lowest ${k(next)})</small></div>
-      ${stepper(key, S.price[key])}<button class="btn primary" data-a="setask" data-p="${pr}">Post price ${k(S.price[key])}</button>`}</div>`;
+      ${S.pub.round.mode === 'menu' && me.asks[pr] != null ? '<p class="muted" style="margin:0">Your menu price is set for this round.</p>' : `${stepper(key, S.price[key])}<button class="btn primary" data-a="setask" data-p="${pr}">${S.pub.round.mode === 'menu' ? `Set menu price ${k(S.price[key])} (fixed for the round)` : `Post price ${k(S.price[key])}`}</button>`}`}</div>`;
   }).join('');
   const inbox = offers.length ? offers.map(o => o.by === 'buyer' ? `<div class="offer">Buyer card <b>${o.buyerNo}</b> offers <b>${k(o.price)}</b> for ${PROD[o.product].name.toLowerCase()} · <span data-left="${o.left}">${o.left}s</span>
       ${S.compose && S.compose.id === o.id ? `<div class="row" style="gap:6px;margin-top:6px">${stepper('c', S.compose.price)}<button class="btn small primary" data-a="sendcounter">Counter ${k(S.compose.price)}</button><button class="btn small ghost" data-a="close">✕</button></div>` :
       `<div class="row" style="gap:6px;margin-top:6px"><button class="btn small seller" data-a="accept" data-id="${o.id}">Accept</button><button class="btn small" data-a="counter" data-id="${o.id}">Counter</button><button class="btn small ghost" data-a="decline" data-id="${o.id}">Decline</button></div>`}</div>` :
       `<div class="offer counter">You countered card <b>${o.buyerNo}</b>: ${PROD[o.product].name.toLowerCase()} for <b>${k(o.price)}</b> · waiting <span data-left="${o.left}">${o.left}s</span></div>`).join('') : '<p class="muted" style="margin:0">No offers yet. Buyers can buy at your price, or send you an offer.</p>';
-  return `<div class="tradegrid"><div class="stack">${shopCard()}${earnBox()}</div><div class="stack"><div class="panel stack"><h3 style="margin:0">Offers from buyers</h3>${inbox}</div><div class="pricerow">${priceBoxes}</div>${tapeHtml()}</div></div>`;
+  const inboxPanel = S.pub.round.mode === 'menu' ? '' : `<div class="panel stack"><h3 style="margin:0">Offers from buyers</h3>${inbox}</div>`;
+  return `<div class="tradegrid"><div class="stack">${shopCard()}${earnBox()}</div><div class="stack">${inboxPanel}<div class="pricerow">${priceBoxes}</div>${tapeHtml()}</div></div>`;
 }
 function shopFast() {
   const p = S.pub, me = S.me;
-  return `<div class="tradegrid"><div class="stack">${shopCard()}${earnBox()}</div><div class="stack">${M2.PIDS.map(pr => {
+  return `<div class="tradegrid"><div class="stack">${shopCard()}${earnBox()}</div><div class="stack">${PX().map(pr => {
     const b = p.book && p.book[pr] || {}, next = me.sold[pr] < 4 ? me.costs[pr][me.sold[pr]] : null, key = 'f' + pr;
     if (S.price[key] == null || (next != null && S.price[key] < next)) S.price[key] = next != null ? next + 4 : 10;
     return `<div class="panel stack fastp ${pr}"><h3 style="margin:0">${PROD[pr].name}: <span class="muted">${4 - me.sold[pr]} left</span></h3>
       ${next == null ? '<p class="muted" style="margin:0">Sold out.</p>' : `<div class="quotes"><div class="quote bid"><div class="q-label">Highest offer</div><div class="q-val">${k(b.bid)}</div></div><div class="quote ask"><div class="q-label">Lowest ask</div><div class="q-val">${k(b.ask)}</div></div></div>
       <button class="btn block seller" data-a="fastsell" data-p="${pr}" ${b.bid != null && b.bid >= next ? '' : 'disabled'}>Sell now ${b.bid != null ? 'for ' + k(b.bid) : ''}</button>
-      ${stepper(key, S.price[key], 'next unit: lowest ' + k(next))}<div class="row"><button class="btn primary" data-a="ask" data-p="${pr}">Ask ${k(S.price[key])}</button>${me.myAsks && me.myAsks[pr] != null ? `<span>Your ask: <b>${k(me.myAsks[pr])}</b></span><button class="btn small ghost" data-a="cancel" data-p="${pr}">Cancel</button>` : ''}</div>`}</div>`;
+      ${stepper(key, S.price[key], 'next unit: lowest ' + k(next))}<div class="row"><button class="btn primary" data-a="ask" data-p="${pr}">Ask ${k(S.price[key])}</button>${me.myAsks && me.myAsks[pr] != null ? `<span>Your ask: <b>${k(me.myAsks[pr])}</b> <small class="muted">(stays up for your next unit if it is at or above that unit's lowest price)</small></span><button class="btn small ghost" data-a="cancel" data-p="${pr}">Cancel</button>` : ''}</div>`}</div>`;
   }).join('')}${tapeHtml()}</div></div>`;
 }
 function earnBox() { const me = S.me; return `<div class="panel row" style="justify-content:space-between"><span>This round: <b>${k(me.earnRound)}</b> · total <b>${k(me.earnTotal)}</b></span><span class="prizebox">🍬 <b>${me.prize || 0}</b></span></div>`; }
@@ -1566,7 +1621,7 @@ function onClick(e) {
   if (a === 'decline') return sSend({ type: 'respond', id: b.dataset.id, action: 'decline' });
   if (a === 'counter') { const o = me.offers.find(x => x.id === b.dataset.id), next = me.costs[o.product][me.sold[o.product]]; S.compose = { id: o.id, price: lockFor(o.product) ?? Math.max(next, o.price + 2) }; return render(); }
   if (a === 'sendcounter') { sSend({ type: 'respond', id: S.compose.id, action: 'counter', price: S.compose.price }); S.compose = null; return render(); }
-  if (a === 'setask') { const pr = b.dataset.p; return sSend({ type: 'setask', product: pr, price: lockFor(pr) ?? S.price['a' + pr] }); }
+  if (a === 'setask') { const pr = b.dataset.p; if (p.round && p.round.mode === 'menu' && !confirm(`Set your ${PROD[pr].name.toLowerCase()} price to ${k(S.price['a' + pr])} for the whole round? You cannot change it.`)) return; return sSend({ type: 'setask', product: pr, price: lockFor(pr) ?? S.price['a' + pr] }); }
   if (a === 'fastbuy') return sSend({ type: 'bid', product: b.dataset.p, price: p.book[b.dataset.p].ask });
   if (a === 'fastsell') return sSend({ type: 'ask', product: b.dataset.p, price: p.book[b.dataset.p].bid });
   if (a === 'bid') { const pr = b.dataset.p; return sSend({ type: 'bid', product: pr, price: lockFor(pr) ?? S.price['b' + pr] }); }
