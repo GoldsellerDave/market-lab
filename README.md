@@ -54,6 +54,37 @@ Students use nicknames only. The lesson runs in the teacher's browser, and resul
 
 ---
 
+# The game layer (all levels)
+
+Every level shares one game layer: the same look, sounds and rewards. It is built into each page (no extra files). Sounds are generated in the browser, and pictures are drawn in code, so pages stay light on cheap tablets.
+
+**On students' screens**
+- **Avatar and table.** Students pick an avatar on the join page or in the lobby, and a table (🔴 🔵 🟢 🟡) for team scores. Avatars appear on the board, leaderboard, podium and badge feed.
+- **Market stalls and wallets.** Shops and businesses see a stall with an awning and their units on a shelf. Sold units get a SOLD stamp. Buyers see their card as a shopping list with a basket that fills as they buy. In Level 2 offers mode, buyers walk a "market street" of shop stalls, and shops can name their shop.
+- **Tap-to-price.** A big price tag with −/+ buttons and a slider replaces typing.
+- **Live price ticker.** Recent trade prices, with ▲ or ▼ against the trade before.
+- **Prize jar.** In Level 2 the jar fills with the sweets the student will actually take home. In Levels 0 and 1 it is a coin jar for points.
+- **Titles.** Street Vendor → Market Trader → Merchant → Tycoon (with Vietnamese names). Level 2 titles come from the market score; Levels 0 and 1 from points.
+- **Breaking news.** Every shock (cacao harvest, Halloween, …) opens with a full-screen headline, a theme and a sound, in English and Vietnamese. Round starts, activity starts and the envelope reveal get a short headline too.
+- **Feedback.** Coins fly to the jar after a trade, "+3k" floats up, a soft "bonk" and shake explain a blocked move, and the timer turns red and ticks in the last 10 seconds.
+
+**New game mechanics that teach**
+- **Level 2 badges** reward good economic play, never the number of trades: Deal maker, Bargain hunter (bought 5k or more below value), Sold out (all 4 units of a product, at a profit), Price finder (within 1k of equilibrium), Nothing wasted (menu round: no surplus and nobody turned away), Forecaster, Every round, Hot streak, Tycoon.
+- **Level 2 predictions.** Before a shock round, the console offers "Ask: up, down or the same?". Students predict the price move on their device; starting the round locks the answers. The answer is judged from the cards (the equilibrium before and after the shock), not from the class's trades. Each correct prediction adds a quarter of a round to the market score, so it adds to the sweets without changing the total.
+- **Level 1 envelope guess** (optional step after Round 3). Students guess the sealed equilibrium price; within one price step earns +5 points and the Envelope cracker badge.
+- **Fair leaderboard.** Level 2 ranks by market score: 100 pts = what an average trader earns at the equilibrium price in one round, so buyers and shops can win equally. Only the top 5 and a "most improved" are shown; the bottom is never shown. Levels 0 and 1 rank by points.
+- **Teams.** Buyers vs shops (Level 2) or buyers vs businesses (Level 1), and table teams, all as an average per member so small teams are not at a disadvantage.
+
+**On the projector**
+- **Trading floor** (Level 2 board view, the default): each trade is a dot in the order it happened, with the average of the last 5 trades. After you reveal the equilibrium, the demand and supply curves from the cards appear behind the dots.
+- **Leaderboard and teams** view (Level 2), and a top-5 leaderboard in the side panel on every level.
+- **▶ Replay** the last round (Level 2) or the lesson's trade prices (Level 1).
+- **🏆 Podium**: 3rd, 2nd and 1st are revealed with a drumroll; Level 2 also shows the most improved trader.
+
+**Sound and motion controls**
+- The teacher's **Sound on/off** controls the projector. **Student sounds on/off** mutes every student device at once. Students' own sound starts off and is quieter than the projector, so the room is not 30 tablets beeping.
+- **✨ Effects on/off** (every device) turns off animations and particles. It is also off automatically when a device asks for reduced motion.
+
 # Level 1: the trading floor
 
 File: `level1.html`. Every student gets one card: a **buyer card** (what one item is worth to them, with a persona such as Busy nurse) or a **business card** (the ingredient cost of one item, such as Mall counter). Robot traders fill the market to 30. Prices move in 5.000đ steps for trà sữa (2.500đ for bánh mì and chocolate). The cards are designed so the market clears at **30.000đ, 8 items** (15.000đ for the other goods) for any class size.

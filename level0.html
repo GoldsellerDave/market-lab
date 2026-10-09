@@ -350,12 +350,566 @@ table.helper td, table.helper th { text-align: left; }
 .dot.bad { background: var(--seller); }
 .profile .bignum { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; }
 
+
+/* ---- Level 0 game layer ---- */
+.jar-panel { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lead-side .fx-lb li { font-size: 1.05rem; }
+.purse { font-size: 2.6rem; line-height: 1; display: block; text-align: center; }
 </style>
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!--FX-CSS--><style id="fx-css">
+/* ===== EcoLogic Market Lab: shared game layer ===== */
+.fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 96; overflow: hidden; }
+.fx-float { position: absolute; transform: translate(-50%, -50%); font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; white-space: nowrap; animation: fxfloat 1.2s cubic-bezier(.2,.8,.2,1) forwards; text-shadow: 0 2px 0 var(--panel), 0 0 8px var(--panel); }
+.fx-float.good { color: var(--mint); } .fx-float.bad { color: var(--seller); } .fx-float.gold { color: var(--foil); }
+@keyframes fxfloat { 0% { opacity: 0; transform: translate(-50%, -20%) scale(.7); } 15% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); } 100% { opacity: 0; transform: translate(-50%, -260%) scale(1); } }
+.fx-coin { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff3b0, #e9b32a 45%, #a87412); box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.fx-coin::after { content: 'đ'; position: absolute; inset: 0; display: grid; place-items: center; font: 800 12px/1 sans-serif; color: #7a5408; }
+.fx-coin.sweet { background: radial-gradient(circle at 35% 35%, #fff, #ff6fa8 45%, #c2185b); }
+.fx-coin.sweet::after { content: ''; }
+.fx-shake { animation: fxshake .42s ease; }
+@keyframes fxshake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+.fx-pulse { animation: fxpulse .6s ease; }
+@keyframes fxpulse { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+/* breaking news */
+.fx-news { position: fixed; inset: 0; z-index: 97; display: flex; flex-direction: column; background: radial-gradient(ellipse at center, rgba(58,34,23,.92), rgba(20,12,8,.97)); color: #fbf3ea; overflow: hidden; cursor: pointer; animation: fxin .35s ease; }
+.fx-news.hidden { display: none; }
+.fx-news.storm { background: radial-gradient(ellipse at center, rgba(30,48,70,.94), rgba(8,14,24,.98)); }
+.fx-news.spooky { background: radial-gradient(ellipse at center, rgba(70,30,80,.94), rgba(18,6,22,.98)); }
+.fx-news.harvest { background: radial-gradient(ellipse at center, rgba(110,80,20,.94), rgba(40,26,6,.98)); }
+.fx-news.money, .fx-news.health { background: radial-gradient(ellipse at center, rgba(24,90,60,.94), rgba(6,30,18,.98)); }
+.fx-news.factory { background: radial-gradient(ellipse at center, rgba(70,70,76,.94), rgba(20,20,24,.98)); }
+@keyframes fxin { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+.fx-news-strip { background: #c62828; color: #fff; font-family: var(--font-display); font-weight: 800; letter-spacing: .12em; padding: 10px 0; overflow: hidden; white-space: nowrap; position: relative; z-index: 2; font-size: clamp(1rem, 2.4vw, 1.6rem); }
+.fx-news-strip span { display: inline-block; padding-left: 100%; animation: fxmarquee 6s linear infinite; }
+.fx-news.calm .fx-news-strip span { animation: none; padding-left: 16px; }
+@keyframes fxmarquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+.fx-news-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; padding: 16px; position: relative; z-index: 2; }
+.fx-news-icon { font-size: clamp(4rem, 14vw, 9rem); line-height: 1; animation: fxbounce 1s cubic-bezier(.3,1.6,.5,1); }
+.fx-news.calm .fx-news-icon { animation: none; }
+@keyframes fxbounce { 0% { transform: scale(.2) rotate(-12deg); } 60% { transform: scale(1.15) rotate(4deg); } 100% { transform: scale(1); } }
+.fx-news-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 7vw, 5rem); line-height: 1.05; }
+.fx-news-vi { font-size: clamp(1.2rem, 3.4vw, 2.4rem); color: var(--foil-2); font-weight: 700; }
+.fx-news-detail { font-size: clamp(1.1rem, 3vw, 2.1rem); max-width: 36ch; }
+.fx-news-tap { font-size: .9rem; opacity: .6; margin-top: 10px; }
+.fx-bits { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.fx-bit { position: absolute; top: -10%; font-size: clamp(1.6rem, 4vw, 3rem); animation: fxfall linear infinite; opacity: .9; }
+.fx-news.spooky .fx-bit, .fx-news.money .fx-bit, .fx-news.health .fx-bit { animation-name: fxdrift; }
+.fx-news.factory .fx-bit { animation-name: fxrise; top: auto; bottom: -10%; }
+@keyframes fxfall { from { transform: translateY(0) rotate(0); } to { transform: translateY(120vh) rotate(40deg); } }
+@keyframes fxdrift { 0% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(30px, 60vh) rotate(-15deg); } 100% { transform: translate(-20px, 120vh) rotate(10deg); } }
+@keyframes fxrise { from { transform: translateY(0); opacity: .9; } to { transform: translateY(-120vh); opacity: 0; } }
+
+/* badge and title pop-ups */
+.fx-pop { position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 98; display: flex; align-items: center; gap: 12px; background: var(--panel); color: var(--ink); border: 3px solid var(--foil); border-radius: 18px; padding: 10px 18px 10px 12px; box-shadow: 0 10px 30px rgba(0,0,0,.25); animation: fxpopin .5s cubic-bezier(.2,1.4,.4,1); max-width: 92vw; }
+.fx-pop.out { animation: fxpopout .3s ease forwards; }
+.fx-pop.calm { animation: none; }
+@keyframes fxpopin { from { transform: translate(-50%, -140%) scale(.8); } to { transform: translate(-50%, 0) scale(1); } }
+@keyframes fxpopout { to { transform: translate(-50%, -140%); opacity: 0; } }
+.fx-pop-icon { font-size: 2.6rem; line-height: 1; animation: fxspin 1s ease; }
+@keyframes fxspin { from { transform: rotate(-200deg) scale(.3); } to { transform: none; } }
+.fx-pop-head { font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: var(--warn); font-weight: 800; }
+.fx-pop-title { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; line-height: 1.15; }
+.fx-pop-sub { font-size: .9rem; color: var(--muted); }
+
+/* prize jar */
+.fx-jar { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; }
+.fx-jar svg { width: 92px; height: auto; display: block; overflow: visible; }
+.fx-jar.big svg { width: 150px; } .fx-jar.small svg { width: 54px; }
+.fx-jar-lab { font-family: var(--font-display); font-weight: 800; font-size: 1rem; }
+.fx-jar.small .fx-jar-lab { font-size: .85rem; }
+.fx-drop { animation: fxdrop .7s cubic-bezier(.3,1.5,.5,1) both; transform-box: fill-box; transform-origin: center; }
+@keyframes fxdrop { from { transform: translateY(-110px) rotate(-90deg); opacity: 0; } 60% { opacity: 1; } to { transform: none; opacity: 1; } }
+
+/* tap-to-price tag */
+.fx-tag { display: flex; flex-direction: column; gap: 6px; }
+.fx-tag-label { font-weight: 700; }
+.fx-tag-row { display: grid; grid-template-columns: 64px 1fr 64px; gap: 8px; align-items: center; }
+.fx-step { min-height: 60px; border-radius: 14px; font-size: 1.25rem; font-weight: 800; border: 2px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; touch-action: manipulation; }
+.fx-step:active { transform: scale(.94); background: var(--paper); }
+.fx-tag-card { position: relative; background: #fff8e1; color: #23170f; border: 3px solid var(--foil); border-radius: 12px 26px 26px 12px; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px 6px 26px; box-shadow: 0 3px 0 rgba(0,0,0,.08); }
+.fx-tag-card .fx-hole { position: absolute; left: 9px; top: 50%; width: 11px; height: 11px; margin-top: -5.5px; border-radius: 50%; background: var(--paper); border: 2px solid var(--foil); }
+.fx-tag-val { font-family: var(--font-display); font-size: 2.3rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.fx-tag-card small { font-size: .8rem; color: #6d6158; }
+.fx-tag.buyer .fx-tag-card { border-color: var(--buyer); } .fx-tag.seller .fx-tag-card { border-color: var(--seller); }
+.fx-range { width: 100%; height: 36px; accent-color: var(--foil); margin: 0; touch-action: pan-y; }
+.fx-range-ends { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); margin-top: -6px; }
+
+/* stall */
+.fx-stall { border-radius: var(--r-md); overflow: hidden; background: var(--panel); border: 2px solid var(--stall); box-shadow: var(--shadow); }
+.fx-awning { height: 34px; background: repeating-linear-gradient(90deg, var(--stall) 0 26px, #fff 26px 52px); position: relative; }
+.fx-awning::after { content: ''; position: absolute; left: 0; right: 0; bottom: -10px; height: 12px; background: radial-gradient(circle at 13px 0, var(--stall) 12px, transparent 13px) 0 0 / 52px 12px repeat-x, radial-gradient(circle at 39px 0, #fff 12px, transparent 13px) 0 0 / 52px 12px repeat-x; }
+.fx-stall-head { display: flex; gap: 10px; align-items: center; padding: 16px 14px 6px; }
+.fx-avs { font-size: 2rem; line-height: 1; display: inline-flex; gap: 2px; }
+.fx-stall-name { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; color: var(--stall); line-height: 1.1; }
+:root[data-theme="dark"] .fx-stall-name { filter: brightness(1.6); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fx-stall-name { filter: brightness(1.6); } }
+.fx-stall-sub { font-size: .9rem; color: var(--muted); }
+.fx-shelf { padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
+.fx-shelf-label { font-weight: 800; font-size: .9rem; margin-bottom: 2px; }
+.fx-units { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; border-bottom: 6px solid #8a5a22; padding-bottom: 4px; }
+.fx-units:has(> :only-child) { grid-template-columns: minmax(0, 160px); }
+.fx-unit { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px; border-radius: 8px; transition: opacity .3s; }
+.fx-unit-art { width: 100%; max-width: 70px; } .fx-unit-art svg { width: 100%; height: auto; display: block; }
+.fx-unit-tag { font-size: .82rem; font-weight: 700; color: var(--muted); text-align: center; line-height: 1.15; }
+.fx-unit.cur { background: var(--warn-soft); outline: 2px dashed var(--foil); }
+.fx-unit.cur .fx-unit-tag { color: var(--ink); }
+.fx-unit.sold .fx-unit-art { opacity: .18; filter: grayscale(1); }
+.fx-sold { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) rotate(-14deg); border: 2px solid var(--mint); color: var(--mint); font-weight: 800; font-size: .8rem; padding: 0 5px; border-radius: 4px; background: var(--panel); letter-spacing: .06em; }
+.fx-unit.justsold .fx-unit-art { animation: fxslide .8s ease-in both; animation-delay: var(--fxd, 0ms); }
+.fx-unit.justsold .fx-sold { animation: fxstamp .5s cubic-bezier(.2,1.6,.4,1) both; animation-delay: calc(var(--fxd, 0ms) + 500ms); }
+@keyframes fxslide { 0% { opacity: 1; filter: none; transform: none; } 60% { opacity: .8; transform: translate(26px, -26px) rotate(14deg); } 100% { opacity: .18; filter: grayscale(1); transform: none; } }
+@keyframes fxstamp { from { transform: translate(-50%, -50%) rotate(-14deg) scale(2.4); opacity: 0; } to { transform: translate(-50%, -50%) rotate(-14deg) scale(1); opacity: 1; } }
+.fx-stall-foot { border-top: 1px solid var(--line); padding: 8px 14px; font-size: .92rem; }
+
+/* buyer wallet */
+.fx-wallet { border-radius: var(--r-md); overflow: hidden; background: var(--panel); border: 2px solid var(--buyer); box-shadow: var(--shadow); }
+.fx-wallet-head { display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: var(--buyer); color: #fff; }
+.fx-wallet-name { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; line-height: 1.1; }
+.fx-wallet-sub { font-size: .9rem; opacity: .92; }
+.fx-wallet-head .term { color: #fff; }
+.fx-wallet-items { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.fx-witem { display: grid; grid-template-columns: 58px 1fr auto; gap: 10px; align-items: center; }
+.fx-witem-art svg { width: 100%; height: auto; display: block; }
+.fx-witem-txt small { color: var(--muted); }
+.fx-worth { position: relative; background: #fff8e1; color: #23170f; border: 3px solid var(--buyer); border-radius: 10px 22px 22px 10px; padding: 4px 14px 4px 12px; text-align: center; min-width: 96px; }
+.fx-worth small { display: block; font-size: .7rem; color: #6d6158; line-height: 1; }
+.fx-worth b { font-family: var(--font-display); font-size: 1.7rem; line-height: 1.05; }
+.fx-witem.bought .fx-worth { opacity: .45; }
+.fx-basket { display: flex; align-items: center; gap: 6px; min-height: 52px; padding: 6px 12px 10px; border-top: 1px dashed var(--line); }
+.fx-basket-ico { font-size: 1.8rem; }
+.fx-binit { width: 54px; display: inline-block; } .fx-binit svg { width: 100%; height: auto; display: block; }
+.fx-binit.drop { animation: fxbasket .7s cubic-bezier(.3,1.5,.5,1) both; }
+@keyframes fxbasket { from { transform: translateY(-80px) rotate(-30deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.fx-wallet-foot { border-top: 1px solid var(--line); padding: 8px 14px; font-size: .92rem; }
+
+/* ticker */
+.fx-ticker { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 0; min-height: 46px; align-items: center; }
+.fx-ticker::-webkit-scrollbar { display: none; }
+.fx-tk { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: var(--panel); border: 2px solid var(--line); white-space: nowrap; font-size: 1rem; }
+.fx-tk b { font-family: var(--font-display); font-size: 1.1rem; }
+.fx-tk i { font-style: normal; font-size: .8rem; color: var(--muted); }
+.fx-tk.up { border-color: var(--mint); } .fx-tk.up i { color: var(--mint); }
+.fx-tk.down { border-color: var(--seller); } .fx-tk.down i { color: var(--seller); }
+.fx-tk small { color: var(--muted); }
+.fx-tk-art { width: 22px; display: inline-block; } .fx-tk-art svg { width: 100%; height: auto; display: block; }
+.fx-tk.new { animation: fxtk .5s cubic-bezier(.2,1.4,.4,1); }
+@keyframes fxtk { from { transform: translateX(-30px) scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
+.timer.late { color: #e0303a; animation: fxlate 1s steps(2) infinite; }
+.topbar .timer.late { color: #ff8a8a; }
+@keyframes fxlate { 50% { opacity: .55; } }
+
+/* pickers */
+.fx-pick-lab { font-weight: 700; margin-bottom: 6px; }
+.fx-avgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 6px; }
+.fx-av { font-size: 1.7rem; min-height: 50px; border-radius: 12px; border: 2px solid var(--line); background: var(--panel); cursor: pointer; line-height: 1; }
+.fx-av.sel { border-color: var(--foil); background: var(--warn-soft); transform: scale(1.06); }
+.fx-teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.fx-team { min-height: 52px; border-radius: 12px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.fx-team small { font-weight: 400; color: var(--muted); font-size: .8rem; }
+.fx-team.sel { border-color: var(--team); box-shadow: inset 0 0 0 2px var(--team); }
+.fx-title { font-weight: 700; }
+
+/* leaderboard, teams, podium */
+.fx-lb { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.fx-lb li { display: grid; grid-template-columns: 34px 34px 1fr auto; gap: 6px; align-items: center; padding: 6px 10px; border-radius: 10px; background: var(--paper); border: 1px solid var(--line); }
+.fx-lb-rank { font-size: 1.3rem; text-align: center; font-weight: 800; color: var(--muted); }
+.fx-lb-av { font-size: 1.5rem; }
+.fx-lb-nick { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fx-lb-nick small { font-weight: 400; color: var(--muted); }
+.fx-lb b { font-family: var(--font-display); }
+.fx-improved { margin-top: 8px; padding: 6px 10px; border-radius: 10px; background: var(--mint-soft); }
+.fx-improved.big { font-size: 1.4rem; padding: 10px 16px; }
+.fx-teambars { display: flex; flex-direction: column; gap: 8px; }
+.fx-tb-top { display: flex; justify-content: space-between; gap: 8px; font-weight: 700; }
+.fx-tb-top small { color: var(--muted); font-weight: 400; }
+.fx-tb-bar { height: 14px; border-radius: 7px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; }
+.fx-tb-bar i { display: block; height: 100%; transition: width .6s ease; }
+.fx-podium-wrap { position: fixed; inset: 0; z-index: 94; background: radial-gradient(ellipse at top, var(--panel), var(--paper)); display: flex; padding: 20px; overflow: auto; }
+.fx-podium-inner { margin: auto; width: min(1100px, 100%); display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.fx-podium-inner h1 { font-size: clamp(1.8rem, min(5vw, 6vh), 3.8rem); margin: 0; }
+.fx-podium-inner .lead { margin: 0; }
+.fx-podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: end; width: min(900px, 100%); }
+.fx-pod { display: flex; flex-direction: column; align-items: stretch; }
+.fx-pod-who { opacity: 0; transform: translateY(30px) scale(.8); transition: all .6s cubic-bezier(.2,1.4,.4,1); padding-bottom: 8px; }
+.fx-pod.in .fx-pod-who { opacity: 1; transform: none; }
+.fx-pod-av { font-size: clamp(2.6rem, min(8vw, 9vh), 6rem); line-height: 1; }
+.fx-pod-nick { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.2rem, 2.6vw, 2rem); }
+.fx-pod-val { color: var(--muted); font-size: clamp(1rem, 1.8vw, 1.4rem); }
+.fx-pod-step { border-radius: 14px 14px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 8px; font-size: clamp(1.4rem, 3vh, 2.2rem); color: #23170f; line-height: 1.1; }
+.fx-pod-step b { font-family: var(--font-display); font-size: clamp(1.6rem, min(5vw, 6vh), 3.6rem); line-height: 1; }
+.fx-pod.p1 .fx-pod-step { height: min(230px, 24vh); background: linear-gradient(var(--foil-2), var(--foil)); }
+.fx-pod.p2 .fx-pod-step { height: min(170px, 18vh); background: linear-gradient(#e8e8ee, #b9bcc6); }
+.fx-pod.p3 .fx-pod-step { height: min(120px, 13vh); background: linear-gradient(#f0c9a0, #c58a52); }
+.fx-podium-teams { width: min(700px, 100%); text-align: left; }
+@media (max-width: 640px) { .fx-pod.p1 .fx-pod-step { height: 150px; } .fx-pod.p2 .fx-pod-step { height: 110px; } .fx-pod.p3 .fx-pod-step { height: 80px; } }
+
+/* prediction cards */
+.fx-predict { border: 3px solid var(--foil); border-radius: var(--r-md); background: var(--warn-soft); padding: 12px 14px; }
+.fx-predict h3 { margin: 0 0 6px; }
+.fx-arrows { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.fx-arrow { min-height: 72px; border-radius: 14px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-weight: 800; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1rem; }
+.fx-arrow span { font-size: 2rem; line-height: 1; }
+.fx-arrow.sel { border-color: var(--foil); box-shadow: inset 0 0 0 2px var(--foil); background: #fff8e1; color: #23170f; }
+
+/* replay and floor charts on the projector */
+.fx-replay { position: absolute; right: 10px; top: 8px; z-index: 2; }
+.fx-chart-wrap { position: relative; }
+
+/* grids never grow wider than the screen (a long ticker scrolls inside its panel instead) */
+.sgrid > *, .tradegrid > *, .grid2 > *, .deal-grid > * { min-width: 0; }
+.fx-ticker { max-width: 100%; }
+@media (max-width: 900px) { .topbar #hConn, .topbar #sConn { font-size: 0; gap: 0; padding: 6px 8px; } .topbar .fx-lab { display: none; } }
+</style><!--/FX-CSS-->
 </head>
 <body>
 <noscript>This activity needs JavaScript turned on.</noscript>
+<!--FX-JS--><script id="fx-js">
+/* =====================================================================
+   EcoLogic Market Lab: shared game layer (FX), used by every level.
+   Sounds are synthesised (no audio files); pictures are drawn in code.
+   Every effect is short (under about a second) and can be switched off
+   on each device with the ✨ button (or the system "reduce motion" setting).
+   ===================================================================== */
+const FX = (() => {
+  const LS = 'ecologic-market:';
+  const get = (k, d) => { try { const v = localStorage.getItem(LS + k); return v == null ? d : JSON.parse(v); } catch { return d; } };
+  const set = (k, v) => { try { localStorage.setItem(LS + k, JSON.stringify(v)); } catch { } };
+  const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const sysReduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const calm = () => sysReduced || !!get('calm', false);
+
+  /* ---------- avatars, teams, titles ---------- */
+  const AVATARS = ['🐼', '🦊', '🐯', '🐸', '🐵', '🐨', '🐙', '🦄', '🐲', '🐧', '🦁', '🐰', '🐻', '🐱', '🐶', '🦉', '🐢', '🐬', '🐝', '🦋', '🌟', '🚀', '🎸', '⚽'];
+  const TEAMS = {
+    r: { icon: '🔴', name: 'Red table', vi: 'Bàn Đỏ', color: '#d64545' },
+    b: { icon: '🔵', name: 'Blue table', vi: 'Bàn Xanh dương', color: '#2f74c0' },
+    g: { icon: '🟢', name: 'Green table', vi: 'Bàn Xanh lá', color: '#2e9a5c' },
+    y: { icon: '🟡', name: 'Yellow table', vi: 'Bàn Vàng', color: '#d9a400' }
+  };
+  const TITLES = [
+    { icon: '🧺', en: 'Street Vendor', vi: 'Người bán rong' },
+    { icon: '🛒', en: 'Market Trader', vi: 'Tiểu thương' },
+    { icon: '🏪', en: 'Merchant', vi: 'Nhà buôn' },
+    { icon: '👑', en: 'Tycoon', vi: 'Đại gia' }
+  ];
+  const SHOP_COLORS = { A: '#c0392b', B: '#16768a', C: '#7b4fbf', D: '#b86b00', E: '#2a7f4f' };
+  const myAvatar = () => { const a = get('avatar', null); return AVATARS.includes(a) ? a : null; };
+  const avOf = a => AVATARS.includes(a) ? a : '🙂';
+  const teamOf = t => TEAMS[t] || null;
+
+  /** Title from a score and 3 thresholds (for titles 2, 3, 4) */
+  function title(score, th) { let i = 0; th.forEach((t, k) => { if (score >= t) i = k + 1; }); return { i, ...TITLES[i] }; }
+  const titleMem = {};
+  /** Returns the title and celebrates a promotion (not the first time it is seen) */
+  function titleWatch(key, score, th, onUp) {
+    const t = title(score, th), prev = titleMem[key];
+    titleMem[key] = t.i;
+    if (prev != null && t.i > prev) { levelUp(t); onUp && onUp(t); }
+    return t;
+  }
+  const titleChip = t => `<span class="chip fx-title" title="${h(t.vi)}">${t.icon} ${h(t.en)}</span>`;
+
+  /* ---------- sound: extra synthesised sounds added to each level's Sound ---------- */
+  let gain = 1, installed = false, gate = null;
+  /** Play a sound if this device allows it (students choose; the teacher's switch can mute all students) */
+  const snd = (n, o) => { if (typeof Sound === 'undefined' || (gate && !gate())) return; Sound.play(n, o); };
+  const EXTRA = {
+    coin(c, t, o) { const up = Math.min(6, Math.max(0, (o && o.big) || 0)); [1319, 1760, 2349].slice(0, 2 + (up > 2 ? 1 : 0)).forEach((f, i) => this.note(f * (1 + up * .02), t + i * .055, .16, 'triangle', .06)); },
+    bonk(c, t) { this.note(170, t, .2, 'sine', .14, 80); this.note(95, t, .12, 'triangle', .06); },
+    tick(c, t) { this.note(1900, t, .03, 'square', .025); },
+    tock(c, t) { this.note(1250, t, .04, 'square', .03); },
+    pop(c, t) { this.note(520, t, .09, 'sine', .08, 980); },
+    jar(c, t) { this.note(2637, t, .08, 'sine', .05); this.note(3136, t + .05, .12, 'sine', .04); },
+    badge(c, t) { [1319, 1568, 2093, 2637].forEach((f, i) => this.note(f, t + i * .06, .3, 'sine', .07)); },
+    levelup(c, t) { [523, 659, 784, 1047, 1319].forEach((f, i) => this.note(f, t + i * .07, .25, 'square', .035)); this.note(262, t, .5, 'triangle', .06); },
+    news(c, t) { [[784, 0], [988, .1], [1175, .2], [1568, .32]].forEach(([f, d]) => { this.note(f, t + d, .22, 'triangle', .08); this.note(f / 2, t + d, .22, 'sine', .05); }); this.note(392, t + .5, .6, 'sawtooth', .03); },
+    whoosh(c, t) { noise.call(this, c, t, .45, 400, 3200, .05); },
+    storm(c, t) { noise.call(this, c, t, 1.4, 900, 160, .08); this.note(70, t + .2, 1, 'sine', .08, 45); },
+    spooky(c, t) { [659, 622, 587, 554].forEach((f, i) => this.note(f, t + i * .18, .3, 'triangle', .05)); this.note(110, t, .9, 'sawtooth', .02); },
+    harvest(c, t) { noise.call(this, c, t, .8, 1600, 600, .04); [392, 349, 330].forEach((f, i) => this.note(f, t + .1 + i * .15, .25, 'triangle', .05)); },
+    money(c, t) { [1568, 2093, 1568, 2093, 2637].forEach((f, i) => this.note(f, t + i * .06, .1, 'square', .03)); },
+    factory(c, t) { [0, .18, .36].forEach(d => { this.note(110, t + d, .12, 'square', .04); noise.call(this, c, t + d, .1, 2000, 800, .04); }); },
+    health(c, t) { [523, 659, 784].forEach((f, i) => this.note(f, t + i * .1, .35, 'sine', .07)); },
+    podium(c, t) { [[392, 0], [523, .15], [659, .3], [784, .45], [1047, .65]].forEach(([f, d]) => { this.note(f, t + d, .55, 'triangle', .09); this.note(f / 2, t + d, .55, 'sine', .05); }); }
+  };
+  function noise(c, t, dur, f1, f2, vol) {
+    const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = this.noiseBuf(); f.type = 'bandpass'; f.Q.value = 1.2;
+    f.frequency.setValueAtTime(f1, t); f.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol * gain, t + .05); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f).connect(g).connect(c.destination); src.start(t); src.stop(t + dur + .05);
+  }
+  /** Call once when the page starts. opts.gain scales every sound (students are quieter than the projector). */
+  function install(opts = {}) {
+    gain = opts.gain ?? 1; gate = opts.gate || null;
+    if (installed || typeof Sound === 'undefined') return; installed = true;
+    const note = Sound.note, play = Sound.play;
+    Sound.note = function (f, t0, dur, type, vol = .12, f2) { return note.call(this, f, t0, dur, type, vol * gain, f2); };
+    Sound.play = function (name, o) {
+      if (!EXTRA[name]) return play.call(this, name);
+      if (!this.on) return; const c = this.ensure(); if (!c) return;
+      try { EXTRA[name].call(this, c, c.currentTime + .01, o); } catch (e) { /* audio is optional */ }
+    };
+    document.addEventListener('pointerdown', () => { try { Sound.ensure(); } catch { } }, { once: true });
+  }
+  const setGain = g => { gain = g; };
+
+  /* ---------- change tracking: lets an animation carry on across re-renders ---------- */
+  const chg = {};
+  /** ms since `val` last changed for `key` (Infinity the first time a key is seen) */
+  function since(key, val) {
+    const now = performance.now(), c = chg[key];
+    if (!c) { chg[key] = { v: val, from: val, t: -1e9 }; return Infinity; }
+    if (c.v !== val) { c.from = c.v; c.v = val; c.t = now; }
+    return now - c.t;
+  }
+  const fromOf = key => chg[key] ? chg[key].from : null;
+  /** style for an element whose animation started `ms` ago (so a re-render continues it) */
+  const late = (ms, extra = 0) => `animation-delay:${Math.round(extra - ms)}ms`;
+
+  /* ---------- small helpers ---------- */
+  function pt(at) {
+    if (!at) return { x: innerWidth / 2, y: innerHeight * .4 };
+    if (typeof at === 'string') at = document.querySelector(at);
+    if (at && at.getBoundingClientRect) { const r = at.getBoundingClientRect(); if (!r.width && !r.height) return { x: innerWidth / 2, y: innerHeight * .4 }; return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+    return at;
+  }
+  function layer() { let el = document.getElementById('fxLayer'); if (!el) { el = document.createElement('div'); el.id = 'fxLayer'; el.className = 'fx-layer'; el.setAttribute('aria-hidden', 'true'); document.body.appendChild(el); } return el; }
+
+  /** "+3k" floating up from an element */
+  function float(text, at, cls = 'good') {
+    if (calm()) return;
+    const p = pt(at), el = document.createElement('div');
+    el.className = 'fx-float ' + cls; el.textContent = text; el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
+    layer().appendChild(el); setTimeout(() => el.remove(), 1300);
+  }
+  /** Coins flying from one element to another */
+  function coins(from, to, n = 6, kind = 'coin') {
+    if (calm()) return;
+    const a = pt(from), b = pt(to), L = layer();
+    for (let i = 0; i < n; i++) {
+      const el = document.createElement('div'); el.className = 'fx-coin ' + kind;
+      el.style.left = a.x + 'px'; el.style.top = a.y + 'px'; L.appendChild(el);
+      const dx = b.x - a.x + (Math.random() - .5) * 20, dy = b.y - a.y + (Math.random() - .5) * 10, arc = -60 - Math.random() * 60;
+      const anim = el.animate([
+        { transform: 'translate(-50%,-50%) scale(.5)', opacity: 0 },
+        { transform: `translate(calc(-50% + ${dx * .45}px), calc(-50% + ${dy * .45 + arc}px)) scale(1.15)`, opacity: 1, offset: .45 },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.6)`, opacity: .3 }
+      ], { duration: 620 + i * 55, delay: i * 45, easing: 'cubic-bezier(.3,.7,.4,1)', fill: 'forwards' });
+      anim.onfinish = () => el.remove(); setTimeout(() => el.remove(), 1600);
+    }
+  }
+  /** Shake an element (a blocked move) */
+  function shake(el) { if (typeof el === 'string') el = document.querySelector(el); if (!el || calm()) return; el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake'); setTimeout(() => el.classList.remove('fx-shake'), 450); }
+  function pulse(el) { if (typeof el === 'string') el = document.querySelector(el); if (!el || calm()) return; el.classList.remove('fx-pulse'); void el.offsetWidth; el.classList.add('fx-pulse'); }
+
+  /* ---------- breaking news ---------- */
+  const THEMES = {
+    cacao: { sound: 'storm', bits: ['🌧️', '💧', '⛈️', '💧'], cls: 'storm' },
+    sugar: { sound: 'harvest', bits: ['🌾', '💨', '🌾', '☀️'], cls: 'harvest' },
+    halloween: { sound: 'spooky', bits: ['🎃', '🦇', '👻', '🍬'], cls: 'spooky' },
+    pocket: { sound: 'money', bits: ['💵', '💰', '💵'], cls: 'money' },
+    factory: { sound: 'factory', bits: ['🏭', '⚙️', '📦'], cls: 'factory' },
+    health: { sound: 'health', bits: ['🥗', '🍎', '🥦'], cls: 'health' },
+    round: { sound: null, bits: ['✨', '⭐', '✨'], cls: 'round' },
+    reveal: { sound: null, bits: ['🎉', '✨', '✉️', '⭐'], cls: 'money' }
+  };
+  let newsT = null;
+  /** Full-screen headline. o: {icon, title, detail, vi, theme, ms, kicker, sound} */
+  function news(o) {
+    const th = THEMES[o.theme] || THEMES.round, quiet = calm();
+    let el = document.getElementById('fxNews');
+    if (!el) { el = document.createElement('div'); el.id = 'fxNews'; document.body.appendChild(el); el.onclick = () => el.classList.add('hidden'); }
+    el.className = 'fx-news ' + th.cls + (quiet ? ' calm' : '');
+    const bits = quiet ? '' : Array.from({ length: 18 }, (_, i) => `<span class="fx-bit" style="left:${(i * 37 + 7) % 100}%;animation-delay:${(i % 6) * .18}s;animation-duration:${2.2 + (i % 4) * .5}s">${th.bits[i % th.bits.length]}</span>`).join('');
+    el.innerHTML = `<div class="fx-bits">${bits}</div><div class="fx-news-strip"><span>${h(o.kicker || 'BREAKING NEWS · TIN NÓNG')}</span></div>
+      <div class="fx-news-body"><div class="fx-news-icon">${o.icon || '📣'}</div><div class="fx-news-title">${h(o.title)}</div>${o.vi ? `<div class="fx-news-vi">${h(o.vi)}</div>` : ''}${o.detail ? `<div class="fx-news-detail">${h(o.detail)}</div>` : ''}<div class="fx-news-tap">Tap to close</div></div>`;
+    el.classList.remove('hidden');
+    if (o.sound !== false) { snd('news'); if (th.sound) setTimeout(() => snd(th.sound), 550); }
+    clearTimeout(newsT); newsT = setTimeout(() => el.classList.add('hidden'), o.ms || 4500);
+  }
+
+  /* ---------- badges and promotions ---------- */
+  const popQ = []; let popBusy = false;
+  function pop(icon, head, title, sub, sound) {
+    popQ.push({ icon, head, title, sub, sound }); if (!popBusy) nextPop();
+  }
+  function nextPop() {
+    const x = popQ.shift(); if (!x) { popBusy = false; return; }
+    popBusy = true;
+    const el = document.createElement('div'); el.className = 'fx-pop' + (calm() ? ' calm' : '');
+    el.innerHTML = `<div class="fx-pop-icon">${x.icon}</div><div><div class="fx-pop-head">${h(x.head)}</div><div class="fx-pop-title">${h(x.title)}</div>${x.sub ? `<div class="fx-pop-sub">${h(x.sub)}</div>` : ''}</div>`;
+    document.body.appendChild(el);
+    if (x.sound) snd(x.sound);
+    if (!calm() && typeof confetti === 'function') confetti(40);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); nextPop(); }, 300); }, 2600);
+  }
+  /** New badge: icon, name, what it is for. sound: name of the sound, or false */
+  const badge = (icon, name, desc, sound = 'badge') => pop(icon, 'New badge', name, desc, sound);
+  function levelUp(t, sound = 'levelup') { pop(t.icon, 'New title', t.en, t.vi, sound); }
+
+  /* ---------- prize jar (sweets) or coin jar (points) ---------- */
+  const SWEET_COLS = ['#e74c3c', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#e67e22', '#ff6fa8'];
+  /** SVG jar with n sweets. opt: {key, kind:'sweet'|'coin', cap, label} */
+  function jar(n, opt = {}) {
+    n = Math.max(0, Math.round(n || 0));
+    const key = 'jar:' + (opt.key || 'jar'), cap = opt.cap || 36, shown = Math.min(n, cap);
+    const el = since(key, n), prev = fromOf(key);
+    const fresh = el < 1600 && prev != null && n > prev && !calm() ? Math.min(n - prev, 12, shown) : 0;
+    const coin = opt.kind === 'coin', per = 6, r = 7.2;
+    let s = '';
+    for (let i = 0; i < shown; i++) {
+      const row = Math.floor(i / per), col = i % per, off = row % 2 ? 6 : 0;
+      const inRow = Math.min(per, shown - row * per), x = 65 + (col - (inRow - 1) / 2) * 14 + (row % 2 ? 3 : -3), y = 124 - row * 12.5;
+      const isNew = i >= shown - fresh, st = isNew ? late(el, (i - (shown - fresh)) * 70) : '';
+      s += coin ? `<g class="${isNew ? 'fx-drop' : ''}" style="${st}"><circle cx="${x}" cy="${y}" r="${r}" fill="#e9b32a" stroke="#a87412" stroke-width="1.6"/><text x="${x}" y="${y + 3}" font-size="8" font-weight="800" text-anchor="middle" fill="#7a5408">đ</text></g>`
+        : `<g class="${isNew ? 'fx-drop' : ''}" style="${st}"><path d="M${x - r - 4} ${y - 3} l4 3 -4 3z M${x + r + 4} ${y - 3} l-4 3 4 3z" fill="${SWEET_COLS[(i * 3) % 7]}" opacity=".8"/><circle cx="${x}" cy="${y}" r="${r}" fill="${SWEET_COLS[(i * 3) % 7]}"/><path d="M${x - 4} ${y - 2} q4 -4 8 0" stroke="#fff" stroke-width="1.6" fill="none" opacity=".7"/></g>`;
+    }
+    const lab = opt.label != null ? opt.label : (coin ? `${n} point${n === 1 ? '' : 's'}` : `${n} sweet${n === 1 ? '' : 's'}`);
+    return `<div class="fx-jar ${opt.size || ''}" ${fresh ? 'data-fresh="1"' : ''}><svg viewBox="0 0 130 150" role="img" aria-label="${h(lab)}">
+      <rect x="34" y="6" width="62" height="14" rx="5" fill="${coin ? '#5b3826' : '#d8a21f'}"/>
+      <path d="M30 22 h70 q8 0 8 10 v6 q10 6 10 20 v68 q0 16 -16 16 h-64 q-16 0 -16 -16 v-68 q0 -14 10 -20 v-6 q0 -10 8 -10z" fill="rgba(200,225,240,.25)" stroke="var(--muted)" stroke-width="2.5"/>
+      <g>${s}</g>${n > cap ? `<text x="65" y="40" font-size="14" font-weight="800" text-anchor="middle" fill="var(--ink)">+${n - cap}</text>` : ''}
+      <path d="M22 60 q-3 30 0 60" stroke="#fff" stroke-width="4" opacity=".45" fill="none" stroke-linecap="round"/></svg><div class="fx-jar-lab">${h(lab)}</div></div>`;
+  }
+  const jarGrew = html => html.includes('data-fresh="1"');
+
+  /* ---------- tap-to-price tag ---------- */
+  /** o: {key, val, min, max, fmt, minus, plus (attribute strings for the − and + buttons), label, sub, role} */
+  function priceTag(o) {
+    const fmt = o.fmt || (v => v), min = Math.min(o.min, o.val), max = Math.max(o.max, o.val);
+    return `<div class="fx-tag ${o.role || ''}" data-fx-tag="${h(o.key)}">
+      ${o.label ? `<div class="fx-tag-label">${o.label}</div>` : ''}
+      <div class="fx-tag-row"><button type="button" class="fx-step" ${o.minus} aria-label="Lower price">−${o.stepLabel || ''}</button>
+        <div class="fx-tag-card"><span class="fx-hole"></span><b class="fx-tag-val" data-fx-val="${h(o.key)}">${fmt(o.val)}</b>${o.sub ? `<small>${o.sub}</small>` : ''}</div>
+        <button type="button" class="fx-step" ${o.plus} aria-label="Raise price">+${o.stepLabel || ''}</button></div>
+      ${max > min ? `<input type="range" class="fx-range" min="${min}" max="${max}" step="1" value="${o.val}" data-fx-range="${h(o.key)}" aria-label="Price">
+      <div class="fx-range-ends"><span>${fmt(min)}</span><span>${fmt(max)}</span></div>` : ''}</div>`;
+  }
+  let rangeFn = null, holding = false, deferred = new Set();
+  const onRange = fn => { rangeFn = fn; };
+  document.addEventListener('input', e => { const r = e.target.closest && e.target.closest('.fx-range'); if (r && rangeFn) rangeFn(r.dataset.fxRange, +r.value, false, r); });
+  document.addEventListener('change', e => { const r = e.target.closest && e.target.closest('.fx-range'); if (r && rangeFn) rangeFn(r.dataset.fxRange, +r.value, true, r); });
+  document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('.fx-range')) holding = true; }, true);
+  const release = () => { if (!holding) return; holding = false; setTimeout(() => { const fs = [...deferred]; deferred.clear(); fs.forEach(f => { try { f(); } catch (err) { console.error(err); } }); }, 0); };
+  document.addEventListener('pointerup', release, true); document.addEventListener('pointercancel', release, true);
+  /** While a slider is held, put off a full re-render (it would drop the slider). Returns true if put off. */
+  function hold(fn) { if (!holding) return false; deferred.add(fn); return true; }
+  const setVal = (key, text) => document.querySelectorAll(`[data-fx-val="${CSS.escape(key)}"]`).forEach(el => { el.textContent = text; });
+
+  /* ---------- market stall (shops and businesses) ---------- */
+  /** o: {name, color, avatars, sub, rows:[{label, art, units:[{tag, state:'sold'|'cur'|'left', fresh}]}], foot} */
+  function stall(o) {
+    return `<div class="fx-stall" style="--stall:${o.color || '#b02a3f'}"><div class="fx-awning" aria-hidden="true"></div>
+      <div class="fx-stall-head"><span class="fx-avs">${o.avatars || ''}</span><div><div class="fx-stall-name">${h(o.name)}</div>${o.sub ? `<div class="fx-stall-sub">${o.sub}</div>` : ''}</div></div>
+      <div class="fx-shelf">${o.rows.map(r => `<div class="fx-shelf-row">${r.label ? `<div class="fx-shelf-label">${r.label}</div>` : ''}<div class="fx-units">${r.units.map(u => `<div class="fx-unit ${u.state || ''} ${u.fresh != null && !calm() ? 'justsold' : ''}" style="${u.fresh != null ? '--fxd:' + Math.round(-u.fresh) + 'ms' : ''}"><div class="fx-unit-art">${r.art}</div><div class="fx-unit-tag">${u.tag}</div>${u.state === 'sold' ? '<div class="fx-sold">SOLD</div>' : ''}</div>`).join('')}</div></div>`).join('')}</div>
+      ${o.foot ? `<div class="fx-stall-foot">${o.foot}</div>` : ''}</div>`;
+  }
+  /* ---------- buyer: shopping list and basket ---------- */
+  /** o: {name, avatar, sub, items:[{label, art, worth, bought, fresh, note}], foot} */
+  function wallet(o) {
+    return `<div class="fx-wallet"><div class="fx-wallet-head"><span class="fx-avs">${o.avatar || ''}</span><div><div class="fx-wallet-name">${h(o.name)}</div>${o.sub ? `<div class="fx-wallet-sub">${o.sub}</div>` : ''}</div></div>
+      <div class="fx-wallet-items">${o.items.map(it => `<div class="fx-witem ${it.bought ? 'bought' : ''}"><div class="fx-witem-art">${it.art}</div><div class="fx-witem-txt"><div>${it.label}</div>${it.note ? `<small>${it.note}</small>` : ''}</div><div class="fx-worth"><small>${it.tag || 'worth to you'}</small><b>${it.worth}</b></div></div>`).join('')}</div>
+      ${o.basket === false ? '' : `<div class="fx-basket"><span class="fx-basket-ico">🧺</span>${(o.basket || o.items.filter(it => it.bought)).map(it => `<span class="fx-binit ${it.fresh != null && !calm() ? 'drop' : ''}" style="${it.fresh != null ? late(it.fresh) : ''}">${it.art}</span>`).join('') || `<small>${o.empty || 'Your basket is empty'}</small>`}</div>`}
+      ${o.foot ? `<div class="fx-wallet-foot">${o.foot}</div>` : ''}</div>`;
+  }
+
+  /* ---------- live price ticker ---------- */
+  const seen = {};
+  /** items: oldest first [{id, price, label, art, key}] ; fmt for the price. New items slide in. */
+  function ticker(items, fmt, key = 'tick') {
+    const n = items.length, now = performance.now(), first = !seen[key], mem = (seen[key] ||= {});
+    if (!n) return `<div class="fx-ticker empty"><small>No trades yet. Prices appear here.</small></div>`;
+    const lastOf = {}, rows = items.map((it, i) => { const k = it.key || 'x', p = lastOf[k]; lastOf[k] = it.price; const id = it.id ?? i; if (mem[id] == null) mem[id] = first ? -1e9 : now; return { ...it, dir: p == null ? 0 : Math.sign(it.price - p), el: now - mem[id] }; });
+    return `<div class="fx-ticker" role="list">${rows.slice(-10).reverse().map(it => `<span role="listitem" class="fx-tk ${it.dir > 0 ? 'up' : it.dir < 0 ? 'down' : ''} ${it.el < 600 && !calm() ? 'new' : ''}" style="${it.el < 600 ? late(it.el) : ''}">${it.art ? `<span class="fx-tk-art">${it.art}</span>` : ''}${it.label ? `<small>${h(it.label)}</small>` : ''}<b>${fmt(it.price)}</b><i>${it.dir > 0 ? '▲' : it.dir < 0 ? '▼' : '•'}</i></span>`).join('')}</div>`;
+  }
+
+  /* ---------- timer: red and ticking in the last 10 seconds ---------- */
+  let lastTick = null;
+  function timer(el, left, sound) {
+    if (typeof el === 'string') el = document.querySelector(el);
+    if (el) el.classList.toggle('late', left != null && left <= 10 && left > 0);
+    if (left != null && left <= 10 && left > 0 && left !== lastTick && sound) snd(left <= 3 ? 'tock' : 'tick');
+    lastTick = left;
+  }
+
+  /* ---------- pickers ---------- */
+  function avatarPicker(cur) {
+    return `<div class="fx-pick"><div class="fx-pick-lab">Choose your avatar</div><div class="fx-avgrid">${AVATARS.map(a => `<button type="button" class="fx-av ${a === cur ? 'sel' : ''}" data-fx-av="${a}" aria-label="Avatar ${a}">${a}</button>`).join('')}</div></div>`;
+  }
+  function teamPicker(cur) {
+    return `<div class="fx-pick"><div class="fx-pick-lab">Your table (team)</div><div class="fx-teams">${Object.entries(TEAMS).map(([k, t]) => `<button type="button" class="fx-team ${k === cur ? 'sel' : ''}" data-fx-team="${k}" style="--team:${t.color}">${t.icon} ${h(t.name)}<small>${h(t.vi)}</small></button>`).join('')}</div></div>`;
+  }
+  let avFn = null;
+  const onPick = fn => { avFn = fn; };
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('[data-fx-av]'), t = e.target.closest && e.target.closest('[data-fx-team]');
+    if (a) { set('avatar', a.dataset.fxAv); document.querySelectorAll('[data-fx-av]').forEach(b => b.classList.toggle('sel', b === a)); avFn && avFn('avatar', a.dataset.fxAv); snd('pop'); }
+    if (t) { document.querySelectorAll('[data-fx-team]').forEach(b => b.classList.toggle('sel', b === t)); avFn && avFn('team', t.dataset.fxTeam); snd('pop'); }
+    const c = e.target.closest && e.target.closest('[data-fx-calm]');
+    if (c) { set('calm', !get('calm', false)); document.querySelectorAll('[data-fx-calm]').forEach(b => { b.innerHTML = calmLabel(); b.setAttribute('aria-pressed', String(!calm())); }); }
+  });
+  const calmLabel = () => `✨<span class="fx-lab"> Effects ${calm() ? 'off' : 'on'}</span>`;
+  const calmBtn = (style = '') => `<button type="button" class="btn small ghost" data-fx-calm aria-pressed="${!calm()}" style="${style}">${calmLabel()}</button>`;
+
+  /* ---------- leaderboard, teams, podium ---------- */
+  /** rows: [{nick, av, value, sub}] sorted best first. Only the top n are shown, never the bottom. */
+  function leaderboard(rows, o = {}) {
+    const top = rows.slice(0, o.n || 5), medals = ['🥇', '🥈', '🥉', '4', '5', '6', '7'];
+    if (!top.length) return `<p class="muted" style="margin:0">${o.empty || 'The leaderboard appears after the first trades.'}</p>`;
+    return `<ol class="fx-lb">${top.map((r, i) => `<li><span class="fx-lb-rank">${medals[i]}</span><span class="fx-lb-av">${avOf(r.av)}</span><span class="fx-lb-nick">${h(r.nick)}${r.sub ? ` <small>${h(r.sub)}</small>` : ''}</span><b>${h(r.value)}</b></li>`).join('')}</ol>${o.improved ? `<div class="fx-improved">📈 Most improved: <span>${avOf(o.improved.av)} <b>${h(o.improved.nick)}</b></span> <small>${h(o.improved.value)}</small></div>` : ''}`;
+  }
+  /** teams: [{icon, name, value (0-1 share for the bar), label, color, n}] */
+  function teamBars(teams) {
+    const live = teams.filter(t => t.n > 0); if (!live.length) return '';
+    const best = Math.max(...live.map(t => t.value), 1e-9);
+    return `<div class="fx-teambars">${live.map(t => `<div class="fx-tb"><div class="fx-tb-top"><span>${t.icon} ${h(t.name)} <small>(${t.n})</small></span><b>${h(t.label)}</b></div><div class="fx-tb-bar"><i style="width:${Math.max(4, Math.round(100 * t.value / best))}%;background:${t.color}"></i></div></div>`).join('')}</div>`;
+  }
+  /** Projector podium: reveals 3rd, 2nd, 1st with a drumroll. rows: [{nick, av, value}] best first */
+  function podium(o) {
+    const rows = o.rows.slice(0, 3); if (!rows.length) return;
+    let el = document.getElementById('fxPodium'); if (el) el.remove();
+    el = document.createElement('div'); el.id = 'fxPodium'; el.className = 'fx-podium-wrap';
+    const order = [1, 0, 2].filter(i => rows[i]);
+    el.innerHTML = `<div class="fx-podium-inner"><h1>${h(o.title || 'Top traders')}</h1>${o.sub ? `<p class="lead">${h(o.sub)}</p>` : ''}
+      <div class="fx-podium">${order.map(i => `<div class="fx-pod p${i + 1}" data-i="${i}"><div class="fx-pod-who"><div class="fx-pod-av">${avOf(rows[i].av)}</div><div class="fx-pod-nick">${h(rows[i].nick)}</div><div class="fx-pod-val">${h(rows[i].value)}</div></div><div class="fx-pod-step">${['🥇', '🥈', '🥉'][i]}<b>${i + 1}</b></div></div>`).join('')}</div>
+      ${o.improved ? `<div class="fx-improved big">📈 Most improved: ${avOf(o.improved.av)} <b>${h(o.improved.nick)}</b> <small>${h(o.improved.value)}</small></div>` : ''}
+      ${o.teams ? `<div class="fx-podium-teams">${o.teams}</div>` : ''}<button class="btn" data-fx-close>Close</button></div>`;
+    document.body.appendChild(el);
+    el.querySelector('[data-fx-close]').onclick = () => el.remove();
+    const q = calm();
+    const steps = [2, 1, 0].filter(i => rows[i]);
+    snd('drumroll');
+    steps.forEach((i, k) => setTimeout(() => {
+      const p = el.querySelector(`.fx-pod[data-i="${i}"]`); if (p) p.classList.add('in');
+      snd(i === 0 ? 'podium' : 'pop');
+      if (i === 0 && typeof confetti === 'function') confetti(160);
+    }, q ? 0 : 1700 + k * 900));
+  }
+
+  /* ---------- replay: draws a chart at growing fractions of the round ---------- */
+  let replayStop = null;
+  function replay(draw, ms = 6500) {
+    if (replayStop) replayStop();
+    let stop = false, last = -1; const t0 = performance.now();
+    replayStop = () => { stop = true; draw(1); replayStop = null; };
+    (function frame(now) {
+      if (stop) return;
+      const f = Math.min(1, (now - t0) / ms), n = draw(f);
+      if (typeof n === 'number' && n > last && last >= 0) snd('tick');
+      last = typeof n === 'number' ? n : last;
+      if (f < 1) requestAnimationFrame(frame); else { replayStop = null; snd('chime'); }
+    })(t0);
+  }
+
+  return { snd, since, late, get, set, calm, AVATARS, TEAMS, TITLES, SHOP_COLORS, myAvatar, avOf, teamOf, title, titleWatch, titleChip,
+    install, setGain, float, coins, shake, pulse, news, badge, levelUp, jar, jarGrew, priceTag, onRange, hold, setVal, stall, wallet, ticker, timer,
+    avatarPicker, teamPicker, onPick, calmBtn, leaderboard, teamBars, podium, replay };
+})();
+</script><!--/FX-JS-->
 <script>
 /* =====================================================================
    EcoLogic Market Lab, Level 0: Chợ Lớp 9 opens (bridging activities)
@@ -522,6 +1076,8 @@ const sellerChoices = c => [0, Math.round(c.cap / 2), c.cap];
 const smartBuy = (c, p) => { let n = 0; if (c.v1 > p && p <= c.budget) n = 1; if (n === 1 && c.v2 > p && 2 * p <= c.budget) n = 2; return n; };
 const smartMake = (c, p) => c.cost < p ? c.cap : 0;
 
+const TH0 = [8, 20, 35]; // points for the titles Market Trader, Merchant, Tycoon
+const ACT_NEWS = { quiz: ['🃏', 'Read your card', 'Đọc thẻ của bạn'], demand: ['🛒', 'Would you buy it?', 'Bạn có mua không?'], supply: ['🏪', 'Would you sell it?', 'Bạn có bán không?'], meet: ['🤝', 'Where do they meet?', 'Cung và cầu gặp nhau ở đâu?'], deals: ['🤖', 'Deals with Robo-Trader', 'Mặc cả với Robo-Trader'], check: ['📝', 'Knowledge check', 'Kiểm tra kiến thức'], finish: ['🏆', 'Badges and podium', 'Huy hiệu và bục vinh quang'] };
 const STORY = {
   lobby: 'Today, a new market opens at our school: Chợ Lớp 9. Join on your tablet or laptop.',
   demand: g => `The ${g.name} market opens. Every buyer card is different: different budgets, different tastes. How many will the town buy at each price?`,
@@ -760,7 +1316,7 @@ const ACTS = ['demand', 'supply', 'meet', 'quiz', 'deals', 'finish'];
 function newT(o) {
   return { v: STATE_V, checks: {}, texts: {}, room: roomCode(), transport: o.transport, good: o.good, sound: true, act: null, done: {},
     humans: [], prof: {}, nextProf: 0, demand: { step: -1, ans: {} }, supply: { step: -1, ans: {} },
-    meet: { open: false, revealed: false, preds: {}, explore: null }, progress: {}, badges: {}, points: {}, createdAt: Date.now() };
+    meet: { open: false, revealed: false, preds: {}, explore: null }, progress: {}, badges: {}, points: {}, sSound: true, createdAt: Date.now() };
 }
 const tSave = () => store.set(TKEY, T.s);
 const G = () => GOODS[T.s.good];
@@ -777,8 +1333,10 @@ function qMaxAll() {
   return Math.max(5, d, sp);
 }
 const nick = pid => (T.s.humans.find(h => h.pid === pid) || {}).nick || 'Student';
+const human = pid => T.s.humans.find(h => h.pid === pid) || {};
 
 function teacherBoot() {
+  FX.install({ gain: 1 });
   const saved = store.get(TKEY);
   document.body.innerHTML = shell(`<div class="narrow stack" style="padding-top:24px">
     <h1>Open Chợ Lớp 9</h1>
@@ -825,6 +1383,7 @@ function tOnMsg(m) {
   if (m.type === 'hello') {
     if (!s.humans.find(h => h.pid === m.pid)) { s.humans.push({ pid: m.pid, nick: String(m.nick || 'Student').slice(0, 18), at: Date.now() }); Sound.play('blip'); }
     if (s.prof[m.pid] == null) s.prof[m.pid] = s.nextProf++;
+    { const hu = human(m.pid); if (FX.AVATARS.includes(m.av)) hu.av = m.av; if (FX.TEAMS[m.team]) hu.team = m.team; }
     if (s.classOpened) award(m.pid, 'classopen');
     tSave(); renderTBody(); tYou(m.pid); tBroadcast(true); return;
   }
@@ -890,7 +1449,7 @@ function youFor(pid) {
 const tYou = pid => tSend({ type: 'you', to: pid, you: youFor(pid) });
 function pubState() {
   const s = T.s, d = dMap(), sp = sMap();
-  return { type: 'state', level: 0, act: s.act, good: s.good, n: nHumans(),
+  return { type: 'state', level: 0, act: s.act, good: s.good, n: nHumans(), sSound: s.sSound !== false,
     demand: { step: s.demand.step, map: d, answered: answeredNow('demand') },
     supply: { step: s.supply.step, map: sp, answered: answeredNow('supply') }, qMax: qMaxAll(),
     meet: { open: s.meet.open, revealed: s.meet.revealed, cross: s.meet.revealed ? crossing(d, sp) : null, explore: s.meet.explore },
@@ -906,6 +1465,7 @@ function tBroadcast(now) {
 /* ---- actions ---- */
 function startAct(a, mode) {
   const s = T.s;
+  if (s.act !== a && ACT_NEWS[a]) FX.news({ icon: ACT_NEWS[a][0], kicker: 'CHỢ LỚP 9 NEWS · TIN CHỢ', title: ACT_NEWS[a][1], vi: ACT_NEWS[a][2], detail: STORY[a] ? STORY[a](G()) : '', theme: 'round', ms: 3500, sound: false });
   s.act = a;
   if (a === 'check') { s.checkMode = mode || 'post'; s.checkReveal = false; }
   if ((a === 'demand' || a === 'supply') && s[a].step < 0) s[a].step = 0;
@@ -950,8 +1510,11 @@ function renderT() {
     <header class="topbar"><a class="brand" href="index.html" title="All lessons" style="color:inherit;text-decoration:none">← EcoLogic Market Lab</a><span class="chip">Level 0: Chợ Lớp 9 opens</span><span class="spacer"></span>
       <span class="chip" id="conn"><span class="dot wait"></span>Connecting…</span><span class="chip">Room <b>${esc(T.s.room)}</b></span>
       <button class="btn small ghost" id="snd" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">${T.s.sound ? 'Sound on' : 'Sound off'}</button>
+      <button class="btn small ghost" id="sSndT" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)" title="Sounds on students' devices">${T.s.sSound !== false ? 'Student sounds on' : 'Student sounds off'}</button>
+      ${FX.calmBtn('color:#fbf3ea;border-color:rgba(255,255,255,.3)')}
       <button class="btn small primary" id="projBtn">Projector view</button></header>
     <main class="wrap"><div id="tbody"></div></main><div id="proj" class="hidden"></div>`);
+  $('#sSndT').onclick = e => { T.s.sSound = T.s.sSound === false; e.target.textContent = T.s.sSound ? 'Student sounds on' : 'Student sounds off'; tSave(); tBroadcast(true); };
   $('#projBtn').onclick = () => { T.projector = true; renderProj(true); };
   $('#snd').onclick = e => { T.s.sound = Sound.on = !T.s.sound; e.target.textContent = T.s.sound ? 'Sound on' : 'Sound off'; tSave(); if (Sound.on) Sound.play('chime'); };
   connBadge(); renderTBody();
@@ -984,7 +1547,7 @@ function stepsHtml() {
       !!s.done.meet, a === 'meet'],
     ['Deals with Robo-Trader (own pace, prepares for Level 1)', selfBtn('deals', 'Start'), a !== 'deals' && progCount('deals') > 0, a === 'deals'],
     ['Knowledge check (Paper 1 style)', ckBtn('post'), Object.keys(((s.checks || {}).post) || {}).length > 0, a === 'check' && s.checkMode === 'post'],
-    ['Badges and next level', `<button class="btn small ${nextAct() === 'finish' ? 'primary' : ''}" data-act="start" data-a="finish" ${a === 'finish' ? 'disabled' : ''}>Show badges</button>`, a === 'finish', a === 'finish']
+    ['Badges and next level', `<button class="btn small ${nextAct() === 'finish' ? 'primary' : ''}" data-act="start" data-a="finish" ${a === 'finish' ? 'disabled' : ''}>Show badges</button>${a === 'finish' ? ' <button class="btn small primary" data-act="podium">🏆 Podium</button>' : ''}`, a === 'finish', a === 'finish']
   ];
   return `<ol class="steps">${items.map(([label, ctl, done, now]) => `<li class="${now ? 'now' : done ? 'done' : ''}"><div><div>${label}</div><div class="row" style="gap:6px;margin-top:4px">${ctl}</div></div></li>`).join('')}</ol>`;
 }
@@ -1055,7 +1618,7 @@ function renderLive() {
   } else if (a === 'quiz' || a === 'deals') {
     body = `<h3 style="margin:0">Progress</h3><div class="roster">${s.humans.map(h => { const p = (s.progress[h.pid] || {})[a]; return `<div class="who ${p && p.done >= p.total ? 'done' : ''}"><span>${esc(h.nick)}</span><span class="muted">${p ? p.done + '/' + p.total : '–'}</span></div>`; }).join('')}</div>`;
   } else {
-    body = `<h3 style="margin:0">Students</h3>${s.humans.length ? `<div class="roster">${s.humans.map(h => `<div class="who"><span>${esc(h.nick)}</span><span class="muted">${s.points[h.pid] || 0} pts</span></div>`).join('')}</div>` : '<p class="muted" style="margin:0">Nobody has joined yet.</p>'}`;
+    body = `<h3 style="margin:0">Students</h3>${s.humans.length ? `<div class="roster">${s.humans.map(h => `<div class="who"><span>${FX.avOf(h.av)} ${esc(h.nick)}</span><span class="muted">${s.points[h.pid] || 0} pts</span></div>`).join('')}</div>` : '<p class="muted" style="margin:0">Nobody has joined yet.</p>'}`;
   }
   const texts = Object.entries(s.texts || {});
   el.innerHTML = body + meterHtml() + (texts.length ? `<details><summary>Written answers: why supply slopes up (${texts.length})</summary><p class="muted">Copy these into the EcoLogic AI checker for marking.</p>${texts.map(([pid, x]) => `<div class="task"><b>${esc(nick(pid))}</b><p style="margin:.3em 0 0;white-space:pre-wrap">${esc(x.text)}</p></div>`).join('')}</details>` : '');
@@ -1072,6 +1635,7 @@ function tClick(e) {
   else if (a === 'ckreveal') { T.s.checkReveal = !T.s.checkReveal; tSave(); renderLive(); if (T.projector) renderProj(true); }
   else if (a === 'ckcsv') checkCsv();
   else if (a === 'next') nextStep();
+  else if (a === 'podium') showPodium();
   else if (a === 'preds') openPreds();
   else if (a === 'reveal') revealCross();
   else if (a === 'reset') resetAct(b.dataset.a);
@@ -1098,6 +1662,7 @@ function renderProj(fresh) {
       <aside class="side">
         <div class="panel stack"><div>Room code</div><div class="code">${esc(s.room)}</div><div class="qr" id="qrB"></div></div>
         <div class="panel stack" id="pSide"></div>
+        <div class="panel stack lead-side" id="pLead"></div>
         <div class="panel" id="pFeed"></div>
         <button class="btn" id="closeProj">Back to teacher controls</button>
       </aside></div>`;
@@ -1121,7 +1686,7 @@ function projStage() {
   if (a === 'meet') return `<div class="ask-stage wide"><div class="chart-box tall"><canvas id="cProj"></canvas></div><div class="meet-text" id="meetText"></div></div>`;
   if (a === 'check') return checkProjHtml();
   if (a === 'quiz' || a === 'deals') return `<div class="selfpace"><h1>${a === 'quiz' ? 'Read your card' : 'Deals with Robo-Trader'}</h1><p class="lead">${a === 'quiz' ? 'Six decisions. Buy or not? Make it or not?' : 'Three deals. Can you make a gain? Know when to walk away.'}</p><div class="roster big" id="pGrid"></div></div>`;
-  if (a === 'finish') return `<div class="finish"><h1>Chợ Lớp 9 is ready to trade</h1><div class="badgewall" id="bWall"></div><div class="chart-box mid"><canvas id="cProj"></canvas></div></div>`;
+  if (a === 'finish') return `<div class="finish"><h1>Chợ Lớp 9 is ready to trade</h1><div class="row" style="justify-content:center"><button class="btn primary" onclick="showPodium()">🏆 Show the podium</button></div><div class="badgewall" id="bWall"></div><div class="chart-box mid"><canvas id="cProj"></canvas></div></div>`;
   return '';
 }
 function projDynamic() {
@@ -1129,8 +1694,9 @@ function projDynamic() {
   const side = $('#pSide'); if (!side) return;
   side.innerHTML = meterHtml() + (classPoints() >= goal() ? `<div class="good" style="margin:0">Goal reached: Level 1 unlocked</div>` : '');
   const feed = $('#pFeed');
-  feed.innerHTML = `<h3 style="margin:0 0 6px">Badges</h3>${T.feed.length ? T.feed.map(f => `<div class="feed-item"><span class="bdg">${BADGES[f.id][0]}</span> ${esc(nick(f.pid))}: ${esc(BADGES[f.id][1])}</div>`).join('') : '<p class="muted" style="margin:0">Badges appear here.</p>'}`;
-  const bub = $('#bubbles'); if (bub) bub.innerHTML = s.humans.map(h => `<span class="bubble">${esc(h.nick)}</span>`).join('');
+  const pl = $('#pLead'); if (pl) pl.innerHTML = `<h3 style="margin:0">🏆 Top traders</h3>${FX.leaderboard(leaderRows().map(x => ({ ...x, value: x.points + ' pts' })), { n: 5, empty: 'Points appear as students answer.' })}${teamsHtml()}`;
+  feed.innerHTML = `<h3 style="margin:0 0 6px">Badges</h3>${T.feed.length ? T.feed.map(f => `<div class="feed-item"><span class="bdg">${BADGES[f.id][0]}</span> ${FX.avOf(human(f.pid).av)} ${esc(nick(f.pid))}: ${esc(BADGES[f.id][1])}</div>`).join('') : '<p class="muted" style="margin:0">Badges appear here.</p>'}`;
+  const bub = $('#bubbles'); if (bub) bub.innerHTML = s.humans.map(h => `<span class="bubble">${FX.avOf(h.av)} ${esc(h.nick)}</span>`).join('');
   if (a === 'demand' || a === 'supply') {
     const y = $('#pYes'); if (y) { const order = a === 'demand' ? G().ladder.slice().reverse() : G().ladder; const p = order[s[a].step]; const m = a === 'demand' ? dMap() : sMap(); const v = m[p] || 0; if (y.textContent !== String(v)) { y.textContent = v; y.parentElement.classList.remove('pop'); void y.offsetWidth; y.parentElement.classList.add('pop'); } }
   }
@@ -1146,6 +1712,17 @@ function projDynamic() {
   const wall = $('#bWall'); if (wall) wall.innerHTML = Object.keys(BADGES).map(id => { const n = Object.values(s.badges).filter(b => b.includes(id)).length; return `<div class="bw"><span class="bdg big">${BADGES[id][0]}</span><b>${esc(BADGES[id][1])}</b><span class="muted">${n} earned</span></div>`; }).join('');
 }
 
+/* ---- leaderboard, tables, podium ---- */
+function leaderRows() { const s = T.s; return s.humans.map(h => ({ pid: h.pid, nick: h.nick, av: h.av, team: h.team, points: s.points[h.pid] || 0 })).filter(x => x.points > 0).sort((a, b) => b.points - a.points); }
+function teamsHtml() {
+  const s = T.s, avg = xs => xs.length ? xs.reduce((a, x) => a + (s.points[x.pid] || 0), 0) / xs.length : 0;
+  const tabs = Object.entries(FX.TEAMS).map(([k2, t]) => { const xs = s.humans.filter(h => h.team === k2); return { icon: t.icon, name: t.name, n: xs.length, value: avg(xs), label: Math.round(avg(xs)) + ' pts each', color: t.color }; });
+  return tabs.filter(t => t.n).length >= 2 ? `<h3 style="margin:8px 0 0">Tables <small class="muted">average per member</small></h3>${FX.teamBars(tabs)}` : '';
+}
+function showPodium() {
+  const rows = leaderRows(); if (!rows.length) return toast('No points yet.');
+  FX.podium({ title: 'Top traders of Chợ Lớp 9', sub: 'Points from answers, deals, predictions and badges', rows: rows.map(x => ({ nick: x.nick, av: x.av, value: x.points + ' pts' })), teams: teamsHtml() });
+}
 function makeQR(el, text, size) {
   if (!el) return; el.innerHTML = '';
   if (window.QRCode) { try { new QRCode(el, { text, width: size, height: size, correctLevel: QRCode.CorrectLevel.M }); return; } catch { } }
@@ -1358,20 +1935,24 @@ function checkProjHtml() {
    STUDENT (tablet or laptop)
    ===================================================================== */
 const S = { pid: null, nick: '', room: '', tr: null, pub: null, me: null, key: '', lastMsg: 0, sound: false,
-  quiz: null, deals: null, gaps: {}, myBadges: null };
+  quiz: null, deals: null, gaps: {}, myBadges: null, av: null, team: null, prevPts: null };
 const SK = () => APP + ':student:' + S.room;
-function sSave() { sstore.set(SK(), { pid: S.pid, nick: S.nick, quiz: S.quiz, deals: S.deals, gaps: S.gaps, sound: S.sound, costq: S.costq, check: S.check, words: S.words }); }
+function sSave() { sstore.set(SK(), { pid: S.pid, nick: S.nick, team: S.team, quiz: S.quiz, deals: S.deals, gaps: S.gaps, sound: S.sound, costq: S.costq, check: S.check, words: S.words }); }
 const sSend = m => S.tr.send({ ...m, pid: S.pid, from: S.pid });
-const sfx = n => { if (S.sound) Sound.play(n); };
+const sfxOK = () => !!S.sound && !(S.pub && S.pub.sSound === false);
+const sfx = n => { if (sfxOK()) Sound.play(n); };
+const helloMsg = () => ({ type: 'hello', nick: S.nick, av: S.av, team: S.team });
 const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 function studentBoot() {
-  Sound.on = true;
+  Sound.on = true; FX.install({ gain: .55, gate: sfxOK }); S.av = FX.myAvatar();
+  FX.onPick((kind, v) => { if (kind === 'avatar') S.av = v; else S.team = v; sSave(); if (S.tr) sSend(helloMsg()); S.key = ''; renderS(); });
+  FX.onRange((key, v, done) => { if (key === 'd' && S.deals) { const d = S.deals.list[S.deals.i]; if (d && d.status === 'open') { d.mine = v; FX.setVal('d', tok(v)); if (done) { sSave(); renderDeal($('#sMain')); } } } });
   const room = (PARAMS.get('room') || '').toUpperCase();
   const saved = room ? sstore.get(APP + ':student:' + room) : null;
   const pnick = (PARAMS.get('nick') || '').trim().slice(0, 18);
   if (!(saved && saved.nick) && room.length === 4 && pnick) { S.room = room; S.nick = pnick; S.pid = 'p-' + rid(10); sSave(); const u = new URL(location.href); u.searchParams.delete('nick'); history.replaceState(null, '', u); return studentConnect(); }
-  if (saved && saved.nick) { S.room = room; Object.assign(S, { pid: saved.pid, nick: saved.nick, quiz: saved.quiz, deals: saved.deals, gaps: saved.gaps || {}, sound: !!saved.sound, costq: saved.costq || {}, check: saved.check || {}, words: saved.words || [] }); return studentConnect(); }
+  if (saved && saved.nick) { S.room = room; Object.assign(S, { pid: saved.pid, nick: saved.nick, quiz: saved.quiz, deals: saved.deals, gaps: saved.gaps || {}, sound: !!saved.sound, costq: saved.costq || {}, check: saved.check || {}, words: saved.words || [], team: saved.team || null }); return studentConnect(); }
   document.body.innerHTML = shell(`<div class="narrow stack" style="padding-top:28px">
     <div class="art-join">${ART.trasua}</div>
     <h1>Join Chợ Lớp 9</h1>
@@ -1396,14 +1977,14 @@ async function studentConnect() {
   const kind = PARAMS.get('t') === 'local' || !ONLINE_READY ? 'local' : 'supabase';
   S.tr = makeTransport(kind, S.room);
   document.body.innerHTML = shell(`
-    <header class="topbar"><span class="brand">Chợ Lớp 9</span><span class="chip" id="sPts">0 points</span><span class="spacer"></span>
-      <button class="btn small ghost" id="sSnd" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">${S.sound ? 'Sound on' : 'Sound off'}</button>
+    <header class="topbar"><span class="brand" id="sBrand">${FX.avOf(S.av)} Chợ Lớp 9</span><span class="chip" id="sPts">0 points</span><span id="sTitle"></span><span class="spacer"></span>
+      <button class="btn small ghost" id="sSnd" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">${S.sound ? '🔊 Sound on' : '🔇 Sound off'}</button>${FX.calmBtn('color:#fbf3ea;border-color:rgba(255,255,255,.3)')}
       <span class="chip" id="sConn"><span class="dot wait"></span>Connecting</span></header>
     <main class="wrap"><div class="sgrid"><section id="sMain" class="stack"><div class="panel"><p style="margin:0">Looking for room <b>${esc(S.room)}</b>…</p></div></section><aside id="sSide" class="stack"></aside></div></main>`);
-  $('#sSnd').onclick = e => { S.sound = !S.sound; e.target.textContent = S.sound ? 'Sound on' : 'Sound off'; if (S.sound) { Sound.ensure(); Sound.play('chime'); } sSave(); };
+  $('#sSnd').onclick = e => { S.sound = !S.sound; e.target.textContent = S.sound ? '🔊 Sound on' : '🔇 Sound off'; if (S.sound) { Sound.ensure(); if (S.pub && S.pub.sSound === false) toast('Your teacher has turned student sounds off.'); else Sound.play('chime'); } sSave(); };
   try { await S.tr.connect(sOnMsg, () => { }); }
   catch (err) { $('#sMain').innerHTML = `<div class="bad">${esc(err.message)}</div>`; return; }
-  const hello = () => sSend({ type: 'hello', nick: S.nick });
+  const hello = () => sSend(helloMsg());
   hello();
   setInterval(() => {
     const quiet = Date.now() - S.lastMsg > 7000; if (quiet) hello();
@@ -1416,19 +1997,28 @@ async function studentConnect() {
 function sOnMsg(m) {
   if (!m || m.from !== 'teacher' || (m.to && m.to !== S.pid)) return;
   S.lastMsg = Date.now();
-  if (m.type === 'state') { S.pub = m; renderS(); }
+  if (m.type === 'state') {
+    const prevAct = S.pub ? S.pub.act : undefined; S.pub = m;
+    if (prevAct !== undefined && prevAct !== m.act && ACT_NEWS[m.act]) FX.news({ icon: ACT_NEWS[m.act][0], kicker: 'CHỢ LỚP 9 NEWS · TIN CHỢ', title: ACT_NEWS[m.act][1], vi: ACT_NEWS[m.act][2], theme: 'round', ms: 2200, sound: sfxOK() });
+    renderS();
+  }
   else if (m.type === 'you') {
     const prev = S.myBadges; S.me = m.you; S.myBadges = m.you.badges.slice();
     try { const all = JSON.parse(localStorage.getItem('ecologic-market:badges') || '{}'); all.l0 = m.you.badges; localStorage.setItem('ecologic-market:badges', JSON.stringify(all)); } catch { }
-    if (prev) m.you.badges.filter(b => !prev.includes(b)).forEach(b => { toast(`${BADGES[b][0]} Badge: ${BADGES[b][1]}`, 3500); confetti(); sfx('fanfare'); });
+    if (prev) m.you.badges.filter(b => !prev.includes(b) && BADGES[b]).forEach(b => FX.badge(BADGES[b][0], BADGES[b][1], BADGES[b][2], sfxOK() ? 'badge' : false));
+    const pp = S.prevPts; S.prevPts = m.you.points || 0;
     renderS();
-  } else if (m.type === 'ack' && !m.ok) toast(m.error);
+    if (pp != null && m.you.points > pp) { FX.float('+' + (m.you.points - pp), '#sPts', 'gold'); FX.pulse('#sPts'); FX.coins('#sMain', '#jarBox', Math.min(8, m.you.points - pp + 1)); sfx('coin'); }
+  } else if (m.type === 'ack' && !m.ok) { toast(m.error); sfx('bonk'); FX.shake('#sMain'); }
 }
 
 function renderS() {
   const main = $('#sMain'); if (!main || !S.pub) return;
   const p = S.pub, me = S.me || {}, a = p.act;
   const pts = $('#sPts'); if (pts) pts.textContent = (me.points || 0) + ' points';
+  const br = $('#sBrand'); if (br) br.textContent = `${FX.avOf(S.av)} Chợ Lớp 9`;
+  const tt = $('#sTitle'); if (tt) tt.innerHTML = FX.titleChip(FX.titleWatch('me', me.points || 0, TH0, null));
+  if (FX.hold(renderS)) return;
   let key = String(a);
   if (a === 'demand' || a === 'supply') key += '|' + p[a].step + '|' + !!p.done[a] + '|' + JSON.stringify(a === 'demand' ? me.dAns : me.sAns) + '|' + me.prof + '|' + JSON.stringify(S.costq || {});
   if (a === 'check') key += '|' + p.checkMode;
@@ -1447,7 +2037,7 @@ function renderS() {
 
 function mainHtml() {
   const p = S.pub, me = S.me || {}, a = p.act, g = GOODS[p.good];
-  if (!a) return `<div class="panel stack"><h2 style="margin:0">Hi ${esc(S.nick)}, you're in.</h2><p style="margin:0">Look at the board. Your teacher will start soon. You will decide what you would ${term('buyer', 'buy')} and ${term('seller', 'sell')}.</p></div>`;
+  if (!a) return `<div class="panel stack"><h2 style="margin:0">${FX.avOf(S.av)} Hi ${esc(S.nick)}, you're in.</h2><p style="margin:0">Look at the board. Your teacher will start soon. You will decide what you would ${term('buyer', 'buy')} and ${term('seller', 'sell')}.</p>${FX.avatarPicker(S.av)}${FX.teamPicker(S.team)}</div>`;
   if (a === 'demand' || a === 'supply') {
     const isD = a === 'demand', order = isD ? g.ladder.slice().reverse() : g.ladder, A = p[a];
     if (p.done[a]) return `<div class="panel stack ask-mini ${a}"><div class="art">${ART[p.good]}</div><h2 style="margin:0">All prices asked</h2><p style="margin:0">${isD ? `Look at your schedule and the class curve. As the price falls, quantity demanded rises. This is the ${term('law of demand')}.` : `Look at the class curve. As the price rises, more businesses can cover their costs, so quantity supplied rises. This is the ${term('law of supply')}.`}</p></div>${isD ? '' : costQuestions()}`;
@@ -1491,8 +2081,9 @@ function buyerDecision(g, p, chosen) {
   const rows = [[1, c.v1], [2, c.v2]].map(([n, v]) => `<tr><td>${n === 1 ? '1st' : '2nd'} ${esc(g.unit1)} today</td><td>${vnd(v)}</td><td>${tick(v > p)} ${v > p ? 'worth more than the price' : 'worth less than the price'}</td></tr>`).join('');
   const btn = n => { const afford = n * p <= c.budget; return `<button class="btn qty ${chosen === n ? 'sel' : ''}" data-s="qty" data-q="${n}" ${afford ? '' : 'disabled'}>${n}<small>${n === 0 ? 'none' : afford ? vnd(n * p) : 'over budget'}</small><kbd>${n}</kbd></button>`; };
   return `<div class="panel stack ask-mini demand">
-    <div class="profile buyer"><div class="pname">${esc(c.name)}</div><div class="psub">Your buyer card. It stands for ${CUSTOMERS_PER_CARD} customers like you.</div>
-      <div class="pgrid"><span>${term('budget', 'Budget')} today</span><b>${vnd(c.budget)}</b></div></div>
+    ${(() => { const el = FX.since('l0basket' + p, chosen ?? -1); return FX.wallet({ name: c.name, avatar: FX.avOf(S.av), sub: `Your buyer card. It stands for ${CUSTOMERS_PER_CARD} customers like you.`,
+      items: [{ label: `${term('budget', 'Budget')} today`, art: '<span class="purse">👛</span>', worth: vnd(c.budget), tag: 'budget' }],
+      basket: Array.from({ length: chosen || 0 }, (_, i) => ({ art: ART[S.pub.good], fresh: i === chosen - 1 && el < 900 ? el : null })), empty: chosen === 0 ? 'You chose to buy none' : 'Choose how many to buy' }); })()}
     <h2 style="margin-bottom:0">${esc(g.name.charAt(0).toUpperCase() + g.name.slice(1))} costs ${vnd(p)} today. How many will you buy?</h2>
     <div class="table-wrap"><table class="helper"><tr><th></th><th>Your ${term('satisfaction')}</th><th>Price ${vnd(p)}</th></tr>${rows}</table></div>
     <div class="yn three">${[0, 1, 2].map(btn).join('')}</div>
@@ -1504,8 +2095,9 @@ function sellerDecision(g, p, chosen) {
   const opts = sellerChoices(c);
   const rows = opts.map(q => { const prof = q * per - c.rent; return `<tr class="${chosen === q ? 'cur' : ''}"><td>Make ${q}</td><td>${q ? (per >= 0 ? '+' : '') + vnd(q * per) : vnd(0)}</td><td>${vnd(c.rent)}</td><td><b>${prof >= 0 ? '' : '−'}${vnd(Math.abs(prof))}</b></td></tr>`; }).join('');
   return `<div class="panel stack ask-mini supply">
-    <div class="profile seller"><div class="pname">${esc(c.name)}</div><div class="psub">Your business card</div>
-      <div class="pgrid"><span>Ingredients per ${esc(g.unit1)} (${term('variable cost')})</span><b>${vnd(c.cost)}</b><span>Most you can make in a day</span><b>${c.cap}</b><span>Rent per day (${term('fixed cost')})</span><b>${vnd(c.rent)}</b></div></div>
+    ${FX.stall({ name: c.name, color: '#b02a3f', avatars: FX.avOf(S.av), sub: 'Your business card',
+      rows: [{ art: ART[S.pub.good], units: [{ tag: `ingredients ${vnd(c.cost)}`, state: 'cur' }] }],
+      foot: `<div class="kv"><span>Ingredients per ${esc(g.unit1)} (${term('variable cost')})</span><b>${vnd(c.cost)}</b><span>Most you can make in a day</span><b>${c.cap}</b><span>Rent per day (${term('fixed cost')})</span><b>${vnd(c.rent)}</b></div>` })}
     <h2 style="margin-bottom:0">The price is ${vnd(p)}. How many will you make today?</h2>
     <p style="margin:0">Each ${esc(g.unit1)}: price ${vnd(p)} − ingredients ${vnd(c.cost)} = <b class="${per > 0 ? 'okt' : 'not'}">${per >= 0 ? '+' : '−'}${vnd(Math.abs(per))}</b></p>
     <div class="table-wrap"><table class="helper"><tr><th></th><th>Earned over ingredients</th><th>Rent</th><th>${term('profit', 'Profit')} today</th></tr>${rows}</table></div>
@@ -1585,9 +2177,10 @@ function renderSide() {
   const chartKey = showChart ? 'c' : '';
   if (side.dataset.k !== chartKey + a) {
     side.dataset.k = chartKey + a;
-    side.innerHTML = `${showChart ? `<div class="panel"><h3 style="margin:0 0 6px">Class market</h3><div class="chart-box"><canvas id="cMini"></canvas></div></div>` : ''}<div id="schedBox"></div><div class="panel" id="myBadges"></div>`;
+    side.innerHTML = `${showChart ? `<div class="panel"><h3 style="margin:0 0 6px">Class market</h3><div class="chart-box"><canvas id="cMini"></canvas></div></div>` : ''}<div id="schedBox"></div><div class="panel jar-panel" id="jarBox"></div><div class="panel" id="myBadges"></div>`;
   }
   $('#schedBox').innerHTML = sched;
+  const jb = $('#jarBox'); if (jb) { const t = FX.title(me.points || 0, TH0), nx = TH0[t.i]; jb.innerHTML = `<div class="stack" style="gap:4px"><h3 style="margin:0">Your points</h3>${FX.titleChip(t)}<small class="muted">${nx != null ? `${nx - (me.points || 0)} more for the next title` : 'Top title!'}</small></div>${FX.jar(me.points || 0, { key: 'pts', kind: 'coin', size: 'small', label: (me.points || 0) + ' pts' })}`; }
   const b = me.badges || [];
   $('#myBadges').innerHTML = `<h3 style="margin:0 0 6px">Your badges</h3><div class="row" style="gap:6px">${Object.entries(BADGES).map(([id, x]) => `<span class="bdg ${b.includes(id) ? '' : 'off'}" title="${esc(x[1])}: ${esc(x[2])}">${x[0]}</span>`).join('')}</div>`;
   if (showChart) setChart($('#cMini'), miniOpts());
@@ -1747,9 +2340,9 @@ function renderDeal(main) {
   const controls = open ? `
       <button class="btn block ${buyer ? 'buyer' : 'seller'}" data-s="daccept" ${canAccept ? '' : 'disabled'}>${canAccept ? `${buyer ? 'Buy' : 'Sell'} at ${tok(d.robot)} <kbd>A</kbd>` : buyer ? `${tok(d.robot)} is more than it's worth to you` : `${tok(d.robot)} is less than your cost`}</button>
       <div><label class="field">${buyer ? 'Or offer a lower price' : 'Or ask for a higher price'}</label>
-        <div class="stepper"><button data-s="dminus" aria-label="Lower">−</button><div class="val">${tok(d.mine)}</div><button data-s="dplus" aria-label="Higher">+</button></div>
+        ${FX.priceTag({ key: 'd', val: d.mine, min: buyer ? 1 : d.card, max: buyer ? d.card : 14, fmt: tok, stepLabel: tk(1), minus: 'data-s="dminus"', plus: 'data-s="dplus"', role: buyer ? 'buyer' : 'seller', sub: buyer ? 'your offer' : 'your asking price' })}
         ${dealLine(d.role, d.card, [d.mine], null, true, { fmt: tk })}</div>
-      <div class="row"><button class="btn primary" data-s="doffer">${buyer ? 'Offer' : 'Ask for'} ${tok(d.mine)} <kbd>Enter</kbd></button><button class="btn" data-s="dwalk">Walk away <kbd>W</kbd></button></div>`
+      <div class="row"><button class="btn primary" data-s="doffer">${buyer ? 'Offer' : 'Ask for'} <span data-fx-val="d">${tok(d.mine)}</span> <kbd>Enter</kbd></button><button class="btn" data-s="dwalk">Walk away <kbd>W</kbd></button></div>`
     : `<div class="${dealVerdict(d).cls}">${dealVerdict(d).text}</div><button class="btn primary" data-s="dnext">${D.i + 1 < n ? 'Next deal' : 'See results'} <kbd>Enter</kbd></button>`;
   main.innerHTML = `<div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Deal ${D.i + 1} of ${n}</h2><span class="muted">${buyer ? 'You are buying' : 'You are selling'}</span></div>
     <div class="deal-grid"><div class="stack">${barCard(d.role, d.card)}${controls}</div>${chatHtml}</div></div>`;
@@ -1768,11 +2361,11 @@ function dealAction(a) {
   if (d.status !== 'open') return;
   if (a === 'dminus' || a === 'dplus') {
     d.mine = Math.max(1, Math.min(14, d.mine + (a === 'dplus' ? 1 : -1)));
-    if (buyer && d.mine > d.card) { d.mine = d.card; toast(`It's worth ${tok(d.card)} to you. You can't offer more.`); }
-    if (!buyer && d.mine < d.card) { d.mine = d.card; toast(`It costs you ${tok(d.card)}. You can't ask for less.`); }
+    if (buyer && d.mine > d.card) { d.mine = d.card; toast(`It's worth ${tok(d.card)} to you. You can't offer more.`); sfx('bonk'); }
+    if (!buyer && d.mine < d.card) { d.mine = d.card; toast(`It costs you ${tok(d.card)}. You can't ask for less.`); sfx('bonk'); }
     return renderDeal($('#sMain'));
   }
-  const close = (price) => { d.status = 'deal'; d.price = price; d.gain = buyer ? d.card - price : price - d.card; d.log.push({ who: 'r', text: `Deal! ${tok(price)}.` }); sfx('cash'); finishDeal(); };
+  const close = (price) => { d.status = 'deal'; d.price = price; d.gain = buyer ? d.card - price : price - d.card; d.log.push({ who: 'r', text: `Deal! ${tok(price)}.` }); sfx('coin'); finishDeal(); FX.float('+' + tok(d.gain), '#sMain .deal-grid', d.gain > 0 ? 'good' : 'bad'); };
   if (a === 'daccept') { d.log.push({ who: 'y', text: `OK, I ${buyer ? 'will buy' : 'will sell'} at ${tok(d.robot)}.` }); return close(d.robot); }
   if (a === 'dwalk') { d.log.push({ who: 'y', text: 'No thanks. I am walking away.' }); d.status = 'walk'; d.log.push({ who: 'r', text: 'OK. Maybe next time!' }); return finishDeal(); }
   if (a === 'doffer') {
