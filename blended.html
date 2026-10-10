@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chợ Lớp 9 blended market: EcoLogic Market Lab Level 2</title>
+<title>Market Town blended market: EcoLogic Market Lab Level 2</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍬</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1031,7 +1031,7 @@ function renderProj(fresh) {
     const ev = s.events.filter(e => e.active);
     el.innerHTML = `<div class="projector l0">
       <div class="pmain">
-        <div class="news"><span class="flag">${r ? esc(r.label) : 'Chợ Lớp 9 market'}</span><span>${ev.length ? ev.map(e => `${e.icon || '📣'} ${esc(e.label)}`).join(' · ') : r ? 'Haggle! Shops record every sale on the till.' : 'Next round soon.'}</span></div>
+        <div class="news"><span class="flag">${r ? esc(r.label) : 'Market Town'}</span><span>${ev.length ? ev.map(e => `${e.icon || '📣'} ${esc(e.label)}`).join(' · ') : r ? 'Haggle! Shops record every sale on the till.' : 'Next round soon.'}</span></div>
         <div class="pstage" id="pStage"></div><div class="ticker" id="ticker"></div>
       </div>
       <aside class="side">
@@ -1079,7 +1079,7 @@ function printMaterials() {
   const s = T.s, notes = [10, 5, 5, 2, 2, 1], perBuyer = notes.reduce((a, b) => a + b, 0);
   const scale = s.budget / perBuyer;
   const set = scale === 1 ? notes : null;
-  const money = n => `<div class="note-cash"><span>${n}k</span><small>Chợ Lớp 9</small></div>`;
+  const money = n => `<div class="note-cash"><span>${n}k</span><small>Market Town</small></div>`;
   $('#printArea').innerHTML = `
     <section class="psheet"><h2>Buyer numbers (cut out, one per buyer)</h2><div class="pgrid-num">${Array.from({ length: s.buyers }, (_, i) => `<div class="numtag">${i + 1}<small>Buyer</small></div>`).join('')}</div></section>
     <section class="psheet"><h2>Shop signs</h2>${SHOPS.map(x => `<div class="shopsign">Shop ${x}</div>`).join('')}</section>
@@ -1114,7 +1114,7 @@ async function tillConnect() {
   const kind = PARAMS.get('t') === 'local' || !ONLINE_READY ? 'local' : 'supabase';
   S.tr = makeTransport(kind, S.room);
   qLoad();
-  document.body.innerHTML = shell(`<header class="topbar"><span class="brand" id="tShop">Chợ Lớp 9 till</span><span class="chip" id="tRound"></span><span class="spacer"></span>
+  document.body.innerHTML = shell(`<header class="topbar"><span class="brand" id="tShop">Market Town till</span><span class="chip" id="tRound"></span><span class="spacer"></span>
     <span class="timer" id="tTimer"></span><button class="btn small ghost" id="langBtn" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)"></button>
     <span class="chip" id="tConn"><span class="dot wait"></span>…</span></header><main class="wrap" id="tMain"><div class="panel">Connecting to room <b>${esc(S.room)}</b>…</div></main><div id="modal" class="modal hidden"></div>`);
   $('#langBtn').onclick = () => { S.lang = S.lang === 'en' ? 'vi' : 'en'; sSave(); render(true); };
@@ -1166,7 +1166,7 @@ function render(force) {
   $('#langBtn').textContent = tx('lang');
   const t = S.till;
   if (!t) return;
-  $('#tShop').textContent = t.shop ? `${tx('shop')} ${t.shop}` : 'Chợ Lớp 9';
+  $('#tShop').textContent = t.shop ? `${tx('shop')} ${t.shop}` : 'Market Town';
   $('#tRound').textContent = t.round ? `${t.round.label}` : tx('waiting');
   const key = JSON.stringify([S.lang, t.shop, t.round && t.round.n, t.lock, (t.events || []).map(e => e.label), t.prod && PIDS.map(p => t.prod[p].sold + ':' + t.prod[p].nextCost), t.lastSale && t.lastSale.id, S.queue.length]);
   if (!force && key === S.key) return; S.key = key;
