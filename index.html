@@ -559,9 +559,126 @@ table.helper td, table.helper th { text-align: left; }
 .sgrid > *, .tradegrid > *, .grid2 > *, .deal-grid > * { min-width: 0; }
 .fx-ticker { max-width: 100%; }
 @media (max-width: 900px) { .topbar #hConn, .topbar #sConn { font-size: 0; gap: 0; padding: 6px 8px; } .topbar .fx-lab { display: none; } }
+
+/* ===== news broadcast (three scenes) ===== */
+.fx-bc { position: fixed; inset: 0; z-index: 98; display: flex; flex-direction: column; color: #fbf3ea; overflow: hidden; cursor: pointer; background: radial-gradient(ellipse at 50% 30%, #3a2a20, #120b07); animation: fxin .35s ease; }
+.fx-bc.hidden { display: none; }
+.fx-bc.storm { background: linear-gradient(180deg, #17222f 0%, #24384d 55%, #1d2b1f 100%); }
+.fx-bc.spooky { background: linear-gradient(180deg, #120a24 0%, #3a1748 60%, #2a1406 100%); }
+.fx-bc.harvest { background: linear-gradient(180deg, #f2b44a 0%, #b0661c 55%, #5c3a12 100%); }
+.fx-bc.money, .fx-bc.health { background: linear-gradient(180deg, #0f4a33 0%, #1d6b4a 60%, #10301f 100%); }
+.fx-bc.factory { background: linear-gradient(180deg, #3b3f46 0%, #5a5f68 55%, #26282c 100%); }
+.fx-bc-top { display: flex; align-items: center; gap: 14px; padding: 10px 18px; background: rgba(0,0,0,.45); font-weight: 800; font-size: clamp(.9rem, 2vw, 1.25rem); position: relative; z-index: 3; }
+.fx-bc-live { color: #ff4d4d; animation: fxlate 1.2s infinite; letter-spacing: .08em; }
+.fx-bc-chan { flex: 1; }
+.fx-bc-clock { font-variant-numeric: tabular-nums; opacity: .85; }
+.fx-bc-strip { background: #c62828; color: #fff; font-family: var(--font-display); font-weight: 800; letter-spacing: .1em; padding: 9px 0; overflow: hidden; white-space: nowrap; position: relative; z-index: 3; font-size: clamp(1rem, 2.6vw, 1.7rem); }
+.fx-bc-strip span { display: inline-block; padding-left: 100%; animation: fxmarquee 14s linear infinite; }
+.fx-bc.calm .fx-bc-strip span { animation: none; padding-left: 16px; }
+.fx-bc-stage { flex: 1; position: relative; min-height: 0; }
+.fx-bc-scene { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 18px 20px; gap: 10px; }
+.fx-bc-scene.on { display: flex; animation: fxin .45s ease; }
+.fx-bc-icon { font-size: clamp(4.5rem, 16vw, 10rem); line-height: 1; animation: fxbounce 1s cubic-bezier(.3,1.6,.5,1); filter: drop-shadow(0 8px 20px rgba(0,0,0,.4)); }
+.fx-bc-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.1rem, 7.5vw, 5.4rem); line-height: 1.05; max-width: 20ch; text-shadow: 0 4px 18px rgba(0,0,0,.45); }
+.fx-bc-vi { font-size: clamp(1.25rem, 3.6vw, 2.5rem); color: #f7d36b; font-weight: 800; }
+.fx-bc-scene.s2 { flex-direction: row; gap: clamp(12px, 3vw, 40px); align-items: stretch; justify-content: center; }
+.fx-bc-art { position: relative; flex: 0 1 44%; min-width: 220px; border-radius: 22px; overflow: hidden; background: rgba(0,0,0,.25); box-shadow: inset 0 0 0 3px rgba(255,255,255,.12); display: flex; flex-direction: column; justify-content: space-between; padding: 14px 10px; }
+.fx-bc-art > div { display: flex; justify-content: space-around; font-size: clamp(2rem, 6vw, 4.6rem); line-height: 1; position: relative; z-index: 1; }
+.fx-bc-art .a-mid { font-size: clamp(1.4rem, 4vw, 3rem); }
+.fx-bc-art .a-ground span { animation: fxbob 1.8s ease-in-out infinite; animation-delay: calc(var(--i) * .2s); display: inline-block; }
+.fx-bc-art .a-flash { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.art-storm { background: linear-gradient(180deg, #0e1620, #2c4560); }
+.art-storm .a-sky span { animation: fxcloud 4s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -.7s); display: inline-block; }
+.art-storm .a-mid span { animation: fxrain 0.9s linear infinite; animation-delay: calc(var(--i) * .15s); display: inline-block; }
+.art-storm .a-flash { background: #fff; opacity: 0; animation: fxlightning 3.2s infinite; }
+.art-storm::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(105deg, rgba(180,210,255,.18) 0 2px, transparent 2px 14px); animation: fxsheet .5s linear infinite; z-index: 0; }
+.art-spooky { background: radial-gradient(circle at 75% 20%, #3d2b63, #120a24 70%); }
+.art-spooky .a-sky { justify-content: flex-end; padding-right: 8%; }
+.art-spooky .a-sky span { animation: fxglow 2.4s ease-in-out infinite alternate; display: inline-block; }
+.art-spooky .a-mid span { animation: fxbat 3.2s ease-in-out infinite; animation-delay: calc(var(--i) * -.8s); display: inline-block; }
+.art-harvest { background: linear-gradient(180deg, #ffcf6b, #c9792a); }
+.art-harvest .a-sky span { animation: fxsun 3s ease-in-out infinite alternate; display: inline-block; }
+.art-harvest .a-mid span { animation: fxwind 1.6s linear infinite; animation-delay: calc(var(--i) * .5s); display: inline-block; }
+.art-harvest .a-ground { filter: saturate(.6) sepia(.4); }
+.art-money .a-sky span, .art-health .a-sky span { animation: fxrain 1.6s linear infinite; animation-delay: calc(var(--i) * .3s); display: inline-block; }
+.art-factory .a-sky span { animation: fxsmoke 2.6s ease-out infinite; animation-delay: calc(var(--i) * 1.2s); display: inline-block; }
+.art-factory .a-mid span { animation: fxspin2 2s linear infinite; display: inline-block; }
+.fx-bc.calm .fx-bc-art *, .fx-bc.calm .fx-bc-art::after { animation: none !important; }
+.fx-bc-story { flex: 1 1 50%; max-width: 640px; display: flex; flex-direction: column; justify-content: center; gap: 10px; text-align: left; }
+.fx-bc-reporter { font-weight: 800; color: #f7d36b; letter-spacing: .04em; font-size: clamp(.95rem, 2vw, 1.25rem); }
+.fx-bc-story p { margin: 0; padding: 10px 14px; border-radius: 14px; background: rgba(0,0,0,.35); border-left: 5px solid #f7d36b; opacity: 0; animation: fxline .6s ease forwards; }
+.fx-bc.calm .fx-bc-story p { animation: none; opacity: 1; }
+.fx-bc-story b { display: block; font-size: clamp(1.15rem, 2.9vw, 2rem); line-height: 1.2; }
+.fx-bc-story small { display: block; color: #f7d36b; font-size: clamp(.9rem, 2vw, 1.3rem); margin-top: 3px; }
+.fx-bc-h3 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem, 4.4vw, 3rem); }
+.fx-bc-cards { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; max-width: 1100px; }
+.fx-bc-card { display: flex; gap: 12px; align-items: center; text-align: left; background: #fbf3ea; color: #2b1a10; border-radius: 18px; padding: 14px 18px; min-width: min(100%, 300px); flex: 1 1 300px; max-width: 520px; box-shadow: 0 10px 30px rgba(0,0,0,.35); opacity: 0; animation: fxline .5s ease forwards; }
+.fx-bc.calm .fx-bc-card { animation: none; opacity: 1; }
+.fx-bc-card .ic { font-size: clamp(2.2rem, 5vw, 3.4rem); }
+.fx-bc-card .who { font-weight: 800; font-size: clamp(.95rem, 2vw, 1.2rem); color: #8a5a2b; text-transform: uppercase; letter-spacing: .05em; }
+.fx-bc-card .txt { font-weight: 800; font-size: clamp(1.1rem, 2.6vw, 1.7rem); line-height: 1.2; }
+.fx-bc-card .vi { font-size: clamp(.9rem, 2vw, 1.15rem); color: #6b4a2f; margin-top: 2px; }
+.fx-bc-ask { font-size: clamp(1.2rem, 3vw, 2rem); font-weight: 800; color: #f7d36b; margin-top: 6px; }
+.fx-bc-low { display: flex; align-items: center; gap: 14px; padding: 10px 18px 14px; background: rgba(0,0,0,.4); position: relative; z-index: 3; }
+.fx-bc-dots { display: flex; gap: 6px; } .fx-bc-dots i { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.3); } .fx-bc-dots i.on { background: #f7d36b; }
+.fx-bc-bar { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.2); overflow: hidden; } .fx-bc-bar b { display: block; height: 100%; width: 0; background: #f7d36b; transition: width .25s linear; }
+.fx-bc-skip { min-height: 44px; padding: 6px 16px; border-radius: 999px; border: 2px solid rgba(255,255,255,.5); background: transparent; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+@media (max-width: 760px) { .fx-bc-scene.s2 { flex-direction: column; } .fx-bc-art { flex: 0 0 auto; min-height: 150px; } }
+@keyframes fxbob { 50% { transform: translateY(-8px); } }
+@keyframes fxcloud { from { transform: translateX(-12px); } to { transform: translateX(12px); } }
+@keyframes fxrain { from { transform: translateY(-30px); opacity: 0; } 30% { opacity: 1; } to { transform: translateY(60px); opacity: 0; } }
+@keyframes fxlightning { 0%, 86%, 92%, 100% { opacity: 0; } 88% { opacity: .55; } 90% { opacity: .1; } 91% { opacity: .4; } }
+@keyframes fxsheet { from { background-position: 0 0; } to { background-position: -14px 40px; } }
+@keyframes fxglow { from { filter: drop-shadow(0 0 6px #ffe9a0); } to { filter: drop-shadow(0 0 26px #ffe9a0); } }
+@keyframes fxbat { 0%, 100% { transform: translate(0, 0) rotate(-8deg); } 25% { transform: translate(40px, -18px) rotate(8deg); } 50% { transform: translate(-10px, 10px); } 75% { transform: translate(-40px, -12px) rotate(10deg); } }
+@keyframes fxsun { from { transform: scale(1); filter: drop-shadow(0 0 8px #fff3b0); } to { transform: scale(1.12); filter: drop-shadow(0 0 30px #fff3b0); } }
+@keyframes fxwind { from { transform: translateX(-60px); opacity: 0; } 40% { opacity: 1; } to { transform: translateX(80px); opacity: 0; } }
+@keyframes fxsmoke { from { transform: translateY(20px) scale(.6); opacity: .9; } to { transform: translateY(-50px) scale(1.4); opacity: 0; } }
+@keyframes fxspin2 { to { transform: rotate(360deg); } }
+@keyframes fxline { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* ===== news crawl along the bottom ===== */
+.fx-crawl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: stretch; background: #1d120b; color: #fbf3ea; font-weight: 700; font-size: clamp(.95rem, 1.8vw, 1.2rem); box-shadow: 0 -4px 16px rgba(0,0,0,.25); }
+.fx-crawl-tag { background: #c62828; color: #fff; padding: 10px 14px; font-weight: 800; letter-spacing: .06em; white-space: nowrap; }
+.fx-crawl-run { flex: 1; overflow: hidden; white-space: nowrap; display: flex; align-items: center; }
+.fx-crawl-run span { display: inline-block; padding-left: 100%; animation: fxmarquee 30s linear infinite; }
+body.fx-crawling { padding-bottom: 48px; }
+body.fx-crawling .projector { padding-bottom: 52px; }
+.fx-crawl.calm .fx-crawl-run span { animation-duration: 70s !important; }
+
+/* ===== big demand and supply panel on the teacher console ===== */
+.fx-hero { margin-bottom: 18px; display: flex; flex-direction: column; gap: 10px; border-width: 2px; }
+.fx-hero-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fx-hero-head h2 { margin: 0; font-size: clamp(1.3rem, 2.4vw, 1.75rem); }
+.fx-hero .chart-box { aspect-ratio: 16 / 7.2; min-height: 340px; }
+@media (max-width: 900px) { .fx-hero .chart-box { aspect-ratio: 4 / 3.2; min-height: 300px; } }
+.fx-eqstrip { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+.fx-eq { flex: 1 1 210px; min-width: 0; border-radius: 16px; padding: 8px 16px; background: var(--mint-soft); border: 2px solid var(--mint); display: flex; flex-direction: column; justify-content: center; }
+.fx-eq small { color: var(--muted); font-weight: 700; }
+.fx-eq .v { font-family: var(--font-display); font-size: clamp(1.4rem, 2.6vw, 2rem); font-weight: 800; white-space: nowrap; }
+.fx-eq .v s { color: var(--muted); font-weight: 700; font-size: .75em; }
+.fx-eq .arr { color: var(--muted); font-size: .8em; }
+.fx-eq .dir { font-size: .62em; padding: 2px 8px; border-radius: 999px; vertical-align: middle; }
+.fx-eq .dir.up { background: var(--seller-soft); color: var(--seller); } .fx-eq .dir.down { background: var(--buyer-soft, #e3eef7); color: var(--buyer); } .fx-eq .dir.same { color: var(--muted); }
+.fx-eq .n { font-weight: 600; }
+.fx-eq.wait { background: var(--panel); border-style: dashed; border-color: var(--line); }
+.fx-eq.shift { background: var(--warn-soft); border-color: var(--foil); }
+.fx-eqnote { flex: 1 1 100%; color: var(--ink); }
+
+.fx-bc-rain { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.fx-bc-rain span { position: absolute; top: -10%; font-size: clamp(1.6rem, 3.5vw, 2.6rem); animation: fxfall linear infinite; opacity: .8; }
+.fx-bc.calm .fx-bc-rain { display: none; }
+.fx-bc-scene.s1 > :not(.fx-bc-rain) { position: relative; z-index: 1; }
+
+/* ===== Vietnamese switch ===== */
+body.no-vi .vi { display: none !important; }
+body.vi-sub .vi { font-size: .82em; font-weight: 500; opacity: .85; letter-spacing: 0; text-transform: none; }
+body.vi-sub .fx-news-vi, body.vi-sub .fx-bc-vi { font-size: clamp(.95rem, 2.4vw, 1.35rem); font-weight: 600; }
+body.vi-sub .fx-news-strip .vi, body.vi-sub .fx-bc-strip .vi, body.vi-sub .fx-crawl-tag .vi, body.vi-sub .fx-bc-chan .vi, body.vi-sub .fx-bc-h3 .vi { display: none; }
+.vi-toggle { white-space: nowrap; }
 </style><!--/FX-CSS-->
 </head><body>
-<header class="topbar"><span class="brand">EcoLogic Market Lab</span><span class="chip">Chợ Lớp 9 · IGCSE Economics 0455</span><span class="spacer"></span><span class="chip" id="status"></span></header>
+<header class="topbar"><span class="brand">EcoLogic Market Lab</span><span class="chip">Market Town · IGCSE Economics 0455</span><span class="spacer"></span><button class="btn small ghost vi-toggle" id="viT" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)" title="Vietnamese on this device (teachers: also the default for new rooms)"></button><span class="chip" id="status"></span></header>
 <main class="wrap stack">
   <div class="home-grid">
     <section class="panel stack join-card" id="studentCard">
@@ -619,6 +736,23 @@ const FX = (() => {
   const sysReduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const calm = () => sysReduced || !!get('calm', false);
 
+  /* ---------- Vietnamese: shown, hidden (teacher screens), or kept as small support text (student devices) ---------- */
+  let viState = get('vi', true) !== false, viRole = /[?&]mode=teacher/.test(location.search) ? 'teacher' : 'student';
+  const isVi = s => /[ăâêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹàáèéìíòóùúý]/i.test(String(s || '').replace(/\d[\d.,]*đ|đồng|café/gi, ''));
+  const viOn = () => viState;
+  const viHidden = () => !viState && viRole !== 'student';
+  /** Vietnamese text, marked so it can be hidden or shown as support text */
+  const vi = (s, cls = '') => s ? `<span class="vi ${cls}" lang="vi">${h(s)}</span>` : '';
+  /** "English · Tiếng Việt": escapes it and marks the Vietnamese parts (with their separator) */
+  const bi = s => String(s ?? '').split(' · ').map((part, i) => isVi(part) ? `<span class="vi" lang="vi">${i ? ' · ' : ''}${h(part)}</span>` : (i ? ' · ' : '') + h(part)).join('');
+  /** on: Vietnamese shown. role: 'teacher' (off = hidden) or 'student' (off = small support text only) */
+  function setVi(on, role) {
+    viState = on !== false; if (role) viRole = role;
+    const apply = () => { document.body.classList.toggle('no-vi', !viState && viRole !== 'student'); document.body.classList.toggle('vi-sub', !viState && viRole === 'student'); };
+    if (document.body) apply(); else document.addEventListener('DOMContentLoaded', apply);
+  }
+  setVi(viState);
+
   /* ---------- avatars, teams, titles ---------- */
   const AVATARS = ['🐼', '🦊', '🐯', '🐸', '🐵', '🐨', '🐙', '🦄', '🐲', '🐧', '🦁', '🐰', '🐻', '🐱', '🐶', '🦉', '🐢', '🐬', '🐝', '🦋', '🌟', '🚀', '🎸', '⚽'];
   const TEAMS = {
@@ -648,7 +782,7 @@ const FX = (() => {
     if (prev != null && t.i > prev) { levelUp(t); onUp && onUp(t); }
     return t;
   }
-  const titleChip = t => `<span class="chip fx-title" title="${h(t.vi)}">${t.icon} ${h(t.en)}</span>`;
+  const titleChip = t => `<span class="chip fx-title"${viHidden() ? '' : ` title="${h(t.vi)}"`}>${t.icon} ${h(t.en)}</span>`;
 
   /* ---------- sound: extra synthesised sounds added to each level's Sound ---------- */
   let gain = 1, installed = false, gate = null;
@@ -763,8 +897,8 @@ const FX = (() => {
     if (!el) { el = document.createElement('div'); el.id = 'fxNews'; document.body.appendChild(el); el.onclick = () => el.classList.add('hidden'); }
     el.className = 'fx-news ' + th.cls + (quiet ? ' calm' : '');
     const bits = quiet ? '' : Array.from({ length: 18 }, (_, i) => `<span class="fx-bit" style="left:${(i * 37 + 7) % 100}%;animation-delay:${(i % 6) * .18}s;animation-duration:${2.2 + (i % 4) * .5}s">${th.bits[i % th.bits.length]}</span>`).join('');
-    el.innerHTML = `<div class="fx-bits">${bits}</div><div class="fx-news-strip"><span>${h(o.kicker || 'BREAKING NEWS · TIN NÓNG')}</span></div>
-      <div class="fx-news-body"><div class="fx-news-icon">${o.icon || '📣'}</div><div class="fx-news-title">${h(o.title)}</div>${o.vi ? `<div class="fx-news-vi">${h(o.vi)}</div>` : ''}${o.detail ? `<div class="fx-news-detail">${h(o.detail)}</div>` : ''}<div class="fx-news-tap">Tap to close</div></div>`;
+    el.innerHTML = `<div class="fx-bits">${bits}</div><div class="fx-news-strip"><span>${bi(o.kicker || 'BREAKING NEWS · TIN NÓNG')}</span></div>
+      <div class="fx-news-body"><div class="fx-news-icon">${o.icon || '📣'}</div><div class="fx-news-title">${h(o.title)}</div>${o.vi ? `<div class="fx-news-vi vi" lang="vi">${h(o.vi)}</div>` : ''}${o.detail ? `<div class="fx-news-detail">${h(o.detail)}</div>` : ''}<div class="fx-news-tap">Tap to close</div></div>`;
     el.classList.remove('hidden');
     if (o.sound !== false) { snd('news'); if (th.sound) setTimeout(() => snd(th.sound), 550); }
     clearTimeout(newsT); newsT = setTimeout(() => el.classList.add('hidden'), o.ms || 4500);
@@ -779,7 +913,7 @@ const FX = (() => {
     const x = popQ.shift(); if (!x) { popBusy = false; return; }
     popBusy = true;
     const el = document.createElement('div'); el.className = 'fx-pop' + (calm() ? ' calm' : '');
-    el.innerHTML = `<div class="fx-pop-icon">${x.icon}</div><div><div class="fx-pop-head">${h(x.head)}</div><div class="fx-pop-title">${h(x.title)}</div>${x.sub ? `<div class="fx-pop-sub">${h(x.sub)}</div>` : ''}</div>`;
+    el.innerHTML = `<div class="fx-pop-icon">${x.icon}</div><div><div class="fx-pop-head">${h(x.head)}</div><div class="fx-pop-title">${h(x.title)}</div>${x.sub ? `<div class="fx-pop-sub${isVi(x.sub) ? ' vi' : ''}">${h(x.sub)}</div>` : ''}</div>`;
     document.body.appendChild(el);
     if (x.sound) snd(x.sound);
     if (!calm() && typeof confetti === 'function') confetti(40);
@@ -879,7 +1013,7 @@ const FX = (() => {
     return `<div class="fx-pick"><div class="fx-pick-lab">Choose your avatar</div><div class="fx-avgrid">${AVATARS.map(a => `<button type="button" class="fx-av ${a === cur ? 'sel' : ''}" data-fx-av="${a}" aria-label="Avatar ${a}">${a}</button>`).join('')}</div></div>`;
   }
   function teamPicker(cur) {
-    return `<div class="fx-pick"><div class="fx-pick-lab">Your table (team)</div><div class="fx-teams">${Object.entries(TEAMS).map(([k, t]) => `<button type="button" class="fx-team ${k === cur ? 'sel' : ''}" data-fx-team="${k}" style="--team:${t.color}">${t.icon} ${h(t.name)}<small>${h(t.vi)}</small></button>`).join('')}</div></div>`;
+    return `<div class="fx-pick"><div class="fx-pick-lab">Your table (team)</div><div class="fx-teams">${Object.entries(TEAMS).map(([k, t]) => `<button type="button" class="fx-team ${k === cur ? 'sel' : ''}" data-fx-team="${k}" style="--team:${t.color}">${t.icon} ${h(t.name)}<small class="vi" lang="vi">${h(t.vi)}</small></button>`).join('')}</div></div>`;
   }
   let avFn = null;
   const onPick = fn => { avFn = fn; };
@@ -943,10 +1077,129 @@ const FX = (() => {
     })(t0);
   }
 
-  return { snd, since, late, get, set, calm, AVATARS, TEAMS, TITLES, SHOP_COLORS, myAvatar, avOf, teamOf, title, titleWatch, titleChip,
+  return { snd, since, late, get, set, calm, isVi, viOn, viHidden, vi, bi, setVi, AVATARS, TEAMS, TITLES, SHOP_COLORS, myAvatar, avOf, teamOf, title, titleWatch, titleChip,
     install, setGain, float, coins, shake, pulse, news, badge, levelUp, jar, jarGrew, priceTag, onRange, hold, setVal, stall, wallet, ticker, timer,
     avatarPicker, teamPicker, onPick, calmBtn, leaderboard, teamBars, podium, replay };
 })();
+
+/* =====================================================================
+   News broadcasts, the news crawl, and equilibrium callouts on charts.
+   ===================================================================== */
+Object.assign(FX, (() => {
+  const bi = s => FX.bi(s);
+  const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // picture for each kind of news: sky, middle and ground rows of emoji, animated in CSS
+  const ART = {
+    storm: { sky: ['☁️', '⛈️', '☁️', '🌩️', '☁️'], mid: ['💧', '💧', '💧', '💧', '💧', '💧'], ground: ['🌳', '🍫', '🌳', '🌱', '🌳', '🍫'], cls: 'storm', sound: 'storm' },
+    spooky: { sky: ['🌕'], mid: ['🦇', '🦇', '👻', '🦇'], ground: ['🎃', '🍬', '🎃', '🍫', '🎃', '🍭'], cls: 'spooky', sound: 'spooky' },
+    harvest: { sky: ['☀️'], mid: ['💨', '💨', '💨'], ground: ['🌾', '🥀', '🌾', '🌾', '🥀', '🌾'], cls: 'harvest', sound: 'harvest' },
+    money: { sky: ['💵', '💰', '💵', '🪙', '💵'], mid: [], ground: ['🧒', '🛍️', '👧', '🛍️', '🧑'], cls: 'money', sound: 'money' },
+    factory: { sky: ['💨', '💨'], mid: ['⚙️', '⚙️'], ground: ['🏭', '📦', '📦', '🚚', '📦'], cls: 'factory', sound: 'factory' },
+    health: { sky: ['🍎', '🥦', '🍌'], mid: [], ground: ['🥗', '🏃', '🍎', '🚴', '🥕'], cls: 'health', sound: 'health' },
+    market: { sky: ['✨', '⭐', '✨'], mid: [], ground: ['🏪', '🍫', '🍬', '🏪', '🍫'], cls: 'round', sound: null }
+  };
+  const THEME_ART = { cacao: 'storm', sugar: 'harvest', halloween: 'spooky', pocket: 'money', factory: 'factory', health: 'health' };
+  let bcT = [], bcTick = null;
+  const clearBc = () => { bcT.forEach(clearTimeout); bcT = []; clearInterval(bcTick); bcTick = null; };
+  function artHtml(a) {
+    const row = (xs, cls) => `<div class="${cls}">${xs.map((x, i) => `<span style="--i:${i}">${x}</span>`).join('')}</div>`;
+    return `<div class="fx-bc-art art-${a.cls}">${row(a.sky, 'a-sky')}${a.mid.length ? row(a.mid, 'a-mid') : ''}<div class="a-flash"></div>${row(a.ground, 'a-ground')}</div>`;
+  }
+  /**
+   * A TV-style news broadcast in three scenes: the headline, the story (with a picture), and what changes.
+   * o: {theme, icon, kicker, title, vi, lines:[[en, vi]], impact:[{icon, who, text, vi}] or a function that returns them,
+   *     ask, ms:[headline, story, impact], sound, onClose}. Tap moves to the next scene; Skip closes. Returns the total time.
+   */
+  function broadcast(o) {
+    clearBc();
+    if (window.FX_TEST_NO_BROADCAST) { if (o.onClose) o.onClose(); return 0; } // automated tests only
+    const quiet = FX.calm(), a = ART[THEME_ART[o.theme] || o.theme] || ART.market, ms = o.ms || [4500, 8000, 7500];
+    let el = document.getElementById('fxBc');
+    if (!el) { el = document.createElement('div'); el.id = 'fxBc'; document.body.appendChild(el); }
+    el.className = 'fx-bc ' + a.cls + (quiet ? ' calm' : '');
+    const lines = o.lines || [];
+    const clock = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    el.innerHTML = `<div class="fx-bc-top"><span class="fx-bc-live">● LIVE</span><span class="fx-bc-chan">${bi('📺 Market Town News · Bản tin Thị Trấn Chợ')}</span><span class="fx-bc-clock">${clock()}</span></div>
+      <div class="fx-bc-strip"><span>${bi(o.kicker || 'BREAKING NEWS · TIN NÓNG')} &nbsp;•&nbsp; ${h(o.title)}${o.vi ? `<span class="vi" lang="vi"> &nbsp;•&nbsp; ${h(o.vi)}</span>` : ''} &nbsp;•&nbsp; ${bi(o.kicker || 'BREAKING NEWS · TIN NÓNG')}</span></div>
+      <div class="fx-bc-stage">
+        <section class="fx-bc-scene s1"><div class="fx-bc-rain">${quiet ? '' : Array.from({ length: 16 }, (_, i) => `<span style="left:${(i * 41 + 5) % 100}%;animation-delay:${(i % 8) * .35}s;animation-duration:${3 + (i % 4) * .6}s">${a.sky.concat(a.ground)[i % (a.sky.length + a.ground.length)]}</span>`).join('')}</div><div class="fx-bc-icon">${o.icon || '📣'}</div><div class="fx-bc-title">${h(o.title)}</div>${o.vi ? `<div class="fx-bc-vi vi" lang="vi">${h(o.vi)}</div>` : ''}</section>
+        <section class="fx-bc-scene s2">${artHtml(a)}<div class="fx-bc-story"><div class="fx-bc-reporter">${bi('🎙️ Reporter · Phóng viên')}</div>${lines.map((l, i) => `<p style="animation-delay:${.4 + i * Math.max(1.2, (ms[1] / 1000 - 1.5) / Math.max(1, lines.length))}s"><b>${h(l[0])}</b>${l[1] ? `<small class="vi" lang="vi">${h(l[1])}</small>` : ''}</p>`).join('')}</div></section>
+        <section class="fx-bc-scene s3"><div class="fx-bc-h3">${bi('What changes · Điều gì thay đổi')}</div><div class="fx-bc-cards" id="fxBcCards"></div>${o.ask ? `<div class="fx-bc-ask">🤔 ${h(o.ask)}</div>` : ''}</section>
+      </div>
+      <div class="fx-bc-low"><div class="fx-bc-dots"><i></i><i></i><i></i></div><div class="fx-bc-bar"><b></b></div><button class="fx-bc-skip" type="button">Skip ⏭</button></div>`;
+    el.classList.remove('hidden');
+    let scene = 0;
+    const total = ms.reduce((x, y) => x + y, 0);
+    const fillCards = () => { const c = el.querySelector('#fxBcCards'); if (!c) return; const im = typeof o.impact === 'function' ? o.impact() : (o.impact || []); c.innerHTML = im.map((x, i) => `<div class="fx-bc-card" style="animation-delay:${i * .35}s"><div class="ic">${x.icon || '📌'}</div><div><div class="who">${bi(x.who)}</div><div class="txt">${h(x.text)}</div>${x.vi ? `<div class="vi" lang="vi">${h(x.vi)}</div>` : ''}</div></div>`).join(''); };
+    const close = () => { clearBc(); el.classList.add('hidden'); el.innerHTML = ''; if (o.onClose) o.onClose(); };
+    const show = k => {
+      scene = k; bcT.forEach(clearTimeout); bcT = [];
+      if (k > 2) return close();
+      t0 = Date.now() - ms.slice(0, k).reduce((x, y) => x + y, 0);
+      el.querySelectorAll('.fx-bc-scene').forEach((s, i) => s.classList.toggle('on', i === k));
+      el.querySelectorAll('.fx-bc-dots i').forEach((d, i) => d.classList.toggle('on', i <= k));
+      if (k === 2) fillCards();
+      if (o.sound !== false) { if (k === 0) { FX.snd('news'); if (a.sound) bcT.push(setTimeout(() => FX.snd(a.sound), 650)); } else if (k === 1 && a.sound) FX.snd(a.sound); else if (k === 2) FX.snd('badge'); }
+      bcT.push(setTimeout(() => show(k + 1), ms[k]));
+    };
+    let t0 = Date.now(); const bar = el.querySelector('.fx-bc-bar b');
+    // the bar shows how far through the broadcast we are
+    bcTick = setInterval(() => { if (bar) bar.style.width = Math.min(100, 100 * (Date.now() - t0) / total) + '%'; }, 250);
+    el.querySelector('.fx-bc-skip').onclick = e => { e.stopPropagation(); close(); };
+    el.onclick = () => show(scene + 1);
+    show(0);
+    return total;
+  }
+  const bcOpen = () => { const el = document.getElementById('fxBc'); return !!(el && !el.classList.contains('hidden') && el.innerHTML); };
+
+  /** News crawl along the bottom of the screen while an event is on. items: [string] or null to remove */
+  function crawl(items) {
+    let el = document.getElementById('fxCrawl');
+    if (!items || !items.length) { if (el) el.remove(); document.body.classList.remove('fx-crawling'); return; }
+    const txt = items.join('   •   ');
+    if (!el) { el = document.createElement('div'); el.id = 'fxCrawl'; document.body.appendChild(el); }
+    el.className = 'fx-crawl' + (FX.calm() ? ' calm' : '');
+    if (el.dataset.txt === txt) return;
+    el.dataset.txt = txt;
+    const dur = Math.max(18, txt.length / 7);
+    el.innerHTML = `<span class="fx-crawl-tag">${bi('📺 NEWS · TIN TỨC')}</span><div class="fx-crawl-run"><span style="animation-duration:${dur}s">${h(txt)}   •   ${h(txt)}</span></div>`;
+    document.body.classList.add('fx-crawling');
+  }
+
+  /** Equilibrium chips. items: [{label, vi, value, from, dir, note, kind}] */
+  function eqStrip(items, note) {
+    return `<div class="fx-eqstrip">${items.map(x => `<div class="fx-eq ${x.kind || ''}"><small>${h(x.label)}${x.vi ? `<span class="vi" lang="vi"> · ${h(x.vi)}</span>` : ''}</small><div class="v">${x.from != null ? `<s>${h(x.from)}</s> <span class="arr">→</span> ` : ''}<b>${h(x.value)}</b>${x.dir ? ` <span class="dir ${x.dir > 0 ? 'up' : 'down'}">${x.dir > 0 ? '▲' : '▼'}${x.delta != null ? ' ' + h(x.delta) : ''}</span>` : x.from != null ? ' <span class="dir same">=</span>' : ''}</div>${x.note ? `<small class="n">${h(x.note)}</small>` : ''}</div>`).join('')}${note ? `<div class="fx-eqnote">${note}</div>` : ''}</div>`;
+  }
+
+  /* ---------- canvas helpers ---------- */
+  function rrect(g, x, y, w, ht, r) { g.beginPath(); g.moveTo(x + r, y); g.lineTo(x + w - r, y); g.quadraticCurveTo(x + w, y, x + w, y + r); g.lineTo(x + w, y + ht - r); g.quadraticCurveTo(x + w, y + ht, x + w - r, y + ht); g.lineTo(x + r, y + ht); g.quadraticCurveTo(x, y + ht, x, y + ht - r); g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y); g.closePath(); }
+  /** A thick arrow from (x1, y1) to (x2, y2) */
+  function arrow(g, x1, y1, x2, y2, col, w = 5) {
+    const ang = Math.atan2(y2 - y1, x2 - x1), hd = Math.max(12, w * 3);
+    g.save(); g.strokeStyle = col; g.fillStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.setLineDash([]);
+    g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - Math.cos(ang) * hd * .8, y2 - Math.sin(ang) * hd * .8); g.stroke();
+    g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - hd * Math.cos(ang - .45), y2 - hd * Math.sin(ang - .45)); g.lineTo(x2 - hd * Math.cos(ang + .45), y2 - hd * Math.sin(ang + .45)); g.closePath(); g.fill(); g.restore();
+  }
+  /**
+   * Equilibrium point with dashed guides and labels on both axes.
+   * o: {X, Y, L, T, ph, fs, font, p, q, pTxt, qTxt, tag, col, ink, panel, faded, labelSide}
+   */
+  function eqMark(g, o) {
+    const x = o.X(o.q), y = o.Y(o.p), fs = o.fs, col = o.col, base = o.T + o.ph;
+    g.save(); g.globalAlpha = o.faded ? .55 : 1;
+    g.strokeStyle = col; g.lineWidth = o.faded ? 2 : 2.5; g.setLineDash([7, 6]);
+    g.beginPath(); g.moveTo(o.L, y); g.lineTo(x, y); g.lineTo(x, base); g.stroke(); g.setLineDash([]);
+    g.beginPath(); g.arc(x, y, fs * (o.faded ? .5 : .7), 0, Math.PI * 2); g.fillStyle = o.faded ? o.panel : col; g.fill(); g.lineWidth = 3; g.strokeStyle = col; g.stroke();
+    if (!o.faded) { g.lineWidth = 3; g.beginPath(); g.arc(x, y, fs * 1.25, 0, Math.PI * 2); g.globalAlpha = .45; g.stroke(); g.globalAlpha = 1; }
+    const bf = `800 ${Math.round(fs * (o.faded ? .9 : 1.05))}px ${o.font}`; g.font = bf;
+    const box = (txt, cx, cy, align) => { const tw = g.measureText(txt).width, bw = tw + fs * .9, bh = fs * 1.55; let bx = align === 'right' ? cx - bw : align === 'center' ? cx - bw / 2 : cx; rrect(g, bx, cy - bh / 2, bw, bh, bh / 2.6); g.fillStyle = o.faded ? o.panel : col; g.fill(); g.lineWidth = 2; g.strokeStyle = col; g.stroke(); g.fillStyle = o.faded ? col : '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, bx + bw / 2, cy + 1); };
+    if (o.pTxt) box(o.pTxt, o.L - 4, y + (o.pDy || 0), 'right');
+    if (o.qTxt) box(o.qTxt, x, base + fs * 1.05 + (o.qRow || 0) * fs * 1.7, 'center');
+    if (o.tag) { g.font = `800 ${Math.round(fs * 1.15)}px ${o.font}`; g.fillStyle = col; g.textAlign = o.labelSide === 'left' ? 'right' : 'left'; g.textBaseline = 'bottom'; g.fillText(o.tag, x + (o.labelSide === 'left' ? -fs * 1.2 : fs * 1.2), y - fs * .5); }
+    g.restore();
+  }
+  return { broadcast, bcOpen, crawl, eqStrip, arrow, eqMark, rrect };
+})());
 </script><!--/FX-JS-->
 <script>
 /* EcoLogic Market Lab: home page. Students join any lesson with its room code;
@@ -1057,5 +1310,11 @@ async function testMarking() {
   $('#avPick').innerHTML = FX.avatarPicker(FX.myAvatar());
 })();
 
+</script>
+<script>
+/* ---- Vietnamese on/off for this device; teachers' new rooms start with this setting ---- */
+(() => { const show = () => { const on = FX.get('vi', true) !== false; FX.setVi(on, 'teacher'); const b = document.getElementById('viT'); if (b) b.textContent = on ? '🇻🇳 Tiếng Việt: on' : '🇻🇳 Vietnamese: off'; };
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#viT')) { FX.set('vi', FX.get('vi', true) === false); show(); } });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show(); })();
 </script>
 </body></html>

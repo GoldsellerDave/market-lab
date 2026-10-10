@@ -1,4 +1,4 @@
-# EcoLogic Market Lab: Chợ Lớp 9
+# EcoLogic Market Lab: Market Town
 
 Two classroom market lessons for Cambridge IGCSE Economics 0455, in one web app. Students join on tablets or laptops with a room code; the teacher runs each lesson from a console and the projector view.
 
@@ -97,7 +97,7 @@ File: `level1.html`. Every student gets one card: a **buyer card** (what one ite
 | Prediction | Will prices get closer together in Round 2? Judged automatically when Round 2 ends | Poll results |
 | Rounds 2 and 3 | Same cards | Same, with sound |
 | Open the sealed envelope | | The true curves from the cards, the equilibrium marker, and the equilibrium line on the trade-price chart. Locked until Round 3 is played |
-| Debrief (own pace, marked) | Paper 2 style questions with command words and marks (see below). The schedule and the plotting grid come first, side by side with the questions | |
+| Debrief, extension and Paper 2 | Debrief from the class's cards and rounds, an extension, and Paper 2 Sections A and B (see "Debrief, extension and Paper 2") | |
 | Knowledge check | 10 Paper 1 style questions on the price mechanism, equilibrium and disequilibrium, including 2 built from the class's own cards and trades | Class results by question, when you choose |
 | Badges | Badge wall plus Level 0 badges | Badge wall |
 
@@ -105,29 +105,69 @@ File: `level1.html`. Every student gets one card: a **buyer card** (what one ite
 
 **Badges (13).** First trade, Every round, Market opened (class), Bargain hunter (gain of 15.000đ or more), Profit maker (profit of 15.000đ or more), Market maker (posted an offer someone accepted), On target (traded within one step of equilibrium in Round 3), Market forecaster, Curve plotter, Explainer, Word collector, Exam ready, Perfect paper.
 
-**Teacher tools.** Round summary, robot check (200 simulated markets), trade log CSV in đồng, debrief dashboard with "right first time" by task, homework question from the class's data, knowledge-check dashboard with diagnostic vs final marks and CSV.
+**Teacher tools.** Round summary, robot check (200 simulated markets), trade log CSV in đồng, the Debrief and Paper 2 dashboard, knowledge-check dashboard with diagnostic vs final marks and CSV.
 
 **Keyboard (laptops).** ← → change the price, Enter sends, B buys now, S sells now, Esc cancels.
 
 
-## Level 1 debrief and lesson grades
+## Debrief, extension and Paper 2 (all levels)
 
-The debrief is marked like Paper 2. The first answer to each question counts; students can try again to learn.
+At the end of each level, open the **Debrief and Paper 2** panel in the teacher console and click **Open the debrief from our data**. The app freezes that lesson's data, so every student answers about the same numbers. It builds four sections, which you switch on and off from the panel:
 
-| Question | Marks | How it is marked |
+| Section | What it is | Marks |
 |---|---|---|
-| Using the schedule, plot the demand and supply curves | 2 | 1 per curve with all 5 points right at the first check. Double-tap a point to remove it |
-| Identify the equilibrium price | 1 | First answer |
-| State the equilibrium quantity | 1 | First answer |
-| State whether your card is counted at the equilibrium price | 1 | First answer |
-| Calculate the shortage | 2 | 2 if right first time, 1 if right second time |
-| Calculate total revenue | 2 | As above |
-| Calculate the gap between the class's average price and equilibrium | 2 | As above |
-| Explain how the price mechanism decided which businesses sold | 4 | AI marking against a 4-point mark scheme, with instant feedback and a next step |
+| **Debrief** | Short tasks that read the class's own tables, with instant feedback and an explanation. One personal question uses the student's own card or shop. | Formative: the dashboard shows "right first time" per student and per task |
+| **Extension** | Uses the level's idea in a new situation, with a stretch part. Level 0: build market demand from three buyer cards. Level 1: work out the schedule and equilibrium for ten new traders. Level 2: find tomorrow's market-clearing menu price, then a 2.5 preview (a new factory opens). | Not graded |
+| **Paper 2 · Section A** (in class) | A data-response question in the 2027 specimen format: Calculate [2], Identify [2], Explain [2], Draw [4], Analyse [4], Discuss [6]. The sources are the class's own tables. | 20 |
+| **Paper 2 · Section B** (homework) | A structured question: Define [2], Explain two [4], Analyse [6], Discuss [8], marked with the levels-of-response table. Level 2's Section B covers 2.5 (changes in demand and supply). | 20 |
 
-**Lesson grade** = debrief (15) + knowledge check (10) = **25**. The teacher console shows each student's marks, the class average and standard deviation, and flags students more than 1 standard deviation below the average, plus anyone who has not finished. You can change any Explain mark, and download the grades as CSV.
+**Where the data comes from.** Level 0: the class demand and supply schedules. Level 1: the schedule hidden in everyone's cards, and the prices in each round. Level 2: the menu-prices round, the market before and after the cacao (or sugar) harvest shock, and the average price in each round. If the class data cannot give an answer (for example, the class curves never crossed), the app uses the cards instead and says so on the panel and the source.
+
+**Marking.**
+- Calculate, Identify and order questions are marked instantly.
+- **Draw** is done on the tablet: students tap the demand points, the supply points and the equilibrium, then choose the axis labels. 1 mark each.
+- Explain, Analyse and Discuss answers are marked by AI against the mark schemes in the Supabase `mark` function (redeploy it: there are 21 new schemes). If AI marking is not set up, a keyword estimate is shown, marked "estimate", and flagged for you to check.
+- You can change any written mark in the panel.
+
+**Grades.** The panel shows each student's debrief, extension, Section A, Section B and (Levels 0 and 1) the Paper 1 check. It also shows the total and percentage, the class average and standard deviation, and flags anyone more than 1 SD below the average. "Which parts the class found hard" lists the average per part, and grades download as CSV. Level 1's old /15 debrief and /25 lesson grade are replaced by this.
+
+**Printables.** Print Section A, Section B, the debrief and extension, or the teacher mark scheme (answers, model points, the levels table and a worked diagram). Each print includes the class's data, with a name line and answer lines.
+
+**Homework on the device.** Section B can be done at home on the student's tablet or laptop, even when your console is closed. Answers and marks are saved on the device and sent to you the next time the student joins the room. Use **Resume room** next lesson so the room code stays the same.
 
 AI marking setup: see **Deploying → 4. Turn on AI marking** at the top of this file.
+
+### Level 0: keeping the curves clean with a small class
+With few students, one wrong tap can make a curve slope the wrong way. Level 0 has three safeguards:
+- **Robot cards.** Robots answer exactly as their card says for every card no student holds, so the market always has at least 12 cards (6 buyers and 6 sellers). The projector and the student screen say how many robots joined. Turn them on or off at setup (**Robot cards fill the empty places**) or under **Robot cards** in the settings panel during the lesson. With 12 or more students, robots are not needed.
+- **Check your card.** If a student's answer goes against their own card (for example, buying when the price is above what the card allows), a message asks them to check. They can choose **Change my answer** or **Keep** it.
+- **Debrief data.** The debrief step has a **Data** choice: *class answers (if the curves are normal)* or *the cards (always clean)*. On automatic, the app uses the cards if a class curve is unfinished, slopes the wrong way, or never crosses the other one. The source then says that the data came from the cards and that robot cards were included.
+
+### Vietnamese on or off
+The game is called **Market Town** (Thị Trấn Chợ). Every teacher console has a **🇻🇳 Tiếng Việt: on / Vietnamese: off** button in the top bar; the home page has one for that device, which also sets the default for your new rooms.
+- **On:** Vietnamese appears as before: headlines, news broadcasts, chips, team names, titles and the glossary.
+- **Off:** no Vietnamese on the console or the board, including headlines, broadcasts, the news crawl, chips and tooltips. On students' devices, Vietnamese stays only as **small support text**: the subtitle under a headline, the line under each "What changes" card and story line, team names, titles, the up/down/same buttons, and the glossary when a student taps a word. Vietnamese is removed from the student headline strips and the news crawl.
+- Names of goods (trà sữa, bánh mì), prices in đồng and place names stay in every setting.
+- The blended lesson's till laptops keep their own English/Vietnamese button.
+
+### The demand and supply panel, the equilibrium and the news
+Each level now has a big **demand and supply panel** across the top of the teacher console, with chips for the **equilibrium price** and **equilibrium quantity**.
+- **Level 0:** the class curves fill the panel as students answer. When you reveal "Where do they meet?", the chips show the equilibrium price and quantity. The chart marks them on both axes (P* and Q*), on the console and the board.
+- **Level 1:** the panel shows the live order book during a round. Between rounds it shows that round's trades in order, next to the prices by round. After each round a "Round over" flash gives the average price and says whether prices came closer together. The equilibrium stays sealed until the envelope opens. **Peek** shows you the true curves on your screen only (never on the board).
+- **Level 2:** at the end of every round the equilibrium is revealed automatically. A flash on the board and every student device gives the equilibrium price and quantity. The board switches to the trading floor. After a shock, the panel shows **both markets**: the old curve faded (D₁ or S₁) and the new curve (D₂ or S₂). The new curve slides into place, with an arrow ("Supply decreases") and both equilibria (E₁ → E₂, P₁ → P₂, Q₁ → Q₂). A sentence explains the change ("costs +3k → supply decreases (S shifts left). The price rises and the quantity falls"). **▶ Show the shift again** replays it, **Hide equilibrium** hides it, and **Peek** shows the curves to you during a round.
+
+**News broadcasts (Level 2).** Every event (cacao harvest, sugar harvest, Halloween, pocket money, new factory, health campaign) now comes as a TV-style broadcast on the board and every student device, in about 20 seconds:
+1. **Breaking news:** the headline in English and Vietnamese.
+2. **The story:** an animated picture (storm, drought, Halloween night…) and three short reporter lines, each with a Vietnamese subtitle.
+3. **What changes:** who is affected. Each student sees their own change, such as "Your lowest price for each unit: 9k→12k, 11k→14k…" for a shop, or "Chocolate was worth 22k, now 26k" for a buyer.
+
+The broadcast plays when you open the prediction ("COMING NEXT ROUND"); the round itself then starts with a short flash. If you start an event round without a prediction, the broadcast plays at the start, and the round clock and the robots wait for it. While an event is on, a **news crawl** runs along the bottom of the board and every student screen. Tap moves to the next scene; **Skip** closes it. The ✨ Effects switch keeps the scenes but stops the animation.
+
+### Levels 1 and 2: why the curves stay clean
+In Levels 1 and 2, demand and supply come from the **cards**, not from what students tap, so students cannot bend them. With robots on (the default), every game gets the full designed market: Level 1 always has 30 cards crossing at the designed equilibrium (price step 6), and Level 2 always has 19 buyer cards and 5 shops. Every shock moves the equilibrium the right way for any class size from 19 to 45 buyers. What students do changes the **trade prices**, so the app also does the following:
+- **Robots learn.** Level 1 robots aim halfway between last round's average and the equilibrium. In Level 2, Round 1 is a free-for-all; from Round 2, and in the menu round, robots aim at that round's equilibrium. A shock (cacao harvest, Halloween) then shows up in the prices.
+- **Questions follow the data.** Level 1's Paper 2 (c) asks "why the trading prices moved closer to one price" only when the prices actually came closer together. Otherwise it asks why prices *usually* move closer as traders gain experience. Level 2's debrief question about the shock round takes its answer from your class's prices.
+- **Robots off.** Level 1 uses a smaller card set that still slopes and crosses at exactly 6, and every card is dealt. Level 2 spreads the buyer cards across the full range, and empty shops always get a robot. With a small class the curves have only a few steps, so the app warns you when you deal. Keep robots on unless you have 30 or more students.
 
 ---
 
@@ -166,7 +206,7 @@ For candy only, round 3 is the sugar harvest instead. In fast mode a shop's ask 
 
 **After the lesson:** download the trades CSV and print the prize list.
 
-**Not in this version:** the debrief questions and grades for Level 2.
+**Debrief and Paper 2:** see "Debrief, extension and Paper 2" (built from the menu round, the shock and the round prices).
 
 ---
 
@@ -201,7 +241,7 @@ Custom events: a headline, which product, and either a change in shop costs (in 
 
 ---
 
-# Level 0: Chợ Lớp 9 opens (bridging activities)
+# Level 0: Market Town opens (bridging activities)
 
 Run this lesson first. File: `level0.html`.
 
@@ -215,6 +255,7 @@ Open `level0.html?mode=teacher`, choose the good (trà sữa, bánh mì or choco
 | Would you sell it? | Each student runs a different business (ingredient cost, capacity, rent) and chooses none, half or full capacity. Then fixed vs variable cost questions, break-even, and a written "why does supply slope up?" | Market supply, adding up every business | 2.3.1, 2.3.2, 3.6 |
 | Where do they meet? | Predict the equilibrium, then spot shortages and surpluses | Both curves, the reveal, gap arrows | 2.4.2, 2.4.3 |
 | Deals with Robo-Trader | Bargain in đồng as buyer and seller, then walk away from a no-win deal | Class progress | Prepares for Level 1 |
+| Debrief, extension and Paper 2 | Debrief from the class schedule, "build a market" extension, Paper 2 Sections A and B (see "Debrief, extension and Paper 2") | The class market chart | |
 | Knowledge check | 10 Paper 1 style questions (A–D), no glossary, exam-pace timer, marked on submit with explanations | Submissions; class results by question when you choose | All of the above |
 | Badges | Badge wall and points | Badge wall and final curves | |
 

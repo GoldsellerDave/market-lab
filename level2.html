@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chợ Lớp 9 market with prizes: EcoLogic Market Lab Level 2</title>
+<title>Market Town with prizes: EcoLogic Market Lab Level 2</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍬</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -492,6 +492,8 @@ table.prizelist { width: 100%; border-collapse: collapse; } table.prizelist td, 
 .lead-stage .fx-lb li { font-size: 1.3rem; }
 @media (max-width: 900px) { .lead-stage { grid-template-columns: 1fr; } }
 .floor-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
+.floor-col { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
+.floor-col .fx-eq .v { font-size: clamp(1.6rem, 3vw, 2.6rem); }
 .floor-wrap .chart-box { flex: 1; height: 100%; aspect-ratio: auto; }
 .badge-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .stu-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -702,6 +704,194 @@ table.prizelist { width: 100%; border-collapse: collapse; } table.prizelist td, 
 .sgrid > *, .tradegrid > *, .grid2 > *, .deal-grid > * { min-width: 0; }
 .fx-ticker { max-width: 100%; }
 @media (max-width: 900px) { .topbar #hConn, .topbar #sConn { font-size: 0; gap: 0; padding: 6px 8px; } .topbar .fx-lab { display: none; } }
+
+/* ===== news broadcast (three scenes) ===== */
+.fx-bc { position: fixed; inset: 0; z-index: 98; display: flex; flex-direction: column; color: #fbf3ea; overflow: hidden; cursor: pointer; background: radial-gradient(ellipse at 50% 30%, #3a2a20, #120b07); animation: fxin .35s ease; }
+.fx-bc.hidden { display: none; }
+.fx-bc.storm { background: linear-gradient(180deg, #17222f 0%, #24384d 55%, #1d2b1f 100%); }
+.fx-bc.spooky { background: linear-gradient(180deg, #120a24 0%, #3a1748 60%, #2a1406 100%); }
+.fx-bc.harvest { background: linear-gradient(180deg, #f2b44a 0%, #b0661c 55%, #5c3a12 100%); }
+.fx-bc.money, .fx-bc.health { background: linear-gradient(180deg, #0f4a33 0%, #1d6b4a 60%, #10301f 100%); }
+.fx-bc.factory { background: linear-gradient(180deg, #3b3f46 0%, #5a5f68 55%, #26282c 100%); }
+.fx-bc-top { display: flex; align-items: center; gap: 14px; padding: 10px 18px; background: rgba(0,0,0,.45); font-weight: 800; font-size: clamp(.9rem, 2vw, 1.25rem); position: relative; z-index: 3; }
+.fx-bc-live { color: #ff4d4d; animation: fxlate 1.2s infinite; letter-spacing: .08em; }
+.fx-bc-chan { flex: 1; }
+.fx-bc-clock { font-variant-numeric: tabular-nums; opacity: .85; }
+.fx-bc-strip { background: #c62828; color: #fff; font-family: var(--font-display); font-weight: 800; letter-spacing: .1em; padding: 9px 0; overflow: hidden; white-space: nowrap; position: relative; z-index: 3; font-size: clamp(1rem, 2.6vw, 1.7rem); }
+.fx-bc-strip span { display: inline-block; padding-left: 100%; animation: fxmarquee 14s linear infinite; }
+.fx-bc.calm .fx-bc-strip span { animation: none; padding-left: 16px; }
+.fx-bc-stage { flex: 1; position: relative; min-height: 0; }
+.fx-bc-scene { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 18px 20px; gap: 10px; }
+.fx-bc-scene.on { display: flex; animation: fxin .45s ease; }
+.fx-bc-icon { font-size: clamp(4.5rem, 16vw, 10rem); line-height: 1; animation: fxbounce 1s cubic-bezier(.3,1.6,.5,1); filter: drop-shadow(0 8px 20px rgba(0,0,0,.4)); }
+.fx-bc-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.1rem, 7.5vw, 5.4rem); line-height: 1.05; max-width: 20ch; text-shadow: 0 4px 18px rgba(0,0,0,.45); }
+.fx-bc-vi { font-size: clamp(1.25rem, 3.6vw, 2.5rem); color: #f7d36b; font-weight: 800; }
+.fx-bc-scene.s2 { flex-direction: row; gap: clamp(12px, 3vw, 40px); align-items: stretch; justify-content: center; }
+.fx-bc-art { position: relative; flex: 0 1 44%; min-width: 220px; border-radius: 22px; overflow: hidden; background: rgba(0,0,0,.25); box-shadow: inset 0 0 0 3px rgba(255,255,255,.12); display: flex; flex-direction: column; justify-content: space-between; padding: 14px 10px; }
+.fx-bc-art > div { display: flex; justify-content: space-around; font-size: clamp(2rem, 6vw, 4.6rem); line-height: 1; position: relative; z-index: 1; }
+.fx-bc-art .a-mid { font-size: clamp(1.4rem, 4vw, 3rem); }
+.fx-bc-art .a-ground span { animation: fxbob 1.8s ease-in-out infinite; animation-delay: calc(var(--i) * .2s); display: inline-block; }
+.fx-bc-art .a-flash { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.art-storm { background: linear-gradient(180deg, #0e1620, #2c4560); }
+.art-storm .a-sky span { animation: fxcloud 4s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -.7s); display: inline-block; }
+.art-storm .a-mid span { animation: fxrain 0.9s linear infinite; animation-delay: calc(var(--i) * .15s); display: inline-block; }
+.art-storm .a-flash { background: #fff; opacity: 0; animation: fxlightning 3.2s infinite; }
+.art-storm::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(105deg, rgba(180,210,255,.18) 0 2px, transparent 2px 14px); animation: fxsheet .5s linear infinite; z-index: 0; }
+.art-spooky { background: radial-gradient(circle at 75% 20%, #3d2b63, #120a24 70%); }
+.art-spooky .a-sky { justify-content: flex-end; padding-right: 8%; }
+.art-spooky .a-sky span { animation: fxglow 2.4s ease-in-out infinite alternate; display: inline-block; }
+.art-spooky .a-mid span { animation: fxbat 3.2s ease-in-out infinite; animation-delay: calc(var(--i) * -.8s); display: inline-block; }
+.art-harvest { background: linear-gradient(180deg, #ffcf6b, #c9792a); }
+.art-harvest .a-sky span { animation: fxsun 3s ease-in-out infinite alternate; display: inline-block; }
+.art-harvest .a-mid span { animation: fxwind 1.6s linear infinite; animation-delay: calc(var(--i) * .5s); display: inline-block; }
+.art-harvest .a-ground { filter: saturate(.6) sepia(.4); }
+.art-money .a-sky span, .art-health .a-sky span { animation: fxrain 1.6s linear infinite; animation-delay: calc(var(--i) * .3s); display: inline-block; }
+.art-factory .a-sky span { animation: fxsmoke 2.6s ease-out infinite; animation-delay: calc(var(--i) * 1.2s); display: inline-block; }
+.art-factory .a-mid span { animation: fxspin2 2s linear infinite; display: inline-block; }
+.fx-bc.calm .fx-bc-art *, .fx-bc.calm .fx-bc-art::after { animation: none !important; }
+.fx-bc-story { flex: 1 1 50%; max-width: 640px; display: flex; flex-direction: column; justify-content: center; gap: 10px; text-align: left; }
+.fx-bc-reporter { font-weight: 800; color: #f7d36b; letter-spacing: .04em; font-size: clamp(.95rem, 2vw, 1.25rem); }
+.fx-bc-story p { margin: 0; padding: 10px 14px; border-radius: 14px; background: rgba(0,0,0,.35); border-left: 5px solid #f7d36b; opacity: 0; animation: fxline .6s ease forwards; }
+.fx-bc.calm .fx-bc-story p { animation: none; opacity: 1; }
+.fx-bc-story b { display: block; font-size: clamp(1.15rem, 2.9vw, 2rem); line-height: 1.2; }
+.fx-bc-story small { display: block; color: #f7d36b; font-size: clamp(.9rem, 2vw, 1.3rem); margin-top: 3px; }
+.fx-bc-h3 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem, 4.4vw, 3rem); }
+.fx-bc-cards { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; max-width: 1100px; }
+.fx-bc-card { display: flex; gap: 12px; align-items: center; text-align: left; background: #fbf3ea; color: #2b1a10; border-radius: 18px; padding: 14px 18px; min-width: min(100%, 300px); flex: 1 1 300px; max-width: 520px; box-shadow: 0 10px 30px rgba(0,0,0,.35); opacity: 0; animation: fxline .5s ease forwards; }
+.fx-bc.calm .fx-bc-card { animation: none; opacity: 1; }
+.fx-bc-card .ic { font-size: clamp(2.2rem, 5vw, 3.4rem); }
+.fx-bc-card .who { font-weight: 800; font-size: clamp(.95rem, 2vw, 1.2rem); color: #8a5a2b; text-transform: uppercase; letter-spacing: .05em; }
+.fx-bc-card .txt { font-weight: 800; font-size: clamp(1.1rem, 2.6vw, 1.7rem); line-height: 1.2; }
+.fx-bc-card .vi { font-size: clamp(.9rem, 2vw, 1.15rem); color: #6b4a2f; margin-top: 2px; }
+.fx-bc-ask { font-size: clamp(1.2rem, 3vw, 2rem); font-weight: 800; color: #f7d36b; margin-top: 6px; }
+.fx-bc-low { display: flex; align-items: center; gap: 14px; padding: 10px 18px 14px; background: rgba(0,0,0,.4); position: relative; z-index: 3; }
+.fx-bc-dots { display: flex; gap: 6px; } .fx-bc-dots i { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.3); } .fx-bc-dots i.on { background: #f7d36b; }
+.fx-bc-bar { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.2); overflow: hidden; } .fx-bc-bar b { display: block; height: 100%; width: 0; background: #f7d36b; transition: width .25s linear; }
+.fx-bc-skip { min-height: 44px; padding: 6px 16px; border-radius: 999px; border: 2px solid rgba(255,255,255,.5); background: transparent; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+@media (max-width: 760px) { .fx-bc-scene.s2 { flex-direction: column; } .fx-bc-art { flex: 0 0 auto; min-height: 150px; } }
+@keyframes fxbob { 50% { transform: translateY(-8px); } }
+@keyframes fxcloud { from { transform: translateX(-12px); } to { transform: translateX(12px); } }
+@keyframes fxrain { from { transform: translateY(-30px); opacity: 0; } 30% { opacity: 1; } to { transform: translateY(60px); opacity: 0; } }
+@keyframes fxlightning { 0%, 86%, 92%, 100% { opacity: 0; } 88% { opacity: .55; } 90% { opacity: .1; } 91% { opacity: .4; } }
+@keyframes fxsheet { from { background-position: 0 0; } to { background-position: -14px 40px; } }
+@keyframes fxglow { from { filter: drop-shadow(0 0 6px #ffe9a0); } to { filter: drop-shadow(0 0 26px #ffe9a0); } }
+@keyframes fxbat { 0%, 100% { transform: translate(0, 0) rotate(-8deg); } 25% { transform: translate(40px, -18px) rotate(8deg); } 50% { transform: translate(-10px, 10px); } 75% { transform: translate(-40px, -12px) rotate(10deg); } }
+@keyframes fxsun { from { transform: scale(1); filter: drop-shadow(0 0 8px #fff3b0); } to { transform: scale(1.12); filter: drop-shadow(0 0 30px #fff3b0); } }
+@keyframes fxwind { from { transform: translateX(-60px); opacity: 0; } 40% { opacity: 1; } to { transform: translateX(80px); opacity: 0; } }
+@keyframes fxsmoke { from { transform: translateY(20px) scale(.6); opacity: .9; } to { transform: translateY(-50px) scale(1.4); opacity: 0; } }
+@keyframes fxspin2 { to { transform: rotate(360deg); } }
+@keyframes fxline { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* ===== news crawl along the bottom ===== */
+.fx-crawl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: stretch; background: #1d120b; color: #fbf3ea; font-weight: 700; font-size: clamp(.95rem, 1.8vw, 1.2rem); box-shadow: 0 -4px 16px rgba(0,0,0,.25); }
+.fx-crawl-tag { background: #c62828; color: #fff; padding: 10px 14px; font-weight: 800; letter-spacing: .06em; white-space: nowrap; }
+.fx-crawl-run { flex: 1; overflow: hidden; white-space: nowrap; display: flex; align-items: center; }
+.fx-crawl-run span { display: inline-block; padding-left: 100%; animation: fxmarquee 30s linear infinite; }
+body.fx-crawling { padding-bottom: 48px; }
+body.fx-crawling .projector { padding-bottom: 52px; }
+.fx-crawl.calm .fx-crawl-run span { animation-duration: 70s !important; }
+
+/* ===== big demand and supply panel on the teacher console ===== */
+.fx-hero { margin-bottom: 18px; display: flex; flex-direction: column; gap: 10px; border-width: 2px; }
+.fx-hero-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fx-hero-head h2 { margin: 0; font-size: clamp(1.3rem, 2.4vw, 1.75rem); }
+.fx-hero .chart-box { aspect-ratio: 16 / 7.2; min-height: 340px; }
+@media (max-width: 900px) { .fx-hero .chart-box { aspect-ratio: 4 / 3.2; min-height: 300px; } }
+.fx-eqstrip { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+.fx-eq { flex: 1 1 210px; min-width: 0; border-radius: 16px; padding: 8px 16px; background: var(--mint-soft); border: 2px solid var(--mint); display: flex; flex-direction: column; justify-content: center; }
+.fx-eq small { color: var(--muted); font-weight: 700; }
+.fx-eq .v { font-family: var(--font-display); font-size: clamp(1.4rem, 2.6vw, 2rem); font-weight: 800; white-space: nowrap; }
+.fx-eq .v s { color: var(--muted); font-weight: 700; font-size: .75em; }
+.fx-eq .arr { color: var(--muted); font-size: .8em; }
+.fx-eq .dir { font-size: .62em; padding: 2px 8px; border-radius: 999px; vertical-align: middle; }
+.fx-eq .dir.up { background: var(--seller-soft); color: var(--seller); } .fx-eq .dir.down { background: var(--buyer-soft, #e3eef7); color: var(--buyer); } .fx-eq .dir.same { color: var(--muted); }
+.fx-eq .n { font-weight: 600; }
+.fx-eq.wait { background: var(--panel); border-style: dashed; border-color: var(--line); }
+.fx-eq.shift { background: var(--warn-soft); border-color: var(--foil); }
+.fx-eqnote { flex: 1 1 100%; color: var(--ink); }
+
+.fx-bc-rain { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.fx-bc-rain span { position: absolute; top: -10%; font-size: clamp(1.6rem, 3.5vw, 2.6rem); animation: fxfall linear infinite; opacity: .8; }
+.fx-bc.calm .fx-bc-rain { display: none; }
+.fx-bc-scene.s1 > :not(.fx-bc-rain) { position: relative; z-index: 1; }
+
+/* ===== Vietnamese switch ===== */
+body.no-vi .vi { display: none !important; }
+body.vi-sub .vi { font-size: .82em; font-weight: 500; opacity: .85; letter-spacing: 0; text-transform: none; }
+body.vi-sub .fx-news-vi, body.vi-sub .fx-bc-vi { font-size: clamp(.95rem, 2.4vw, 1.35rem); font-weight: 600; }
+body.vi-sub .fx-news-strip .vi, body.vi-sub .fx-bc-strip .vi, body.vi-sub .fx-crawl-tag .vi, body.vi-sub .fx-bc-chan .vi, body.vi-sub .fx-bc-h3 .vi { display: none; }
+.vi-toggle { white-space: nowrap; }
+/* ===== debrief, extension and Paper 2 ===== */
+.db-root { display: flex; flex-direction: column; gap: 12px; }
+.db-tabs { display: flex; gap: 6px; flex-wrap: wrap; position: sticky; top: calc(56px + env(safe-area-inset-top, 0px)); z-index: 5; background: var(--paper); padding: 6px 0; }
+.db-tab { min-height: 44px; padding: 6px 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+.db-tab.sel { border-color: var(--foil); background: var(--warn-soft); }
+.db-sechead { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.db-task { border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 14px; background: var(--panel); display: flex; flex-direction: column; gap: 8px; }
+.db-task.info { background: var(--warn-soft); border-color: transparent; }
+.db-qh { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: start; }
+.db-num { font-weight: 800; min-width: 1.6em; }
+.db-cmd { text-transform: none; }
+.db-marks { font-weight: 800; color: var(--muted); white-space: nowrap; }
+.db-ref { font-size: .78rem; color: var(--muted); margin-top: -4px; }
+.db-in { max-width: 200px; font-size: 1.15rem; }
+.db-in.small { max-width: 90px; min-height: 40px; font-size: 1rem; padding: 4px 8px; }
+.db-in.good-in { border-color: var(--mint); background: var(--mint-soft); }
+.db-in.bad-in { border-color: var(--seller); background: var(--seller-soft); }
+.db-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.db-opts .opt { text-align: left; }
+.opt.right { border-color: var(--mint) !important; background: var(--mint-soft) !important; color: var(--ink) !important; }
+.opt.wrong { border-color: var(--seller) !important; background: var(--seller-soft) !important; color: var(--ink) !important; }
+.db-ta { width: 100%; min-height: 110px; font: inherit; }
+.db-fb { border-radius: var(--r-sm); padding: 8px 12px; }
+.db-fb.good { background: var(--mint-soft); } .db-fb.note { background: var(--warn-soft); } .db-fb.bad { background: var(--seller-soft); }
+.db-pts { margin: 6px 0 0; padding-left: 4px; list-style: none; }
+.db-why { margin-top: 6px; color: var(--ink); }
+.db-submit { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.db-src { border: 2px solid var(--cocoa-2); border-radius: var(--r-sm); padding: 10px 12px; margin-bottom: 10px; background: var(--panel); }
+.db-src-h { margin-bottom: 6px; }
+.db-src-p { margin: 0 0 6px; }
+.db-src-t td, .db-src-t th { text-align: center; }
+.db-srcbox > summary { cursor: pointer; font-weight: 800; padding: 6px 0; }
+.db-grid input { width: 80px; }
+.db-order { display: flex; flex-direction: column; gap: 6px; }
+.db-ord-sel { padding: 8px 12px; border-radius: 10px; background: var(--warn-soft); }
+.db-drawbox { display: flex; flex-direction: column; gap: 8px; }
+.db-draw { width: 100%; max-width: 560px; touch-action: none; user-select: none; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.db-hit { cursor: crosshair; }
+.db-modes { display: flex; flex-wrap: wrap; gap: 6px; }
+.db-mode { min-height: 44px; padding: 6px 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+.db-mode.sel { border-color: var(--mc, var(--foil)); box-shadow: inset 0 0 0 2px var(--mc, var(--foil)); }
+.db-axes { display: flex; gap: 14px; flex-wrap: wrap; }
+.db-axes select { width: auto; min-height: 40px; }
+.db-ans { border-top: 1px dashed var(--line); padding-top: 6px; margin-top: 6px; }
+tr.flag td { background: var(--seller-soft); }
+tr.avg td { font-weight: 700; border-top: 2px solid var(--line); }
+.flagtag { background: var(--seller); color: #fff; border-radius: 999px; padding: 1px 8px; font-size: .8rem; font-weight: 700; }
+.db-lines div { border-bottom: 1px solid #999; height: 26px; }
+
+/* printing: only the paper is printed */
+#dbPrint { display: none; }
+@media print {
+  body.db-printing > *:not(#dbPrint) { display: none !important; }
+  body.db-printing > #dbPrint { display: block !important; }
+  body.db-printing > #printArea { display: none !important; }
+  body.db-printing { background: #fff; color: #000; font-size: 11.5pt; }
+  .db-printdoc h1 { font-size: 18pt; margin: 0 0 6pt; }
+  .db-printdoc h2 { font-size: 14pt; margin: 0 0 6pt; }
+  .db-printdoc .psheet { page-break-after: always; }
+  .db-printdoc .pname { margin: 4pt 0 10pt; }
+  .db-printdoc table { border-collapse: collapse; margin: 4pt 0; }
+  .db-printdoc th, .db-printdoc td { border: 1px solid #555; padding: 3pt 8pt; text-align: center; }
+  .db-printdoc .db-src { border: 1.5px solid #000; padding: 6pt 8pt; margin-bottom: 8pt; }
+  .db-printdoc .pq { margin: 10pt 0; page-break-inside: avoid; }
+  .db-printdoc .pq-m { float: right; font-weight: 700; }
+  .db-printdoc .pq-note { font-size: 10pt; color: #333; }
+  .db-printdoc .ms { margin: 4pt 0 0 12pt; border-left: 3px solid #888; padding-left: 8pt; }
+  .db-printdoc .db-lines div { border-bottom: 1px solid #888; height: 22pt; }
+  .db-printdoc svg text { fill: #000; }
+}
+.scorebox { display: flex; flex-direction: column; align-items: flex-end; } .scorebox b { font-family: var(--font-display); font-size: 1.6rem; } .scorebox small { color: var(--muted); }
 </style><!--/FX-CSS-->
 </head>
 <body>
@@ -720,6 +910,23 @@ const FX = (() => {
   const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const sysReduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const calm = () => sysReduced || !!get('calm', false);
+
+  /* ---------- Vietnamese: shown, hidden (teacher screens), or kept as small support text (student devices) ---------- */
+  let viState = get('vi', true) !== false, viRole = /[?&]mode=teacher/.test(location.search) ? 'teacher' : 'student';
+  const isVi = s => /[ăâêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹàáèéìíòóùúý]/i.test(String(s || '').replace(/\d[\d.,]*đ|đồng|café/gi, ''));
+  const viOn = () => viState;
+  const viHidden = () => !viState && viRole !== 'student';
+  /** Vietnamese text, marked so it can be hidden or shown as support text */
+  const vi = (s, cls = '') => s ? `<span class="vi ${cls}" lang="vi">${h(s)}</span>` : '';
+  /** "English · Tiếng Việt": escapes it and marks the Vietnamese parts (with their separator) */
+  const bi = s => String(s ?? '').split(' · ').map((part, i) => isVi(part) ? `<span class="vi" lang="vi">${i ? ' · ' : ''}${h(part)}</span>` : (i ? ' · ' : '') + h(part)).join('');
+  /** on: Vietnamese shown. role: 'teacher' (off = hidden) or 'student' (off = small support text only) */
+  function setVi(on, role) {
+    viState = on !== false; if (role) viRole = role;
+    const apply = () => { document.body.classList.toggle('no-vi', !viState && viRole !== 'student'); document.body.classList.toggle('vi-sub', !viState && viRole === 'student'); };
+    if (document.body) apply(); else document.addEventListener('DOMContentLoaded', apply);
+  }
+  setVi(viState);
 
   /* ---------- avatars, teams, titles ---------- */
   const AVATARS = ['🐼', '🦊', '🐯', '🐸', '🐵', '🐨', '🐙', '🦄', '🐲', '🐧', '🦁', '🐰', '🐻', '🐱', '🐶', '🦉', '🐢', '🐬', '🐝', '🦋', '🌟', '🚀', '🎸', '⚽'];
@@ -750,7 +957,7 @@ const FX = (() => {
     if (prev != null && t.i > prev) { levelUp(t); onUp && onUp(t); }
     return t;
   }
-  const titleChip = t => `<span class="chip fx-title" title="${h(t.vi)}">${t.icon} ${h(t.en)}</span>`;
+  const titleChip = t => `<span class="chip fx-title"${viHidden() ? '' : ` title="${h(t.vi)}"`}>${t.icon} ${h(t.en)}</span>`;
 
   /* ---------- sound: extra synthesised sounds added to each level's Sound ---------- */
   let gain = 1, installed = false, gate = null;
@@ -865,8 +1072,8 @@ const FX = (() => {
     if (!el) { el = document.createElement('div'); el.id = 'fxNews'; document.body.appendChild(el); el.onclick = () => el.classList.add('hidden'); }
     el.className = 'fx-news ' + th.cls + (quiet ? ' calm' : '');
     const bits = quiet ? '' : Array.from({ length: 18 }, (_, i) => `<span class="fx-bit" style="left:${(i * 37 + 7) % 100}%;animation-delay:${(i % 6) * .18}s;animation-duration:${2.2 + (i % 4) * .5}s">${th.bits[i % th.bits.length]}</span>`).join('');
-    el.innerHTML = `<div class="fx-bits">${bits}</div><div class="fx-news-strip"><span>${h(o.kicker || 'BREAKING NEWS · TIN NÓNG')}</span></div>
-      <div class="fx-news-body"><div class="fx-news-icon">${o.icon || '📣'}</div><div class="fx-news-title">${h(o.title)}</div>${o.vi ? `<div class="fx-news-vi">${h(o.vi)}</div>` : ''}${o.detail ? `<div class="fx-news-detail">${h(o.detail)}</div>` : ''}<div class="fx-news-tap">Tap to close</div></div>`;
+    el.innerHTML = `<div class="fx-bits">${bits}</div><div class="fx-news-strip"><span>${bi(o.kicker || 'BREAKING NEWS · TIN NÓNG')}</span></div>
+      <div class="fx-news-body"><div class="fx-news-icon">${o.icon || '📣'}</div><div class="fx-news-title">${h(o.title)}</div>${o.vi ? `<div class="fx-news-vi vi" lang="vi">${h(o.vi)}</div>` : ''}${o.detail ? `<div class="fx-news-detail">${h(o.detail)}</div>` : ''}<div class="fx-news-tap">Tap to close</div></div>`;
     el.classList.remove('hidden');
     if (o.sound !== false) { snd('news'); if (th.sound) setTimeout(() => snd(th.sound), 550); }
     clearTimeout(newsT); newsT = setTimeout(() => el.classList.add('hidden'), o.ms || 4500);
@@ -881,7 +1088,7 @@ const FX = (() => {
     const x = popQ.shift(); if (!x) { popBusy = false; return; }
     popBusy = true;
     const el = document.createElement('div'); el.className = 'fx-pop' + (calm() ? ' calm' : '');
-    el.innerHTML = `<div class="fx-pop-icon">${x.icon}</div><div><div class="fx-pop-head">${h(x.head)}</div><div class="fx-pop-title">${h(x.title)}</div>${x.sub ? `<div class="fx-pop-sub">${h(x.sub)}</div>` : ''}</div>`;
+    el.innerHTML = `<div class="fx-pop-icon">${x.icon}</div><div><div class="fx-pop-head">${h(x.head)}</div><div class="fx-pop-title">${h(x.title)}</div>${x.sub ? `<div class="fx-pop-sub${isVi(x.sub) ? ' vi' : ''}">${h(x.sub)}</div>` : ''}</div>`;
     document.body.appendChild(el);
     if (x.sound) snd(x.sound);
     if (!calm() && typeof confetti === 'function') confetti(40);
@@ -981,7 +1188,7 @@ const FX = (() => {
     return `<div class="fx-pick"><div class="fx-pick-lab">Choose your avatar</div><div class="fx-avgrid">${AVATARS.map(a => `<button type="button" class="fx-av ${a === cur ? 'sel' : ''}" data-fx-av="${a}" aria-label="Avatar ${a}">${a}</button>`).join('')}</div></div>`;
   }
   function teamPicker(cur) {
-    return `<div class="fx-pick"><div class="fx-pick-lab">Your table (team)</div><div class="fx-teams">${Object.entries(TEAMS).map(([k, t]) => `<button type="button" class="fx-team ${k === cur ? 'sel' : ''}" data-fx-team="${k}" style="--team:${t.color}">${t.icon} ${h(t.name)}<small>${h(t.vi)}</small></button>`).join('')}</div></div>`;
+    return `<div class="fx-pick"><div class="fx-pick-lab">Your table (team)</div><div class="fx-teams">${Object.entries(TEAMS).map(([k, t]) => `<button type="button" class="fx-team ${k === cur ? 'sel' : ''}" data-fx-team="${k}" style="--team:${t.color}">${t.icon} ${h(t.name)}<small class="vi" lang="vi">${h(t.vi)}</small></button>`).join('')}</div></div>`;
   }
   let avFn = null;
   const onPick = fn => { avFn = fn; };
@@ -1045,9 +1252,560 @@ const FX = (() => {
     })(t0);
   }
 
-  return { snd, since, late, get, set, calm, AVATARS, TEAMS, TITLES, SHOP_COLORS, myAvatar, avOf, teamOf, title, titleWatch, titleChip,
+  return { snd, since, late, get, set, calm, isVi, viOn, viHidden, vi, bi, setVi, AVATARS, TEAMS, TITLES, SHOP_COLORS, myAvatar, avOf, teamOf, title, titleWatch, titleChip,
     install, setGain, float, coins, shake, pulse, news, badge, levelUp, jar, jarGrew, priceTag, onRange, hold, setVal, stall, wallet, ticker, timer,
     avatarPicker, teamPicker, onPick, calmBtn, leaderboard, teamBars, podium, replay };
+})();
+
+/* =====================================================================
+   News broadcasts, the news crawl, and equilibrium callouts on charts.
+   ===================================================================== */
+Object.assign(FX, (() => {
+  const bi = s => FX.bi(s);
+  const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // picture for each kind of news: sky, middle and ground rows of emoji, animated in CSS
+  const ART = {
+    storm: { sky: ['☁️', '⛈️', '☁️', '🌩️', '☁️'], mid: ['💧', '💧', '💧', '💧', '💧', '💧'], ground: ['🌳', '🍫', '🌳', '🌱', '🌳', '🍫'], cls: 'storm', sound: 'storm' },
+    spooky: { sky: ['🌕'], mid: ['🦇', '🦇', '👻', '🦇'], ground: ['🎃', '🍬', '🎃', '🍫', '🎃', '🍭'], cls: 'spooky', sound: 'spooky' },
+    harvest: { sky: ['☀️'], mid: ['💨', '💨', '💨'], ground: ['🌾', '🥀', '🌾', '🌾', '🥀', '🌾'], cls: 'harvest', sound: 'harvest' },
+    money: { sky: ['💵', '💰', '💵', '🪙', '💵'], mid: [], ground: ['🧒', '🛍️', '👧', '🛍️', '🧑'], cls: 'money', sound: 'money' },
+    factory: { sky: ['💨', '💨'], mid: ['⚙️', '⚙️'], ground: ['🏭', '📦', '📦', '🚚', '📦'], cls: 'factory', sound: 'factory' },
+    health: { sky: ['🍎', '🥦', '🍌'], mid: [], ground: ['🥗', '🏃', '🍎', '🚴', '🥕'], cls: 'health', sound: 'health' },
+    market: { sky: ['✨', '⭐', '✨'], mid: [], ground: ['🏪', '🍫', '🍬', '🏪', '🍫'], cls: 'round', sound: null }
+  };
+  const THEME_ART = { cacao: 'storm', sugar: 'harvest', halloween: 'spooky', pocket: 'money', factory: 'factory', health: 'health' };
+  let bcT = [], bcTick = null;
+  const clearBc = () => { bcT.forEach(clearTimeout); bcT = []; clearInterval(bcTick); bcTick = null; };
+  function artHtml(a) {
+    const row = (xs, cls) => `<div class="${cls}">${xs.map((x, i) => `<span style="--i:${i}">${x}</span>`).join('')}</div>`;
+    return `<div class="fx-bc-art art-${a.cls}">${row(a.sky, 'a-sky')}${a.mid.length ? row(a.mid, 'a-mid') : ''}<div class="a-flash"></div>${row(a.ground, 'a-ground')}</div>`;
+  }
+  /**
+   * A TV-style news broadcast in three scenes: the headline, the story (with a picture), and what changes.
+   * o: {theme, icon, kicker, title, vi, lines:[[en, vi]], impact:[{icon, who, text, vi}] or a function that returns them,
+   *     ask, ms:[headline, story, impact], sound, onClose}. Tap moves to the next scene; Skip closes. Returns the total time.
+   */
+  function broadcast(o) {
+    clearBc();
+    if (window.FX_TEST_NO_BROADCAST) { if (o.onClose) o.onClose(); return 0; } // automated tests only
+    const quiet = FX.calm(), a = ART[THEME_ART[o.theme] || o.theme] || ART.market, ms = o.ms || [4500, 8000, 7500];
+    let el = document.getElementById('fxBc');
+    if (!el) { el = document.createElement('div'); el.id = 'fxBc'; document.body.appendChild(el); }
+    el.className = 'fx-bc ' + a.cls + (quiet ? ' calm' : '');
+    const lines = o.lines || [];
+    const clock = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    el.innerHTML = `<div class="fx-bc-top"><span class="fx-bc-live">● LIVE</span><span class="fx-bc-chan">${bi('📺 Market Town News · Bản tin Thị Trấn Chợ')}</span><span class="fx-bc-clock">${clock()}</span></div>
+      <div class="fx-bc-strip"><span>${bi(o.kicker || 'BREAKING NEWS · TIN NÓNG')} &nbsp;•&nbsp; ${h(o.title)}${o.vi ? `<span class="vi" lang="vi"> &nbsp;•&nbsp; ${h(o.vi)}</span>` : ''} &nbsp;•&nbsp; ${bi(o.kicker || 'BREAKING NEWS · TIN NÓNG')}</span></div>
+      <div class="fx-bc-stage">
+        <section class="fx-bc-scene s1"><div class="fx-bc-rain">${quiet ? '' : Array.from({ length: 16 }, (_, i) => `<span style="left:${(i * 41 + 5) % 100}%;animation-delay:${(i % 8) * .35}s;animation-duration:${3 + (i % 4) * .6}s">${a.sky.concat(a.ground)[i % (a.sky.length + a.ground.length)]}</span>`).join('')}</div><div class="fx-bc-icon">${o.icon || '📣'}</div><div class="fx-bc-title">${h(o.title)}</div>${o.vi ? `<div class="fx-bc-vi vi" lang="vi">${h(o.vi)}</div>` : ''}</section>
+        <section class="fx-bc-scene s2">${artHtml(a)}<div class="fx-bc-story"><div class="fx-bc-reporter">${bi('🎙️ Reporter · Phóng viên')}</div>${lines.map((l, i) => `<p style="animation-delay:${.4 + i * Math.max(1.2, (ms[1] / 1000 - 1.5) / Math.max(1, lines.length))}s"><b>${h(l[0])}</b>${l[1] ? `<small class="vi" lang="vi">${h(l[1])}</small>` : ''}</p>`).join('')}</div></section>
+        <section class="fx-bc-scene s3"><div class="fx-bc-h3">${bi('What changes · Điều gì thay đổi')}</div><div class="fx-bc-cards" id="fxBcCards"></div>${o.ask ? `<div class="fx-bc-ask">🤔 ${h(o.ask)}</div>` : ''}</section>
+      </div>
+      <div class="fx-bc-low"><div class="fx-bc-dots"><i></i><i></i><i></i></div><div class="fx-bc-bar"><b></b></div><button class="fx-bc-skip" type="button">Skip ⏭</button></div>`;
+    el.classList.remove('hidden');
+    let scene = 0;
+    const total = ms.reduce((x, y) => x + y, 0);
+    const fillCards = () => { const c = el.querySelector('#fxBcCards'); if (!c) return; const im = typeof o.impact === 'function' ? o.impact() : (o.impact || []); c.innerHTML = im.map((x, i) => `<div class="fx-bc-card" style="animation-delay:${i * .35}s"><div class="ic">${x.icon || '📌'}</div><div><div class="who">${bi(x.who)}</div><div class="txt">${h(x.text)}</div>${x.vi ? `<div class="vi" lang="vi">${h(x.vi)}</div>` : ''}</div></div>`).join(''); };
+    const close = () => { clearBc(); el.classList.add('hidden'); el.innerHTML = ''; if (o.onClose) o.onClose(); };
+    const show = k => {
+      scene = k; bcT.forEach(clearTimeout); bcT = [];
+      if (k > 2) return close();
+      t0 = Date.now() - ms.slice(0, k).reduce((x, y) => x + y, 0);
+      el.querySelectorAll('.fx-bc-scene').forEach((s, i) => s.classList.toggle('on', i === k));
+      el.querySelectorAll('.fx-bc-dots i').forEach((d, i) => d.classList.toggle('on', i <= k));
+      if (k === 2) fillCards();
+      if (o.sound !== false) { if (k === 0) { FX.snd('news'); if (a.sound) bcT.push(setTimeout(() => FX.snd(a.sound), 650)); } else if (k === 1 && a.sound) FX.snd(a.sound); else if (k === 2) FX.snd('badge'); }
+      bcT.push(setTimeout(() => show(k + 1), ms[k]));
+    };
+    let t0 = Date.now(); const bar = el.querySelector('.fx-bc-bar b');
+    // the bar shows how far through the broadcast we are
+    bcTick = setInterval(() => { if (bar) bar.style.width = Math.min(100, 100 * (Date.now() - t0) / total) + '%'; }, 250);
+    el.querySelector('.fx-bc-skip').onclick = e => { e.stopPropagation(); close(); };
+    el.onclick = () => show(scene + 1);
+    show(0);
+    return total;
+  }
+  const bcOpen = () => { const el = document.getElementById('fxBc'); return !!(el && !el.classList.contains('hidden') && el.innerHTML); };
+
+  /** News crawl along the bottom of the screen while an event is on. items: [string] or null to remove */
+  function crawl(items) {
+    let el = document.getElementById('fxCrawl');
+    if (!items || !items.length) { if (el) el.remove(); document.body.classList.remove('fx-crawling'); return; }
+    const txt = items.join('   •   ');
+    if (!el) { el = document.createElement('div'); el.id = 'fxCrawl'; document.body.appendChild(el); }
+    el.className = 'fx-crawl' + (FX.calm() ? ' calm' : '');
+    if (el.dataset.txt === txt) return;
+    el.dataset.txt = txt;
+    const dur = Math.max(18, txt.length / 7);
+    el.innerHTML = `<span class="fx-crawl-tag">${bi('📺 NEWS · TIN TỨC')}</span><div class="fx-crawl-run"><span style="animation-duration:${dur}s">${h(txt)}   •   ${h(txt)}</span></div>`;
+    document.body.classList.add('fx-crawling');
+  }
+
+  /** Equilibrium chips. items: [{label, vi, value, from, dir, note, kind}] */
+  function eqStrip(items, note) {
+    return `<div class="fx-eqstrip">${items.map(x => `<div class="fx-eq ${x.kind || ''}"><small>${h(x.label)}${x.vi ? `<span class="vi" lang="vi"> · ${h(x.vi)}</span>` : ''}</small><div class="v">${x.from != null ? `<s>${h(x.from)}</s> <span class="arr">→</span> ` : ''}<b>${h(x.value)}</b>${x.dir ? ` <span class="dir ${x.dir > 0 ? 'up' : 'down'}">${x.dir > 0 ? '▲' : '▼'}${x.delta != null ? ' ' + h(x.delta) : ''}</span>` : x.from != null ? ' <span class="dir same">=</span>' : ''}</div>${x.note ? `<small class="n">${h(x.note)}</small>` : ''}</div>`).join('')}${note ? `<div class="fx-eqnote">${note}</div>` : ''}</div>`;
+  }
+
+  /* ---------- canvas helpers ---------- */
+  function rrect(g, x, y, w, ht, r) { g.beginPath(); g.moveTo(x + r, y); g.lineTo(x + w - r, y); g.quadraticCurveTo(x + w, y, x + w, y + r); g.lineTo(x + w, y + ht - r); g.quadraticCurveTo(x + w, y + ht, x + w - r, y + ht); g.lineTo(x + r, y + ht); g.quadraticCurveTo(x, y + ht, x, y + ht - r); g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y); g.closePath(); }
+  /** A thick arrow from (x1, y1) to (x2, y2) */
+  function arrow(g, x1, y1, x2, y2, col, w = 5) {
+    const ang = Math.atan2(y2 - y1, x2 - x1), hd = Math.max(12, w * 3);
+    g.save(); g.strokeStyle = col; g.fillStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.setLineDash([]);
+    g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - Math.cos(ang) * hd * .8, y2 - Math.sin(ang) * hd * .8); g.stroke();
+    g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - hd * Math.cos(ang - .45), y2 - hd * Math.sin(ang - .45)); g.lineTo(x2 - hd * Math.cos(ang + .45), y2 - hd * Math.sin(ang + .45)); g.closePath(); g.fill(); g.restore();
+  }
+  /**
+   * Equilibrium point with dashed guides and labels on both axes.
+   * o: {X, Y, L, T, ph, fs, font, p, q, pTxt, qTxt, tag, col, ink, panel, faded, labelSide}
+   */
+  function eqMark(g, o) {
+    const x = o.X(o.q), y = o.Y(o.p), fs = o.fs, col = o.col, base = o.T + o.ph;
+    g.save(); g.globalAlpha = o.faded ? .55 : 1;
+    g.strokeStyle = col; g.lineWidth = o.faded ? 2 : 2.5; g.setLineDash([7, 6]);
+    g.beginPath(); g.moveTo(o.L, y); g.lineTo(x, y); g.lineTo(x, base); g.stroke(); g.setLineDash([]);
+    g.beginPath(); g.arc(x, y, fs * (o.faded ? .5 : .7), 0, Math.PI * 2); g.fillStyle = o.faded ? o.panel : col; g.fill(); g.lineWidth = 3; g.strokeStyle = col; g.stroke();
+    if (!o.faded) { g.lineWidth = 3; g.beginPath(); g.arc(x, y, fs * 1.25, 0, Math.PI * 2); g.globalAlpha = .45; g.stroke(); g.globalAlpha = 1; }
+    const bf = `800 ${Math.round(fs * (o.faded ? .9 : 1.05))}px ${o.font}`; g.font = bf;
+    const box = (txt, cx, cy, align) => { const tw = g.measureText(txt).width, bw = tw + fs * .9, bh = fs * 1.55; let bx = align === 'right' ? cx - bw : align === 'center' ? cx - bw / 2 : cx; rrect(g, bx, cy - bh / 2, bw, bh, bh / 2.6); g.fillStyle = o.faded ? o.panel : col; g.fill(); g.lineWidth = 2; g.strokeStyle = col; g.stroke(); g.fillStyle = o.faded ? col : '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, bx + bw / 2, cy + 1); };
+    if (o.pTxt) box(o.pTxt, o.L - 4, y + (o.pDy || 0), 'right');
+    if (o.qTxt) box(o.qTxt, x, base + fs * 1.05 + (o.qRow || 0) * fs * 1.7, 'center');
+    if (o.tag) { g.font = `800 ${Math.round(fs * 1.15)}px ${o.font}`; g.fillStyle = col; g.textAlign = o.labelSide === 'left' ? 'right' : 'left'; g.textBaseline = 'bottom'; g.fillText(o.tag, x + (o.labelSide === 'left' ? -fs * 1.2 : fs * 1.2), y - fs * .5); }
+    g.restore();
+  }
+  return { broadcast, bcOpen, crawl, eqStrip, arrow, eqMark, rrect };
+})());
+/* =====================================================================
+   EcoLogic Market Lab: shared debrief, extension and Paper 2 engine (DB).
+   Each level builds a "pack" from its own class data when the teacher opens
+   the debrief. The pack is frozen, so every student answers about the same
+   numbers. Sections: debrief (marked, instant feedback), extension (own pace,
+   not graded), Paper 2 Section A (data response, 20) and Section B (structured, 20).
+   Students can finish Section B at home: answers and marks are kept on the
+   device and sent to the teacher the next time the room is open.
+   ===================================================================== */
+const DB = (() => {
+  const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const SECTIONS = [
+    { key: 'debrief', tab: 'Debrief', title: 'Debrief: what happened in our market', graded: false },
+    { key: 'ext', tab: 'Extension', title: 'Extension activity', graded: false },
+    { key: 'A', tab: 'Paper 2 · A', title: 'Paper 2 style · Section A: data response', graded: true },
+    { key: 'B', tab: 'Paper 2 · B', title: 'Paper 2 style · Section B: structured question', graded: true }
+  ];
+  const secOf = k => SECTIONS.find(x => x.key === k);
+  const secMax = (pack, k) => (pack[k] ? pack[k].tasks : []).reduce((a, t) => a + (t.marks || 0), 0);
+
+  /* ---------- numbers: accepts 30000, 30.000, 30,000, 30k, 30.000đ ---------- */
+  function parseNum(v) {
+    let s = String(v ?? '').trim().toLowerCase().replace(/\s+/g, '').replace(/(vnd|đồng|dong|đ)$/, '');
+    if (!s) return null;
+    let mult = 1; if (/k$/.test(s)) { mult = 1000; s = s.slice(0, -1); }
+    if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+    else if (/^-?\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, '');
+    else s = s.replace(',', '.');
+    const n = Number(s); return Number.isFinite(n) ? n * mult : null;
+  }
+
+  /* ---------- marking ---------- */
+  const ok = (mark, max, fb) => ({ mark, max, ok: mark >= max, fb });
+  function markTask(t, a) {
+    if (t.kind === 'num') {
+      const n = parseNum(a); if (n == null) return null;
+      const right = [t.answer, ...(t.accept || [])].some(x => Math.abs(n - x) <= (t.tol || 0) + 1e-9);
+      return ok(right ? t.marks || 1 : 0, t.marks || 1, right ? (t.right || 'Correct.') : (t.wrong || 'Not quite.'));
+    }
+    if (t.kind === 'choice') {
+      const picks = Array.isArray(a) ? a : a == null ? [] : [a]; if (!picks.length) return null;
+      const good = picks.filter(x => t.correct.includes(x)).length, bad = picks.length - good;
+      const mark = Math.max(0, Math.min(t.marks || 1, (t.pick || 1) > 1 ? good - Math.max(0, picks.length - (t.pick || 1)) : good && !bad ? 1 : 0));
+      return ok(mark, t.marks || 1, mark >= (t.marks || 1) ? (t.right || 'Correct.') : (t.wrong || 'Not quite.'));
+    }
+    if (t.kind === 'grid') {
+      const cells = t.rows.flatMap((r, i) => r.cells.map((c, j) => c && c.answer != null ? [i, j, c] : null)).filter(Boolean);
+      const got = cells.filter(([i, j, c]) => { const n = parseNum((a || {})[i + ':' + j]); return n != null && Math.abs(n - c.answer) <= (c.tol || 0) + 1e-9; }).length;
+      const max = t.marks || 0;
+      return { mark: max ? Math.round(max * got / cells.length) : 0, max, ok: got === cells.length, fb: `${got} of ${cells.length} correct.`, cells: Object.fromEntries(cells.map(([i, j, c]) => [i + ':' + j, (() => { const n = parseNum((a || {})[i + ':' + j]); return n != null && Math.abs(n - c.answer) <= (c.tol || 0) + 1e-9; })()])) };
+    }
+    if (t.kind === 'order') {
+      const seq = Array.isArray(a) ? a : []; if (seq.length < t.items.length) return null;
+      const got = t.correct.filter((id, i) => seq[i] === id).length, max = t.marks || 0;
+      return { mark: max ? Math.round(max * got / t.correct.length) : 0, max, ok: got === t.correct.length, fb: got === t.correct.length ? (t.right || 'Correct order.') : `${got} of ${t.correct.length} in the right place.` };
+    }
+    if (t.kind === 'draw') return markDraw(t, a || {});
+    return null;
+  }
+  // keyword estimate for written answers when AI marking is not available
+  function estimate(t, text) {
+    const s = String(text || '').toLowerCase();
+    const pts = (t.kw || []).map(p => ({ text: p.label, awarded: p.any.some(r => new RegExp(r, 'i').test(s)), side: p.side }));
+    let n = pts.filter(p => p.awarded).length;
+    if (t.levels) { const sides = new Set(pts.filter(p => p.awarded && p.side).map(p => p.side)); n = n + (sides.size >= 2 ? 1 : 0); }
+    const words = s.split(/\s+/).filter(Boolean).length;
+    const mark = Math.max(0, Math.min(t.marks, words < 8 ? Math.min(n, 1) : n));
+    const miss = pts.find(p => !p.awarded);
+    return { mark, max: t.marks, points: pts.map(({ text, awarded }) => ({ text, awarded })), feedback: 'This is an estimate. Your teacher will check it.', next_step: miss ? 'Add: ' + miss.text.toLowerCase() : '', est: true };
+  }
+  async function ai(t, text, ctx) {
+    const C = typeof CONFIG !== 'undefined' ? CONFIG : {};
+    const url = C.markerUrl || (C.supabaseUrl ? String(C.supabaseUrl).trim().replace(/\/$/, '') + '/functions/v1/mark' : '');
+    if (!url || !t.qid || String(text).trim().length < 20) return null;
+    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 30000);
+    try {
+      const headers = { 'content-type': 'application/json' }, key = String(C.supabaseAnonKey || '').trim();
+      if (key) { headers.apikey = key; if (key.startsWith('eyJ')) headers.Authorization = 'Bearer ' + key; }
+      const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ qid: t.qid, answer: String(text).slice(0, 3000), context: ctx }), signal: ctl.signal });
+      if (!r.ok) return null; const j = await r.json(); if (typeof j.mark !== 'number') return null;
+      j.mark = Math.max(0, Math.min(t.marks, Math.round(j.mark))); j.max = t.marks; return j;
+    } catch { return null; } finally { clearTimeout(tm); }
+  }
+
+  /* ---------- drawing a demand and supply diagram on a tablet ---------- */
+  const DW = { W: 360, H: 310, L: 52, R: 14, T: 14, B: 40 };
+  function drawGeom(t) {
+    const pw = DW.W - DW.L - DW.R, ph = DW.H - DW.T - DW.B, prices = t.rows.map(r => r.price);
+    const pMax = t.pMax || Math.max(...prices) * 1.15, qMax = t.qMax;
+    return { pw, ph, pMax, qMax, X: q => DW.L + q / qMax * pw, Y: p => DW.T + ph - p / pMax * ph, iq: x => (x - DW.L) / pw * qMax, ip: y => (DW.T + ph - y) / ph * pMax };
+  }
+  const tolQ = t => t.tolQ ?? Math.max(t.qStep || 1, t.qMax * .045);
+  function markDraw(t, a) {
+    const near = (pts, want) => want.every(w => (pts || []).some(p => p.price === w.price && Math.abs(p.q - w.q) <= tolQ(t)));
+    const d = near(a.d, t.rows.map(r => ({ price: r.price, q: r.qd }))), s = near(a.s, t.rows.map(r => ({ price: r.price, q: r.qs })));
+    const e = a.e && (t.eq.lo != null ? a.e.price >= t.eq.lo - 1e-9 && a.e.price <= t.eq.hi + 1e-9 : Math.abs(a.e.price - t.eq.price) < 1e-9) && Math.abs(a.e.q - t.eq.qty) <= tolQ(t) * 1.5;
+    const ax = a.ax === 'q' && a.ay === 'p';
+    const mark = [d, s, e, ax].filter(Boolean).length;
+    return { mark, max: 4, ok: mark === 4, fb: `${d ? '✓' : '✗'} demand curve · ${s ? '✓' : '✗'} supply curve · ${e ? '✓' : '✗'} equilibrium marked · ${ax ? '✓' : '✗'} axes labelled`, parts: { d, s, e, ax } };
+  }
+  function drawSvg(t, a, locked) {
+    const G = drawGeom(t), fp = v => (t.pLab && t.pLab[v]) || v, fq = v => v;
+    let s = '';
+    t.rows.forEach(r => { s += `<line x1="${DW.L}" y1="${G.Y(r.price)}" x2="${DW.L + G.pw}" y2="${G.Y(r.price)}" stroke="var(--line)"/><text x="${DW.L - 5}" y="${G.Y(r.price) + 4}" font-size="10" text-anchor="end" fill="var(--muted)">${h(fp(r.price))}</text>`; });
+    const qs = t.qTicks || 5; for (let k = 0; k <= qs; k++) { const q = Math.round(G.qMax * k / qs); s += `<line x1="${G.X(q)}" y1="${DW.T}" x2="${G.X(q)}" y2="${DW.T + G.ph}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${G.X(q)}" y="${DW.T + G.ph + 14}" font-size="10" text-anchor="middle" fill="var(--muted)">${h(fq(q))}</text>`; }
+    s += `<path d="M${DW.L} ${DW.T} V${DW.T + G.ph} H${DW.L + G.pw}" stroke="var(--ink)" stroke-width="2" fill="none"/>`;
+    const lab = { p: 'Price', q: 'Quantity', r: 'Revenue', c: 'Cost' };
+    s += `<text x="${DW.L + G.pw / 2}" y="${DW.H - 6}" font-size="12" font-weight="700" text-anchor="middle" fill="${a.ax ? 'var(--ink)' : 'var(--muted)'}">${a.ax ? lab[a.ax] : 'x-axis: ?'}</text>`;
+    s += `<text transform="translate(13 ${DW.T + G.ph / 2}) rotate(-90)" font-size="12" font-weight="700" text-anchor="middle" fill="${a.ay ? 'var(--ink)' : 'var(--muted)'}">${a.ay ? lab[a.ay] : 'y-axis: ?'}</text>`;
+    const line = (pts, col, L) => { if (!pts || !pts.length) return ''; const p2 = pts.slice().sort((x, y) => x.price - y.price); let o = p2.length > 1 ? `<polyline points="${p2.map(p => G.X(p.q) + ',' + G.Y(p.price)).join(' ')}" fill="none" stroke="${col}" stroke-width="3"/>` : ''; o += p2.map(p => `<circle cx="${G.X(p.q)}" cy="${G.Y(p.price)}" r="5.5" fill="${col}"/>`).join(''); const top = L === 'D' ? p2[0] : p2[p2.length - 1]; if (p2.length > 1) o += `<text x="${G.X(top.q) + 8}" y="${G.Y(top.price) + 4}" font-size="14" font-weight="800" fill="${col}">${L}</text>`; return o; };
+    s += line(a.d, 'var(--buyer)', 'D') + line(a.s, 'var(--seller)', 'S');
+    if (a.e) s += `<circle cx="${G.X(a.e.q)}" cy="${G.Y(a.e.price)}" r="10" fill="none" stroke="var(--mint)" stroke-width="3"/><path d="M${DW.L} ${G.Y(a.e.price)} H${G.X(a.e.q)} V${DW.T + G.ph}" stroke="var(--mint)" stroke-dasharray="5 4" fill="none" stroke-width="2"/><text x="${G.X(a.e.q) + 12}" y="${G.Y(a.e.price) - 8}" font-size="11" font-weight="800" fill="var(--mint)">E</text>`;
+    return `<svg class="db-draw" data-db-draw="${h(t.id)}" viewBox="0 0 ${DW.W} ${DW.H}" role="img" aria-label="Diagram">${s}<rect x="${DW.L}" y="${DW.T}" width="${G.pw}" height="${G.ph}" fill="transparent" ${locked ? '' : 'class="db-hit"'}/></svg>`;
+  }
+  function drawHtml(t, a, locked) {
+    const mode = a.mode || 'd', btn = (m, l, c) => `<button type="button" class="db-mode ${mode === m ? 'sel' : ''}" data-db-mode="${m}" data-id="${h(t.id)}" style="--mc:${c}" ${locked ? 'disabled' : ''}>${l}</button>`;
+    return `<div class="db-drawbox"><div class="db-modes">${btn('d', '● Demand points', 'var(--buyer)')}${btn('s', '● Supply points', 'var(--seller)')}${btn('e', '◎ Equilibrium', 'var(--mint)')}${locked ? '' : `<button type="button" class="db-mode" data-db-clear="${h(t.id)}">Clear ${mode === 'd' ? 'demand' : mode === 's' ? 'supply' : 'equilibrium'}</button>`}</div>
+      ${drawSvg(t, a, locked)}
+      <div class="db-axes"><label>x-axis <select data-db-ax="x" data-id="${h(t.id)}" ${locked ? 'disabled' : ''}><option value="">choose</option>${[['p', 'Price'], ['q', 'Quantity'], ['r', 'Revenue']].map(([v, l]) => `<option value="${v}" ${a.ax === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label>y-axis <select data-db-ax="y" data-id="${h(t.id)}" ${locked ? 'disabled' : ''}><option value="">choose</option>${[['p', 'Price'], ['q', 'Quantity'], ['c', 'Cost']].map(([v, l]) => `<option value="${v}" ${a.ay === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
+      <small class="muted">Tap the grid to place a point for each price in the table. Tap a point again to remove it. ${t.qStep > 1 ? `Quantities snap to steps of ${t.qStep}.` : ''}</small></div>`;
+  }
+
+  /* ---------- SVG charts for printing and the source panel ---------- */
+  function tableHtml(src) {
+    return `<div class="table-wrap"><table class="db-src-t"><tr>${src.head.map(x => `<th>${h(x)}</th>`).join('')}</tr>${src.rows.map(r => `<tr>${r.map(c => `<td>${h(c)}</td>`).join('')}</tr>`).join('')}</table></div>`;
+  }
+  function sourcesHtml(pack, which) {
+    return (pack.sources || []).filter(s => !which || which.includes(s.key)).map(s => `<div class="db-src"><div class="db-src-h"><b>${h(s.title)}</b>${s.note ? ` <span class="muted">${h(s.note)}</span>` : ''}</div>${s.text ? `<p class="db-src-p">${s.text}</p>` : ''}${s.table ? tableHtml(s.table) : ''}</div>`).join('');
+  }
+  function blankGrid(t) {
+    const G = drawGeom(t), fp = v => (t.pLab && t.pLab[v]) || v, fq = v => v;
+    let s = ''; t.rows.forEach(r => { s += `<line x1="${DW.L}" y1="${G.Y(r.price)}" x2="${DW.L + G.pw}" y2="${G.Y(r.price)}" stroke="#bbb"/><text x="${DW.L - 5}" y="${G.Y(r.price) + 4}" font-size="10" text-anchor="end">${h(fp(r.price))}</text>`; });
+    for (let k = 0; k <= (t.qTicks || 5); k++) { const q = Math.round(G.qMax * k / (t.qTicks || 5)); s += `<line x1="${G.X(q)}" y1="${DW.T}" x2="${G.X(q)}" y2="${DW.T + G.ph}" stroke="#ccc" stroke-dasharray="2 3"/><text x="${G.X(q)}" y="${DW.T + G.ph + 14}" font-size="10" text-anchor="middle">${h(fq(q))}</text>`; }
+    return `<svg viewBox="0 0 ${DW.W} ${DW.H}" style="width:100%;max-width:520px">${s}<path d="M${DW.L} ${DW.T} V${DW.T + G.ph} H${DW.L + G.pw}" stroke="#000" stroke-width="2" fill="none"/></svg>`;
+  }
+  function answerSvg(t) {
+    const a = { d: t.rows.map(r => ({ price: r.price, q: r.qd })), s: t.rows.map(r => ({ price: r.price, q: r.qs })), e: { price: t.eq.price, q: t.eq.qty }, ax: 'q', ay: 'p' };
+    return drawSvg(t, a, true);
+  }
+
+  /* ---------- rendering one task (student) ---------- */
+  const mix = id => { let v = 7; for (const c of String(id)) v = (v * 31 + c.charCodeAt(0)) % 1009; return (v * 613) % 101; };
+  const lines = n => `<div class="db-lines">${'<div></div>'.repeat(n)}</div>`;
+  function head(t, num) {
+    return `<div class="db-qh"><span class="db-num">${h(num || '')}</span><div class="db-qtext">${t.cmd ? `<b class="db-cmd">${h(t.cmd)}</b> ` : ''}${t.q}</div>${t.marks ? `<span class="db-marks">[${t.marks}]</span>` : ''}</div>${t.ref ? `<div class="db-ref">${h(t.ref)}</div>` : ''}`;
+  }
+  function taskHtml(t, st, opts) {
+    const a = st.ans[t.id], r = st.res[t.id], locked = opts.locked || (opts.sec === 'debrief' || opts.sec === 'ext') && r && r.ok, showFb = r && (opts.sec === 'debrief' || opts.sec === 'ext' || opts.submitted);
+    let body = '';
+    if (t.kind === 'info') return `<div class="db-task info">${t.q}</div>`;
+    if (t.kind === 'num') body = `<div class="row" style="gap:8px"><input type="text" inputmode="decimal" class="db-in" data-db-in="${h(t.id)}" value="${h(a ?? '')}" ${locked ? 'disabled' : ''} placeholder="${h(t.ph || 'Answer')}" aria-label="Answer">${t.unit ? `<span class="muted">${h(t.unit)}</span>` : ''}${opts.check && !locked ? `<button class="btn small primary" data-db-check="${h(t.id)}">Check</button>` : ''}</div>`;
+    else if (t.kind === 'choice') { const picks = Array.isArray(a) ? a : a == null ? [] : [a]; body = `<div class="db-opts">${t.options.map(o => `<button type="button" class="opt ${picks.includes(o.id) ? 'sel' : ''} ${showFb ? (t.correct.includes(o.id) ? 'right' : picks.includes(o.id) ? 'wrong' : '') : ''}" data-db-opt="${h(o.id)}" data-id="${h(t.id)}" ${locked ? 'disabled' : ''}>${o.text}</button>`).join('')}</div>${(t.pick || 1) > 1 ? `<small class="muted">Choose ${t.pick}.</small>` : ''}${opts.check && !locked ? `<div><button class="btn small primary" data-db-check="${h(t.id)}">Check</button></div>` : ''}`; }
+    else if (t.kind === 'grid') { const cm = r && r.cells; body = `<div class="table-wrap"><table class="db-grid"><tr>${t.cols.map(c => `<th>${c}</th>`).join('')}</tr>${t.rows.map((row, i) => `<tr><td><b>${row.label}</b></td>${row.cells.map((c, j) => c && c.answer != null ? `<td><input type="text" inputmode="decimal" class="db-in small ${cm && showFb ? (cm[i + ':' + j] ? 'good-in' : 'bad-in') : ''}" data-db-cell="${h(t.id)}" data-k="${i}:${j}" value="${h(((a || {})[i + ':' + j]) ?? '')}" ${locked ? 'disabled' : ''}></td>` : `<td>${c ? h(c.text) : ''}</td>`).join('')}</tr>`).join('')}</table></div>${opts.check && !locked ? `<div><button class="btn small primary" data-db-check="${h(t.id)}">Check</button></div>` : ''}`; }
+    else if (t.kind === 'order') { const seq = Array.isArray(a) ? a : []; body = `<div class="db-order">${seq.map((id, i) => `<div class="db-ord-sel"><b>${i + 1}</b> ${t.items.find(x => x.id === id).text}</div>`).join('')}</div><div class="db-opts">${t.items.filter(x => !seq.includes(x.id)).sort((x, y) => mix(x.id) - mix(y.id)).map(x => `<button type="button" class="opt" data-db-ord="${h(x.id)}" data-id="${h(t.id)}" ${locked ? 'disabled' : ''}>${x.text}</button>`).join('')}</div>${seq.length && !locked ? `<button class="btn small ghost" data-db-ordreset="${h(t.id)}">Start again</button>` : ''}${opts.check && !locked && seq.length === t.items.length ? `<button class="btn small primary" data-db-check="${h(t.id)}">Check</button>` : ''}`; }
+    else if (t.kind === 'text') body = `${t.frames && !opts.exam ? `<ul class="frames">${t.frames.map(f => `<li>${f}</li>`).join('')}</ul>` : ''}<textarea class="db-ta" data-db-ta="${h(t.id)}" rows="${Math.max(3, Math.min(10, t.marks + 2))}" ${locked ? 'disabled' : ''} placeholder="Write your answer here.">${h(a ?? '')}</textarea>${opts.check && !locked ? `<div><button class="btn small primary" data-db-check="${h(t.id)}">Check my answer</button></div>` : ''}`;
+    else if (t.kind === 'draw') body = drawHtml(t, a || {}, locked);
+    let fb = '';
+    if (showFb && r) {
+      fb = `<div class="db-fb ${r.mark >= r.max && r.max ? 'good' : r.mark > 0 ? 'note' : r.max ? 'bad' : r.ok ? 'good' : 'note'}">${r.max ? `<b>${r.mark} / ${r.max}${r.est ? ' (estimate)' : ''}</b> ` : ''}${r.fb || r.feedback || ''}${r.points && r.points.length ? `<ul class="db-pts">${r.points.map(p => `<li>${p.awarded ? '✓' : '○'} ${h(p.text)}</li>`).join('')}</ul>` : ''}${r.next_step ? `<div><b>Next step:</b> ${h(r.next_step)}</div>` : ''}${t.explain && (r.ok || (r.tries || 1) >= 2 || opts.submitted) ? `<div class="db-why">${t.explain}</div>` : ''}${r.override != null ? `<div class="muted">Your teacher changed this mark.</div>` : ''}</div>`;
+    }
+    return `<div class="db-task" id="task-${h(t.id)}">${head(t, opts.num)}${body}${fb}</div>`;
+  }
+
+  /* ================= student ================= */
+  const S0 = { pack: null, st: {}, tab: 'debrief', busy: false, askedAt: 0, outbox: [], cfg: null };
+  function sKey() { return 'ecologic-market:db:' + (S0.cfg ? S0.cfg.room() : ''); }
+  function ensure() { const r = S0.cfg && S0.cfg.room(); if (r && S0.loadedFor !== r) { S0.loadedFor = r; sLoad(); } }
+  function sLoad() { try { const v = JSON.parse(localStorage.getItem(sKey()) || 'null'); if (v && v.pack) { S0.pack = v.pack; S0.st = v.st || {}; S0.outbox = v.outbox || []; S0.open = v.open || null; } } catch { } }
+  function sSave() { try { localStorage.setItem(sKey(), JSON.stringify({ pack: S0.pack, st: S0.st, outbox: S0.outbox, open: S0.open })); } catch { } }
+  const stOf = k => (S0.st[k] ||= { ans: {}, res: {}, submitted: false });
+  function send(m) { m = { ...m, packId: S0.pack && S0.pack.id }; S0.outbox.push(m); S0.outbox = S0.outbox.slice(-200); sSave(); flush(); }
+  function flush() { ensure(); if (!S0.cfg || !S0.cfg.connected()) return; const box = S0.outbox.splice(0); box.forEach(m => S0.cfg.send(m)); sSave(); }
+  function allTasks(k) { const p = S0.pack; if (!p || !p[k]) return []; return k === 'debrief' && S0.cfg && S0.cfg.personal ? [...p[k].tasks, ...(S0.cfg.personal(p) || [])] : p[k].tasks; }
+  const findTask = id => SECTIONS.flatMap(s => allTasks(s.key).map(t => [s.key, t])).find(([, t]) => t.id === id) || [];
+
+  function sInit(cfg) {
+    S0.cfg = cfg;
+    document.addEventListener('input', e => {
+      const el = e.target; if (!el.closest || !el.closest('#dbRoot')) return;
+      if (el.dataset.dbIn) { const [k] = findTask(el.dataset.dbIn); stOf(k).ans[el.dataset.dbIn] = el.value; sSave(); }
+      if (el.dataset.dbTa) { const [k] = findTask(el.dataset.dbTa); stOf(k).ans[el.dataset.dbTa] = el.value; sSave(); const wc = el.parentElement.querySelector('.db-wc'); if (wc) wc.textContent = el.value.trim().split(/\s+/).filter(Boolean).length + ' words'; }
+      if (el.dataset.dbCell) { const [k] = findTask(el.dataset.dbCell); const a = (stOf(k).ans[el.dataset.dbCell] ||= {}); a[el.dataset.k] = el.value; sSave(); }
+    });
+    document.addEventListener('change', e => {
+      const el = e.target; if (!el.closest || !el.closest('#dbRoot') || !el.dataset.dbAx) return;
+      const id = el.dataset.id, [k] = findTask(id), a = (stOf(k).ans[id] ||= {}); a[el.dataset.dbAx === 'x' ? 'ax' : 'ay'] = el.value; sSave(); redraw(id);
+    });
+    document.addEventListener('click', sClick);
+    document.addEventListener('pointerdown', sDraw);
+  }
+  // state from the teacher: which pack and which sections are open
+  function sSync(pub) {
+    ensure();
+    const d = pub && pub.db; if (!d) return;
+    if (!S0.pack || S0.pack.id !== d.id) { if (Date.now() - S0.askedAt > 1500) { S0.askedAt = Date.now(); S0.cfg.send({ type: 'dbget' }); } }
+    else if (JSON.stringify(S0.open) !== JSON.stringify(d.open)) { S0.open = d.open; sSave(); }
+    flush();
+  }
+  function sOnMsg(m) {
+    ensure();
+    if (m.type !== 'dbpack' || !m.pack) return false;
+    if (!S0.pack || S0.pack.id !== m.pack.id) { if (S0.pack && S0.pack.id !== m.pack.id) S0.st = {}; S0.pack = m.pack; sSave(); }
+    S0.open = m.open || S0.open; return true;
+  }
+  const active = pub => (ensure(), !!(S0.pack && (pub ? pub.db && pub.db.id === S0.pack.id && Object.values(pub.db.open || {}).some(Boolean) : S0.open && S0.open.B)));
+  function openSecs(pub) { const o = (pub && pub.db && pub.db.open) || S0.open || {}; return SECTIONS.filter(x => o[x.key] && S0.pack[x.key]); }
+
+  function sRender(main, pub) {
+    ensure();
+    if (!S0.pack) { main.innerHTML = '<div class="panel">Getting the debrief from your teacher…</div>'; return; }
+    const secs = openSecs(pub); if (!secs.length) return;
+    if (!pub && !S0.tabSet && secs.find(x => x.key === 'B')) { S0.tab = 'B'; S0.tabSet = true; }
+    if (!secs.find(x => x.key === S0.tab)) S0.tab = secs[0].key;
+    const key = JSON.stringify([S0.pack.id, secs.map(x => x.key), S0.tab, S0.rev || 0]);
+    const root = main.querySelector('#dbRoot');
+    if (root && root.dataset.key === key) return;
+    const offline = !pub;
+    main.innerHTML = `<div id="dbRoot" data-key="${h(key)}" class="db-root">${offline ? '<div class="note" style="margin:0 0 10px">Homework mode: your answers and marks are saved on this device and sent to your teacher next time you join the room.</div>' : ''}
+      <div class="db-tabs" role="tablist">${secs.map(x => { const st = S0.st[x.key], done = x.graded ? st && st.submitted : st && allTasks(x.key).filter(t => t.kind !== 'info').every(t => st.res[t.id] && st.res[t.id].ok); return `<button role="tab" class="db-tab ${S0.tab === x.key ? 'sel' : ''}" data-db-tab="${x.key}">${x.tab}${done ? ' ✓' : ''}</button>`; }).join('')}</div>
+      <div id="dbSec">${secHtml(S0.tab)}</div></div>`;
+  }
+  function secHtml(k) {
+    const P = S0.pack, sec = secOf(k), S = P[k], st = stOf(k), tasks = allTasks(k), exam = sec.graded;
+    const max = tasks.reduce((a, t) => a + (t.marks || 0), 0), got = tasks.reduce((a, t) => a + ((st.res[t.id] || {}).mark || 0), 0);
+    const srcs = S.sources ? `<details class="db-srcbox" ${k === 'A' || k === 'debrief' ? 'open' : ''}><summary>${S.sources.length > 1 ? 'Sources' : 'Source'}: ${h(P.title)}</summary>${sourcesHtml(P, S.sources)}</details>` : '';
+    const head = `<div class="db-sechead"><div><h2 style="margin:0">${sec.title}</h2>${S.intro ? `<p style="margin:.3em 0 0">${S.intro}</p>` : ''}</div>${max ? `<div class="scorebox"><b>${exam && !st.submitted ? '–' : got} / ${max}</b><small>${exam ? (st.submitted ? 'marked' : 'not submitted yet') : 'debrief score'}</small></div>` : ''}</div>`;
+    const body = tasks.map((t, i) => taskHtml(t, st, { sec: k, check: !exam, exam, locked: exam && st.submitted, submitted: st.submitted, num: S.numbers ? S.numbers[i] : (t.kind === 'info' ? '' : (i + 1) + '.') })).join('');
+    const foot = exam ? (st.submitted ? `<div class="good">Section ${k} submitted. ${st.est ? 'Some written answers have an estimated mark: your teacher will check them.' : ''}</div>` : `<div class="db-submit"><button class="btn primary" data-db-submit="${k}" ${S0.busy ? 'disabled' : ''}>${S0.busy ? 'Marking…' : `Submit Section ${k} for marking`}</button><small class="muted">Check every part first. You cannot change your answers after you submit.</small></div>`) : '';
+    return `<div class="panel stack">${head}${srcs}${exam ? '<p class="muted" style="margin:0">Like the real exam: no glossary, no sentence frames. Answer every part.</p>' : ''}${body}${foot}</div>`;
+  }
+  function rerender(k) { S0.rev = (S0.rev || 0) + 1; const el = document.querySelector('#dbSec'); if (el && S0.tab === k) { el.innerHTML = secHtml(k); const r = document.querySelector('#dbRoot'); if (r) { const key = JSON.parse(r.dataset.key); key[3] = S0.rev; r.dataset.key = JSON.stringify(key); } } }
+  function redraw(id) { const [k, t] = findTask(id); const box = document.querySelector(`#task-${CSS.escape(id)} .db-drawbox`); if (box) box.outerHTML = drawHtml(t, stOf(k).ans[id] || {}, false); }
+  async function check(k, t) {
+    const st = stOf(k), a = st.ans[t.id];
+    let r;
+    if (t.kind === 'text') {
+      if (!a || String(a).trim().split(/\s+/).length < 6) return toastMsg('Write a bit more first.');
+      S0.busy = true; rerender(k);
+      r = (t.marks && await ai(t, a, S0.pack.ctx)) || estimate(t, a);
+      S0.busy = false; r.fb = r.feedback || ''; r.ok = r.mark >= r.max;
+    } else r = markTask(t, a);
+    if (!r) return toastMsg('Answer first.');
+    const prev = st.res[t.id]; r.tries = (prev ? prev.tries || 1 : 0) + 1; r.first = prev ? prev.first : r.mark; r.firstOk = prev ? prev.firstOk : !!r.ok;
+    st.res[t.id] = r; sSave();
+    send({ type: 'dbres', sec: k, id: t.id, mark: r.mark, max: r.max, first: r.first, firstOk: r.firstOk, ok: !!r.ok, tries: r.tries, est: !!r.est, text: t.kind === 'text' ? String(a).slice(0, 2000) : undefined });
+    S0.cfg.sound && S0.cfg.sound(r.ok ? 'chime' : r.mark > 0 ? 'pop' : 'bonk');
+    if (r.ok && typeof FX !== 'undefined') FX.float(r.max ? '+' + r.mark : '✓', `#task-${CSS.escape(t.id)}`, 'good');
+    rerender(k);
+  }
+  async function submit(k) {
+    const st = stOf(k), tasks = allTasks(k).filter(t => t.kind !== 'info');
+    const empty = tasks.filter(t => { const a = st.ans[t.id]; return a == null || a === '' || (Array.isArray(a) && !a.length) || (t.kind === 'draw' && !(a.d || a.s || a.e)); });
+    if (empty.length && !confirm(`${empty.length} part${empty.length > 1 ? 's are' : ' is'} not answered. Submit anyway?`)) return;
+    S0.busy = true; rerender(k);
+    const results = await Promise.all(tasks.map(async t => {
+      const a = st.ans[t.id];
+      if (t.kind === 'text') { if (!a || !String(a).trim()) return [t, { mark: 0, max: t.marks, fb: 'No answer.' }]; const r = (await ai(t, a, S0.pack.ctx)) || estimate(t, a); r.fb = r.feedback || ''; return [t, r]; }
+      return [t, markTask(t, a) || { mark: 0, max: t.marks, fb: 'No answer.' }];
+    }));
+    results.forEach(([t, r]) => { st.res[t.id] = r; });
+    st.submitted = Date.now(); st.est = results.some(([, r]) => r.est); S0.busy = false; sSave();
+    send({ type: 'dbsub', sec: k, at: st.submitted, res: Object.fromEntries(results.map(([t, r]) => [t.id, { mark: r.mark, max: r.max, est: !!r.est, text: t.kind === 'text' ? String(st.ans[t.id] || '').slice(0, 3000) : undefined, ans: t.kind === 'text' ? undefined : st.ans[t.id] }])) });
+    const got = results.reduce((a, [, r]) => a + r.mark, 0), max = results.reduce((a, [, r]) => a + r.max, 0);
+    S0.cfg.sound && S0.cfg.sound(got / Math.max(1, max) >= .5 ? 'fanfare' : 'chime');
+    if (typeof FX !== 'undefined' && got / Math.max(1, max) >= .7) FX.badge('📝', `Section ${k}: ${got} / ${max}`, 'Paper 2 style marks', false);
+    rerender(k);
+    const r = document.querySelector('#dbRoot'); if (r) r.scrollIntoView({ behavior: 'smooth' });
+  }
+  const toastMsg = m => { if (typeof toast === 'function') toast(m); };
+  function sClick(e) {
+    const el = e.target.closest && e.target.closest('[data-db-tab],[data-db-check],[data-db-submit],[data-db-opt],[data-db-ord],[data-db-ordreset],[data-db-mode],[data-db-clear]');
+    if (!el || !el.closest('#dbRoot') || el.disabled) return;
+    if (el.dataset.dbTab) { S0.tab = el.dataset.dbTab; S0.tabSet = true; const r = document.querySelector('#dbRoot'); if (r) { r.dataset.key = ''; } return S0.cfg.render(); }
+    if (el.dataset.dbCheck) { const [k, t] = findTask(el.dataset.dbCheck); return check(k, t); }
+    if (el.dataset.dbSubmit) return submit(el.dataset.dbSubmit);
+    if (el.dataset.dbOpt) { const id = el.dataset.id, [k, t] = findTask(id), st = stOf(k); if ((t.pick || 1) > 1) { const cur = Array.isArray(st.ans[id]) ? st.ans[id] : []; st.ans[id] = cur.includes(el.dataset.dbOpt) ? cur.filter(x => x !== el.dataset.dbOpt) : [...cur, el.dataset.dbOpt].slice(-(t.pick)); } else st.ans[id] = el.dataset.dbOpt; sSave(); return rerender(k); }
+    if (el.dataset.dbOrd) { const id = el.dataset.id, [k] = findTask(id), st = stOf(k); st.ans[id] = [...(st.ans[id] || []), el.dataset.dbOrd]; sSave(); return rerender(k); }
+    if (el.dataset.dbOrdreset) { const id = el.dataset.dbOrdreset, [k] = findTask(id); stOf(k).ans[id] = []; sSave(); return rerender(k); }
+    if (el.dataset.dbMode) { const id = el.dataset.id, [k] = findTask(id), a = (stOf(k).ans[id] ||= {}); a.mode = el.dataset.dbMode; sSave(); return redraw(id); }
+    if (el.dataset.dbClear) { const id = el.dataset.dbClear, [k] = findTask(id), a = (stOf(k).ans[id] ||= {}), m = a.mode || 'd'; if (m === 'e') delete a.e; else a[m] = []; sSave(); return redraw(id); }
+  }
+  function sDraw(e) {
+    const hit = e.target.closest && e.target.closest('.db-hit'); if (!hit) return;
+    const svg = hit.closest('svg'), id = svg.dataset.dbDraw, [k, t] = findTask(id); if (!t) return;
+    const st = stOf(k); if (st.submitted) return;
+    const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const G = drawGeom(t), step = t.qStep || 1;
+    let q = Math.max(0, Math.min(t.qMax, Math.round(G.iq(loc.x) / step) * step));
+    const pRaw = G.ip(loc.y), price = t.rows.map(r => r.price).reduce((b, p) => Math.abs(p - pRaw) < Math.abs(b - pRaw) ? p : b, t.rows[0].price);
+    const a = (st.ans[id] ||= {}), mode = a.mode || 'd';
+    if (mode === 'e') {
+      let ep = pRaw; const ps = t.rows.map(r => r.price).sort((x, y) => x - y), gap = (ps[1] - ps[0]) / 2; ep = Math.round(pRaw / gap) * gap;
+      a.e = { price: ep, q };
+    } else {
+      const arr = (a[mode] ||= []), same = arr.findIndex(p => p.price === price && Math.abs(p.q - q) <= Math.max(step, t.qMax * .03));
+      if (same >= 0) arr.splice(same, 1); else { const i = arr.findIndex(p => p.price === price); if (i >= 0) arr.splice(i, 1); arr.push({ price, q }); }
+    }
+    sSave(); redraw(id); e.preventDefault();
+  }
+
+  /* ================= teacher ================= */
+  let TC = null;
+  function tInit(cfg) { TC = cfg; }
+  const tS = () => { const s = TC.state(); return (s.db ||= { pack: null, open: { debrief: false, ext: false, A: false, B: false }, res: {}, sub: {}, ov: {} }); };
+  function tOpen(build) {
+    const d = tS();
+    if (d.pack && !confirm('Open the debrief again with the latest class data? Students who have started keep their answers only if the numbers are the same, so do this before they start.')) return;
+    const pack = build(); if (!pack) return;
+    pack.id = 'p' + Date.now().toString(36); pack.at = Date.now();
+    if (d.pack) { d.res = {}; d.sub = {}; d.ov = {}; }
+    d.pack = pack; d.open = { debrief: true, ext: true, A: false, B: false };
+    TC.save(); TC.changed(true); tSendPack();
+  }
+  let lastPack = 0;
+  function tSendPack(force) { const d = tS(); if (!d.pack) return; if (!force && Date.now() - lastPack < 1200) { clearTimeout(tSendPack.t); tSendPack.t = setTimeout(() => tSendPack(true), 1300); return; } lastPack = Date.now(); TC.send({ type: 'dbpack', pack: d.pack, open: d.open }); }
+  const tPub = () => { const d = TC.state().db; return d && d.pack ? { id: d.pack.id, open: d.open } : null; };
+  function tOnMsg(m) {
+    const d = TC.state().db; if (!d) return false;
+    if (m.type === 'dbget') { tSendPack(); return true; }
+    if (!d.pack || m.packId !== d.pack.id) return m.type === 'dbres' || m.type === 'dbsub';
+    if (m.type === 'dbres') { const r = ((d.res[m.pid] ||= {})[m.id] ||= {}); Object.assign(r, { sec: m.sec, mark: +m.mark || 0, max: +m.max || 0, first: r.first ?? (+m.first || 0), firstOk: r.firstOk ?? !!m.firstOk, ok: !!m.ok, tries: m.tries || 1, est: !!m.est, text: m.text != null ? String(m.text).slice(0, 2000) : r.text }); TC.save(); TC.changed(); return true; }
+    if (m.type === 'dbsub') { (d.sub[m.pid] ||= {})[m.sec] = m.at || Date.now(); Object.entries(m.res || {}).forEach(([id, x]) => { (d.res[m.pid] ||= {})[id] = { sec: m.sec, mark: +x.mark || 0, max: +x.max || 0, est: !!x.est, text: x.text != null ? String(x.text).slice(0, 3000) : undefined, ans: x.ans }; }); TC.save(); TC.changed(); if (typeof Sound !== 'undefined') Sound.play('chime'); return true; }
+    return false;
+  }
+  function markOf(pid, id) { const d = tS(), ov = (d.ov[pid] || {})[id]; const r = (d.res[pid] || {})[id]; return ov != null ? { ...(r || {}), mark: ov, override: true } : r; }
+  function secScore(pid, k) { const d = tS(); if (!d.pack || !d.pack[k]) return null; if ((k === 'A' || k === 'B') && !(d.sub[pid] || {})[k]) return null; const ts = d.pack[k].tasks.filter(t => t.marks); return { got: ts.reduce((a, t) => a + ((markOf(pid, t.id) || {}).mark || 0), 0), max: ts.reduce((a, t) => a + t.marks, 0), est: ts.some(t => (markOf(pid, t.id) || {}).est && !(markOf(pid, t.id) || {}).override) }; }
+  function rows() {
+    const d = tS();
+    return TC.humans().map(hh => {
+      const pid = hh.pid, A = secScore(pid, 'A'), B = secScore(pid, 'B'), extra = TC.extra ? TC.extra(pid) : null;
+      const dt = d.pack ? d.pack.debrief.tasks.filter(t => t.kind !== 'info') : [], dr = d.res[pid] || {};
+      const rft = dt.filter(t => dr[t.id] && dr[t.id].firstOk).length, tried = dt.filter(t => dr[t.id]).length;
+      const ext = d.pack && d.pack.ext ? d.pack.ext.tasks.filter(t => t.kind !== 'info' && (dr[t.id] || {}).ok).length : 0;
+      const parts = [A, B, extra].filter(Boolean), got = parts.reduce((a, x) => a + x.got, 0), max = parts.reduce((a, x) => a + x.max, 0);
+      return { pid, nick: hh.nick, rft, tried, dn: dt.length, ext, en: d.pack && d.pack.ext ? d.pack.ext.tasks.filter(t => t.kind !== 'info').length : 0, A, B, extra, got, max, pct: max ? got / max : null, est: (A && A.est) || (B && B.est) };
+    });
+  }
+  function stats(xs) { if (!xs.length) return null; const m = xs.reduce((a, b) => a + b, 0) / xs.length; return { mean: m, sd: Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / xs.length), n: xs.length }; }
+  function tPanel() {
+    const d = tS(), P = d.pack;
+    if (!P) return `<div class="panel stack"><h2 style="margin:0">Debrief and Paper 2</h2><p style="margin:0">Build the debrief from this lesson's data: a debrief, an extension activity and a Paper 2 style Section A (data response) and Section B. ${TC.readyNote ? TC.readyNote() : ''}</p><div class="row"><button class="btn primary" data-act="db-open">Open the debrief from our data</button></div></div>`;
+    const R = rows(), st = stats(R.filter(r => r.pct != null).map(r => r.pct)), flag = r => st && st.n >= 3 && r.pct != null && r.pct < st.mean - st.sd;
+    const tog = (k, l) => `<button class="btn small ${d.open[k] ? 'primary' : ''}" data-act="db-tog" data-k="${k}">${d.open[k] ? '✓ ' : ''}${l}</button>`;
+    const fmt = x => x ? `${x.got} / ${x.max}${x.est ? '*' : ''}` : '–';
+    const partStats = ['A', 'B'].map(k => P[k] ? P[k].tasks.filter(t => t.marks).map((t, i) => { const ms = R.filter(r => (d.sub[r.pid] || {})[k]).map(r => (markOf(r.pid, t.id) || {}).mark || 0); return `<tr><td>${k}${P[k].numbers ? P[k].numbers[P[k].tasks.indexOf(t)] : i + 1}</td><td>${h(t.cmd || '')}</td><td>${ms.length ? Math.round(100 * ms.reduce((a, b) => a + b, 0) / ms.length / t.marks) + '%' : '–'}</td></tr>`; }).join('') : '').join('');
+    const dStats = P.debrief.tasks.filter(t => t.kind !== 'info').map((t, i) => { const tried = R.filter(r => (d.res[r.pid] || {})[t.id]); const f = tried.filter(r => d.res[r.pid][t.id].firstOk).length; return `<tr><td>Debrief ${i + 1}</td><td>${h(t.cmd || t.kind)}</td><td>${tried.length ? Math.round(100 * f / tried.length) + '% right first time' : '–'}</td></tr>`; }).join('');
+    const texts = ['debrief', 'ext', 'A', 'B'].flatMap(k => P[k] ? P[k].tasks.filter(t => t.kind === 'text').map(t => [k, t]) : []);
+    return `<div class="panel stack" id="dbPanel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Debrief and Paper 2</h2><small class="muted">Data frozen ${new Date(P.at).toLocaleTimeString()}${P.fallback ? ' · ' + h(P.fallback) : ''}</small></div>
+      <div class="row">${tog('debrief', 'Debrief')}${tog('ext', 'Extension')}${tog('A', 'Section A (in class)')}${tog('B', 'Section B (homework)')}</div>
+      <div class="row"><button class="btn small" data-act="db-print" data-k="A">🖨 Print Section A</button><button class="btn small" data-act="db-print" data-k="B">🖨 Print Section B</button><button class="btn small" data-act="db-print" data-k="debrief">🖨 Print debrief + extension</button><button class="btn small" data-act="db-print" data-k="ms">🖨 Print mark scheme</button><button class="btn small" data-act="db-csv">Download grades (CSV)</button><button class="btn small ghost" data-act="db-open">Rebuild from latest data</button></div>
+      <div class="table-wrap"><table><tr><th>Student</th><th>Debrief</th><th>Extension</th><th>Section A</th><th>Section B</th>${TC.extraLabel ? `<th>${h(TC.extraLabel)}</th>` : ''}<th>Total</th><th></th></tr>
+        ${R.map(r => `<tr class="${flag(r) ? 'flag' : ''}"><td>${h(r.nick)}</td><td>${r.tried ? `${r.rft}/${r.dn} first time` : '–'}</td><td>${r.ext ? `${r.ext}/${r.en}` : '–'}</td><td>${fmt(r.A)}</td><td>${fmt(r.B)}</td>${TC.extraLabel ? `<td>${fmt(r.extra)}</td>` : ''}<td><b>${r.max ? `${r.got} / ${r.max}` : '–'}</b>${r.pct != null ? ` <small class="muted">${Math.round(100 * r.pct)}%</small>` : ''}</td><td>${flag(r) ? '<span class="flagtag">review</span>' : ''}</td></tr>`).join('')}
+        ${st ? `<tr class="avg"><td>Class average</td><td colspan="${TC.extraLabel ? 5 : 4}"></td><td><b>${Math.round(100 * st.mean)}%</b> <small class="muted">SD ${Math.round(100 * st.sd)} points</small></td><td></td></tr>` : ''}</table></div>
+      <small class="muted">* includes an estimated mark for a written answer (AI marking was not available). "review" = more than 1 standard deviation below the class average (needs 3 or more students).</small>
+      <details><summary>Which parts the class found hard</summary><div class="table-wrap"><table><tr><th>Part</th><th>Task</th><th>Class result</th></tr>${dStats}${partStats}</table></div></details>
+      ${texts.length ? `<details><summary>Written answers and marks (you can change any mark)</summary>${texts.map(([k, t]) => { const ans = R.map(r => [r, markOf(r.pid, t.id)]).filter(([, x]) => x && x.text); return `<div class="task"><b>${k === 'A' || k === 'B' ? 'Section ' + k : k === 'ext' ? 'Extension' : 'Debrief'}: ${t.cmd ? h(t.cmd) + ' ' : ''}</b>${t.q} <span class="muted">[${t.marks}]</span>${ans.length ? ans.map(([r, x]) => `<div class="db-ans"><div class="row" style="justify-content:space-between"><b>${h(r.nick)}</b><label class="row" style="gap:4px">mark <input type="number" min="0" max="${t.marks}" value="${x.mark}" data-db-ov="${h(r.pid)}" data-id="${h(t.id)}" style="width:64px">${x.est && !x.override ? '<small class="muted">estimate</small>' : ''}</label></div><p style="margin:.3em 0 0;white-space:pre-wrap">${h(x.text)}</p></div>`).join('') : '<p class="muted" style="margin:0">No answers yet.</p>'}</div>`; }).join('')}</details>` : ''}
+    </div>`;
+  }
+  function tClick(a, el) {
+    const d = tS();
+    if (a === 'db-open') { tOpen(TC.build); return true; }
+    if (a === 'db-tog') { d.open[el.dataset.k] = !d.open[el.dataset.k]; TC.save(); TC.changed(true); tSendPack(true); return true; }
+    if (a === 'db-print') { printPack(d.pack, el.dataset.k); return true; }
+    if (a === 'db-csv') { csv(); return true; }
+    return false;
+  }
+  document.addEventListener('change', e => { const el = e.target; if (!el.dataset || el.dataset.dbOv == null || !TC) return; const d = tS(), [, t] = ['A', 'B', 'debrief', 'ext'].map(k => [k, d.pack[k] && d.pack[k].tasks.find(x => x.id === el.dataset.id)]).find(([, x]) => x) || []; if (!t) return; const v = Math.max(0, Math.min(t.marks, Math.round(+el.value || 0))); (d.ov[el.dataset.dbOv] ||= {})[t.id] = v; TC.save(); if (typeof toast === 'function') toast('Mark updated'); setTimeout(() => TC.changed(), 0); });
+  function csv() {
+    const d = tS(), P = d.pack; if (!P) return;
+    const ids = ['A', 'B'].flatMap(k => P[k] ? P[k].tasks.filter(t => t.marks).map((t, i) => [k, t, P[k].numbers ? P[k].numbers[P[k].tasks.indexOf(t)] : i + 1]) : []);
+    const head = ['student', 'debrief_right_first_time', 'debrief_tasks', 'extension_done', ...ids.map(([k, t, n]) => `${k}${n}_of_${t.marks}`), 'section_A', 'section_B', ...(TC.extraLabel ? [TC.extraLabel.replace(/\W+/g, '_').toLowerCase()] : []), 'total', 'max', 'percent', 'estimated_marks', 'flag_below_1sd'];
+    const R = rows(), st = stats(R.filter(r => r.pct != null).map(r => r.pct));
+    const lines = [head.join(',')].concat(R.map(r => [JSON.stringify(r.nick), r.rft, r.dn, r.ext, ...ids.map(([k, t]) => (d.sub[r.pid] || {})[k] ? ((markOf(r.pid, t.id) || {}).mark || 0) : ''), r.A ? r.A.got : '', r.B ? r.B.got : '', ...(TC.extraLabel ? [r.extra ? r.extra.got : ''] : []), r.max ? r.got : '', r.max || '', r.pct != null ? Math.round(100 * r.pct) : '', r.est ? 'yes' : '', st && st.n >= 3 && r.pct != null && r.pct < st.mean - st.sd ? 'yes' : ''].join(',')));
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })); a.download = `paper2-${P.level}-${new Date(P.at).toISOString().slice(0, 10)}.csv`; a.click();
+  }
+
+  /* ---------- printables ---------- */
+  function printTask(t, n) {
+    const hd = `<div class="pq"><div class="pq-h"><b>${h(n)}</b> ${t.cmd ? `<b>${h(t.cmd)}</b> ` : ''}${t.q}${t.marks ? ` <span class="pq-m">[${t.marks}]</span>` : ''}</div>`;
+    if (t.kind === 'info') return `<div class="pq">${t.q}</div>`;
+    if (t.kind === 'choice') return hd + `<ol type="A" class="pq-opts">${t.options.map(o => `<li>${o.text}</li>`).join('')}</ol>${(t.pick || 1) > 1 ? `<div class="pq-note">Choose ${t.pick}.</div>` : ''}</div>`;
+    if (t.kind === 'grid') return hd + `<table class="pq-t"><tr>${t.cols.map(c => `<th>${c}</th>`).join('')}</tr>${t.rows.map(r => `<tr><td>${r.label}</td>${r.cells.map(c => `<td>${c && c.answer == null && c.text ? h(c.text) : ''}</td>`).join('')}</tr>`).join('')}</table></div>`;
+    if (t.kind === 'order') return hd + `<ul class="pq-opts">${t.items.map(x => `<li>☐ ${x.text}</li>`).join('')}</ul><div class="pq-note">Number the boxes 1 to ${t.items.length}.</div></div>`;
+    if (t.kind === 'draw') return hd + blankGrid(t) + '</div>';
+    if (t.kind === 'num') return hd + lines(2) + '</div>';
+    return hd + lines(Math.max(3, (t.marks || 2) * 2)) + '</div>';
+  }
+  function msTask(t, n) {
+    let ans = '';
+    if (t.kind === 'num') ans = `<b>${h(t.show || t.answer)}</b>${t.working ? ` · Working: ${t.working}` : ''}`;
+    else if (t.kind === 'choice') ans = t.options.filter(o => t.correct.includes(o.id)).map(o => `<b>${o.text}</b>`).join('; ') + ((t.pick || 1) > 1 ? ' (1 mark each)' : '');
+    else if (t.kind === 'grid') ans = t.rows.map(r => `${r.label}: ${r.cells.filter(c => c && c.answer != null).map(c => c.show || c.answer).join(', ')}`).join(' · ');
+    else if (t.kind === 'order') ans = t.correct.map((id, i) => `${i + 1}. ${t.items.find(x => x.id === id).text}`).join('<br>');
+    else if (t.kind === 'draw') ans = `1 mark each: demand curve plotted correctly · supply curve plotted correctly · equilibrium identified (price ${h(t.eqShow || '')}) · axes labelled price (y) and quantity (x).<div style="max-width:360px">${answerSvg(t)}</div>`;
+    else if (t.kind === 'text') ans = `${t.scheme || ''}${t.levels ? `<table class="pq-t"><tr><th>Level</th><th>Marks</th><th>Description</th></tr><tr><td>3</td><td>6–8</td><td>A reasoned discussion that accurately considers two sides of the argument, using economic concepts and terms accurately.</td></tr><tr><td>2</td><td>3–5</td><td>A reasoned discussion using economic information and clear analysis; may lack depth or be one-sided.</td></tr><tr><td>1</td><td>1–2</td><td>Relevant definitions and/or relevant statements that are not developed.</td></tr><tr><td>0</td><td>0</td><td>No creditable content.</td></tr></table>` : ''}${t.model ? `<div><i>Model answer:</i> ${t.model}</div>` : ''}`;
+    return `<div class="pq"><div class="pq-h"><b>${h(n)}</b> ${t.cmd ? `<b>${h(t.cmd)}</b> ` : ''}${t.q}${t.marks ? ` <span class="pq-m">[${t.marks}]</span>` : ''}</div><div class="ms">${ans}${t.explain ? `<div class="pq-note">${t.explain}</div>` : ''}</div></div>`;
+  }
+  function printPack(P, which) {
+    if (!P) return;
+    const secs = which === 'ms' ? ['debrief', 'ext', 'A', 'B'] : which === 'debrief' ? ['debrief', 'ext'] : [which];
+    const body = secs.filter(k => P[k]).map(k => {
+      const S = P[k], sec = secOf(k), max = secMax(P, k);
+      return `<section class="psheet"><h2>${h(P.title)}: ${sec.title}${max && sec.graded ? ` <span class="pq-m">(${max} marks)</span>` : ''}</h2>${which !== 'ms' ? '<div class="pname">Name: ________________________ &nbsp; Class: ________ &nbsp; Date: ____________</div>' : ''}
+        ${S.intro ? `<p>${S.intro}</p>` : ''}${S.sources && which !== 'ms' ? sourcesHtml(P, S.sources) : ''}
+        ${S.tasks.map((t, i) => (which === 'ms' ? msTask : printTask)(t, S.numbers ? S.numbers[i] : (i + 1) + '.')).join('')}</section>`;
+    }).join('');
+    let el = document.getElementById('dbPrint'); if (!el) { el = document.createElement('div'); el.id = 'dbPrint'; document.body.appendChild(el); }
+    el.innerHTML = `<div class="db-printdoc">${which === 'ms' ? `<h1>Mark scheme: ${h(P.title)}</h1><p>Teacher copy. Built from the class data on ${new Date(P.at).toLocaleString()}.</p>${sourcesHtml(P)}` : ''}${body}</div>`;
+    document.body.classList.add('db-printing');
+    const done = () => document.body.classList.remove('db-printing');
+    window.addEventListener('afterprint', done, { once: true });
+    setTimeout(() => window.print(), 80);
+  }
+
+  /* ---------- helpers for levels ---------- */
+  const T = {
+    num: (id, cmd, q, marks, answer, o = {}) => ({ id, kind: 'num', cmd, q, marks, answer, ...o }),
+    choice: (id, cmd, q, marks, options, correct, o = {}) => ({ id, kind: 'choice', cmd, q, marks, options: options.map((x, i) => typeof x === 'string' ? { id: 'o' + i, text: x } : x), correct, ...o }),
+    text: (id, cmd, q, marks, o = {}) => ({ id, kind: 'text', cmd, q, marks, ...o }),
+    info: (id, q) => ({ id, kind: 'info', q }),
+    draw: (id, q, o) => ({ id, kind: 'draw', cmd: 'Draw', q, marks: 4, ...o }),
+    grid: (id, q, cols, rows, o = {}) => ({ id, kind: 'grid', q, cols, rows, marks: 0, ...o }),
+    order: (id, q, items, correct, o = {}) => ({ id, kind: 'order', q, items, correct, marks: 0, ...o })
+  };
+  const kw = (label, any, side) => ({ label, any, side });
+
+  return { SECTIONS, parseNum, markTask, estimate, T, kw, tableHtml, sourcesHtml,
+    S: { init: sInit, sync: sSync, onMsg: sOnMsg, active, render: sRender, has: () => !!S0.pack, flush,
+      scores: () => Object.fromEntries(['debrief', 'A', 'B'].filter(k => S0.pack && S0.pack[k]).map(k => { const st = S0.st[k] || { res: {} }, ts = allTasks(k).filter(t => t.marks); return [k, { got: ts.reduce((a, t) => a + ((st.res[t.id] || {}).mark || 0), 0), max: ts.reduce((a, t) => a + t.marks, 0), submitted: !!st.submitted }]; })) },
+    Tch: { init: tInit, open: tOpen, pub: tPub, onMsg: tOnMsg, panel: tPanel, click: tClick, sendPack: tSendPack, rows, print: printPack } };
 })();
 </script><!--/FX-JS-->
 <script>
@@ -1265,6 +2023,10 @@ const M2 = (() => {
   const EXTRA_CARDS = [[3, 6], [4, 5], [2, 7], [5, 4], [3, 8], [2, 5], [4, 6], [1, 7]];
 
   function buyerCards(n) {
+    if (n > 0 && n < BUYER_CARDS.length) { // small market: an evenly spread set, so demand slopes across the whole range
+      const idx = n === 1 ? [9] : Array.from({ length: n }, (_, i) => Math.round(i * (BUYER_CARDS.length - 1) / (n - 1)));
+      return idx.map(i => ({ id: 'c' + (i + 1), candy: BUYER_CARDS[i][0], choc: BUYER_CARDS[i][1] }));
+    }
     const out = BUYER_CARDS.slice(0, Math.min(n, BUYER_CARDS.length)).map((c, i) => ({ id: 'c' + (i + 1), candy: c[0], choc: c[1] }));
     for (let i = 0; out.length < n; i++) { const c = EXTRA_CARDS[i % EXTRA_CARDS.length]; out.push({ id: 'x' + (i + 1), candy: c[0], choc: c[1] }); }
     return out;
@@ -1412,6 +2174,44 @@ const EVENTS3 = [
   { key: 'factory', vi: 'Nhà máy mới mở cửa', icon: '🏭', label: 'New factory opens', detail: 'Costs −2k for every shop', parts: [{ side: 'sellers', product: 'both', amount: -2 }] },
   { key: 'health', vi: 'Chiến dịch ăn uống lành mạnh', icon: '🥗', label: 'Health campaign', detail: 'Buyers value sweets −3k', parts: [{ side: 'buyers', product: 'both', amount: -3 }] }
 ];
+/* ---- the news stories behind each event (English, then Vietnamese) ---- */
+const NEWS3 = {
+  cacao: { title: 'Storms destroy the cacao harvest', vi: 'Bão làm mất mùa ca cao ở Tây Nguyên', lines: [['Heavy storms hit the cacao farms in the Central Highlands.', 'Bão lớn quét qua các vườn ca cao ở Tây Nguyên.'], ['Farmers lost almost half of their cacao pods.', 'Nông dân mất gần một nửa số quả ca cao.'], ['Cacao beans now cost much more, so chocolate costs more to make.', 'Hạt ca cao đắt hơn nhiều, nên làm sô-cô-la tốn kém hơn.']] },
+  sugar: { title: 'Drought hits the sugar cane fields', vi: 'Hạn hán làm mất mùa mía', lines: [['No rain for two months in the Mekong Delta.', 'Hai tháng không mưa ở Đồng bằng sông Cửu Long.'], ['The sugar cane fields have dried up.', 'Những cánh đồng mía bị khô héo.'], ['Sugar costs more, and chocolate and candy both need sugar.', 'Đường đắt hơn, mà sô-cô-la và kẹo đều cần đường.']] },
+  halloween: { title: 'Halloween comes to Market Town!', vi: 'Lễ hội Halloween đến Thị Trấn Chợ!', lines: [['Pumpkins, masks and costumes are everywhere.', 'Bí ngô, mặt nạ và trang phục hóa trang ở khắp nơi.'], ['Every class is having a party tonight.', 'Lớp nào cũng tổ chức tiệc tối nay.'], ['Everyone wants sweets for trick-or-treat. Chocolate is the top treat.', 'Ai cũng muốn có kẹo để chơi "cho kẹo hay bị ghẹo". Sô-cô-la được yêu thích nhất.']] },
+  pocket: { title: 'Pocket money day!', vi: 'Ngày nhận tiền tiêu vặt!', lines: [['Parents give out pocket money today.', 'Hôm nay bố mẹ phát tiền tiêu vặt.'], ['Students have more money to spend at the market.', 'Học sinh có nhiều tiền hơn để tiêu ở chợ.'], ['Sweets are a favourite way to spend it.', 'Mua kẹo là cách tiêu tiền được yêu thích.']] },
+  factory: { title: 'A new sweet factory opens', vi: 'Nhà máy bánh kẹo mới mở cửa', lines: [['A big new factory opens in Bình Dương.', 'Một nhà máy lớn mới mở ở Bình Dương.'], ['New machines make sweets faster and cheaper.', 'Máy móc mới làm kẹo nhanh hơn và rẻ hơn.'], ['Shops can buy their stock for less.', 'Các cửa hàng nhập hàng với giá rẻ hơn.']] },
+  health: { title: 'Healthy Eating Week at school', vi: 'Tuần lễ ăn uống lành mạnh ở trường', lines: [['The school starts a Healthy Eating Week.', 'Nhà trường bắt đầu Tuần lễ ăn uống lành mạnh.'], ['Posters say: too much sugar is bad for your teeth.', 'Áp phích nói: ăn nhiều đường có hại cho răng.'], ['Many students now want fewer sweets.', 'Nhiều học sinh muốn ăn ít kẹo hơn.']] }
+};
+const evFull = e => (e && e.parts) ? e : (EVENTS3.find(x => x.key === (e && e.key)) || { ...e, parts: [] });
+const evAmount = (evs, side, p) => evs.map(evFull).flatMap(e => e.parts || []).filter(x => x.side === side && (x.product === p || x.product === 'both')).reduce((a, x) => a + x.amount, 0);
+const sgnK = n => (n > 0 ? '+' : '−') + Math.abs(n) + 'k';
+/** "What changes" cards. when: 'next' (before the round) or 'now'. me: the student's own data, if any */
+function newsImpact(evs, when, me) {
+  const ps = PX(), out = [];
+  const shopTxt = ps.filter(p => evAmount(evs, 'sellers', p)).map(p => `${PROD[p].name} ${sgnK(evAmount(evs, 'sellers', p))}`).join(', ');
+  const buyTxt = ps.filter(p => evAmount(evs, 'buyers', p)).map(p => `${PROD[p].name} ${sgnK(evAmount(evs, 'buyers', p))}`).join(', ');
+  if (me && me.shop && M2.SHOP_CARDS[me.shop]) {
+    const rows = ps.filter(p => evAmount(evs, 'sellers', p)).map(p => `${PROD[p].name}: ${M2.SHOP_CARDS[me.shop][p].map(c => k(c) + '→' + k(c + evAmount(evs, 'sellers', p))).join(', ')}`);
+    out.push({ icon: '🏪', who: 'Your shop · Cửa hàng của bạn', text: rows.length ? `Your lowest price for each unit changes. ${rows.join(' · ')}` : 'Your costs do not change.', vi: rows.length ? 'Giá thấp nhất bạn chấp nhận cho mỗi sản phẩm thay đổi.' : 'Chi phí của bạn không đổi.' });
+  } else if (me && me.role === 'buyer') {
+    const ch = ps.filter(p => evAmount(evs, 'buyers', p));
+    out.push({ icon: '🎟️', who: 'Your card · Thẻ của bạn', text: !ch.length ? 'Your card values do not change.' : when === 'now' && me.values ? `${ch.map(p => `${PROD[p].name} was worth ${k(me.values[p] - evAmount(evs, 'buyers', p))}, now ${k(me.values[p])}`).join(' · ')}` : `Next round, your card values: ${buyTxt}.`, vi: ch.length ? 'Giá trị trên thẻ của bạn thay đổi.' : 'Giá trị trên thẻ của bạn không đổi.' });
+  }
+  const way = side => { const xs = ps.map(p => evAmount(evs, side, p)).filter(Boolean); return xs.every(x => x > 0) ? 'up' : xs.every(x => x < 0) ? 'down' : 'change'; };
+  if (!(me && me.shop)) out.push({ icon: '🏪', who: 'Shops · Cửa hàng', text: shopTxt ? `Costs go ${way('sellers') === 'change' ? 'up or down' : way('sellers')} for every unit: ${shopTxt.toLowerCase()}.` : 'Shop costs do not change.', vi: shopTxt ? 'Chi phí cho mỗi sản phẩm thay đổi.' : 'Chi phí của cửa hàng không đổi.' });
+  if (!(me && me.role === 'buyer')) out.push({ icon: '🛒', who: 'Buyers · Người mua', text: buyTxt ? `Card values go ${way('buyers') === 'change' ? 'up or down' : way('buyers')}: ${buyTxt.toLowerCase()}.` : 'Buyer card values do not change.', vi: buyTxt ? 'Giá trị trên thẻ người mua thay đổi.' : 'Giá trị trên thẻ không đổi.' });
+  return out;
+}
+/** Options for FX.broadcast for one or more events */
+function newsOpts(evs, o = {}) {
+  const st = evs.map(e => NEWS3[e.key] || { title: e.label, vi: e.vi || '', lines: [[e.detail || '', '']] });
+  return { theme: (evs[evs.length - 1] || {}).key, icon: evs.map(e => e.icon).join(' '), kicker: o.kicker || 'BREAKING NEWS · TIN NÓNG',
+    title: st.map(x => x.title).join(' + '), vi: st.map(x => x.vi).filter(Boolean).join(' + '), lines: st.flatMap(x => x.lines).slice(0, evs.length > 1 ? 4 : 3),
+    impact: () => newsImpact(evs, o.when || 'now', o.me ? o.me() : null), ask: o.ask, sound: o.sound };
+}
+const crawlItems = evs => (evs || []).map(e => { const n = NEWS3[e.key]; return `${e.icon} ${(n ? n.title : e.label).toUpperCase()} — ${e.detail}${e.vi && FX.viOn() ? ' — ' + e.vi : ''}`; });
+
 // products chosen for this room (teacher) or announced by the teacher (students)
 const PX = () => (typeof T !== 'undefined' && T.s && T.s.products) || (typeof S !== 'undefined' && S.pub && S.pub.products) || M2.PIDS;
 const eventFits = (ev, products) => ev.parts.some(p => p.product === 'both' || products.includes(p.product));
@@ -1508,13 +2308,15 @@ function teacherBoot() {
         <div style="flex:1;min-width:150px"><label class="field" for="rl">Round length</label><select id="rl"><option value="240">4 minutes</option><option value="300" selected>5 minutes</option><option value="360">6 minutes</option></select></div></div>
       <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="sw">Prizes: total sweets for the class</label><input id="sw" type="number" min="0" value="60"></div>
         <div style="flex:1;min-width:150px"><label class="field" for="ps">Sweets every student gets for taking part</label><input id="ps" type="number" min="0" value="1"></div></div>
-      <label class="row" style="gap:8px"><input type="checkbox" id="bots" checked style="width:22px;height:22px"> Robots fill empty shops and buyer cards (keeps 5 shops and 19 buyer cards)</label>
+      <label class="row" style="gap:8px"><input type="checkbox" id="bots" checked style="width:22px;height:22px"> Robots fill empty shops and buyer cards (keeps 5 shops and 19 buyer cards). Recommended: with robots off, only students hold buyer cards, so a small class gives a demand curve with few steps. Empty shops always get a robot.</label>
       <button class="btn primary" id="create">Open a new room</button></div>
     <p class="muted"><a href="index.html">Back to all lessons</a></p></div>`);
   $('#create').onclick = () => { Sound.ensure(); T.s = newT({ products: $('#pr').value === 'both' ? ['choc', 'candy'] : [$('#pr').value], plan: $('#pl').value, transport: $('#tp').value, team: +$('#tm').value, roundLen: +$('#rl').value, sweets: Math.max(0, +$('#sw').value || 0), perStudent: Math.max(0, +$('#ps').value || 0), botsOn: $('#bots').checked }); tSave(); teacherStart(); };
   const r = $('#resume'); if (r) r.onclick = () => { Sound.ensure(); T.s = migrate(saved); tSave(); teacherStart(); };
 }
 async function teacherStart() {
+  DB.Tch.init({ state: () => T.s, save: tSave, changed: () => { renderBody(); tBroadcast(true); }, send: m => tSend(m), humans: () => T.s.humans, build: buildPack2,
+    readyNote: () => T.s.rounds.some(r => r.menu) ? '' : 'Best after the menu-prices round and the shock round.' });
   Sound.on = T.s.sound;
   T.tr = makeTransport(T.s.transport, T.s.room);
   renderT();
@@ -1553,6 +2355,7 @@ function dealRoles(newShops) {
   shopPeople.forEach((pid, i) => { const shop = M2.SHOP_IDS[i % 5]; s.roles[pid] = 'shop:' + shop; s.wasShop[pid] = true; });
   hs.forEach(pid => { if (!s.roles[pid]) s.roles[pid] = 'buyer'; });
   s.phase = 'dealt'; Sound.play('sting');
+  { const nb = hs.filter(pid => s.roles[pid] === 'buyer').length; if (!s.botsOn && nb < 19) toast(`Robots are off: ${nb} buyer card${nb === 1 ? '' : 's'}, so the demand curve has only ${nb} step${nb === 1 ? '' : 's'} and some shocks may not move the price. Turn robots on for the full 19 cards.`, 6000); }
   tSave(); renderBody(); youAll(); tBroadcast(true);
 }
 function buyerSlots() { const nb = T.s.humans.filter(h => T.s.roles[h.pid] === 'buyer').length; return M2.buyerCards(Math.max(T.s.botsOn ? 19 : 0, nb)); }
@@ -1581,7 +2384,9 @@ function startRound(step) {
   T.asks = {}; T.lastAsk = {}; T.away = {}; M2.SHOP_IDS.forEach(sh => { T.asks[sh] = {}; T.lastAsk[sh] = {}; T.away[sh] = {}; });
   T.offers.clear();
   const prevR = s.rounds[s.rounds.length - 2], fresh = s.events.filter(e => e.active && !((prevR && prevR.events) || []).some(f => f.key === e.key));
-  if (fresh.length) FX.news({ icon: fresh.map(e => e.icon).join(' '), title: fresh.map(e => e.label).join(' + '), vi: fresh.map(e => e.vi || '').filter(Boolean).join(' + '), detail: fresh.map(e => e.detail).join(' · '), theme: fresh[fresh.length - 1].key, ms: 6000 });
+  T.hold = 0;
+  if (fresh.length && fresh.every(e => (s.newsShown || []).includes(e.key))) FX.news({ icon: fresh.map(e => e.icon).join(' '), kicker: 'THE NEWS IS HERE · TIN ĐÃ ĐẾN', title: (step.label || `Round ${n}`) + ': trade!', vi: fresh.map(e => e.vi || '').filter(Boolean).join(' + '), detail: fresh.map(e => e.detail).join(' · '), theme: fresh[fresh.length - 1].key, ms: 4500 });
+  else if (fresh.length) { T.hold = FX.broadcast(newsOpts(fresh, { when: 'now' })); s.current.endsAt += T.hold; s.newsShown = fresh.map(e => e.key); }
   else { Sound.play('sting'); FX.news({ icon: step.mode === 'menu' ? '📋' : step.mode === 'fast' ? '⚡' : '🔔', kicker: 'NEW ROUND · VÒNG MỚI', title: step.label || `Round ${n}`, detail: (step.mode || 'offers') === 'fast' ? 'Fast mode: post offers and asks. Trades happen automatically.' : step.mode === 'menu' ? 'Menu prices: each shop chooses ONE price for the whole round.' : 'Shops post prices. Buyers buy, or make an offer.', theme: 'round', ms: 3500, sound: false }); }
   tSave(); renderBody(); youAll(); tBroadcast(true); if (T.projector) renderProj(true);
   clearInterval(T.tick);
@@ -1591,7 +2396,7 @@ function startRound(step) {
     expireOffers();
     if (left <= 0) endRound(); else { updateTimer(); if (left % 3 === 0) tBroadcast(true); }
   }, 1000);
-  startBots(len);
+  if (T.hold) { const R0 = T.R; setTimeout(() => { if (T.R === R0 && T.s.current) startBots(len); }, T.hold); } else startBots(len); // robots wait for the news to finish
 }
 function endRound() {
   const s = T.s; if (!s.current) return;
@@ -1601,6 +2406,10 @@ function endRound() {
   if (r.mode === 'menu') r.menu = M2.SHOP_IDS.map(sh => PX().map(p => { const price = T.asks[sh][p]; const willing = price == null ? 0 : [0, 1, 2, 3].filter(u => M2.costOf(sh, p, u, r.ev) <= price).length; const sold = r.trades.filter(x => x.shop === sh && x.product === p).length; return { shop: sh, product: p, price: price ?? null, sold, unsold: Math.max(0, willing - sold), away: Object.keys(T.away[sh][p] || {}).length }; })).flat();
   if (!r.practice) roundAwards(r);
   if (s.pred && s.pred.round === r.n && !s.pred.result) judgePred(r);
+  s.newsShown = []; s.revealed[r.n] = true; if (s.board.view === 'live' || s.board.view === 'chart') s.board.view = 'floor';
+  T.revealAnim = { n: r.n, t0: Date.now() + 6800 };
+  setTimeout(() => { FX.news({ ...revealInfo(r), ms: 6000 }); }, 700);
+  setTimeout(animReveal, 6800);
   s.current = null; s.phase = 'between'; T.R = null;
   Sound.play('fanfare'); tSave(); renderBody(); youAll(); tBroadcast(true); if (T.projector) renderProj(true);
 }
@@ -1692,6 +2501,7 @@ function tOnMsg(m) {
     tSave(); renderBody(); you(m.pid); tBroadcast(true); return;
   }
   if (!s.humans.find(h => h.pid === m.pid)) return;
+  if (DB.Tch.onMsg(m)) return;
   if (m.type === 'pred') {
     const P = s.pred;
     if (P && P.open && P.id === m.id && P.products.includes(m.product) && DIRS[m.dir]) { (P.answers[m.pid] ||= {})[m.product] = m.dir; Sound.play('blip'); tSave(); renderBody(); you(m.pid); tBroadcast(); if (T.projector) projDynamic(); }
@@ -1768,9 +2578,10 @@ function pubState() {
   const s = T.s, r = curRound(), R = T.R, last = r || s.rounds[s.rounds.length - 1];
   const shops = Object.fromEntries(M2.SHOP_IDS.map(sh => [sh, { name: (s.shopNames || {})[sh] || '', asks: { ...(T.asks && T.asks[sh] || {}) }, stock: R ? Object.fromEntries(PX().map(p => [p, R.stock(sh, p)])) : { choc: 4, candy: 4 }, human: isShopHuman(sh), busy: openOffersFor(sh) >= MAX_OFFERS_PER_SHOP }]));
   const book = R && r.mode === 'fast' ? Object.fromEntries(PX().map(p => [p, { bid: (R.bestBid(p) || {}).price ?? null, ask: (R.bestAsk(p) || {}).price ?? null }])) : null;
-  return { type: 'state', level: 2, pk: T.pk, phase: s.phase, n: s.humans.length, products: s.products, sSound: s.sSound !== false, pred: predPub(),
+  return { type: 'state', vi: viOnT(), level: 2, db: DB.Tch.pub(), pk: T.pk, phase: s.phase, n: s.humans.length, products: s.products, sSound: s.sSound !== false, pred: predPub(),
     round: r ? { n: r.n, label: r.label, mode: r.mode, practice: r.practice, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) } : null,
     last: last ? { n: last.n, label: last.label } : null, shops, book, lock: s.lock, events: s.events.filter(e => e.active).map(e => ({ key: e.key, vi: e.vi, icon: e.icon, label: e.label, detail: e.detail })),
+    rev: !r && last && s.revealed[last.n] ? { n: last.n, ...revealInfo(last) } : null,
     prices: r && s.board.visible ? r.trades.slice(-12).map(t => ({ id: r.n + '-' + t.i, p: t.product, price: t.price, shop: t.shop })) : [], pricesHidden: !!(r && !s.board.visible), classSweets: Math.round(totalPrizePool()) };
 }
 function tBroadcast(now) {
@@ -1806,16 +2617,18 @@ const totalPrizePool = () => prizeTable().reduce((a, x) => a + x.sweets, 0);
 /* ---- robots ---- */
 function anchorFor(p) { const prev = T.s.rounds.slice(0, -1).reverse().find(r => r.trades.some(t => t.product === p)); if (!prev) return null; const ps = prev.trades.filter(t => t.product === p).map(t => t.price); return ps.reduce((a, b) => a + b, 0) / ps.length; }
 function startBots(lenSec) {
-  stopBots(); if (!T.s.botsOn) return;
+  stopBots(); // empty shops always get a robot; robot buyers only fill cards with no student (none when robots are off)
   const r = curRound(), R = T.R, base = Math.max(1500, lenSec * 1000 / 45), idx = Math.min(3, T.s.rounds.filter(x => !x.practice).length);
-  const anchors = Object.fromEntries(PX().map(p => [p, anchorFor(p)]));
+  // robots learn: Round 1 is a free-for-all; from Round 2 (and in menu rounds) they aim at this round's equilibrium from the cards
+  const aimFor = p => { const prev = anchorFor(p), e = r.eq && r.eq[p], t = e && e.qty ? e.price : null; if (t == null) return prev; if (prev == null) return t; return idx >= 2 || r.mode === 'menu' ? t : prev; };
+  const anchors = Object.fromEntries(PX().map(p => [p, aimFor(p)]));
   const later = (key, fn, ms) => T.bots.set(key, setTimeout(() => { if (T.R === R && T.s.current) fn(); }, ms));
   // robot shops
   M2.SHOP_IDS.filter(sh => !isShopHuman(sh)).forEach(sh => {
     const act = () => {
       PX().forEach(p => { const c = R.nextCost(sh, p); if (c == null) return;
         if (r.mode === 'fast') { const res = R.ask(sh, p, M2.botAsk(c, idx, anchors[p])); if (res.trade) recordTrade(res.trade); }
-        else if (r.mode === 'menu') { if (T.asks[sh][p] == null) T.asks[sh][p] = M2.botAsk(M2.costOf(sh, p, 0, r.ev) + M2.ri(2, 4), 0, anchors[p]); }
+        else if (r.mode === 'menu') { if (T.asks[sh][p] == null) T.asks[sh][p] = anchors[p] == null ? M2.botAsk(M2.costOf(sh, p, 0, r.ev) + M2.ri(2, 4), 0, null) : Math.max(M2.costOf(sh, p, 0, r.ev), Math.round(anchors[p]) + M2.ri(-2, 2)); }
         else if (T.asks[sh][p] == null || T.asks[sh][p] < c || Math.random() < .25) T.asks[sh][p] = R.lock && R.lock.product === p ? Math.max(c, R.lock.price) === R.lock.price ? R.lock.price : undefined : M2.botAsk(c, idx, anchors[p]);
       });
       tBroadcast(); later('S' + sh, act, base * (0.6 + Math.random()));
@@ -1873,6 +2686,7 @@ function renderT() {
       <span class="chip" id="conn"><span class="dot wait"></span>Connecting…</span><span class="chip">Room <b>${esc(T.s.room)}</b></span>
       <button class="btn small ghost" id="snd" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">${T.s.sound ? 'Sound on' : 'Sound off'}</button>
       <button class="btn small ghost" id="sSndT" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)" title="Sounds on students' devices">${T.s.sSound !== false ? 'Student sounds on' : 'Student sounds off'}</button>
+      <button class="btn small ghost vi-toggle" id="viT" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)" title="Vietnamese on the console, the board and in headlines on students' devices">${FX.setVi(viOnT(), 'teacher') || (viOnT() ? '🇻🇳 Tiếng Việt: on' : '🇻🇳 Vietnamese: off')}</button>
       ${FX.calmBtn('color:#fbf3ea;border-color:rgba(255,255,255,.3)')}
       <button class="btn small primary" id="projBtn">Board (projector)</button></header>
     <main class="wrap"><div id="tbody"></div></main><div id="proj" class="hidden"></div><div id="printArea" class="print-only"></div>`);
@@ -1885,7 +2699,7 @@ function renderBody() {
   const el = $('#tbody'); if (!el) return;
   const s = T.s, r = curRound(), next = planList()[s.planStep], dealt = Object.keys(s.roles).length > 0;
   const shopsHtml = M2.SHOP_IDS.map(sh => { const mem = shopMembers(sh).map(nick); return `<div class="shopcell ${mem.length ? 'on' : ''}"><b>${sh}</b><small>${mem.length ? esc(mem.join(', ')) : 'robot'}</small></div>`; }).join('');
-  el.innerHTML = `<div class="grid2">
+  el.innerHTML = `<section class="panel fx-hero" id="heroT"></section><div class="grid2">
     <section class="stack">
       <div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">${r ? esc(r.label) : 'Between rounds'}</h2><span class="timer big-timer" id="tTimer"></span></div>
         ${!dealt ? `<p style="margin:0">${s.humans.length} students joined. Deal roles when everyone is in.</p><button class="btn primary" data-act="deal">Deal roles</button>` :
@@ -1915,6 +2729,7 @@ function renderBody() {
     <section class="stack">
       <div class="panel" id="liveT"></div>
       <div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Prices</h2><small class="muted">Dots: trades. Lines: average. Bands: equilibrium (when revealed)</small></div><div class="chart-box"><canvas id="cP"></canvas></div></div>
+      ${s.rounds.some(x => !x.practice) || (s.db && s.db.pack) ? DB.Tch.panel() : ''}
       <div class="panel stack" id="prizeT"></div>
       <div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Trades</h2><button class="btn small" data-act="csv" ${s.rounds.some(r => r.trades.length) ? '' : 'disabled'}>Download (CSV)</button></div><div class="sales-log" id="logT"></div></div>
       <details class="panel"><summary>Settings</summary><div class="kv" style="margin-top:8px"><span>Students per shop</span><b>${s.team}</b><span>Round length</span><b>${s.roundLen / 60} minutes</b><span>Prizes</span><b>${s.sweets} sweets in total, ${s.perStudent} each for taking part</b><span>Robots</span><b>${s.botsOn ? 'On' : 'Off'}</b></div>
@@ -1923,7 +2738,7 @@ function renderBody() {
   el.onclick = tClick;
   const bv = $('#bview'); if (bv) bv.onchange = () => { s.board.view = bv.value; tSave(); if (T.projector) renderProj(true); };
   makeQR($('#qrS'), joinUrl(), 110);
-  renderLive(); updateTimer(); if (T.projector) renderProj();
+  renderHero(true); renderLive(); updateTimer(); if (T.projector) renderProj();
 }
 function roundStatsHtml(rd, big) {
   const show = T.s.revealed[rd.n];
@@ -1957,19 +2772,24 @@ function renderLive() {
   const el = $('#liveT'); if (el) el.innerHTML = `<h2 style="margin:0 0 8px">${r ? 'Live: ' + esc(r.label) : last ? 'Last round: ' + esc(last.label) : 'Market'}</h2>${liveGrid()}${last ? roundStatsHtml(last) : ''}${last && s.revealed[last.n] ? functionsHtml(last) : ''}`;
   const pt = $('#prizeT'); if (pt) { const rows = prizeTable(); pt.innerHTML = `<div class="row" style="justify-content:space-between"><h2 style="margin:0">Prizes so far</h2><div class="row" style="gap:6px"><button class="btn small primary" data-act="podium" ${rows.some(x => x.score > 0) ? '' : 'disabled'}>🏆 Podium</button><button class="btn small" data-act="prizes" ${rows.length ? '' : 'disabled'}>Print the prize list</button></div></div><p class="muted" style="margin:0">Earnings are scaled so buyers and shops can win equally; every student gets ${s.perStudent} for taking part. ${Math.round(rows.reduce((a, x) => a + x.sweets, 0))} of ${s.sweets} sweets allocated.</p><div class="table-wrap"><table><tr><th>Student</th><th>Role</th><th>Earned</th><th>Sweets</th></tr>${rows.sort((a, b) => b.sweets - a.sweets).map(x => `<tr><td>${esc(x.nick)}</td><td>${x.role === 'buyer' ? 'Buyer' : x.role ? 'Shop ' + x.role.slice(5) : '–'}</td><td>${k(x.earn)}</td><td><b>${x.sweets}</b></td></tr>`).join('')}</table></div>`; }
   const log = $('#logT'); if (log) { const all = s.rounds.flatMap(rd => rd.trades.map(t => ({ ...t, label: rd.n }))).slice(-60).reverse(); log.innerHTML = all.length ? `<table><tr><th>Round</th><th>Product</th><th>Shop</th><th>Buyer card</th><th>Price</th><th>How</th><th>Gain</th><th>Profit</th></tr>${all.map(t => `<tr><td>${t.label}</td><td>${PROD[t.product].name}</td><td>${t.shop}</td><td>${t.slot.replace(/^\D+/, '')}${t.buyer ? ' (' + esc(nick(t.buyer)) + ')' : ''}</td><td>${k(t.price)}</td><td>${t.how}</td><td>${k(t.gain)}</td><td>${k(t.profit)}</td></tr>`).join('')}</table>` : '<p class="muted" style="margin:0">Trades appear here.</p>'; }
-  drawCharts(); if (T.projector) projDynamic();
+  drawCharts(); renderHero(); syncCrawl(); if (T.projector) projDynamic();
 }
+function syncCrawl() { FX.crawl(crawlItems(T.s.events.filter(e => e.active))); }
 function updateTimer() { const s = T.s, txt = s.current ? (() => { const l = Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)); return Math.floor(l / 60) + ':' + String(l % 60).padStart(2, '0'); })() : ''; ['#tTimer', '#pTimer'].forEach(id => { const el = $(id); if (el) el.textContent = txt; }); const left = s.current ? Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) : null; FX.timer($('#pTimer') || $('#tTimer'), left, true); FX.timer($('#tTimer'), left, false); }
 function tClick(e) {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
   const s = T.s, a = b.dataset.act;
+  if (a.startsWith('db-') && DB.Tch.click(a, b)) return;
   if (a === 'deal') dealRoles();
   else if (a === 'deal-new') { if (confirm('Deal new roles? Students who have not run a shop yet get the shops.')) dealRoles(true); }
   else if (a === 'plan') { const st = planList()[s.planStep]; s.planStep++; startRound({ ...st, fromPlan: true }); }
   else if (a === 'custom-round') startRound({ label: ($('#rlab').value || '').trim() || null, mode: $('#rmode').value, board: null, events: [] });
   else if (a === 'end') endRound();
   else if (a === 'board') { s.board.visible = !s.board.visible; tSave(); renderBody(); if (T.projector) renderProj(true); }
-  else if (a === 'reveal') { const rd = curRound() || s.rounds[s.rounds.length - 1]; s.revealed[rd.n] = !s.revealed[rd.n]; if (s.revealed[rd.n]) { Sound.play('drumroll'); setTimeout(() => Sound.play('fanfare'), 1600); } tSave(); renderBody(); if (T.projector) renderProj(true); }
+  else if (a === 'hero-p') { s.heroP = b.dataset.p; tSave(); renderHero(true); if (T.projector) renderProj(true); }
+  else if (a === 'peek') { T.peek = !T.peek; renderHero(true); }
+  else if (a === 'shift-again') { const rd = heroRound(); if (rd) { T.revealAnim = { n: rd.n, t0: Date.now() + 150 }; setTimeout(animReveal, 150); } }
+  else if (a === 'reveal') { const rd = curRound() || s.rounds[s.rounds.length - 1]; s.revealed[rd.n] = !s.revealed[rd.n]; if (s.revealed[rd.n]) { T.revealAnim = { n: rd.n, t0: Date.now() + 200 }; setTimeout(animReveal, 200); Sound.play('drumroll'); setTimeout(() => Sound.play('fanfare'), 1600); } tSave(); renderBody(); if (T.projector) renderProj(true); }
   else if (a === 'event') { const ev = EVENTS3.find(x => x.key === b.dataset.k); if (s.events.find(x => x.key === ev.key && x.active)) return toast('That event is already on.'); s.events.push({ ...ev, id: rid(5), active: true }); tSave(); renderBody(); toast('The event starts with the next round.'); }
   else if (a === 'custom-event') { const lab = ($('#ceLab').value || '').trim(); if (!lab) return toast('Type a headline.'); const side = $('#ceSide').value, product = $('#ceProd').value, amount = Math.round(+$('#ceAmt').value || 0); s.events.push({ id: rid(5), key: 'c' + rid(4), icon: '📣', label: lab, detail: `${side === 'sellers' ? "Shops' costs" : "Buyers' values"} for ${product === 'both' ? 'chocolate and candy' : PROD[product].name.toLowerCase()} ${amount >= 0 ? '+' : ''}${amount}k`, parts: [{ side, product, amount }], active: true }); tSave(); renderBody(); }
   else if (a === 'endevent') { const ev = s.events.find(x => x.id === b.dataset.id); if (ev) ev.active = false; tSave(); renderBody(); }
@@ -2039,7 +2859,7 @@ function renderProj(fresh) {
     el.dataset.sig = sig;
     const ev = s.events.filter(e => e.active);
     el.innerHTML = `<div class="projector l0"><div class="pmain">
-        <div class="news"><span class="flag">${r ? esc(r.label) : 'Chợ Lớp 9 market'}</span><span>${ev.length ? ev.map(e => `${e.icon} ${esc(e.label)}: ${esc(e.detail)}`).join(' · ') : r ? (r.mode === 'fast' ? 'Fast mode: post offers and asks. Trades happen automatically.' : 'Shops post prices. Buy, or make an offer.') : 'Next round soon.'}</span></div>
+        <div class="news"><span class="flag">${r ? esc(r.label) : 'Market Town'}</span><span>${ev.length ? ev.map(e => `${e.icon} ${esc(e.label)}: ${esc(e.detail)}`).join(' · ') : r ? (r.mode === 'fast' ? 'Fast mode: post offers and asks. Trades happen automatically.' : 'Shops post prices. Buy, or make an offer.') : 'Next round soon.'}</span></div>
         <div class="pstage" id="pStage"></div><div class="ticker" id="ticker"></div></div>
       <aside class="side"><div class="panel stack"><div class="row" style="justify-content:space-between"><div>Room code</div><span class="timer big-timer" id="pTimer"></span></div><div class="code">${esc(s.room)}</div></div>
         <div class="panel stack" id="pLead"></div><div class="panel stack" id="pSide"></div><button class="btn" id="closeProj">Back to the console</button></aside></div><div id="banner" class="banner hidden"></div>`;
@@ -2051,7 +2871,7 @@ function projDynamic() {
   const s = T.s, st = $('#pStage'); if (!st) return;
   const r = curRound(), last = r || s.rounds[s.rounds.length - 1];
   if (s.pred && s.pred.open && !r) st.innerHTML = predProjHtml();
-  else if (s.board.view === 'floor' && (s.board.visible || !r)) { if (!$('#cFl')) st.innerHTML = `<div class="floor-wrap"><div class="chart-box tall"><canvas id="cFl"></canvas></div></div>`; drawFloor($('#cFl'), last); }
+  else if (s.board.view === 'floor' && (s.board.visible || !r)) { if (!$('#cFl')) st.innerHTML = `<div class="floor-col"><div id="pEq"></div><div class="floor-wrap"><div class="chart-box tall"><canvas id="cFl"></canvas></div></div></div>`; const pe = $('#pEq'); if (pe && last) pe.innerHTML = eqStripHtml(last, !!s.revealed[last.n]); drawFloor($('#cFl'), last); }
   else if (s.board.view === 'leaders') st.innerHTML = leadersHtml();
   else if (r && !s.board.visible) st.innerHTML = `<div class="lobby-stage"><h1>${esc(r.label)}</h1><p class="lead">Prices are hidden this round. Compare the shops yourself.</p><div class="art-row">${ART3.choc}${ART3.candy}</div></div>`;
   else if (s.board.view === 'chart') { st.innerHTML = `<div class="chart-box tall"><canvas id="cPP"></canvas></div>`; drawCharts(); }
@@ -2106,7 +2926,8 @@ function openPred() {
   const s = T.s, ups = upcomingEvents(); if (!ups.length) return toast('Add an event first: predictions are about a shock.');
   s.pred = { id: rid(6), open: true, products: PX().filter(p => ups.some(e => e.parts.some(x => x.product === p || x.product === 'both'))), events: ups.map(e => ({ key: e.key, vi: e.vi, icon: e.icon, label: e.label, detail: e.detail })), answers: {}, result: null, round: null };
   if (!s.pred.products.length) s.pred.products = PX();
-  FX.news({ icon: ups.map(e => e.icon).join(' '), kicker: 'COMING NEXT ROUND · VÒNG SAU', title: ups.map(e => e.label).join(' + '), vi: ups.map(e => e.vi || '').filter(Boolean).join(' + '), detail: 'Predict on your device: will the price go up, down or stay the same?', theme: ups[ups.length - 1].key, ms: 6000 });
+  FX.broadcast(newsOpts(ups, { kicker: 'COMING NEXT ROUND · VÒNG SAU', when: 'next', ask: 'Predict on your device: will the price go up, down or stay the same?' }));
+  s.newsShown = ups.map(e => e.key);
   tSave(); renderBody(); tBroadcast(true); youAll(); if (T.projector) renderProj(true);
 }
 function predTally(P, p) { const c = { up: 0, down: 0, same: 0 }; Object.values(P.answers).forEach(a => { if (a[p] && c[a[p]] != null) c[a[p]]++; }); return c; }
@@ -2165,44 +2986,153 @@ function leadersHtml() {
 }
 function showPodium() {
   const L = leaderRows(); if (!L.rows.length) return toast('No scores yet.');
-  FX.podium({ title: 'Top traders of Chợ Lớp 9', sub: 'Market score: earnings compared with an average trader at the equilibrium price', rows: L.rows.map(x => ({ nick: x.nick, av: x.av, value: x.pts + ' pts' })), improved: L.improved, teams: teamsHtml() });
+  FX.podium({ title: 'Top traders of Market Town', sub: 'Market score: earnings compared with an average trader at the equilibrium price', rows: L.rows.map(x => ({ nick: x.nick, av: x.av, value: x.pts + ' pts' })), improved: L.improved, teams: teamsHtml() });
 }
 
 /* ---- trading floor: each trade is a dot, in the order it happened; demand and supply appear when revealed ---- */
-function drawFloor(canvas, rd, frac = 1) {
+/* ---- equilibrium, shifts and the big demand and supply chart ---- */
+const heroP = () => { const ps = PX(); return ps.includes(T.s.heroP) ? T.s.heroP : ps[0]; };
+const heroRound = () => curRound() || T.s.rounds[T.s.rounds.length - 1] || null;
+const evAmtRd = (rd, side, p) => (rd.ev || []).filter(e => e.active !== false && e.side === side && (e.product === p || e.product === 'both')).reduce((a, e) => a + e.amount, 0);
+const avgOf = (rd, p) => M2.stats(rd.trades, p);
+/** How the market moved from the normal market (no events) to this round's market */
+function shiftInfo(rd, p) {
+  const dD = evAmtRd(rd, 'buyers', p), dS = evAmtRd(rd, 'sellers', p);
+  if (!dD && !dS) return null;
+  const e1 = M2.equilibrium(rd.cards, p, []), e2 = rd.eq[p];
+  const parts = [];
+  if (dS) parts.push(dS > 0 ? `costs ${sgnK(dS)} → <b>supply decreases</b> (S shifts left)` : `costs ${sgnK(dS)} → <b>supply increases</b> (S shifts right)`);
+  if (dD) parts.push(dD > 0 ? `buyers value it ${sgnK(dD)} → <b>demand increases</b> (D shifts right)` : `buyers value it ${sgnK(dD)} → <b>demand decreases</b> (D shifts left)`);
+  const dp = e1.price == null || e2.price == null ? 0 : e2.price - e1.price, dq = (e2.qty || 0) - (e1.qty || 0);
+  const out = `The equilibrium price ${Math.abs(dp) < .25 ? 'stays about the same' : dp > 0 ? '<b>rises</b>' : '<b>falls</b>'} and the quantity ${dq === 0 ? 'stays the same' : dq > 0 ? '<b>rises</b>' : '<b>falls</b>'}.`;
+  const html = parts.join('; ') + '. ' + out;
+  return { dD, dS, e1, e2, dp, dq, html, text: html.replace(/<[^>]+>/g, '') };
+}
+/** The summary shown on every screen when the round's equilibrium is revealed */
+function revealInfo(rd) {
+  const ps = PX(), one = ps.length === 1, evs = rd.events || [];
+  const items = ps.map(p => ({ p, e: rd.eq[p], sh: shiftInfo(rd, p), st: avgOf(rd, p) }));
+  const x0 = items[0];
+  const title = one ? (x0.e.qty ? `${PROD[x0.p].name}: ${k(x0.e.price)} · ${x0.e.qty} sold` : 'No equilibrium this round') : items.map(x => `${PROD[x.p].name} ${k(x.e.price)}`).join(' · ');
+  const detail = items.map(x => !x.e.qty ? '' : `${one ? '' : PROD[x.p].name + ': '}${x.sh ? `before the news ${k(x.sh.e1.price)} and ${x.sh.e1.qty} sold, now ${k(x.e.price)} and ${x.e.qty} sold. ${x.sh.text}` : `${one ? '' : k(x.e.price) + ', ' + x.e.qty + ' sold. '}Class average ${k(x.st.mean)} in ${x.st.n} trades.`}`).filter(Boolean).join(' · ');
+  return { icon: evs.length ? evs.map(e => e.icon).join(' ') : '⚖️', kicker: `${String(rd.label).toUpperCase()} · EQUILIBRIUM · GIÁ CÂN BẰNG`, title, vi: 'Giá cân bằng và sản lượng cân bằng', detail, theme: 'reveal' };
+}
+/** Equilibrium chips for the console and the board */
+function eqStripHtml(rd, shown) {
+  const p = heroP(), e = rd.eq[p], sh = shiftInfo(rd, p), st = avgOf(rd, p), live = !!(curRound() && curRound() === rd);
+  const cls = { label: live ? 'Class average so far' : 'Class average this round', vi: 'Giá trung bình của lớp', value: st.n ? k(st.mean) : '–', note: `${st.n} trade${st.n === 1 ? '' : 's'}${shown && st.n && e.qty ? ` · ${k(Math.abs(st.mean - e.price))} from equilibrium` : ''}` };
+  if (!shown || !e.qty) return FX.eqStrip([{ label: 'Equilibrium price', vi: 'Giá cân bằng', value: '?', kind: 'wait', note: live ? 'shown when the round ends' : 'press Show equilibrium' }, { label: 'Equilibrium quantity', vi: 'Sản lượng cân bằng', value: '?', kind: 'wait', note: live ? 'shown when the round ends' : '' }, cls]);
+  const range = e.lo !== e.hi ? `any price from ${k(e.lo)} to ${k(e.hi)} clears the market` : '';
+  if (!sh) return FX.eqStrip([{ label: 'Equilibrium price', vi: 'Giá cân bằng', value: k(e.price), note: range }, { label: 'Equilibrium quantity', vi: 'Sản lượng cân bằng', value: e.qty + ' sold' }, cls]);
+  const dir = x => Math.abs(x) < .25 ? 0 : Math.sign(x);
+  return FX.eqStrip([{ label: 'Equilibrium price', vi: 'Giá cân bằng', value: k(e.price), from: k(sh.e1.price), dir: dir(sh.dp), delta: k(Math.abs(sh.dp)), kind: 'shift', note: range }, { label: 'Equilibrium quantity', vi: 'Sản lượng cân bằng', value: String(e.qty), from: String(sh.e1.qty), dir: dir(sh.dq), delta: String(Math.abs(sh.dq)), kind: 'shift' }, cls],
+    `${(rd.events || []).map(x => x.icon + ' <b>' + esc(x.label) + '</b>').join(' + ')}: ${sh.html}`);
+}
+/** Demand and supply from the cards for one product, with the normal market faded when a shock moved a curve */
+function dsLayer(g, G, rd, p, o) {
+  const ev = rd.ev || [], dD = evAmtRd(rd, 'buyers', p), dS = evAmtRd(rd, 'sellers', p), shifted = !!(dD || dS);
+  const vals = evs => rd.cards.map(c => M2.valueOf(c, p, evs)).sort((a, b) => b - a);
+  const costs = evs => M2.SHOP_IDS.flatMap(sh => [0, 1, 2, 3].map(u => M2.costOf(sh, p, u, evs))).sort((a, b) => a - b);
+  const t = Math.max(0, Math.min(1, o.t == null ? 1 : o.t)), ease = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  const v1 = vals([]), v2 = vals(ev), c1 = costs([]), c2 = costs(ev);
+  const lerp = (a, b) => a.map((x, i) => x + (b[i] - x) * ease);
+  const { X, Y, fs, font, qMax, pMax, L, pw } = G;
+  const stairs = (arr, col, width, dash, alpha, lab, labLeft) => {
+    const vs = arr.slice(0, qMax); if (!vs.length) return;
+    g.save(); g.globalAlpha = alpha; g.strokeStyle = col; g.lineWidth = width; g.setLineDash(dash); g.lineJoin = 'round'; g.beginPath();
+    vs.forEach((y, i) => { const yy = Y(Math.min(y, pMax)); if (i === 0) g.moveTo(X(0), yy); else g.lineTo(X(i), yy); g.lineTo(X(i + 1), yy); }); g.stroke(); g.setLineDash([]);
+    const kq = vs.length - 1, lx = Math.min(X(kq + 1) + 6, L + pw - fs * 1.8);
+    g.fillStyle = col; g.font = `800 ${Math.round(fs * 1.35)}px ${font}`; g.textAlign = 'left'; g.textBaseline = 'bottom';
+    g.fillText(lab, lx, Y(Math.min(vs[kq], pMax)) + (labLeft ? fs * 1.5 : -4));
+    g.restore();
+  };
+  const w = Math.max(4, fs / 3.6);
+  if (dD) stairs(v1, o.dCol, 3, [9, 7], .4, 'D₁', true);
+  if (dS) stairs(c1, o.sCol, 3, [9, 7], .4, 'S₁');
+  stairs(dD ? lerp(v1, v2) : v2, o.dCol, w, [], 1, dD ? 'D₂' : 'D', true);
+  stairs(dS ? lerp(c1, c2) : c2, o.sCol, w, [], 1, dS ? 'S₂' : 'S');
+  const e2 = rd.eq[p], e1 = shifted ? M2.equilibrium(rd.cards, p, []) : null;
+  // shift arrows: at the price where the old and new curves are furthest apart
+  if (shifted && ease > .02 && e1 && e1.qty) {
+    const qAt = (arr, pr, dem) => dem ? arr.filter(v => v >= pr).length : arr.filter(c => c <= pr).length;
+    [[dD, v1, v2, true, o.dCol], [dS, c1, c2, false, o.sCol]].forEach(([d, a1, a2, dem, col], j) => {
+      if (!d) return;
+      // look away from E₁ and E₂ for the price where the two curves are furthest apart
+      let best = null;
+      // demand: above the equilibrium (top left); supply: below it (lower left), where the chart is clear
+      for (const dp of dem ? [4, 5, 6, 7, 8, 3, 2] : [-3, -4, -5, -6, -2, 3, 4]) { const pr = Math.round(e1.price) + dp + .5; if (pr >= pMax - 1 || pr < 1) continue; if (best && Math.abs(dp) < 3) break; const q1 = qAt(a1, pr, dem), q2 = qAt(a2, pr, dem), gap = Math.abs(q2 - q1); if (gap && q1 > 0 && q2 > 0 && q1 < qMax - .5 && q2 < qMax - .5 && (!best || gap > best.gap)) best = { pr, q1, q2, gap }; }
+      if (!best) return;
+      const y = Y(best.pr), pad = Math.min(8, Math.abs(X(best.q2) - X(best.q1)) / 6), dir = Math.sign(best.q2 - best.q1);
+      const x1 = X(best.q1) + dir * pad, xe = X(best.q2) - dir * pad, x2 = x1 + (xe - x1) * ease;
+      g.save(); FX.arrow(g, x1, y, x2, y, col, Math.max(5, fs / 3)); g.restore();
+      const lab = dem ? (d > 0 ? 'Demand increases →' : '← Demand decreases') : (d > 0 ? '← Supply decreases' : 'Supply increases →');
+      g.save(); g.font = `800 ${Math.round(fs * .95)}px ${font}`; const tw = g.measureText(lab).width, left = Math.min(x1, xe);
+      let cx, cy;
+      if (left - tw - fs * 1.2 > G.L + fs) { cx = left - fs * .7 - tw / 2; cy = y; }   // beside the arrow, on its left
+      else { cx = Math.max(G.L + tw / 2 + 4, Math.min(G.L + pw - tw / 2 - fs * 2.8, (x1 + xe) / 2)); cy = y - fs * 1.15; }
+      g.fillStyle = o.panel; g.globalAlpha = .88; g.fillRect(cx - tw / 2 - 5, cy - fs * .7, tw + 10, fs * 1.4); g.globalAlpha = 1;
+      g.fillStyle = col; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(lab, cx, cy + 1); g.restore();
+    });
+  }
+  const mk = { X, Y, L: G.L, T: G.T, ph: G.ph, fs, font, panel: o.panel };
+  const close = e1 && e2.qty && Math.abs(Y(e1.price) - Y(e2.price)) < fs * 1.7;
+  if (e1 && e1.qty) FX.eqMark(g, { ...mk, p: e1.price, q: e1.qty, pTxt: 'P₁ ' + k(e1.price), qTxt: 'Q₁ ' + e1.qty, tag: 'E₁', col: o.muted, faded: true, labelSide: 'left', qRow: 1, pDy: close ? (e2.price >= e1.price ? fs * 1.7 : -fs * 1.7) : 0 });
+  if (e2.qty && ease >= .999) FX.eqMark(g, { ...mk, p: e2.price, q: e2.qty, pTxt: (shifted ? 'P₂ ' : 'P* ') + k(e2.price), qTxt: (shifted ? 'Q₂ ' : 'Q* ') + e2.qty, tag: shifted ? 'E₂' : 'E', col: o.mint });
+  return { shifted, e1, e2 };
+}
+/** Trading floor: this round's trades in order, and (once revealed, or when the teacher peeks) demand and supply from the cards */
+function drawFloor(canvas, rd, frac = 1, opt = {}) {
   if (!canvas || !rd) return 0;
-  const s = T.s, box = canvas.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, W = Math.max(260, box.width), H = Math.max(200, box.height);
+  const s = T.s, box = canvas.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, W = Math.max(260, box.width), H = Math.max(220, box.height);
   canvas.width = W * dpr; canvas.height = H * dpr; const g = canvas.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
-  const fs = Math.round(Math.max(12, Math.min(22, W / 52))), font = cssVar('--font-body'), muted = cssVar('--muted'), line = cssVar('--line'), ink = cssVar('--ink'), mint = cssVar('--mint'), panel = cssVar('--panel');
-  const col = { choc: cssVar('--seller'), candy: cssVar('--buyer') }, ps = PX(), shown = !!s.revealed[rd.n];
+  const fs = Math.round(Math.max(12, Math.min(22, W / 54))), font = cssVar('--font-body'), muted = cssVar('--muted'), line = cssVar('--line'), ink = cssVar('--ink'), mint = cssVar('--mint'), panel = cssVar('--panel'), foil = cssVar('--foil');
+  const p = heroP(), shown = !!(s.revealed[rd.n] || opt.peek);
+  const anim = FX.calm() || !T.revealAnim || T.revealAnim.n !== rd.n ? 1 : Math.max(0, Math.min(1, (Date.now() - T.revealAnim.t0) / 2200));
   const t0 = rd.startedAt, t1 = rd.endedAt || Math.max(Date.now(), t0 + 1), cut = t0 + frac * (t1 - t0);
-  const trades = Object.fromEntries(ps.map(p => [p, rd.trades.filter(t => t.product === p && t.at <= cut)]));
-  const qMax = Math.max(12, ...ps.map(p => Math.ceil((rd.eq[p].qty || 0) * 1.5)), ...ps.map(p => trades[p].length + 2)), pMax = 30;
-  const L = fs * 3.4, R = fs * 1.4, Tp = fs * 2.4, B = fs * 3.2, pw = W - L - R, ph = H - Tp - B, X = q => L + q / qMax * pw, Y = p => Tp + ph - Math.min(p, pMax) / pMax * ph;
+  const trades = rd.trades.filter(t => t.product === p && t.at <= cut);
+  const e2 = rd.eq[p], e1 = shiftInfo(rd, p) ? M2.equilibrium(rd.cards, p, []) : null;
+  const qMax = Math.max(12, Math.ceil(Math.max(e2.qty || 0, (e1 && e1.qty) || 0) * 1.55), trades.length + 2), pMax = 30;
+  const L = fs * (shown ? 6.6 : 3.4), R = fs * 2.4, Tp = fs * 3.4, B = fs * (shown ? 5.6 : 3.2), pw = W - L - R, ph = H - Tp - B;
+  const X = q => L + q / qMax * pw, Y = pr => Tp + ph - Math.min(pr, pMax) / pMax * ph;
   g.font = `${fs}px ${font}`; g.lineWidth = 1;
-  for (let p = 0; p <= pMax; p += 5) { g.strokeStyle = line; g.beginPath(); g.moveTo(L, Y(p)); g.lineTo(L + pw, Y(p)); g.stroke(); g.fillStyle = muted; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(p + 'k', L - 6, Y(p)); }
+  for (let pr = 0; pr <= pMax; pr += 5) { g.strokeStyle = line; g.beginPath(); g.moveTo(L, Y(pr)); g.lineTo(L + pw, Y(pr)); g.stroke(); g.fillStyle = muted; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(pr + 'k', L - 8, Y(pr)); }
   const qs = qMax <= 16 ? 2 : 5; for (let q = 0; q <= qMax; q += qs) { g.fillStyle = muted; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(q, X(q), Tp + ph + 6); }
   g.strokeStyle = ink; g.lineWidth = 2; g.beginPath(); g.moveTo(L, Tp); g.lineTo(L, Tp + ph); g.lineTo(L + pw, Tp + ph); g.stroke();
-  g.fillStyle = muted; g.textAlign = 'center'; g.fillText(shown ? 'Quantity' : 'Quantity: trades in the order they happened', L + pw / 2, Tp + ph + fs * 1.7);
-  if (shown) ps.forEach(p => {
-    const v = rd.cards.map(c => M2.valueOf(c, p, rd.ev)).sort((a, b) => b - a), c = M2.SHOP_IDS.flatMap(sh => [0, 1, 2, 3].map(u => M2.costOf(sh, p, u, rd.ev))).sort((a, b) => a - b);
-    const stairs = (vals, dash, lab) => { g.strokeStyle = col[p]; g.lineWidth = Math.max(3, fs / 5); g.setLineDash(dash); g.beginPath(); vals.forEach((y, k2) => { if (k2 === 0) g.moveTo(X(0), Y(y)); else g.lineTo(X(k2), Y(y)); g.lineTo(X(k2 + 1), Y(y)); }); g.stroke(); g.setLineDash([]); g.fillStyle = col[p]; g.font = `800 ${fs * 1.1}px ${font}`; g.textAlign = 'left'; g.textBaseline = 'bottom'; const kq = Math.min(vals.length - 1, qMax - 1); g.fillText(lab, X(kq + 1) + 4 > L + pw - fs ? L + pw - fs * 1.5 : X(kq + 1) + 4, Y(vals[kq]) - 2); g.font = `${fs}px ${font}`; };
-    stairs(v.slice(0, qMax), [], 'D'); stairs(c.slice(0, qMax), [8, 5], 'S');
-    const e = rd.eq[p]; if (e.qty) { const ex = X(e.qty), ey = Y(e.price); g.strokeStyle = mint; g.lineWidth = 4; g.beginPath(); g.arc(ex, ey, fs * .9, 0, Math.PI * 2); g.stroke(); g.setLineDash([6, 6]); g.lineWidth = 2; g.beginPath(); g.moveTo(L, ey); g.lineTo(L + pw, ey); g.stroke(); g.setLineDash([]); g.fillStyle = panel; const lab = `Equilibrium about ${k(e.lo === e.hi ? e.lo : e.price)}`; g.font = `800 ${fs}px ${font}`; const tw = g.measureText(lab).width; g.fillRect(L + pw - tw - 14, ey - fs * 1.9, tw + 12, fs * 1.5); g.fillStyle = mint; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(lab, L + pw - 8, ey - fs * 1.15); g.font = `${fs}px ${font}`; }
-  });
-  const now = Date.now(); let count = 0;
-  ps.forEach(p => {
-    const ts = trades[p]; count += ts.length; if (!ts.length) return;
-    // moving average of the last 5 trades: shows the price settling
-    g.strokeStyle = col[p]; g.globalAlpha = .55; g.lineWidth = 3; g.beginPath();
-    ts.forEach((t, i) => { const w = ts.slice(Math.max(0, i - 4), i + 1), m = w.reduce((a, x) => a + x.price, 0) / w.length; if (i === 0) g.moveTo(X(i + .5), Y(m)); else g.lineTo(X(i + .5), Y(m)); }); g.stroke(); g.globalAlpha = 1;
-    ts.forEach((t, i) => { const age = frac < 1 ? 9e9 : now - t.at, r0 = Math.max(4, fs / 3); g.fillStyle = col[p]; g.beginPath(); g.arc(X(i + .5), Y(t.price), r0, 0, Math.PI * 2); g.fill(); if (age < 1500) { const f = age / 1500; g.strokeStyle = col[p]; g.globalAlpha = 1 - f; g.lineWidth = 3; g.beginPath(); g.arc(X(i + .5), Y(t.price), r0 + f * fs * 2, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1; } });
-  });
-  g.textAlign = 'left'; g.textBaseline = 'top'; let lx = L; g.font = `800 ${fs * .95}px ${font}`;
-  g.fillStyle = ink; const head = `${rd.label}${(rd.events || []).length ? ' · ' + rd.events.map(e => e.icon + ' ' + e.label).join(', ') : ''}`; g.fillText(head, lx, 2); lx = L;
-  g.font = `${fs * .85}px ${font}`; ps.forEach(p => { g.fillStyle = col[p]; const t = `● ${PROD[p].name}: ${trades[p].length} sold`; g.fillText(t, lx, 4 + fs * 1.15); lx += g.measureText(t).width + 18; });
-  g.fillStyle = muted; g.fillText(shown ? 'D and S from the cards. Line: average of the last 5 trades.' : 'Line: average of the last 5 trades. Equilibrium hidden until you reveal it.', lx, 4 + fs * 1.15);
-  return count;
+  g.fillStyle = muted; g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText(shown ? `Quantity of ${PROD[p].name.toLowerCase()} (units)` : 'Quantity: trades in the order they happened', L + pw / 2, H - 4);
+  g.save(); g.translate(fs * .75, Tp + ph / 2); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('Price', 0, 0); g.restore();
+  if (shown) dsLayer(g, { X, Y, L, T: Tp, ph, pw, fs, font, qMax, pMax }, rd, p, { t: anim, dCol: cssVar('--buyer'), sCol: cssVar('--seller'), mint, muted, panel });
+  const now = Date.now();
+  if (trades.length) {
+    g.strokeStyle = foil; g.globalAlpha = .7; g.lineWidth = 3; g.beginPath();
+    trades.forEach((t, i) => { const w = trades.slice(Math.max(0, i - 4), i + 1), m = w.reduce((a, x) => a + x.price, 0) / w.length; if (i === 0) g.moveTo(X(i + .5), Y(m)); else g.lineTo(X(i + .5), Y(m)); }); g.stroke(); g.globalAlpha = 1;
+    trades.forEach((t, i) => { const age = frac < 1 ? 9e9 : now - t.at, r0 = Math.max(4, fs / 3); g.fillStyle = ink; g.globalAlpha = shown ? .55 : 1; g.beginPath(); g.arc(X(i + .5), Y(t.price), r0, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1; if (age < 1500) { const f = age / 1500; g.strokeStyle = foil; g.globalAlpha = 1 - f; g.lineWidth = 3; g.beginPath(); g.arc(X(i + .5), Y(t.price), r0 + f * fs * 2, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1; } });
+  }
+  g.textAlign = 'left'; g.textBaseline = 'top'; g.font = `800 ${fs * .95}px ${font}`; g.fillStyle = ink;
+  g.fillText(`${rd.label}${(rd.events || []).length ? ' · ' + rd.events.map(e => e.icon + ' ' + e.label).join(', ') : ''}`, L, 2);
+  g.font = `${fs * .85}px ${font}`; g.fillStyle = muted;
+  g.fillText(`${PROD[p].name}: ${trades.length} sold · ${shown ? 'D and S from the cards' + (e1 ? ' · faded: before the news' : '') + ' · dots: trades' : 'gold line: average of the last 5 trades · D and S appear when the round ends'}`, L, 4 + fs * 1.15);
+  return trades.length;
+}
+function animReveal() {
+  if (T.animRaf) return;
+  const step = () => { drawFloor($('#cFl'), T.s.board.view === 'floor' ? (curRound() || T.s.rounds[T.s.rounds.length - 1]) : null); renderHero(); const a = T.revealAnim; if (a && Date.now() - a.t0 < 2300 && !FX.calm()) T.animRaf = requestAnimationFrame(step); else T.animRaf = null; };
+  step();
+}
+/** The big demand and supply panel at the top of the console */
+function renderHero(full) {
+  const el = $('#heroT'); if (!el) return;
+  const s = T.s, rd = heroRound(), p = heroP(), live = !!curRound();
+  if (!rd) { el.innerHTML = `<div class="fx-hero-head"><h2>📈 Demand and supply</h2></div><p class="muted" style="margin:0">After each round, the demand and supply curves from the cards appear here with the equilibrium price and quantity. After a shock you see both curves: before and after the news.</p>`; return; }
+  const shown = !!(s.revealed[rd.n] || (live && T.peek)), sh = shiftInfo(rd, p);
+  if (full || !$('#cHero')) el.innerHTML = `<div class="fx-hero-head" id="heroHead"></div><div id="heroStrip"></div><div class="chart-box"><canvas id="cHero"></canvas></div>`;
+  const head = $('#heroHead');
+  if (head) head.innerHTML = `<h2>📈 Demand and supply · ${esc(rd.label)}</h2><div class="row" style="gap:6px">
+    ${PX().length > 1 ? PX().map(x => `<button class="btn small ${x === p ? 'primary' : ''}" data-act="hero-p" data-p="${x}">${PROD[x].name}</button>`).join('') : ''}
+    ${live && !s.revealed[rd.n] ? `<button class="btn small" data-act="peek">${T.peek ? '🙈 Hide' : '👁 Peek (this screen only)'}</button>` : ''}
+    ${!live ? `<button class="btn small" data-act="reveal">${s.revealed[rd.n] ? 'Hide equilibrium' : 'Show equilibrium'}</button>` : ''}
+    ${!live && sh && s.revealed[rd.n] ? '<button class="btn small primary" data-act="shift-again">▶ Show the shift again</button>' : ''}</div>`;
+  const strip = $('#heroStrip'); if (strip) strip.innerHTML = eqStripHtml(rd, shown);
+  drawFloor($('#cHero'), rd, 1, { peek: live && T.peek });
 }
 function floorPing() { if (!T.projector || T.s.board.view !== 'floor') return; T.pingUntil = Date.now() + 1600; if (T.pinging) return; T.pinging = true; (function f() { drawFloor($('#cFl'), curRound() || T.s.rounds[T.s.rounds.length - 1]); if (Date.now() < T.pingUntil && !FX.calm()) requestAnimationFrame(f); else T.pinging = false; })(); }
 function replayRound() {
@@ -2211,6 +3141,104 @@ function replayRound() {
   T.s.board.view = 'floor'; tSave(); renderBody(); renderProj(true);
   T.replaying = true;
   setTimeout(() => FX.replay(f => { const n = drawFloor($('#cFl'), rd, f); if (f >= 1) T.replaying = false; return n; }, 6500), 300);
+}
+
+
+/* =====================================================================
+   DEBRIEF, EXTENSION AND PAPER 2 (built from the menu round, the cost shock and the class's prices)
+   ===================================================================== */
+const shuffleSeeded = (arr, seed) => arr.map((x, i) => [x, Math.sin(seed * 9301 + i * 49297) * 233280 % 1]).sort((a, b) => a[1] - b[1]).map(x => x[0]);
+function buildPack2() {
+  const s = T.s, scored = s.rounds.filter(r => !r.practice); if (!s.rounds.length) { toast('Play some rounds first.'); return null; }
+  const pr = PX().includes('choc') ? 'choc' : PX()[0], name = PROD[pr].name, lname = name.toLowerCase(), unit = pr === 'choc' ? 'bars' : 'bags', one = PROD[pr].one;
+  const cards = s.rounds[s.rounds.length - 1].cards, base = [], seed = Date.now() % 997;
+  const shockDef = EVENTS3.find(e => e.key === (pr === 'choc' ? 'cacao' : 'sugar')), shockEv = shockDef.parts.map(x => ({ ...x, active: true }));
+  const eqB = M2.equilibrium(cards, pr, base), eqA = M2.equilibrium(cards, pr, shockEv), adj = M2.adjustment(cards, pr, base, shockEv);
+  const P0 = Math.round(eqB.price), lo = Math.max(2, P0 - 8), grid = []; for (let x = lo; x <= P0 + 8; x += 2) grid.push(x);
+  // every price a question uses must be in the table
+  const prices = [...new Set([...grid, eqB.lo, eqB.hi, ...(adj ? [adj.P1, adj.P2] : [])].filter(x => x != null && x >= 1).map(x => Math.round(x)))].sort((a, b) => a - b);
+  const sched = prices.map(x => ({ price: x, qd: M2.atPrice(cards, pr, base, x).qd, qs: M2.atPrice(cards, pr, base, x).qs, qs2: M2.atPrice(cards, pr, shockEv, x).qs }));
+  const menuR = s.rounds.slice().reverse().find(r => r.menu && r.menu.some(x => x.product === pr && x.price != null));
+  const menu = menuR ? menuR.menu.filter(x => x.product === pr).map(x => ({ ...x, name: shopName(x.shop) })) : null;
+  const sources = [];
+  if (menu) sources.push({ key: 'a', title: `Source A: menu prices for ${lname} (${menuR.label})`, note: 'each shop chose one price for the whole round', table: { head: ['Shop', 'Menu price', 'Sold', 'Unsold', 'Buyers turned away'], rows: menu.map(x => [x.name, x.price == null ? 'no price' : k(x.price), x.sold, x.unsold, x.away]) } });
+  sources.push({ key: 'b', title: `Source B: the ${lname} market before and after the ${shockDef.label.toLowerCase()}`, note: `${shockDef.detail}. From the buyer cards and shop schedules in your market.`, table: { head: ['Price', 'Quantity demanded', 'Quantity supplied before', `Quantity supplied after the ${shockDef.label.toLowerCase()}`], rows: sched.map(x => [k(x.price), x.qd, x.qs, x.qs2]) } });
+  const rr = scored.filter(r => r.trades.some(t => t.product === pr));
+  if (rr.length) sources.push({ key: 'c', title: `Source C: the price of ${lname} in each round of your market`, table: { head: ['Round', 'Events', `${name} sold`, 'Average price'], rows: rr.map(r => { const st = M2.stats(r.trades, pr); return [r.label.replace(/^Round \d+: /, ''), (r.events || []).map(e => e.label).join(', ') || 'none', st.n, k(st.mean)]; }) } });
+  const T2 = DB.T, kw = DB.kw;
+  const short = menu ? menu.filter(x => x.away > 0) : [], surp = menu ? menu.filter(x => x.unsold > 0 && !x.away) : [];
+  const shopOpts = menu ? menu.map(x => ({ id: x.shop, text: x.name })) : [];
+  const ctx = { good: lname, unit, product: name, price: k(eqB.lo === eqB.hi ? eqB.lo : eqB.price), qty: eqB.qty, p1: k(adj ? adj.P1 : P0), p2: k(adj ? adj.P2 : Math.round(eqA.price)), q1: adj ? adj.qdAtOld - adj.qsAtOld : '', q2: adj ? adj.Q2 : eqA.qty, shock: shockDef.label.toLowerCase(), avg: rr.length ? k(M2.stats(rr[rr.length - 1].trades, pr).mean) : '' };
+  // (a) and (b) of Section A come from the menu round when there is one
+  let partsAB, numsAB;
+  const totUnsold = menu ? menu.reduce((a, x) => a + x.unsold, 0) : 0, totAway = menu ? menu.reduce((a, x) => a + x.away, 0) : 0;
+  const aUsesAway = totAway > totUnsold;
+  if (menu && (totUnsold || totAway)) {
+    partsAB = [aUsesAway ? T2.num('a_a', 'Calculate', `the total number of buyers turned away across all the shops in Source A.`, 2, totAway, { working: menu.map(x => x.away).join(' + ') + ' = ' + totAway, ref: '2.4.3' })
+      : T2.num('a_a', 'Calculate', `the total number of unsold ${lname} ${unit} across all the shops in Source A.`, 2, totUnsold, { unit, working: menu.map(x => x.unsold).join(' + ') + ' = ' + totUnsold, ref: '2.4.3' })];
+    numsAB = ['(a)'];
+    if (short.length >= 2) { partsAB.push(T2.choice('a_b', 'Identify', 'two shops in Source A that turned buyers away.', 2, shopOpts, short.map(x => x.shop), { pick: 2, ref: '2.4.3' })); numsAB.push('(b)'); }
+    else if (short.length && surp.length) { partsAB.push(T2.choice('a_b1', 'Identify', 'one shop in Source A that had a shortage (turned buyers away).', 1, shopOpts, short.map(x => x.shop), { ref: '2.4.3' }), T2.choice('a_b2', 'Identify', 'one shop in Source A that had a surplus (unsold stock).', 1, shopOpts, surp.map(x => x.shop), { ref: '2.4.3' })); numsAB.push('(b)(i)', '(b)(ii)'); }
+    else if (surp.length >= 2) { partsAB.push(T2.choice('a_b', 'Identify', 'two shops in Source A that had a surplus (unsold stock).', 2, shopOpts, surp.map(x => x.shop), { pick: 2, ref: '2.4.3' })); numsAB.push('(b)'); }
+    else { const r1 = sched[1]; partsAB.push(T2.num('a_b1', 'Identify', `from Source B the quantity demanded at ${k(r1.price)} before the ${shockDef.label.toLowerCase()}.`, 1, r1.qd, { unit }), T2.num('a_b2', 'Identify', `from Source B the quantity supplied at ${k(r1.price)} before the ${shockDef.label.toLowerCase()}.`, 1, r1.qs, { unit })); numsAB.push('(b)(i)', '(b)(ii)'); }
+  } else {
+    const r1 = sched.find(x => x.qd > x.qs) || sched[0];
+    partsAB = [T2.num('a_a', 'Calculate', `the shortage at ${k(r1.price)} in Source B, before the ${shockDef.label.toLowerCase()}.`, 2, r1.qd - r1.qs, { unit, working: `${r1.qd} − ${r1.qs} = ${r1.qd - r1.qs}` }),
+      T2.choice('a_b', 'Identify', 'two correct statements about Source B.', 2, shuffleSeeded([{ id: 't1', text: 'Quantity demanded falls as the price rises' }, { id: 't2', text: `After the ${shockDef.label.toLowerCase()}, quantity supplied is lower at every price` }, { id: 'f1', text: 'Quantity supplied falls as the price rises' }, { id: 'f2', text: 'Quantity demanded changes after the harvest' }], seed), ['t1', 't2'], { pick: 2 })];
+    numsAB = ['(a)', '(b)'];
+  }
+  const dRows = sched.filter(x => Math.abs(x.price - P0) <= 4 && (grid.includes(x.price) || x.price === eqB.lo || x.price === eqB.hi));
+  const draw = T2.draw('a_d', `a demand and supply diagram using the "before" data in Source B for prices ${k(dRows[0].price)} to ${k(dRows[dRows.length - 1].price)}. Label the equilibrium.`, { rows: dRows.map(x => ({ price: x.price, qd: x.qd, qs: x.qs })), eq: { price: eqB.price, qty: eqB.qty, lo: eqB.lo, hi: eqB.hi }, eqShow: eqB.lo === eqB.hi ? k(eqB.lo) : `${k(eqB.lo)}–${k(eqB.hi)}`, qMax: Math.max(...dRows.map(x => Math.max(x.qd, x.qs))) + 2, qStep: 1, pLab: Object.fromEntries(dRows.map(x => [x.price, k(x.price)])), pMax: dRows[dRows.length - 1].price + 2, ref: '2.4.1' });
+  // menu round, the student's own shop
+  const meta = { menu: menu ? menu.map(x => ({ shop: x.shop, price: x.price, unsold: x.unsold, away: x.away })) : null, P1: adj ? adj.P1 : null };
+  const r2 = sched.filter(x => x.price >= P0 - 4 && x.price <= P0 + 4 && grid.includes(x.price)).slice(0, 4);
+  const clear = sched.reduce((b, x) => Math.abs(x.qd - x.qs) < Math.abs(b.qd - b.qs) ? x : b, sched[0]);
+  const ext = shuffleSeeded([...r2, clear].filter((x, i, a) => a.findIndex(y => y.price === x.price) === i), seed).slice(0, 4).sort((a, b) => a.price - b.price);
+  const factory = EVENTS3.find(e => e.key === 'factory'), evF = factory.parts.map(x => ({ ...x, active: true })), eqF = M2.equilibrium(cards, pr, evF);
+  const pack = {
+    level: 2, title: `Market Town: the ${lname} market`, ctx, sources, meta,
+    debrief: { sources: sources.map(x => x.key), intro: 'Look back at your market: the menu prices, the shock, and how the price moved.', tasks: [
+      ...(menu && (short.length || surp.length) ? [T2.choice('d1', 'Identify', short.length ? 'one shop in Source A that had a shortage: it turned buyers away.' : 'one shop in Source A that had a surplus: it had unsold stock.', 1, shopOpts, (short.length ? short : surp).map(x => x.shop), { explain: short.length ? `${short.map(x => x.name).join(', ')} turned buyers away. Its menu price was too low: buyers wanted more than the shop was willing to sell at that price.` : `${surp.map(x => x.name).join(', ')} had unsold stock. Its menu price was too high for buyers.`, ref: '2.4.3' })] : []),
+      ...(menu && aUsesAway && totUnsold ? [T2.num('d2', 'Calculate', `the total number of unsold ${lname} ${unit} in Source A.`, 1, totUnsold, { explain: 'Add the "unsold" column. Each unsold unit is part of a surplus: the price was too high for enough buyers.', ref: '2.4.3' })] : []),
+      ...(menu && !aUsesAway && totAway ? [T2.num('d2', 'Calculate', `the total number of buyers turned away in Source A.`, 1, totAway, { explain: 'Add the "buyers turned away" column. Each one is part of a shortage: they wanted to buy at that shop\'s price.', ref: '2.4.3' })] : []),
+      ...(adj ? [T2.num('d3', 'Calculate', `the shortage at the old price of ${k(adj.P1)} after the ${shockDef.label.toLowerCase()} (Source B).`, 2, adj.qdAtOld - adj.qsAtOld, { unit, explain: `At ${k(adj.P1)}, quantity demanded is ${adj.qdAtOld} but quantity supplied after the shock is only ${adj.qsAtOld}: a shortage of ${adj.qdAtOld - adj.qsAtOld}.`, ref: '2.4.3, 2.5' }),
+        T2.order('d4', 'Put the price mechanism in order: how the market moved after the shock.', [
+          { id: 's', text: `Signal: at ${k(adj.P1)}, buyers want ${adj.qdAtOld} but shops offer ${adj.qsAtOld}. The shortage pushes the price up.` },
+          { id: 'i', text: `Incentive: at a higher price, more units are worth selling, so quantity supplied extends.` },
+          { id: 'r', text: `Rationing: the higher price makes some buyers drop out, so quantity demanded contracts.` },
+          { id: 'e', text: `New equilibrium: about ${k(adj.P2)} with ${adj.Q2} sold.` }], ['s', 'i', 'r', 'e'], { marks: 2, ref: '2.4.2' })] : []),
+      ...(rr.length >= 2 ? [T2.choice('d5', 'Identify', `what happened to the average price of ${lname} in your market (Source C) when the ${shockDef.label.toLowerCase()} round came.`, 1, [{ id: 'up', text: 'It rose' }, { id: 'down', text: 'It fell' }, { id: 'same', text: 'It stayed about the same' }], (() => { const shockR = rr.find(r => (r.events || []).some(e => e.key === shockDef.key)), before = rr.filter(r => !(r.events || []).length).slice(-1)[0]; if (!shockR || !before) return ['up', 'down', 'same']; const d = M2.stats(shockR.trades, pr).mean - M2.stats(before.trades, pr).mean; return [d > .5 ? 'up' : d < -.5 ? 'down' : 'same']; })(), { explain: 'Compare the round with the shock and the round before it. The cards predicted a rise: did your traders find it?' })] : [])
+    ] },
+    ext: { sources: ['b'], intro: `Set tomorrow's menu price. Use the "before" columns of Source B to find a single price that sells everything with nobody turned away.`, tasks: [
+      T2.grid('e1', 'At each price, write the quantity demanded, the quantity supplied and the gap (quantity demanded − quantity supplied). A positive gap is a shortage; a negative gap is a surplus.', ['Price', 'Quantity demanded', 'Quantity supplied', 'Gap'], ext.map(x => ({ label: k(x.price), cells: [{ answer: x.qd }, { answer: x.qs }, { answer: x.qd - x.qs }] }))),
+      T2.choice('e2', 'Identify', 'the menu price that comes closest to clearing the market.', 0, ext.map(x => ({ id: 'p' + x.price, text: k(x.price) })), ['p' + ext.reduce((b, x) => Math.abs(x.qd - x.qs) < Math.abs(b.qd - b.qs) ? x : b, ext[0]).price], { explain: 'The best menu price has the smallest gap: quantity demanded is closest to quantity supplied.' }),
+      T2.info('e3', `<b>Stretch (preview of 2.5):</b> 🏭 News: a new factory opens. Every shop's lowest price for each unit falls by 2k.`),
+      T2.choice('e4', 'Identify', 'which curve shifts, and which way.', 0, [{ id: 'sr', text: 'Supply shifts right (increases)' }, { id: 'sl', text: 'Supply shifts left (decreases)' }, { id: 'dr', text: 'Demand shifts right (increases)' }, { id: 'dl', text: 'Demand shifts left (decreases)' }], ['sr'], { explain: 'Lower costs mean shops are willing to sell more at every price: supply increases.' }),
+      T2.choice('e5', 'Identify', 'what happens to the equilibrium price.', 0, [{ id: 'up', text: 'It rises' }, { id: 'down', text: 'It falls' }, { id: 'same', text: 'It stays the same' }], [eqF.price < eqB.price - .25 ? 'down' : eqF.price > eqB.price + .25 ? 'up' : 'same'], { explain: `From the cards: about ${k(eqB.price)} before, about ${k(eqF.price)} after.` }),
+      T2.text('e6', 'Explain', 'how the price mechanism moves the market to the new equilibrium after the factory opens.', 0, { frames: ['At the old price there is now a surplus because…', 'Shops cut their prices, so…', 'The lower price…'], kw: [kw('a surplus at the old price', ['surplus', 'excess supply', 'unsold']), kw('the price falls', ['price (falls|goes down|decreases)', 'cut', 'lower price']), kw('quantity demanded extends (more buyers)', ['demand[^.]{0,30}(extend|rise|increase)', 'more buyers'])] })
+    ] },
+    A: { sources: sources.map(x => x.key), numbers: [...numsAB, '(c)', '(d)', '(e)', '(f)'], intro: `${menu ? 'Source A shows the menu-price round. ' : ''}Source B shows the ${lname} market from your cards, before and after the ${shockDef.label.toLowerCase()}.${rr.length ? ' Source C shows the prices in your rounds.' : ''}`, tasks: [
+      ...partsAB,
+      T2.text('a_c', 'Explain', totAway ? 'why some shops turned buyers away even though they had a menu price.' : 'why there is a shortage when the price is below the equilibrium price.', 2, { qid: 'l2-a-c', ref: '2.4.3', scheme: '1 mark: the (menu) price was below the equilibrium price / too low. 1 mark: at that price quantity demanded was greater than the quantity the shop was willing and able to sell (its next units cost more than the price), so it ran out: a shortage.', kw: [kw('the price was below equilibrium / too low', ['too low', 'below (the )?equilibrium', 'low price', 'cheap']), kw('more buyers wanted to buy than the shop would sell: a shortage', ['shortage', 'more (buyers|demand)', 'demand[^.]{0,30}(greater|more|higher)', 'sold out', 'ran out', 'cost more'])] }),
+      draw,
+      T2.text('a_e', 'Analyse', `the effect of the ${shockDef.label.toLowerCase()} on the price and quantity of ${lname} in Source B.`, 4, { qid: 'l2-a-e', ref: '2.4.2, 2.5', scheme: `1 mark each, up to 4: costs rise so quantity supplied falls at every price (supply decreases) · at the old price (${ctx.p1}) there is a shortage (${ctx.q1}) · the shortage signals the price to rise; the higher price gives shops an incentive to sell more (extension of supply) and rations buyers (contraction of demand) · new equilibrium about ${ctx.p2} with ${ctx.q2} sold: higher price, lower quantity; uses the data.`, kw: [kw('quantity supplied falls at every price (supply decreases)', ['suppl[^.]{0,30}(fall|decrease|less|lower|left)', 'costs? (rise|increase|higher)']), kw('a shortage at the old price', ['shortage', 'excess demand']), kw('signal, incentive and rationing', ['signal', 'incentive', 'ration', 'extend', 'contract']), kw('higher price, lower quantity (uses data)', ['higher price', 'price (rises|rose|increase)', '\\d+k', 'fewer', 'lower quantity'])] }),
+      T2.text('a_f', 'Discuss', `whether or not shops should keep one menu price for the whole day.`, 6, { qid: 'l2-a-f', ref: '2.4.3', scheme: 'Up to 4 marks for each side, maximum 6. Keep one price: simple and clear for buyers, no time spent changing prices, buyers trust it, less bargaining. Change the price: a price below equilibrium causes a shortage (buyers turned away, lost profit) and a price above causes a surplus (unsold stock); events (Halloween, a poor harvest) move the equilibrium during the day; adjusting removes shortages and surpluses. A conclusion (e.g. it depends how often demand and supply change) can be credited.', kw: [kw('one price is simple, clear, trusted', ['simple', 'clear', 'easy', 'trust', 'know the price'], 'yes'), kw('a price that is too low causes a shortage', ['shortage', 'turned away', 'too low'], 'no'), kw('a price that is too high causes a surplus', ['surplus', 'unsold', 'too high'], 'no'), kw('demand and supply change during the day', ['change', 'halloween', 'harvest', 'event'], 'no'), kw('a conclusion', ['overall', 'in conclusion', 'depends', 'so shops should'])] })
+    ] },
+    B: { numbers: ['(a)', '(b)', '(c)', '(d)'], intro: 'Answer all parts. This section is homework and includes 2.5 (changes in demand and supply).', tasks: [
+      T2.text('b_a', 'Define', '\'shortage\'.', 2, { qid: 'l2-b-a', ref: '2.4.3', scheme: '1 mark: when quantity demanded is greater than quantity supplied. 1 mark: at a given price / the price is below the equilibrium price (excess demand).', model: 'A shortage is when quantity demanded is greater than quantity supplied at a given price, because the price is below the equilibrium price.', kw: [kw('quantity demanded greater than quantity supplied', ['demand[^.]{0,30}(greater|more|higher|exceed)[^.]{0,30}suppl']), kw('at a price below equilibrium / excess demand', ['below (the )?equilibrium', 'excess demand', 'at (a|that|the) price'])] }),
+      T2.text('b_b', 'Explain', `two reasons why the demand for ${lname} might increase at Halloween.`, 4, { qid: 'l2-b-b', ref: '2.6', scheme: '2 marks per reason (identify + explain), up to 2 reasons: tastes/fashion (sweets are part of the festival); more buyers (trick-or-treat, parties); gifts for others; advertising/promotions by shops; higher pocket money or income at festival time. Each must be linked to a higher quantity demanded at every price (demand shifts right).', kw: [kw('tastes / tradition of the festival', ['taste', 'tradition', 'festival', 'fashion', 'popular']), kw('more buyers: parties, trick-or-treat, gifts', ['part(y|ies)', 'trick', 'gift', 'more (buyers|people|children)']), kw('advertising or more income', ['advert', 'promot', 'income', 'pocket money']), kw('demand increases at every price (shifts right)', ['shift', 'every price', 'increase in demand', 'right'])] }),
+      T2.text('b_c', 'Analyse', `the effect of a poor ${pr === 'choc' ? 'cacao' : 'sugar'} harvest on the market for ${lname}.`, 6, { qid: 'l2-b-c', ref: '2.5, 2.7', scheme: 'Up to 6: the harvest raises the cost of a key raw material · firms supply less at every price: supply shifts left (decreases) · at the old price there is a shortage / excess demand · the price rises · quantity demanded contracts (extension/contraction language) · new equilibrium: higher price, lower quantity · a correctly labelled diagram (S1 to S2, P1 to P2, Q1 to Q2) can earn up to 2 of these marks.', kw: [kw('costs of raw materials rise', ['cost', 'raw material', 'ingredient']), kw('supply decreases / shifts left', ['suppl[^.]{0,30}(decrease|fall|shift|left)']), kw('a shortage at the old price', ['shortage', 'excess demand']), kw('the price rises', ['price (rises|will rise|increase|goes up)', 'higher price']), kw('quantity demanded contracts', ['demand[^.]{0,30}(contract|fall|decrease)', 'buy less', 'fewer']), kw('new equilibrium: higher price, lower quantity', ['equilibrium', 'lower quantity', 'less is sold'])] }),
+      T2.text('b_d', 'Discuss', 'whether or not a higher price at Halloween is good for buyers.', 8, { qid: 'l2-b-d', levels: true, ref: '2.4, 2.6', scheme: 'Levels of response (see table). Good for buyers: the higher price signals shops to supply more, so more sweets are available and fewer buyers are turned away; the price rations sweets to buyers who value them most; no shortage or queues. Not good for buyers: they pay more, so they get less gain; buyers with small budgets are priced out; shops make more profit at buyers\' expense; some buyers may be unfairly excluded. A conclusion weighing both sides reaches Level 3.', kw: [kw('higher price signals shops to supply more', ['supply more', 'more (sweets|chocolate|available)', 'signal', 'incentive'], 'yes'), kw('rations to buyers who value it most / no shortage', ['ration', 'value (it )?most', 'no shortage', 'queue'], 'yes'), kw('buyers pay more / less gain', ['pay more', 'expensive', 'less (gain|money)'], 'no'), kw('small budgets priced out', ['budget', 'afford', 'poor', 'priced out'], 'no'), kw('a conclusion', ['overall', 'in conclusion', 'depends', 'on balance'])] })
+    ] }
+  };
+  return pack;
+}
+// a personal question for students who ran a shop in the menu round
+function personal2(pack) {
+  const me = S.me || {}, m = pack.meta && pack.meta.menu; if (!m || !me.shop) return [];
+  const row = m.find(x => x.shop === me.shop); if (!row || row.price == null) return [];
+  const right = row.away > 0 ? 'short' : row.unsold > 0 ? 'surp' : 'clear';
+  return [DB.T.choice('d6', 'State', `what happened at your shop in the menu round. Your menu price was ${k(row.price)}.`, 1, [{ id: 'short', text: 'A shortage: I turned buyers away' }, { id: 'surp', text: 'A surplus: I had unsold stock' }, { id: 'clear', text: 'Neither: everything I offered sold' }], [right], { explain: right === 'short' ? `You turned away ${row.away}. Your price was below what the market would pay: next time, price higher.` : right === 'surp' ? `You had ${row.unsold} unsold. Your price was above what enough buyers would pay: next time, price lower.` : 'Your price cleared your stock: close to the equilibrium price.' })];
 }
 
 /* =====================================================================
@@ -2225,6 +3253,8 @@ const sfx = n => { if (sfxOK()) Sound.play(n); };
 const helloMsg = () => ({ type: 'hello', nick: S.nick, pk: S.pkJwk, av: S.av, team: S.team });
 
 function studentBoot() {
+  DB.S.init({ room: () => S.room, send: m => S.tr && sSend(m), connected: () => !!S.pub && Date.now() - S.lastMsg < 8000, personal: personal2, sound: n => sfx(n),
+    render: () => { if (S.pub) render(); else DB.S.render($('#sMain'), null); } });
   FX.install({ gain: .55, gate: sfxOK }); S.av = FX.myAvatar();
   FX.onPick((kind, v) => { if (kind === 'avatar') S.av = v; else S.team = v; sSave(); if (S.tr) sSend(helloMsg()); render(); });
   FX.onRange((key, v, done) => { if (key === 'o' || key === 'c') { if (S.compose) S.compose.price = v; } else S.price[key] = v; FX.setVal(key, k(v)); if (done) render(); });
@@ -2237,13 +3267,14 @@ function studentBoot() {
 async function connect() {
   const kind = PARAMS.get('t') === 'local' || !ONLINE_READY ? 'local' : 'supabase';
   S.tr = makeTransport(kind, S.room);
-  document.body.innerHTML = shell(`<header class="topbar"><span class="brand" id="hRole">Chợ Lớp 9</span><span class="chip" id="hPrize">🍬 0</span><span id="hTitle"></span><span class="spacer"></span><span class="timer" id="hTimer"></span>
+  document.body.innerHTML = shell(`<header class="topbar"><span class="brand" id="hRole">Market Town</span><span class="chip" id="hPrize">🍬 0</span><span id="hTitle"></span><span class="spacer"></span><span class="timer" id="hTimer"></span>
     <button class="btn small ghost" id="sSnd" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">${S.sound ? '🔊 Sound on' : '🔇 Sound off'}</button>${FX.calmBtn('color:#fbf3ea;border-color:rgba(255,255,255,.3)')}<span class="chip" id="hConn"><span class="dot wait"></span>…</span></header>
     <main class="wrap" id="sMain"><div class="panel">Looking for room <b>${esc(S.room)}</b>…</div></main>`);
   $('#sSnd').onclick = e => { S.sound = !S.sound; e.target.textContent = S.sound ? '🔊 Sound on' : '🔇 Sound off'; if (S.sound) { Sound.ensure(); if (S.pub && S.pub.sSound === false) toast('Your teacher has turned student sounds off.'); else Sound.play('chime'); } sSave(); };
   try { if (window.crypto && crypto.subtle) { S.kp = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']); S.pkJwk = await crypto.subtle.exportKey('jwk', S.kp.publicKey); } } catch { }
   try { await S.tr.connect(onMsg, () => { }); } catch (e) { $('#sMain').innerHTML = `<div class="bad">${esc(e.message)}</div>`; return; }
   const hello = () => sSend(helloMsg());
+  setTimeout(() => { if (!S.pub && DB.S.active(null)) DB.S.render($('#sMain'), null); }, 3500);
   hello();
   setInterval(() => { const q = Date.now() - S.lastMsg > 7000; if (q) hello(); const c = $('#hConn'); if (c) c.innerHTML = q ? '<span class="dot bad"></span>Looking for teacher' : '<span class="dot ok"></span>Connected'; }, 3000);
   setInterval(() => { tick(); }, 1000);
@@ -2258,17 +3289,23 @@ async function teacherKey(pk) {
 async function onMsg(m) {
   if (!m || m.from !== 'teacher' || (m.to && m.to !== S.pid)) return;
   S.lastMsg = Date.now();
+  if (DB.S.onMsg(m)) return render();
   if (m.type === 'state') {
+    FX.setVi(m.vi !== false, 'student');
+    DB.S.sync(m);
     const prevPk = S.pub && JSON.stringify(S.pub.pk || ''), prevRound = S.pub && S.pub.round && S.pub.round.n;
     S.pub = m; if (m.round) S.leftAt = { left: m.round.left, at: Date.now() };
     if (prevPk != null && prevPk !== JSON.stringify(m.pk || '')) sSend(helloMsg());
     if (m.round && m.round.n !== prevRound) {
       S.compose = null; S.price = {};
       const fresh = (m.events || []).filter(e => !S.evKeys || !S.evKeys.includes(e.key));
-      if (fresh.length && S.evKeys) FX.news({ icon: fresh.map(e => e.icon).join(' '), title: fresh.map(e => e.label).join(' + '), vi: fresh.map(e => e.vi || '').filter(Boolean).join(' + '), detail: fresh.map(e => e.detail).join(' · '), theme: fresh[fresh.length - 1].key, ms: 3500, sound: sfxOK() });
+      if (fresh.length && S.evKeys && fresh.every(e => (S.bcKeys || []).includes(e.key))) FX.news({ icon: fresh.map(e => e.icon).join(' '), kicker: 'THE NEWS IS HERE · TIN ĐÃ ĐẾN', title: m.round.label + ': trade!', vi: fresh.map(e => e.vi || '').filter(Boolean).join(' + '), detail: fresh.map(e => e.detail).join(' · '), theme: fresh[fresh.length - 1].key, ms: 4500, sound: sfxOK() });
+      else if (fresh.length && S.evKeys) { FX.broadcast(newsOpts(fresh, { when: 'now', me: () => S.me, sound: sfxOK() })); S.bcKeys = fresh.map(e => e.key); }
       else if (S.evKeys) { FX.news({ icon: m.round.mode === 'menu' ? '📋' : m.round.mode === 'fast' ? '⚡' : '🔔', kicker: 'NEW ROUND · VÒNG MỚI', title: m.round.label, detail: m.round.mode === 'menu' ? (S.me && S.me.shop ? 'Choose ONE price for each product.' : 'Each shop has one price for the whole round.') : m.round.mode === 'fast' ? 'Fast mode: trades happen as soon as an offer meets an ask.' : 'Buy at a shop, or make an offer.', theme: 'round', ms: 2200, sound: false }); sfx('sting'); }
     }
-    if (m.pred && m.pred.open && (!S.lastPred || S.lastPred !== m.pred.id) && S.pub && S.evKeys) FX.news({ icon: m.pred.events.map(e => e.icon).join(' '), kicker: 'COMING NEXT ROUND · VÒNG SAU', title: m.pred.events.map(e => e.label).join(' + '), vi: m.pred.events.map(e => e.vi || '').filter(Boolean).join(' + '), detail: 'Predict: will the price go up, down or stay the same?', theme: m.pred.events[m.pred.events.length - 1].key, ms: 3500, sound: sfxOK() });
+    if (m.pred && m.pred.open && (!S.lastPred || S.lastPred !== m.pred.id) && S.pub && S.evKeys) { FX.broadcast(newsOpts(m.pred.events, { kicker: 'COMING NEXT ROUND · VÒNG SAU', when: 'next', me: () => S.me, ask: 'Predict below: will the price go up, down or stay the same?', sound: sfxOK() })); S.bcKeys = m.pred.events.map(e => e.key); }
+    if (m.rev && S.revSeen !== m.rev.n) { if (S.evKeys) FX.news({ ...m.rev, ms: 6000, sound: sfxOK() }); S.revSeen = m.rev.n; }
+    FX.crawl(crawlItems(m.events));
     S.lastPred = m.pred ? m.pred.id : S.lastPred;
     S.evKeys = (m.events || []).map(e => e.key);
     render();
@@ -2305,11 +3342,12 @@ function render() {
   const ae = document.activeElement; if (ae && ae.matches && ae.matches('#sMain input[type=text]')) { ae.onblur = () => setTimeout(render, 0); return; }
   const p = S.pub, me = S.me || {};
   $('#hPrize').textContent = `🍬 ${me.prize || 0}`;
-  $('#hRole').textContent = `${FX.avOf(S.av)} ` + (me.role === 'buyer' ? `Buyer${me.cardNo ? ' · card ' + me.cardNo : ''}` : me.shop ? (me.shopName || `Shop ${me.shop}`) : 'Chợ Lớp 9');
+  $('#hRole').textContent = `${FX.avOf(S.av)} ` + (me.role === 'buyer' ? `Buyer${me.cardNo ? ' · card ' + me.cardNo : ''}` : me.shop ? (me.shopName || `Shop ${me.shop}`) : 'Market Town');
   const ttl = $('#hTitle'); if (ttl) ttl.innerHTML = me.role ? FX.titleChip(FX.titleWatch('me', me.skill || 0, TH2, null)) : '';
   const ev = (p.events || []).length ? `<div class="evbar">${p.events.map(e => `<span>${e.icon} ${esc(e.label)}: ${esc(e.detail)}</span>`).join('')}</div>` : '';
   const lock = (p.lock ? `<div class="note" style="margin:0 0 12px">📌 This round the price of ${PROD[p.lock.product].name.toLowerCase()} is fixed at <b>${k(p.lock.price)}</b>. It cannot change.</div>` : '') + (p.round && p.round.mode === 'menu' ? `<div class="note" style="margin:0 0 12px">📋 <b>Menu prices.</b> ${me.role === 'buyer' ? 'Each shop has one price for the whole round. Buy where you like.' : 'Choose ONE price for each product. You cannot change it this round.'}</div>` : '');
   if (!me.role) { main.innerHTML = `<div class="panel stack"><h2 style="margin:0">${FX.avOf(S.av)} Hi ${esc(S.nick)}, you're in.</h2><p style="margin:0">Your teacher will give you a role: a <b>buyer</b> with a value card, or part of a <b>shop</b>. Good trades fill your prize jar with real sweets.</p>${FX.avatarPicker(S.av)}${FX.teamPicker(S.team)}</div>`; main.onclick = null; return; }
+  if (!p.round && DB.S.active(p)) { DB.S.render(main, p); main.onclick = null; return; }
   if (!p.round) { main.innerHTML = ev + lock + betweenHtml(); main.onclick = onClick; return; }
   if (me.role === 'buyer' ? !('values' in me) : !me.costs) { main.innerHTML = ev + lock + '<div class="panel">Getting your card for this round…</div>'; return; }
   main.innerHTML = ev + lock + (me.role === 'buyer' ? (p.round.mode === 'fast' ? buyerFast() : buyerOffers()) : (p.round.mode === 'fast' ? shopFast() : shopOffers()));
@@ -2323,7 +3361,7 @@ function predHtml() {
   const P = S.pub.pred; if (!P) return '';
   const mine = (S.me && S.me.pred) || {};
   if (P.open) return `<div class="fx-predict stack" style="margin-bottom:14px"><h3>🔮 Predict the next round</h3><p style="margin:0">${P.events.map(e => `${e.icon} <b>${esc(e.label)}</b>: ${esc(e.detail)}`).join('<br>')}</p>
-    ${P.products.map(pr => `<div><b>Will the price of ${PROD[pr].name.toLowerCase()} go up, down or stay the same?</b><div class="fx-arrows" style="margin-top:6px">${Object.entries(DIRS).map(([d, x]) => `<button class="fx-arrow ${mine[pr] === d ? 'sel' : ''}" data-a="pred" data-p="${pr}" data-d="${d}"><span>${x[0]}</span>${x[1]}<small>${x[2]}</small></button>`).join('')}</div></div>`).join('')}
+    ${P.products.map(pr => `<div><b>Will the price of ${PROD[pr].name.toLowerCase()} go up, down or stay the same?</b><div class="fx-arrows" style="margin-top:6px">${Object.entries(DIRS).map(([d, x]) => `<button class="fx-arrow ${mine[pr] === d ? 'sel' : ''}" data-a="pred" data-p="${pr}" data-d="${d}"><span>${x[0]}</span>${x[1]}<small class="vi" lang="vi">${x[2]}</small></button>`).join('')}</div></div>`).join('')}
     <small class="muted">${Object.keys(mine).length ? 'Saved. You can change it until the round starts.' : 'Think: does the news change buyers (demand) or shops (supply)? A correct prediction adds to your prize.'}</small></div>`;
   if (P.result && P.round === (S.pub.last || {}).n) return `<div class="fx-predict" style="margin-bottom:14px"><h3>🔮 Your prediction</h3>${P.products.map(pr => `<div>${PROD[pr].name}: the equilibrium price went <b>${DIRS[P.result[pr]][0]} ${DIRS[P.result[pr]][1].toLowerCase()}</b>${mine[pr] ? (mine[pr] === P.result[pr] ? ' · <b class="okt">you were right ✓</b>' : ` · you said ${DIRS[mine[pr]][0]}`) : ''}</div>`).join('')}</div>`;
   return '';
@@ -2463,6 +3501,17 @@ function onClick(e) {
   if (mode === 'teacher') teacherBoot(); else if (mode === 'student') studentBoot(); else location.replace('index.html' + (PARAMS.get('t') ? '?t=' + PARAMS.get('t') : ''));
 })();
 
+</script>
+<script>
+/* ---- Vietnamese on/off (teacher). Off hides Vietnamese on the console and the board; students keep it only as small support text. ---- */
+function viOnT() { return typeof T !== 'undefined' && T.s ? (T.s.vi ?? FX.get('vi', true)) !== false : FX.get('vi', true) !== false; }
+document.addEventListener('click', e => {
+  if (!e.target.closest || !e.target.closest('#viT') || typeof T === 'undefined' || !T.s) return;
+  T.s.vi = !viOnT(); FX.set('vi', T.s.vi); FX.setVi(T.s.vi, 'teacher');
+  const b = document.getElementById('viT'); if (b) b.textContent = T.s.vi ? '🇻🇳 Tiếng Việt: on' : '🇻🇳 Vietnamese: off';
+  tSave(); renderBody(); if (T.projector) renderProj(true); tBroadcast(true);
+  toast(T.s.vi ? 'Vietnamese is on.' : 'Vietnamese is off on the console and the board. Students still see small Vietnamese help.');
+});
 </script>
 </body>
 </html>
