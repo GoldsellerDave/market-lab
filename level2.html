@@ -500,6 +500,52 @@ table.prizelist { width: 100%; border-collapse: collapse; } table.prizelist td, 
 </style>
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+/* missions, price guess, round result card, team race (Level 2) */
+.ms-card { border: 3px solid var(--foil); border-radius: 16px; padding: 12px 14px; margin: 0 0 12px; background: var(--panel); box-shadow: 0 4px 14px rgba(0,0,0,.08); display: flex; flex-direction: column; gap: 8px; }
+.ms-card.ok { border-color: var(--mint); background: var(--mint-soft); }
+.ms-card.no { border-color: var(--line); opacity: .85; }
+.ms-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 800; flex-wrap: wrap; }
+.ms-chip { font-size: .85rem; padding: 2px 10px; border-radius: 999px; background: var(--warn-soft); white-space: nowrap; }
+.ms-chip.ok { background: var(--mint); color: #fff; }
+.ms-chip.no { background: var(--line); }
+.ms-text { font-size: 1.08rem; line-height: 1.35; }
+.ms-text .vi, .rs-lines .vi, .rs-me .vi { font-size: .85em; color: var(--muted); }
+.ms-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.ms-opt { min-height: 48px; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-weight: 700; padding: 8px 10px; cursor: pointer; text-align: left; color: var(--ink); }
+.ms-opt small { display: block; font-weight: 400; }
+.ms-opt.sel { border-color: var(--foil); background: var(--warn-soft); }
+.ms-opt:disabled { cursor: default; }
+.ms-guess { border-top: 1px dashed var(--line); padding-top: 8px; }
+.ms-bar { position: relative; height: 26px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.ms-bar i { position: absolute; inset: 0 auto 0 0; background: var(--mint); transition: width .6s; }
+.ms-bar span { position: relative; display: block; text-align: center; font-weight: 800; line-height: 26px; }
+.rs-pop { position: fixed; inset: 0; z-index: 96; background: rgba(20, 12, 6, .55); display: flex; align-items: flex-start; justify-content: center; padding: max(12px, env(safe-area-inset-top, 0px)) 12px 12px; overflow: auto; animation: fxpopin .35s ease; }
+.rs-sheet { width: min(760px, 100%); background: var(--panel); border-radius: 20px; border: 3px solid var(--foil); padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 16px 40px rgba(0,0,0,.3); margin: auto 0; }
+.rs-kick { font-weight: 800; letter-spacing: .04em; font-size: .9rem; color: var(--muted); }
+.rs-chart { height: 260px; }
+.rs-chart.big { height: min(46vh, 380px); }
+.rs-lines { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 1.02rem; }
+.rs-me { padding: 10px 12px; border-radius: 12px; background: var(--warn-soft); border-left: 5px solid var(--foil); font-weight: 600; }
+.rs-ms { padding: 8px 12px; border-radius: 12px; background: var(--paper); border-left: 5px solid var(--line); }
+.rs-ms.ok { border-left-color: var(--mint); background: var(--mint-soft); }
+.race { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.race.big { gap: 18px; padding: 10px 4px; }
+.race-name { font-size: 1rem; margin-bottom: 4px; }
+.race.big .race-name { font-size: clamp(1.1rem, 2.2vw, 1.6rem); }
+.race-track { position: relative; height: 46px; border-radius: 999px; background: repeating-linear-gradient(90deg, var(--paper) 0 38px, var(--line) 38px 40px); border: 3px solid var(--c); overflow: hidden; }
+.race.big .race-track { height: 70px; }
+.race-runner { position: absolute; top: 50%; transform: translate(-6%, -50%); font-size: 1.6rem; white-space: nowrap; transition: left 2.6s cubic-bezier(.25, .9, .3, 1); filter: drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+.race.big .race-runner { font-size: 2.6rem; }
+.race-finish { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 1.4rem; }
+.race.big .race-finish { font-size: 2.2rem; }
+@media (prefers-reduced-motion: reduce) { .race-runner { transition: none; } .rs-pop { animation: none; } }
+.ms-card.compact { padding: 8px 12px; gap: 4px; border-width: 2px; }
+.ms-card.compact .ms-text { font-size: .95rem; }
+.ms-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.ms-gchip { min-width: 52px; min-height: 44px; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-weight: 800; color: var(--ink); cursor: pointer; }
+.ms-gchip.sel { border-color: var(--foil); background: var(--foil); color: #fff; }
+</style>
 <!--FX-CSS--><style id="fx-css">
 /* ===== EcoLogic Market Lab: shared game layer ===== */
 .fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 96; overflow: hidden; }
@@ -2292,7 +2338,11 @@ const crawlItems = evs => (evs || []).map(e => { const n = NEWS3[e.key]; return 
 const PX = () => (typeof T !== 'undefined' && T.s && T.s.products) || (typeof S !== 'undefined' && S.pub && S.pub.products) || M2.PIDS;
 const eventFits = (ev, products) => ev.parts.some(p => p.product === 'both' || products.includes(p.product));
 // Standard plan: one product, fast mode, an unscored practice round plus 4 rounds
-function planStandard(products) {
+function planStandard(products, v) {
+  const L = planStandard1(products); if (!(v >= 2)) return L;
+  return [L[0], { lesson: 1, label: 'Round 1: bargaining', mode: 'offers', board: false, events: [] }, ...L.slice(1).map(x => ({ ...x, label: x.label.replace(/^Round (\d+)/, (_, d) => 'Round ' + (+d + 1)) }))];
+}
+function planStandard1(products) {
   const p = products.length === 1 ? products[0] : 'choc';
   return [
     { lesson: 1, label: 'Practice round', practice: true, mode: 'fast', board: true, events: [], len: 60 },
@@ -2329,6 +2379,8 @@ const BADGES2 = {
   forecaster: ['🔮', 'Forecaster', 'Predicted which way the price would move'],
   everyround: ['📅', 'Every round', 'Traded in every round'],
   streak: ['🔥', 'Hot streak', 'Earned more than the average trader 3 rounds in a row'],
+  missionmaster: ['🗺️', 'Mission master', 'Completed 3 missions'],
+  sharpeye: ['👁️', 'Sharp eye', 'Guessed the class average price within 1k'],
   tycoon: ['👑', 'Tycoon', 'Reached the top title']
 };
 // Titles from the market score (1 = what an average trader earns at the equilibrium price, per round)
@@ -2367,7 +2419,7 @@ const activeEvents = () => T.s.events.filter(e => e.active).flatMap(e => e.parts
 const shopMembers = shop => T.s.humans.filter(h => T.s.roles[h.pid] === 'shop:' + shop).map(h => h.pid);
 const isShopHuman = shop => shopMembers(shop).length > 0;
 
-const planList = () => T.s.plan === 'advanced' ? PLAN3 : planStandard(T.s.products);
+const planList = () => T.s.plan === 'advanced' ? PLAN3 : planStandard(T.s.products, T.s.planV);
 /* ---- setup ---- */
 function teacherBoot() {
   FX.install({ gain: 1 });
@@ -2379,15 +2431,16 @@ function teacherBoot() {
     <div class="panel stack">
       <div><label class="field" for="tp">Connection</label><select id="tp"><option value="supabase" ${ONLINE_READY ? 'selected' : 'disabled'}>Online: students on their own devices${ONLINE_READY ? '' : ' (add Supabase details to enable)'}</option><option value="local" ${ONLINE_READY ? '' : 'selected'}>Test mode: students in other tabs on this computer</option></select></div>
       <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="pr">Products</label><select id="pr"><option value="choc">Chocolate only</option><option value="candy">Candy only</option><option value="both">Chocolate and candy</option></select></div>
-        <div style="flex:1;min-width:150px"><label class="field" for="pl">Lesson plan</label><select id="pl"><option value="standard">Standard: practice + 4 rounds, fast mode</option><option value="advanced">Advanced: 7 rounds, shops + offers</option></select></div></div>
+        <div style="flex:1;min-width:150px"><label class="field" for="pl">Lesson plan</label><select id="pl"><option value="standard">Standard: practice + 5 rounds (bargaining, then fast mode)</option><option value="advanced">Advanced: 7 rounds, shops + offers</option></select></div></div>
       <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="tm">Students per shop</label><select id="tm"><option value="1">1 (5 shop students)</option><option value="2">2 (10 shop students, in pairs)</option></select></div>
         <div style="flex:1;min-width:150px"><label class="field" for="rl">Round length</label><select id="rl"><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option><option value="240">4 minutes</option><option value="300" selected>5 minutes</option><option value="360">6 minutes</option></select></div></div>
       <div class="row"><div style="flex:1;min-width:150px"><label class="field" for="sw">Prizes: total sweets for the class</label><input id="sw" type="number" min="0" value="60"></div>
         <div style="flex:1;min-width:150px"><label class="field" for="ps">Sweets every student gets for taking part</label><input id="ps" type="number" min="0" value="1"></div></div>
+      <div><label class="field" for="bs">Bonus sweets for each mission done and each good price guess</label><select id="bs"><option value="1" selected>1 sweet each (on top of the total above)</option><option value="0">None (missions still count for the team race)</option></select></div>
       <label class="row" style="gap:8px"><input type="checkbox" id="bots" checked style="width:22px;height:22px"> Robots fill empty shops and buyer cards (keeps 5 shops and 19 buyer cards). Recommended: with robots off, only students hold buyer cards, so a small class gives a demand curve with few steps. Empty shops always get a robot.</label>
       <button class="btn primary" id="create">Open a new room</button></div>
     <p class="muted"><a href="index.html">Back to all lessons</a></p></div>`);
-  $('#create').onclick = () => { Sound.ensure(); T.s = newT({ products: $('#pr').value === 'both' ? ['choc', 'candy'] : [$('#pr').value], plan: $('#pl').value, transport: $('#tp').value, team: +$('#tm').value, roundLen: +$('#rl').value, sweets: Math.max(0, +$('#sw').value || 0), perStudent: Math.max(0, +$('#ps').value || 0), botsOn: $('#bots').checked }); tSave(); teacherStart(); };
+  $('#create').onclick = () => { Sound.ensure(); T.s = newT({ products: $('#pr').value === 'both' ? ['choc', 'candy'] : [$('#pr').value], plan: $('#pl').value, transport: $('#tp').value, team: +$('#tm').value, roundLen: +$('#rl').value, sweets: Math.max(0, +$('#sw').value || 0), perStudent: Math.max(0, +$('#ps').value || 0), botsOn: $('#bots').checked }); T.s.bonusSweets = +$('#bs').value; T.s.planV = 2; tSave(); teacherStart(); };
   const r = $('#resume'); if (r) r.onclick = () => { Sound.ensure(); T.s = migrate(saved); tSave(); teacherStart(); };
 }
 async function teacherStart() {
@@ -2465,6 +2518,7 @@ function startRound(step) {
   if (fresh.length && fresh.every(e => (s.newsShown || []).includes(e.key))) FX.news({ icon: fresh.map(e => e.icon).join(' '), kicker: 'THE NEWS IS HERE · TIN ĐÃ ĐẾN', title: (step.label || `Round ${n}`) + ': trade!', vi: fresh.map(e => e.vi || '').filter(Boolean).join(' + '), detail: fresh.map(e => e.detail).join(' · '), theme: fresh[fresh.length - 1].key, ms: 4500 });
   else if (fresh.length) { T.hold = FX.broadcast(newsOpts(fresh, { when: 'now' })); s.current.endsAt += T.hold; s.newsShown = fresh.map(e => e.key); }
   else { Sound.play('sting'); FX.news({ icon: step.mode === 'menu' ? '📋' : step.mode === 'fast' ? '⚡' : '🔔', kicker: 'NEW ROUND · VÒNG MỚI', title: step.label || `Round ${n}`, detail: (step.mode || 'offers') === 'fast' ? 'Fast mode: post offers and asks. Trades happen automatically.' : step.mode === 'menu' ? 'Menu prices: each shop chooses ONE price for the whole round.' : 'Shops post prices. Buyers buy, or make an offer.', theme: 'round', ms: 3500, sound: false }); }
+  msAssign(curRound());
   tSave(); renderBody(); youAll(); tBroadcast(true); if (T.projector) renderProj(true);
   clearInterval(T.tick);
   T.tick = setInterval(() => {
@@ -2481,6 +2535,7 @@ function endRound() {
   T.offers.forEach(o => { if (o.status === 'open') o.status = 'expired'; });
   const r = curRound(); r.endedAt = Date.now();
   if (r.mode === 'menu') r.menu = M2.SHOP_IDS.map(sh => PX().map(p => { const price = T.asks[sh][p]; const willing = price == null ? 0 : [0, 1, 2, 3].filter(u => M2.costOf(sh, p, u, r.ev) <= price).length; const sold = r.trades.filter(x => x.shop === sh && x.product === p).length; return { shop: sh, product: p, price: price ?? null, sold, unsold: Math.max(0, willing - sold), away: Object.keys(T.away[sh][p] || {}).length }; })).flat();
+  msEnd(r);
   if (!r.practice) roundAwards(r);
   if (s.pred && s.pred.round === r.n && !s.pred.result) judgePred(r);
   s.newsShown = []; s.revealed[r.n] = true; if (s.board.view === 'live' || s.board.view === 'chart') s.board.view = 'floor';
@@ -2544,14 +2599,14 @@ function respondOffer(o, by, action, price) {
     if (o.by === by) return 'not-yours';
     const res = T.R.trade(o.slot, o.shop, o.product, o.price, 'offer');
     if (!res.ok) { o.status = 'closed'; notifyOffer(o); return res.error; }
-    o.status = 'accepted'; notifyOffer(o); recordTrade(res.trade); return null;
+    o.status = 'accepted'; if (by === 'buyer' && o.cnt) msCounterOk(curRound(), o.shop); notifyOffer(o); recordTrade(res.trade); return null;
   }
   if (action === 'counter') {
     price = Math.round(price);
     if (by === 'shop') { const c = T.R.nextCost(o.shop, o.product); if (c == null) return 'sold-out'; if (price < c) return 'below-cost'; }
     if (by === 'buyer' && price > T.R.val(o.slot, o.product)) return 'above-value';
     if (T.R.lock && T.R.lock.product === o.product && price !== T.R.lock.price) return 'locked';
-    o.price = price; o.by = by; o.expires = Date.now() + OFFER_SECS * 1000; notifyOffer(o);
+    o.price = price; o.by = by; if (by === 'shop') o.cnt = 1; o.expires = Date.now() + OFFER_SECS * 1000; notifyOffer(o);
     if (by === 'shop' && !o.buyer) botBuyerRespond(o);
     if (by === 'buyer' && !isShopHuman(o.shop)) botShopRespond(o);
     return null;
@@ -2584,6 +2639,7 @@ function tOnMsg(m) {
   }
   if (!s.humans.find(h => h.pid === m.pid)) return;
   if (DB.Tch.onMsg(m)) return;
+  if (msOnMsg(m)) return;
   if (m.type === 'pred') {
     const P = s.pred;
     if (P && P.open && P.id === m.id && P.products.includes(m.product) && DIRS[m.dir]) { (P.answers[m.pid] ||= {})[m.product] = m.dir; Sound.play('blip'); tSave(); renderBody(); you(m.pid); tBroadcast(); if (T.projector) projDynamic(); }
@@ -2630,13 +2686,15 @@ function tOnMsg(m) {
     default: return;
   }
   if (err) return fail(err);
+  msAct(r, m);
   tSend({ type: 'ack', to: m.pid, ok: true });
 }
 
 /* ---- what each student sees privately ---- */
 function youFor(pid) {
   const s = T.s, r = curRound() || s.rounds[s.rounds.length - 1], role = s.roles[pid] || null;
-  const base = { pid, nick: nick(pid), role, prize: prizeFor(pid), earnRound: r ? ((s.earnings[pid] || {})[r.n] || 0) : 0, earnTotal: totalEarn(pid), badges: s.badges[pid] || [], skill: Math.round(scoreFor(pid) * 100) / 100, pred: s.pred ? (s.pred.answers[pid] || {}) : null };
+  const base = { pid, nick: nick(pid), role, prize: prizeFor(pid), earnRound: r ? ((s.earnings[pid] || {})[r.n] || 0) : 0, earnTotal: totalEarn(pid), badges: s.badges[pid] || [], skill: Math.round(scoreFor(pid) * 100) / 100, pred: s.pred ? (s.pred.answers[pid] || {}) : null,
+    ms: msView(pid), res: !s.current && r && r.endedAt ? { n: r.n, line: msPersonal(pid, r) } : null, race: raceFor(pid) };
   if (!role || !r) return base;
   const live = !!s.current, R = T.R;
   if (role === 'buyer') {
@@ -2661,10 +2719,11 @@ function pubState() {
   const shops = Object.fromEntries(M2.SHOP_IDS.map(sh => [sh, { name: (s.shopNames || {})[sh] || '', asks: { ...(T.asks && T.asks[sh] || {}) }, stock: R ? Object.fromEntries(PX().map(p => [p, R.stock(sh, p)])) : { choc: 4, candy: 4 }, avail: R && T.asks && T.asks[sh] ? Object.fromEntries(PX().filter(p => T.asks[sh][p] != null).map(p => [p, R.forSale(sh, p, T.asks[sh][p])])) : {}, human: isShopHuman(sh), busy: openOffersFor(sh) >= MAX_OFFERS_PER_SHOP }]));
   const book = R && r.mode === 'fast' ? Object.fromEntries(PX().map(p => [p, { bid: (R.bestBid(p) || {}).price ?? null, ask: (R.bestAsk(p) || {}).price ?? null }])) : null;
   return { type: 'state', vi: viOnT(), level: 2, db: DB.Tch.pub(), pk: T.pk, phase: s.phase, n: s.humans.length, products: s.products, sSound: s.sSound !== false, pred: predPub(),
-    round: r ? { n: r.n, label: r.label, mode: r.mode, practice: r.practice, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) } : null,
+    round: r ? { n: r.n, label: r.label, mode: r.mode, practice: r.practice, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)), guessLeft: r.practice ? 0 : Math.max(0, Math.round(((r.guessUntil || 0) - Date.now()) / 1000)) } : null,
     last: last ? { n: last.n, label: last.label } : null, shops, book, lock: s.lock, events: s.events.filter(e => e.active).map(e => ({ key: e.key, vi: e.vi, icon: e.icon, label: e.label, detail: e.detail })),
     ck: s.ck && s.ck.open ? { open: true, id: s.ck.id, data: s.ck.data } : null,
     rev: !r && last && s.revealed[last.n] ? { n: last.n, ...revealInfo(last) } : null,
+    res: !r && last && last.endedAt && s.revealed[last.n] ? msResultPub(last) : null, lastAvg: (() => { const lr = s.rounds.filter(x => x.endedAt).slice(-1)[0]; return lr ? M2.stats(lr.trades, heroP()).mean : null; })(),
     prices: r && s.board.visible ? r.trades.slice(-12).map(t => ({ id: r.n + '-' + t.i, p: t.product, price: t.price, shop: t.shop })) : [], pricesHidden: !!(r && !s.board.visible), classSweets: Math.round(totalPrizePool()) };
 }
 function tBroadcast(now) {
@@ -2692,6 +2751,7 @@ function prizeTable() {
   scores.forEach(x => { x.sweets = Math.floor(x.exact); });
   let left = Math.min(s.sweets, Math.round(scores.reduce((a, x) => a + x.exact, 0))) - scores.reduce((a, x) => a + x.sweets, 0);
   scores.slice().sort((a, b) => (b.exact % 1) - (a.exact % 1)).forEach(x => { if (left > 0) { x.sweets++; left--; } });
+  scores.forEach(x => { x.bonus = msBonus(x.pid); x.sweets += x.bonus; });
   return scores;
 }
 const prizeFor = pid => { const row = prizeTable().find(x => x.pid === pid); return row ? row.sweets : 0; };
@@ -2959,11 +3019,12 @@ function renderBody() {
           <details><summary>Start a different round</summary><div class="row" style="margin-top:8px"><input id="rlab" type="text" placeholder="Round name" style="max-width:200px"><select id="rmode" style="width:auto"><option value="offers">Shops + offers</option><option value="fast">Fast mode</option></select><button class="btn small" data-act="custom-round">Start</button></div></details>
           <div class="row"><button class="btn small" data-act="deal-new">Deal new roles (new shop teams)</button></div>`}
         <div class="row"><span>Board:</span><button class="btn small ${s.board.visible ? 'primary' : ''}" data-act="board">${s.board.visible ? 'Showing prices' : 'Hidden during rounds'}</button>
-          <select id="bview" style="width:auto;min-height:36px">${[['floor', 'Trading floor'], ['live', 'Live market'], ['chart', 'Price chart'], ['rounds', 'Round summary'], ['functions', 'Signal, incentive, rationing'], ['leaders', 'Leaderboard and teams'], ['prizes', 'Class prizes']].map(([v, l]) => `<option value="${v}" ${s.board.view === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+          <select id="bview" style="width:auto;min-height:36px">${[['floor', 'Trading floor'], ['live', 'Live market'], ['chart', 'Price chart'], ['rounds', 'Round summary'], ['functions', 'Signal, incentive, rationing'], ['leaders', 'Leaderboard and teams'], ['race', 'Team race'], ['prizes', 'Class prizes']].map(([v, l]) => `<option value="${v}" ${s.board.view === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
           ${s.rounds.length && !r ? '<button class="btn small" data-act="replay">▶ Replay last round</button>' : ''}</div>
         ${s.rounds.length ? `<div class="row"><span>Equilibrium on the board for the last round:</span><button class="btn small" data-act="reveal">${s.revealed[(r || s.rounds[s.rounds.length - 1]).n] ? 'Hide' : 'Reveal'}</button></div>` : ''}
       </div>
       ${predPanel()}
+      <div class="panel stack" id="msT"></div>
       ${ckPanel2()}
       <div class="panel stack"><h2 style="margin:0">Events</h2>
         <div class="row">${EVENTS3.filter(e => eventFits(e, PX())).map(e => `<button class="btn small" data-act="event" data-k="${e.key}">${e.icon} ${esc(e.label)}</button>`).join('')}</div>
@@ -3022,9 +3083,9 @@ function liveGrid() {
 function renderLive() {
   const s = T.s, r = curRound(), last = r || s.rounds[s.rounds.length - 1];
   const el = $('#liveT'); if (el) el.innerHTML = `<h2 style="margin:0 0 8px">${r ? 'Live: ' + esc(r.label) : last ? 'Last round: ' + esc(last.label) : 'Market'}</h2>${liveGrid()}${last ? roundStatsHtml(last) : ''}${last && s.revealed[last.n] ? functionsHtml(last) : ''}`;
-  const pt = $('#prizeT'); if (pt) { const rows = prizeTable(); pt.innerHTML = `<div class="row" style="justify-content:space-between"><h2 style="margin:0">Prizes so far</h2><div class="row" style="gap:6px"><button class="btn small primary" data-act="podium" ${rows.some(x => x.score > 0) ? '' : 'disabled'}>🏆 Podium</button><button class="btn small" data-act="prizes" ${rows.length ? '' : 'disabled'}>Print the prize list</button></div></div><p class="muted" style="margin:0">Earnings are scaled so buyers and shops can win equally; every student gets ${s.perStudent} for taking part. ${Math.round(rows.reduce((a, x) => a + x.sweets, 0))} of ${s.sweets} sweets allocated.</p><div class="table-wrap"><table><tr><th>Student</th><th>Role</th><th>Earned</th><th>Sweets</th></tr>${rows.sort((a, b) => b.sweets - a.sweets).map(x => `<tr><td>${esc(x.nick)}</td><td>${x.role === 'buyer' ? 'Buyer' : x.role ? 'Shop ' + x.role.slice(5) : '–'}</td><td>${k(x.earn)}</td><td><b>${x.sweets}</b></td></tr>`).join('')}</table></div>`; }
+  const pt = $('#prizeT'); if (pt) { const rows = prizeTable(); pt.innerHTML = `<div class="row" style="justify-content:space-between"><h2 style="margin:0">Prizes so far</h2><div class="row" style="gap:6px"><button class="btn small primary" data-act="podium" ${rows.some(x => x.score > 0) ? '' : 'disabled'}>🏆 Podium</button><button class="btn small" data-act="prizes" ${rows.length ? '' : 'disabled'}>Print the prize list</button></div></div><p class="muted" style="margin:0">Earnings are scaled so buyers and shops can win equally; every student gets ${s.perStudent} for taking part. ${Math.round(rows.reduce((a, x) => a + x.sweets - (x.bonus || 0), 0))} of ${s.sweets} sweets allocated${rows.some(x => x.bonus) ? `, plus ${rows.reduce((a, x) => a + (x.bonus || 0), 0)} bonus sweets for missions and price guesses` : ''}.</p><div class="table-wrap"><table><tr><th>Student</th><th>Role</th><th>Earned</th><th>Sweets</th></tr>${rows.sort((a, b) => b.sweets - a.sweets).map(x => `<tr><td>${esc(x.nick)}</td><td>${x.role === 'buyer' ? 'Buyer' : x.role ? 'Shop ' + x.role.slice(5) : '–'}</td><td>${k(x.earn)}</td><td><b>${x.sweets}</b></td></tr>`).join('')}</table></div>`; }
   const log = $('#logT'); if (log) { const all = s.rounds.flatMap(rd => rd.trades.map(t => ({ ...t, label: rd.n }))).slice(-60).reverse(); log.innerHTML = all.length ? `<table><tr><th>Round</th><th>Product</th><th>Shop</th><th>Buyer card</th><th>Price</th><th>How</th><th>Gain</th><th>Profit</th></tr>${all.map(t => `<tr><td>${t.label}</td><td>${PROD[t.product].name}</td><td>${t.shop}</td><td>${t.slot.replace(/^\D+/, '')}${t.buyer ? ' (' + esc(nick(t.buyer)) + ')' : ''}</td><td>${k(t.price)}</td><td>${t.how}</td><td>${k(t.gain)}</td><td>${k(t.profit)}</td></tr>`).join('')}</table>` : '<p class="muted" style="margin:0">Trades appear here.</p>'; }
-  drawCharts(); renderHero(); syncCrawl(); if (T.projector) projDynamic();
+  renderMsPanel(); drawCharts(); renderHero(); syncCrawl(); if (T.projector) projDynamic();
 }
 function syncCrawl() { FX.crawl(crawlItems(T.s.events.filter(e => e.active))); }
 function updateTimer() { const s = T.s, txt = s.current ? (() => { const l = Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)); return Math.floor(l / 60) + ':' + String(l % 60).padStart(2, '0'); })() : ''; ['#tTimer', '#pTimer'].forEach(id => { const el = $(id); if (el) el.textContent = txt; }); const left = s.current ? Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) : null; FX.timer($('#pTimer') || $('#tTimer'), left, true); FX.timer($('#tTimer'), left, false); }
@@ -3054,6 +3115,7 @@ function tClick(e) {
   else if (a === 'csv') downloadCsv();
   else if (a === 'prizes') printPrizes();
   else if (a === 'podium') showPodium();
+  else if (a === 'race') { s.board.view = 'race'; T.projector = true; tSave(); renderBody(); renderProj(true); }
   else if (a === 'replay') replayRound();
   else if (a === 'pred-open') openPred();
   else if (a === 'pred-close') { if (s.pred) { s.pred.open = false; tSave(); renderBody(); tBroadcast(true); if (T.projector) projDynamic(); } }
@@ -3129,6 +3191,7 @@ function projDynamic() {
   if (s.ck && s.ck.open && !r) st.innerHTML = ckProjHtml2();
   else if (s.pred && s.pred.open && !r) st.innerHTML = predProjHtml();
   else if (s.board.view === 'floor' && (s.board.visible || !r)) { if (!$('#cFl')) st.innerHTML = `<div class="floor-col"><div id="pEq"></div><div class="floor-wrap"><div class="chart-box tall"><canvas id="cFl"></canvas></div></div></div>`; const pe = $('#pEq'); if (pe && last) pe.innerHTML = eqStripHtml(last, !!s.revealed[last.n]); drawFloor($('#cFl'), last); }
+  else if (s.board.view === 'race') { st.innerHTML = `<div class="lobby-stage" style="width:100%">${raceHtml(true)}</div>`; raceAnimate(st); }
   else if (s.board.view === 'leaders') st.innerHTML = leadersHtml();
   else if (r && !s.board.visible) st.innerHTML = `<div class="lobby-stage"><h1>${esc(r.label)}</h1><p class="lead">Prices are hidden this round. Compare the shops yourself.</p><div class="art-row">${ART3.choc}${ART3.candy}</div></div>`;
   else if (s.board.view === 'chart') { st.innerHTML = `<div class="chart-box tall"><canvas id="cPP"></canvas></div>`; drawCharts(); }
@@ -3402,6 +3465,311 @@ function replayRound() {
 
 
 /* =====================================================================
+   MISSIONS, PRICE GUESS, ROUND RESULT CARD AND TEAM RACE (Level 2)
+   Every student gets a mission each round that their card can achieve, guesses the class's average price,
+   and sees a round result card with the equilibrium animation and a line about their own result.
+   ===================================================================== */
+const MS_PTS = { mission: 20, guess: 10 };               // team race points (on top of the market score)
+const msUnit = p => p === 'choc' ? ['bar', 'bars', 'thanh'] : ['bag', 'bags', 'túi'];
+const msBi = (en, vi) => ({ en, vi });
+/* ---- the mission catalogue: id, English, Vietnamese support ---- */
+const MS_T = {
+  try: () => ({ id: 'try', kind: 'trade', ...msBi('Make one trade, or post one offer or price.', 'Thực hiện một giao dịch, hoặc đưa ra một đề nghị hay một mức giá.') }),
+  gain: g => ({ id: 'gain', kind: 'trade', g, ...msBi(`Buy with a gain of at least ${g}k (what it's worth to you − the price ≥ ${g}k).`, `Mua với phần lợi ít nhất ${g}k (giá trị với bạn − giá ≥ ${g}k).`) }),
+  buyany: () => ({ id: 'buyany', kind: 'trade', ...msBi("Buy at a shop where the price is below what it's worth to you. Turned away? Try another shop.", 'Mua ở cửa hàng có giá thấp hơn giá trị với bạn. Bị từ chối? Thử cửa hàng khác.') }),
+  newin: d => ({ id: 'newin', kind: 'trade', ...msBi(`It's worth ${d}k more to you today. Buy one!`, `Hôm nay nó có giá trị hơn ${d}k với bạn. Hãy mua một cái!`) }),
+  haggle2: () => ({ id: 'haggle2', kind: 'haggle', ...msBi("Send offers to 2 different shops, one at a time. It's OK if they say no.", 'Lần lượt gửi đề nghị đến 2 cửa hàng khác nhau. Bị từ chối cũng không sao.') }),
+  bid: () => ({ id: 'bid', kind: 'trade', ...msBi("Post an offer to buy, at most what it's worth to you.", 'Đưa ra một đề nghị mua, không cao hơn giá trị với bạn.') }),
+  sellN: (n, more) => ({ id: 'sellN', kind: 'trade', n, ...msBi(`Sell ${n} unit${n === 1 ? '' : 's'} this round${more ? ' (1 more than last round)' : ''}.`, `Bán ${n} đơn vị trong vòng này${more ? ' (nhiều hơn vòng trước 1 đơn vị)' : ''}.`) }),
+  profit: pr => ({ id: 'profit', kind: 'trade', p: pr, ...msBi(`Make at least ${pr}k profit this round.`, `Kiếm được ít nhất ${pr}k lợi nhuận trong vòng này.`) }),
+  sellAt: pr => ({ id: 'sellAt', kind: 'trade', p: pr, ...msBi(`Sell a unit for ${pr}k or more.`, `Bán một đơn vị với giá từ ${pr}k trở lên.`) }),
+  first: () => ({ id: 'first', kind: 'trade', ...msBi('Sell your 1st unit at a profit.', 'Bán đơn vị đầu tiên có lãi.') }),
+  counter: () => ({ id: 'counter', kind: 'haggle', ...msBi('Make a counter-offer that a buyer accepts.', 'Đưa ra một đề nghị ngược lại mà người mua chấp nhận.') }),
+  cheapest: () => ({ id: 'cheapest', kind: 'spot', ...msBi('Spot it: which shop has the cheapest price this round?', 'Quan sát: cửa hàng nào có giá rẻ nhất trong vòng này?'),
+    opts: M2.SHOP_IDS.map(sh => ({ id: sh, en: 'Shop ' + sh, vi: '' })) }),
+  whyS: d => ({ id: 'whyS', kind: 'spot', d, ...(d > 0 ? msBi('Spot it: why is it harder to buy this round?', 'Quan sát: vì sao vòng này khó mua hơn?') : msBi('Spot it: why did the price fall this round?', 'Quan sát: vì sao giá giảm trong vòng này?')),
+    opts: d > 0 ? [{ id: 'cost', en: 'Costs rose, so supply decreased and the price rose', vi: 'Chi phí tăng nên cung giảm và giá tăng' }, { id: 'dem', en: 'Buyers wanted less, so demand decreased', vi: 'Người mua muốn ít hơn nên cầu giảm' }, { id: 'more', en: 'Shops had more to sell', vi: 'Cửa hàng có nhiều hàng hơn để bán' }]
+      : [{ id: 'cost', en: 'Costs fell, so supply increased and the price fell', vi: 'Chi phí giảm nên cung tăng và giá giảm' }, { id: 'dem', en: 'Buyers wanted more, so demand increased', vi: 'Người mua muốn nhiều hơn nên cầu tăng' }, { id: 'none', en: 'Nothing changed in the market', vi: 'Thị trường không có gì thay đổi' }] }),
+  more: () => ({ id: 'more', kind: 'spot', ...msBi('Spot it: were more or fewer sold than last round?', 'Quan sát: vòng này bán được nhiều hơn hay ít hơn vòng trước?'),
+    opts: [{ id: 'more', en: 'More', vi: 'Nhiều hơn' }, { id: 'fewer', en: 'Fewer', vi: 'Ít hơn' }, { id: 'same', en: 'About the same', vi: 'Gần như nhau' }] })
+};
+function msPrevScored(r) { const s = T.s, i = s.rounds.indexOf(r); return s.rounds.slice(0, i).reverse().find(x => !x.practice) || null; }
+function msKind(r) {
+  if (r.practice) return { kind: 'practice' };
+  if (r.mode === 'menu') return { kind: 'menu' };
+  // compared with the normal market (no news), like the result card; the news that is new this round decides
+  const p = heroP(), prev = msPrevScored(r), dS = evAmtRd(r, 'sellers', p), dD = evAmtRd(r, 'buyers', p);
+  const pS = prev ? evAmtRd(prev, 'sellers', p) : 0, pD = prev ? evAmtRd(prev, 'buyers', p) : 0;
+  if (dD && dD !== pD) return { kind: 'shockD', d: dD };
+  if (dS && dS !== pS) return { kind: 'shockS', d: dS };
+  if (dD) return { kind: 'shockD', d: dD };
+  if (dS) return { kind: 'shockS', d: dS };
+  if (r.mode === 'offers') return { kind: r.board === false ? 'bargain' : 'offers' };
+  return { kind: 'fast' };
+}
+const msEqP = (r, p) => { const e = r.eq[p]; return e && e.qty ? e.price : null; };
+function msValue(r, pid, p) { const slot = slotOf(r, pid), c = slot ? r.cards.find(x => x.id === slot) : null; return c ? M2.valueOf(c, p, r.ev) : null; }
+function msShopEqUnits(r, sh, p) { const e = msEqP(r, p); return e == null ? 0 : [0, 1, 2, 3].filter(u => M2.costOf(sh, p, u, r.ev) <= e).length; }
+/** Called when a round starts: one mission per student, fitted to their card */
+function msAssign(r) {
+  const s = T.s, p = heroP(), K = msKind(r), eqP = msEqP(r, p), prev = msPrevScored(r), out = {};
+  r.board = s.board.visible; r.acts = {}; r.msKind = K.kind;
+  r.guessUntil = r.practice ? 0 : Date.now() + (T.hold || 0) + 30000;
+  s.humans.forEach(h => {
+    const role = s.roles[h.pid] || ''; if (!role) return;
+    let m;
+    if (K.kind === 'practice' || eqP == null) m = MS_T.try();
+    else if (role === 'buyer') {
+      const v = msValue(r, h.pid, p); if (v == null) return;
+      if (v >= eqP + 1) {
+        if (K.kind === 'menu') m = MS_T.buyany();
+        else if (K.kind === 'shockD' && K.d > 0 && prev) { const pv = msValue(prev, h.pid, p), pe = msEqP(prev, p); m = pv != null && pe != null && pv < pe ? MS_T.newin(K.d) : MS_T.gain(Math.max(1, Math.min(3, Math.floor(v - eqP)))); }
+        else m = MS_T.gain(Math.max(1, Math.min({ bargain: 3, offers: 2, fast: 2, shockS: 1, shockD: 3 }[K.kind] || 2, Math.floor(v - eqP))));
+      } else m = K.kind === 'menu' ? MS_T.cheapest() : K.kind === 'shockS' ? MS_T.whyS(K.d) : K.kind === 'shockD' ? MS_T.more() : r.mode === 'offers' ? MS_T.haggle2() : MS_T.bid();
+    } else {
+      const sh = role.slice(5), N = Math.max(1, msShopEqUnits(r, sh, p)), low = sh === 'A' || sh === 'B';
+      if (K.kind === 'menu') { const sur = [0, 1, 2, 3].map(u => M2.costOf(sh, p, u, r.ev)).filter(c => c <= eqP).reduce((a, c) => a + (eqP - c), 0); m = MS_T.profit(Math.max(2, Math.round(sur * .5))); }
+      else if (K.kind === 'shockS') m = low ? MS_T.sellAt(Math.floor(eqP)) : MS_T.first();
+      else if (K.kind === 'shockD') { const last = prev ? prev.trades.filter(t => t.shop === sh && t.product === p).length : 0, n = Math.max(1, Math.min(N, last + 1)); m = MS_T.sellN(n, n === last + 1 && last > 0); }
+      else if ((K.kind === 'bargain' || K.kind === 'offers') && !low) m = MS_T.counter();
+      else m = MS_T.sellN(N, false);
+    }
+    out[h.pid] = { ...m, ok: null, ans: null };
+  });
+  (s.missions ||= {})[r.n] = out;
+  // spot questions left unanswered last round count as not done
+  if (prev && s.missions[prev.n]) Object.values(s.missions[prev.n]).forEach(m => { if (m.ok == null) m.ok = false; });
+}
+const msActKey = pid => { const role = T.s.roles[pid] || ''; return role.startsWith('shop:') ? role : pid; };
+/** Record what students do (offers sent, bids posted, prices set) for the haggle and practice missions */
+function msAct(r, m) {
+  if (!r || !r.acts) return;
+  const a = (r.acts[msActKey(m.pid)] ||= { n: 0, shops: [], bids: 0, counterOk: 0 });
+  a.n++;
+  if (m.type === 'offer' && m.shop && !a.shops.includes(m.shop)) a.shops.push(m.shop);
+  if (m.type === 'bid') a.bids++;
+}
+function msCounterOk(r, shop) { if (!r || !r.acts) return; const a = (r.acts['shop:' + shop] ||= { n: 0, shops: [], bids: 0, counterOk: 0 }); a.counterOk++; }
+/** Is a trade or haggle mission done? (spot missions are judged from the answer) */
+function msEval(r, pid, m) {
+  const p = heroP(), role = T.s.roles[pid] || '', sh = role.startsWith('shop:') ? role.slice(5) : null;
+  const mine = r.trades.filter(t => t.product === p && (sh ? t.shop === sh : t.buyer === pid)), a = (r.acts || {})[msActKey(pid)] || {};
+  switch (m.id) {
+    case 'try': return mine.length > 0 || (a.n || 0) > 0;
+    case 'gain': return mine.some(t => t.gain >= m.g);
+    case 'buyany': case 'newin': return mine.length > 0;
+    case 'haggle2': return (a.shops || []).length >= 2;
+    case 'bid': return (a.bids || 0) > 0 || mine.length > 0;
+    case 'sellN': return mine.length >= m.n;
+    case 'profit': return mine.reduce((x, t) => x + t.profit, 0) >= m.p;
+    case 'sellAt': return mine.some(t => t.price >= m.p);
+    case 'first': return mine.some(t => t.profit > 0);
+    case 'counter': return (a.counterOk || 0) > 0;
+    default: return null;
+  }
+}
+/** Right answers to a spot question, from the finished round */
+function msSpotKey(r, m) {
+  const p = heroP();
+  if (m.id === 'cheapest') { const xs = (r.menu || []).filter(x => x.product === p && x.price != null); if (!xs.length) return []; const lo = Math.min(...xs.map(x => x.price)); return xs.filter(x => x.price === lo).map(x => x.shop); }
+  if (m.id === 'whyS') return ['cost'];
+  if (m.id === 'more') { const prev = msPrevScored(r), a = prev ? prev.trades.filter(t => t.product === p).length : 0, b = r.trades.filter(t => t.product === p).length; return b - a >= 2 ? ['more'] : a - b >= 2 ? ['fewer'] : b > a ? ['more', 'same'] : b < a ? ['fewer', 'same'] : ['same']; }
+  return [];
+}
+function msJudgeSpot(r, m) { if (m.ans == null || !r.endedAt) return; m.ok = msSpotKey(r, m).includes(m.ans); }
+/** When a round ends: final mission results and the price guesses */
+function msEnd(r) {
+  const s = T.s, ms = (s.missions || {})[r.n] || {}, p = heroP();
+  Object.entries(ms).forEach(([pid, m]) => { if (m.kind === 'spot') msJudgeSpot(r, m); else m.ok = !!msEval(r, pid, m); if (m.ok && !r.practice) msBadges(pid); });
+  const G = (s.guesses || {})[r.n];
+  if (G && !r.practice) {
+    const st = M2.stats(r.trades, p), res = { avg: st.n ? Math.round(st.mean * 10) / 10 : null, ok: {}, best: [] };
+    if (st.n) {
+      let best = Infinity; Object.entries(G).forEach(([pid, v]) => { const d = Math.abs(v - st.mean); res.ok[pid] = d <= 1; if (d < best - 1e-9) { best = d; res.best = [pid]; } else if (Math.abs(d - best) < 1e-9) res.best.push(pid); });
+      Object.keys(res.ok).forEach(pid => { if (res.ok[pid]) award(pid, 'sharpeye'); });
+    }
+    (s.guessRes ||= {})[r.n] = res;
+  }
+}
+function msBadges(pid) { if (msDone(pid) >= 3) award(pid, 'missionmaster'); }
+const msDone = pid => T.s.rounds.filter(r => !r.practice).reduce((a, r) => a + (((T.s.missions || {})[r.n] || {})[pid] && T.s.missions[r.n][pid].ok === true ? 1 : 0), 0);
+const msGuessOk = pid => Object.values(T.s.guessRes || {}).reduce((a, g) => a + (g.ok && g.ok[pid] ? 1 : 0), 0);
+const msBonus = pid => (T.s.bonusSweets ?? 1) * (msDone(pid) + msGuessOk(pid));
+/** Student messages: a spot answer or a price guess */
+function msOnMsg(m) {
+  const s = T.s;
+  if (m.type === 'spot') {
+    const r = s.rounds.find(x => x.n === m.n), ms = r && (s.missions || {})[r.n], mm = ms && ms[m.pid];
+    if (!mm || mm.kind !== 'spot' || mm.ans != null || !(mm.opts || []).some(o => o.id === m.ans)) return true;
+    if (r.endedAt && s.current) return true;                 // too late: the next round has started
+    mm.ans = m.ans; msJudgeSpot(r, mm); if (mm.ok) msBadges(m.pid);
+    Sound.play('blip'); tSave(); you(m.pid); if (T.projector) projDynamic(); renderMsPanel(); return true;
+  }
+  if (m.type === 'guess') {
+    const r = curRound(); if (!r || r.practice || r.n !== m.n || Date.now() > r.guessUntil) return true;
+    const v = Math.max(1, Math.min(60, Math.round(Number(m.price) || 0)));
+    ((s.guesses ||= {})[r.n] ||= {})[m.pid] = v; tSave(); you(m.pid); renderMsPanel(); return true;
+  }
+  return false;
+}
+/** What a student sees about their mission and guess (live during the round, final after it) */
+function msView(pid) {
+  const s = T.s, r = curRound() || s.rounds[s.rounds.length - 1]; if (!r) return null;
+  const m = ((s.missions || {})[r.n] || {})[pid]; if (!m) return null;
+  const live = !!curRound(), ok = m.ok != null ? m.ok : m.kind === 'spot' ? null : (msEval(r, pid, m) ? true : null);
+  const g = ((s.guesses || {})[r.n] || {})[pid], gr = (s.guessRes || {})[r.n];
+  return { n: r.n, practice: !!r.practice, id: m.id, kind: m.kind, en: m.en, vi: m.vi, opts: m.opts || null, ans: m.ans, ok, live,
+    guess: r.practice ? null : { v: g ?? null, open: live && Date.now() < r.guessUntil, avg: gr ? gr.avg : null, ok: gr && gr.ok ? gr.ok[pid] ?? null : null, best: !!(gr && gr.best.includes(pid)) },
+    done: msDone(pid), bonus: msBonus(pid) };
+}
+/** One line about the student's own result in the round that just ended */
+function msPersonal(pid, r) {
+  const p = heroP(), role = T.s.roles[pid] || '', eqP = msEqP(r, p), u = msUnit(p); if (eqP == null || !role) return null;
+  if (role === 'buyer') {
+    const v = msValue(r, pid, p); if (v == null) return null;
+    const t = r.trades.find(x => x.buyer === pid && x.product === p);
+    if (t) return msBi(`You bought a ${u[0]} for ${k(t.price)}. It was worth ${k(v)} to you: a gain of ${k(t.gain)}.`, `Bạn mua với giá ${k(t.price)}, giá trị với bạn là ${k(v)}: phần lợi ${k(t.gain)}.`);
+    if (v < eqP) return msBi(`Your ${u[0]} was worth ${k(v)} to you, less than the price of about ${k(eqP)}. You were priced out: that is the demand curve at work.`, `Giá trị với bạn (${k(v)}) thấp hơn giá khoảng ${k(eqP)}, nên bạn không mua: đó là đường cầu.`);
+    return msBi(`Your ${u[0]} was worth ${k(v)} to you, more than the price of about ${k(eqP)}, but you didn't buy one. Next time, buy when the price is below ${k(v)}.`, `Giá trị với bạn (${k(v)}) cao hơn giá, nhưng bạn chưa mua. Lần sau, hãy mua khi giá thấp hơn ${k(v)}.`);
+  }
+  const sh = role.slice(5), mine = r.trades.filter(t => t.shop === sh && t.product === p), prof = mine.reduce((a, t) => a + t.profit, 0);
+  const next = mine.length < 4 ? M2.costOf(sh, p, mine.length, r.ev) : null;
+  let en = `Your shop sold ${mine.length} ${mine.length === 1 ? u[0] : u[1]} (profit ${k(prof)}).`, vi = `Cửa hàng của bạn bán được ${mine.length} đơn vị (lợi nhuận ${k(prof)}).`;
+  const menu = (r.menu || []).find(x => x.shop === sh && x.product === p);
+  if (menu && menu.price != null && menu.unsold) { en += ` At your menu price of ${k(menu.price)} you had ${menu.unsold} unsold: a surplus.`; vi += ` Ở giá ${k(menu.price)} bạn còn ${menu.unsold} đơn vị không bán được: dư thừa.`; }
+  else if (menu && menu.away) { en += ` You turned ${menu.away} buyer${menu.away === 1 ? '' : 's'} away: a shortage.`; vi += ` Bạn đã từ chối ${menu.away} người mua: thiếu hụt.`; }
+  else if (next != null && next >= eqP) { en += ` Your next unit cost ${k(next)}, ${next > eqP ? 'more than' : 'the same as'} the price of about ${k(eqP)}, so it wasn't worth selling: that is the supply curve at work.`; vi += ` Đơn vị tiếp theo có chi phí ${k(next)}, cao hơn giá, nên không đáng bán: đó là đường cung.`; }
+  else if (next != null) { en += ` You could have sold one more: your next unit cost only ${k(next)}.`; vi += ` Bạn có thể bán thêm: đơn vị tiếp theo chỉ tốn ${k(next)}.`; }
+  return msBi(en, vi);
+}
+/** Explanation lines and chart data for the round result card (the same for everyone) */
+function msResultPub(r) {
+  const p = heroP(), e = r.eq[p], st = M2.stats(r.trades, p), sh = shiftInfo(r, p), u = msUnit(p), lines = [];
+  if (!e || !e.qty) return null;
+  lines.push(msBi(`Equilibrium: ${k(e.price)}, ${e.qty} ${u[1]} sold.`, `Cân bằng: giá ${k(e.price)}, bán ${e.qty} đơn vị.`));
+  if (st.n) { const d = st.mean - e.price, near = Math.abs(d) <= 1; lines.push(msBi(`Your class traded at ${k(st.mean)} on average (${st.n} trade${st.n === 1 ? '' : 's'}), ${near ? 'close to the equilibrium' : k(Math.abs(d)) + (d > 0 ? ' above' : ' below') + ' the equilibrium'}.`, `Lớp bạn giao dịch trung bình ${k(st.mean)} (${st.n} giao dịch).`)); }
+  if (sh) {
+    if (sh.dS > 0) lines.push(msBi(`Costs rose by ${sh.dS}k, so supply decreased (S shifted left). At the old price there was a shortage, so the price rose.`, `Chi phí tăng ${sh.dS}k nên cung giảm (S dịch trái). Ở giá cũ có thiếu hụt nên giá tăng.`));
+    if (sh.dS < 0) lines.push(msBi(`Costs fell by ${-sh.dS}k, so supply increased (S shifted right). At the old price there was a surplus, so the price fell.`, `Chi phí giảm ${-sh.dS}k nên cung tăng (S dịch phải). Ở giá cũ có dư thừa nên giá giảm.`));
+    if (sh.dD > 0) lines.push(msBi(`Buyers valued it ${sh.dD}k more, so demand increased (D shifted right). At the old price there was a shortage, so the price rose.`, `Người mua đánh giá cao hơn ${sh.dD}k nên cầu tăng (D dịch phải). Ở giá cũ có thiếu hụt nên giá tăng.`));
+    if (sh.dD < 0) lines.push(msBi(`Buyers valued it ${-sh.dD}k less, so demand decreased (D shifted left). At the old price there was a surplus, so the price fell.`, `Người mua đánh giá thấp hơn ${-sh.dD}k nên cầu giảm (D dịch trái). Ở giá cũ có dư thừa nên giá giảm.`));
+  } else if (r.mode === 'menu') lines.push(msBi('Menu prices: shops that priced too high had unsold stock (a surplus). Shops that priced too low turned buyers away (a shortage).', 'Giá niêm yết: cửa hàng đặt giá quá cao còn hàng tồn (dư thừa); đặt giá quá thấp thì phải từ chối người mua (thiếu hụt).'));
+  else if (r.board === false && st.n >= 2) lines.push(msBi(`Prices were spread from ${k(st.min)} to ${k(st.max)}: with no price board, nobody knew the going price.`, `Giá dao động từ ${k(st.min)} đến ${k(st.max)}: không có bảng giá nên không ai biết giá chung.`));
+  else if (!r.practice) lines.push(msBi('In an open market, buyers and shops compete, so prices move towards the equilibrium.', 'Trong thị trường mở, người mua và người bán cạnh tranh nên giá tiến về mức cân bằng.'));
+  const gr = (T.s.guessRes || {})[r.n];
+  return { n: r.n, label: r.label, p, ev: r.ev, events: (r.events || []).map(x => ({ icon: x.icon, label: x.label })), cards: r.cards.map(c => ({ [p]: c[p] })).sort((a, b) => b[p] - a[p]), eq: e, avg: st.n ? st.mean : null, lines,
+    closest: gr && gr.best.length && gr.avg != null ? { who: gr.best.slice(0, 3).map(pid => nick(pid)), v: (T.s.guesses[r.n] || {})[gr.best[0]] } : null };
+}
+/* ---- team race: average per member of market score + mission and guess points ---- */
+function racePts(pid) { return Math.round(scoreFor(pid) * 100) + MS_PTS.mission * msDone(pid) + MS_PTS.guess * msGuessOk(pid); }
+function raceRows() {
+  const s = T.s, used = Object.entries(FX.TEAMS).map(([key, t]) => ({ key, ...t, mem: s.humans.filter(h => h.team === key) })).filter(t => t.mem.length);
+  const rows = used.length >= 2 ? used : [{ key: 'buyers', icon: '🛍️', name: 'Buyers', vi: 'Người mua', color: 'var(--buyer)', mem: s.humans.filter(h => s.roles[h.pid] === 'buyer') }, { key: 'shops', icon: '🏪', name: 'Shops', vi: 'Cửa hàng', color: 'var(--seller)', mem: s.humans.filter(h => (s.roles[h.pid] || '').startsWith('shop')) }].filter(t => t.mem.length);
+  rows.forEach(t => { t.pts = Math.round(t.mem.reduce((a, h) => a + racePts(h.pid), 0) / t.mem.length); });
+  return { rows: rows.sort((a, b) => b.pts - a.pts), tables: used.length >= 2 };
+}
+function raceGoal() { const n = planList().filter(x => !x.practice).length || 5; return n * 130; }
+function raceHtml(big) {
+  const R = raceRows(), goal = raceGoal(), prev = T.racePrev || {};
+  if (!R.rows.length) return '<p class="muted">The race starts when students have roles.</p>';
+  const lanes = R.rows.map((t, i) => { const pc = Math.min(96, 100 * t.pts / goal), was = Math.min(96, 100 * (prev[t.key] ?? 0) / goal);
+    return `<div class="race-lane" style="--c:${t.color}"><div class="race-name">${i === 0 && t.pts > 0 ? '🥇 ' : ''}${t.icon} <b>${esc(t.name)}</b> <small class="muted">${t.mem.length} · ${t.pts} pts</small></div><div class="race-track"><div class="race-runner" data-to="${pc}" style="left:${was}%">${t.mem.slice(0, 4).map(h => FX.avOf(h.av)).join('')}</div><div class="race-finish">🏁</div></div></div>`; }).join('');
+  return `<div class="race ${big ? 'big' : ''}">${big ? `<h1 style="margin:0">🏁 Team race<span class="vi" lang="vi"> · Đua đội</span></h1>` : ''}${lanes}<small class="muted">${R.tables ? 'Tables race' : 'Buyers race the shops (no tables picked)'}: average per member of market score + ${MS_PTS.mission} per mission + ${MS_PTS.guess} per good price guess.</small></div>`;
+}
+function raceAnimate(root) {
+  const runners = [...(root || document).querySelectorAll('.race-runner[data-to]')];
+  requestAnimationFrame(() => requestAnimationFrame(() => runners.forEach(x => { x.style.left = x.dataset.to + '%'; })));
+  const R = raceRows(); T.racePrev = Object.fromEntries(R.rows.map(t => [t.key, t.pts]));
+}
+function raceFor(pid) { const R = raceRows(), h = human(pid), i = R.rows.findIndex(t => t.key === (R.tables ? h.team : (T.s.roles[pid] === 'buyer' ? 'buyers' : 'shops'))); return i < 0 ? null : { place: i + 1, of: R.rows.length, name: R.rows[i].name, icon: R.rows[i].icon }; }
+/* ---- console panel ---- */
+function msPanelHtml() {
+  const s = T.s, r = curRound() || s.rounds[s.rounds.length - 1]; if (!r || r.practice && !curRound()) return '';
+  const ms = (s.missions || {})[r.n] || {}, all = Object.entries(ms), done = all.filter(([pid, m]) => m.ok === true || (m.ok == null && m.kind !== 'spot' && msEval(r, pid, m))).length;
+  const G = (s.guesses || {})[r.n] || {}, gr = (s.guessRes || {})[r.n];
+  return `<div class="row" style="justify-content:space-between"><h2 style="margin:0">🎯 Missions · ${esc(r.label)}</h2><button class="btn small" data-act="race">🏁 Team race on the board</button></div>
+    <div class="ms-bar"><i style="width:${all.length ? Math.round(100 * done / all.length) : 0}%"></i><span>${done} of ${all.length} done</span></div>
+    ${r.practice ? '<small class="muted">Practice: missions and guesses do not count.</small>' : `<p style="margin:0">🔮 Price guesses: <b>${Object.keys(G).length}</b>${gr && gr.avg != null ? ` · class average ${k(gr.avg)} · within 1k: <b>${Object.values(gr.ok).filter(Boolean).length}</b> · closest: ${gr.best.map(pid => esc(nick(pid))).join(', ')}` : ''}</p>`}
+    <details><summary>Who has which mission</summary><div class="table-wrap"><table><tr><th>Student</th><th>Mission</th><th></th></tr>${all.map(([pid, m]) => `<tr><td>${esc(nick(pid))}</td><td>${esc(m.en)}</td><td>${m.ok === true || (m.ok == null && m.kind !== 'spot' && msEval(r, pid, m)) ? '✓' : m.ok === false ? '✗' : ''}</td></tr>`).join('')}</table></div></details>
+    <small class="muted">Each mission done and each guess within 1k of the class average earns ${s.bonusSweets ?? 1} bonus sweet${(s.bonusSweets ?? 1) === 1 ? '' : 's'} (on top of the prize pool) and team race points.</small>`;
+}
+function renderMsPanel() { const el = $('#msT'); if (el) el.innerHTML = msPanelHtml(); }
+
+/* =====================================================================
+   STUDENT SIDE: mission card, price guess, round result card
+   ===================================================================== */
+const msViSpan = vi => vi ? `<div class="vi" lang="vi">${esc(vi)}</div>` : '';
+function msCardHtml() {
+  const me = S.me || {}, v = me.ms, p = S.pub; if (!v) return '';
+  const live = !!(p.round && p.round.n === v.n), state = v.ok === true ? 'ok' : v.ok === false ? 'no' : '';
+  if (!live && (v.kind !== 'spot' || (v.ans != null && v.ok != null))) return '';
+  const chip = v.ok === true ? '<span class="ms-chip ok">✓ Done</span>' : v.ok === false ? '<span class="ms-chip no">✗ Not this time</span>' : v.kind === 'spot' && v.ans != null ? '<span class="ms-chip">Answer saved</span>' : '<span class="ms-chip">To do</span>';
+  const opts = v.kind === 'spot' && v.ans == null ? `<div class="ms-opts">${v.opts.map(o => `<button class="ms-opt" data-a="ms-spot" data-n="${v.n}" data-v="${o.id}">${esc(o.id.length === 1 ? shopLab(o.id) : o.en)}${o.vi ? `<small class="vi" lang="vi">${esc(o.vi)}</small>` : ''}</button>`).join('')}</div><small class="muted">One try. You can answer until the next round starts.</small>` : '';
+  const compact = v.ok === true || (v.kind === 'spot' && v.ans != null);
+  return `<div class="ms-card ${state} ${compact ? 'compact' : ''}"><div class="ms-head"><span class="ms-text">🎯 ${v.practice ? '<small>Practice mission:</small> ' : ''}${esc(v.en)}${compact ? '' : msViSpan(v.vi)}</span>${chip}</div>${opts}${live ? msGuessHtml(v) : ''}</div>`;
+}
+function msGuessHtml(v) {
+  const g = v.guess; if (!g) return '';
+  const left = S.guessAt ? Math.max(0, S.guessAt.left - Math.floor((Date.now() - S.guessAt.at) / 1000)) : 0;
+  if (!g.open || left <= 0) return g.v != null ? `<div class="ms-guess">🔮 Your guess for the class's average price: <b>${k(g.v)}</b> <small class="muted">· checked when the round ends</small></div>` : '';
+  const c = Math.round(g.v ?? (S.pub.lastAvg != null ? S.pub.lastAvg : 16)), lo = Math.max(1, c - 4);
+  return `<div class="ms-guess"><div>🔮 <b>${g.v != null ? `Your guess: ${k(g.v)}` : "Guess the class's average price this round"}</b> <small class="muted">· within 1k = +1 🍬 · <span data-left="${left}">${left}s</span></small><small class="vi" lang="vi"> · Đoán giá trung bình của lớp</small></div>
+    <div class="ms-chips">${Array.from({ length: 9 }, (_, i) => lo + i).map(x => `<button class="ms-gchip ${g.v === x ? 'sel' : ''}" data-a="ms-guess" data-n="${v.n}" data-v="${x}">${x}k</button>`).join('')}</div></div>`;
+}
+/** Static result panel between rounds (the animated version pops up once) */
+function msResultPanelHtml() {
+  const R = S.pub.res; if (!R || !S.pub.last || R.n !== S.pub.last.n) return '';
+  return `<div class="panel stack rs-panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">📈 Round result · ${esc(R.label)}</h2><button class="btn small" data-a="rs-open">▶ Play again</button></div>
+    <div class="chart-box rs-chart"><canvas id="cRs"></canvas></div>${msResultTextHtml(R)}</div>`;
+}
+function msResultTextHtml(R) {
+  const me = S.me || {}, mine = me.res && me.res.n === R.n ? me.res : null, v = me.ms && me.ms.n === R.n ? me.ms : null;
+  const lines = R.lines.map(l => `<li>${esc(l.en)}${msViSpan(l.vi)}</li>`).join('');
+  const per = mine && mine.line ? `<div class="rs-me">👤 ${esc(mine.line.en)}${msViSpan(mine.line.vi)}</div>` : '';
+  const ms = v && !v.practice ? `<div class="rs-ms ${v.ok === true ? 'ok' : v.ok === false ? 'no' : ''}">🎯 ${v.ok === true ? '<b>Mission done ✓</b> +1 🍬' : v.ok === false ? '<b>Mission not done</b>' : v.kind === 'spot' && v.ans == null ? '<b>Mission: answer the question below</b>' : '<b>Mission</b>'}: ${esc(v.en)}</div>` : '';
+  const g = v && v.guess && v.guess.v != null ? `<div class="rs-ms ${v.guess.ok ? 'ok' : v.guess.ok === false ? 'no' : ''}">🔮 You guessed <b>${k(v.guess.v)}</b>${v.guess.avg != null ? `; the class average was <b>${k(v.guess.avg)}</b>. ${v.guess.ok ? 'Within 1k ✓ +1 🍬' : 'Not within 1k this time.'}${v.guess.best ? ' 🏅 Closest guess in the class!' : ''}` : '.'}</div>` : '';
+  const cl = R.closest ? `<small class="muted" style="display:block">Closest guess: ${R.closest.who.map(esc).join(', ')} (${k(R.closest.v)})</small>` : '';
+  const race = me.race ? `<small class="muted" style="display:block">🏁 Team race: ${me.race.icon} ${esc(me.race.name)} is ${['1st', '2nd', '3rd', '4th'][me.race.place - 1] || me.race.place + 'th'} of ${me.race.of}</small>` : '';
+  return `<ul class="rs-lines">${lines}</ul>${per}${ms}${g}${cl}${race}`;
+}
+/** Draws the demand and supply curves from the round's cards, with the shift and the equilibrium; t: 0..1 through the animation */
+function msDrawResult(canvas, R, t) {
+  if (!canvas || !R) return;
+  const box = canvas.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, W = Math.max(260, box.width), H = Math.max(200, box.height);
+  canvas.width = W * dpr; canvas.height = H * dpr; const g = canvas.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const p = R.p, rd = { ev: R.ev, cards: R.cards, eq: { [p]: R.eq } }, e1 = M2.equilibrium(R.cards, p, []), shifted = !!(evAmtRd(rd, 'buyers', p) || evAmtRd(rd, 'sellers', p));
+  const fs = Math.round(Math.max(11, Math.min(18, W / 34))), font = cssVar('--font-body'), muted = cssVar('--muted'), line = cssVar('--line'), ink = cssVar('--ink');
+  const qMax = Math.max(12, Math.ceil(Math.max(R.eq.qty || 0, (shifted && e1.qty) || 0) * 1.55)), pMax = 30;
+  const L = fs * 5.4, Rm = fs * 2, Tp = fs * 1.2, B = fs * 4.6, pw = W - L - Rm, ph = H - Tp - B;
+  const X = q => L + q / qMax * pw, Y = pr => Tp + ph - Math.min(pr, pMax) / pMax * ph;
+  g.font = `${fs}px ${font}`; g.lineWidth = 1;
+  for (let pr = 0; pr <= pMax; pr += 5) { g.strokeStyle = line; g.beginPath(); g.moveTo(L, Y(pr)); g.lineTo(L + pw, Y(pr)); g.stroke(); g.fillStyle = muted; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(pr + 'k', L - 6, Y(pr)); }
+  for (let q = 0; q <= qMax; q += qMax <= 16 ? 2 : 5) { g.fillStyle = muted; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(q, X(q), Tp + ph + 5); }
+  g.strokeStyle = ink; g.lineWidth = 2; g.beginPath(); g.moveTo(L, Tp); g.lineTo(L, Tp + ph); g.lineTo(L + pw, Tp + ph); g.stroke();
+  g.fillStyle = muted; g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText(`Quantity (${msUnit(p)[1]})`, L + pw / 2, H - 2);
+  const draw = Math.min(1, t / .3), shiftT = shifted ? Math.max(0, Math.min(1, (t - .32) / .6)) : (t >= .32 ? 1 : 0);
+  g.save(); g.beginPath(); g.rect(0, 0, L + pw * draw + 2, H); g.clip();
+  dsLayer(g, { X, Y, L, T: Tp, ph, pw, fs, font, qMax, pMax }, rd, p, { t: shiftT, dCol: cssVar('--buyer'), sCol: cssVar('--seller'), mint: cssVar('--mint'), muted, panel: cssVar('--panel') });
+  g.restore();
+  if (R.avg != null && t >= 1) { g.save(); g.strokeStyle = cssVar('--foil'); g.lineWidth = 3; g.setLineDash([6, 6]); g.beginPath(); g.moveTo(L, Y(R.avg)); g.lineTo(L + pw, Y(R.avg)); g.stroke(); g.setLineDash([]); g.fillStyle = cssVar('--foil'); g.font = `800 ${fs}px ${font}`; g.textAlign = 'left'; g.textBaseline = 'bottom'; g.fillText('class average ' + k(R.avg), L + 6, Y(R.avg) - 3); g.restore(); }
+}
+function msDrawPanel() { const R = S.pub && S.pub.res; if (R && $('#cRs')) msDrawResult($('#cRs'), R, 1); }
+/** The pop-up round result card, once per round */
+function msShowResult(force) {
+  const R = S.pub && S.pub.res; if (!R) return;
+  if (!force && S.resShown === R.n) return; S.resShown = R.n;
+  let el = $('#rsPop'); if (el) el.remove();
+  el = document.createElement('div'); el.id = 'rsPop'; el.className = 'rs-pop';
+  el.innerHTML = `<div class="rs-sheet"><div class="rs-kick">${R.events.length ? R.events.map(e => e.icon).join(' ') : '⚖️'} ${esc(R.label)} · ROUND RESULT<span class="vi" lang="vi"> · KẾT QUẢ VÒNG</span></div><div class="chart-box rs-chart big"><canvas id="cRsPop"></canvas></div><div id="rsText">${msResultTextHtml(R)}</div><button class="btn primary block" data-rs-close>Got it ✓</button></div>`;
+  document.body.appendChild(el);
+  el.querySelector('[data-rs-close]').onclick = () => el.remove();
+  const t0 = performance.now(), ms = FX.calm() ? 0 : 3600;
+  (function frame(now) { if (!el.isConnected) return; const t = ms ? Math.min(1, (now - t0) / ms) : 1; msDrawResult($('#cRsPop'), R, t); if (t < 1) requestAnimationFrame(frame); })(t0);
+  if (sfxOK()) { Sound.play('drumroll'); setTimeout(() => Sound.play('fanfare'), 1300); }
+}
+function msRefreshPop() { const el = $('#rsText'), R = S.pub && S.pub.res; if (el && R) el.innerHTML = msResultTextHtml(R); }
+
+/* =====================================================================
    DEBRIEF, EXTENSION AND PAPER 2 (built from the menu round, the cost shock and the class's prices)
    ===================================================================== */
 const shuffleSeeded = (arr, seed) => arr.map((x, i) => [x, Math.sin(seed * 9301 + i * 49297) * 233280 % 1]).sort((a, b) => a[1] - b[1]).map(x => x[0]);
@@ -3565,16 +3933,18 @@ async function onMsg(m) {
     DB.S.sync(m);
     const prevPk = S.pub && JSON.stringify(S.pub.pk || ''), prevRound = S.pub && S.pub.round && S.pub.round.n;
     S.pub = m; if (m.round) S.leftAt = { left: m.round.left, at: Date.now() };
+    if (m.round && m.round.guessLeft != null) S.guessAt = { left: m.round.guessLeft, at: Date.now() };
     if (prevPk != null && prevPk !== JSON.stringify(m.pk || '')) sSend(helloMsg());
     if (m.round && m.round.n !== prevRound) {
-      S.compose = null; S.price = {};
+      S.compose = null; S.price = {}; { const rp = $('#rsPop'); if (rp) rp.remove(); }
       const fresh = (m.events || []).filter(e => !S.evKeys || !S.evKeys.includes(e.key));
       if (fresh.length && S.evKeys && fresh.every(e => (S.bcKeys || []).includes(e.key))) FX.news({ icon: fresh.map(e => e.icon).join(' '), kicker: 'THE NEWS IS HERE · TIN ĐÃ ĐẾN', title: m.round.label + ': trade!', vi: fresh.map(e => e.vi || '').filter(Boolean).join(' + '), detail: fresh.map(e => e.detail).join(' · '), theme: fresh[fresh.length - 1].key, ms: 4500, sound: sfxOK() });
       else if (fresh.length && S.evKeys) { FX.broadcast(newsOpts(fresh, { when: 'now', me: () => S.me, sound: sfxOK() })); S.bcKeys = fresh.map(e => e.key); }
       else if (S.evKeys) { FX.news({ icon: m.round.mode === 'menu' ? '📋' : m.round.mode === 'fast' ? '⚡' : '🔔', kicker: 'NEW ROUND · VÒNG MỚI', title: m.round.label, detail: m.round.mode === 'menu' ? (S.me && S.me.shop ? 'Choose ONE price for each product.' : 'Each shop has one price for the whole round.') : m.round.mode === 'fast' ? 'Fast mode: trades happen as soon as an offer meets an ask.' : 'Buy at a shop, or make an offer.', theme: 'round', ms: 2200, sound: false }); sfx('sting'); }
     }
     if (m.pred && m.pred.open && (!S.lastPred || S.lastPred !== m.pred.id) && S.pub && S.evKeys) { FX.broadcast(newsOpts(m.pred.events, { kicker: 'COMING NEXT ROUND · VÒNG SAU', when: 'next', me: () => S.me, ask: 'Predict below: will the price go up, down or stay the same?', sound: sfxOK() })); S.bcKeys = m.pred.events.map(e => e.key); }
-    if (m.rev && S.revSeen !== m.rev.n) { if (S.evKeys) FX.news({ ...m.rev, ms: 6000, sound: sfxOK() }); S.revSeen = m.rev.n; }
+    if ((m.ck && m.ck.open) || DB.S.active(m)) { const rp = $('#rsPop'); if (rp) rp.remove(); }
+    if (m.rev && S.revSeen !== m.rev.n) { if (S.evKeys) { if (m.res && m.res.n === m.rev.n) setTimeout(() => msShowResult(), 700); else FX.news({ ...m.rev, ms: 6000, sound: sfxOK() }); } S.revSeen = m.rev.n; }
     FX.crawl(crawlItems(m.events));
     S.lastPred = m.pred ? m.pred.id : S.lastPred;
     S.evKeys = (m.events || []).map(e => e.key);
@@ -3587,7 +3957,7 @@ async function onMsg(m) {
     const traded = prevTrades != null && you.mine && you.mine.length > prevTrades ? you.mine[you.mine.length - 1] : null;
     const grew = S.prevPrize != null && you.prize > S.prevPrize;
     S.prevPrize = you.prize;
-    render();
+    render(); msRefreshPop();
     if (traded) {
       const t = traded, v = you.role === 'buyer' ? t.gain : t.profit;
       toast(you.role === 'buyer' ? `✓ Bought ${PROD[t.product].one} for ${k(t.price)}: you gain ${k(t.gain)}` : `✓ Sold ${PROD[t.product].one} for ${k(t.price)}: profit ${k(t.profit)}`, 3500);
@@ -3632,9 +4002,9 @@ function render() {
   if ($('#sTabs2')) main.innerHTML = '';
   if (ckOn) { if (!(S.ck2 && S.ck2.id === p.ck.id && $('#sMain .paper'))) renderCheck2(main); main.onclick = ckClick2; return; }
   if (dbOn) { DB.S.render(main, p); main.onclick = null; return; }
-  if (!p.round) { main.innerHTML = ev + lock + betweenHtml(); main.onclick = onClick; return; }
+  if (!p.round) { main.innerHTML = ev + lock + msCardHtml() + msResultPanelHtml() + betweenHtml(); main.onclick = onClick; msDrawPanel(); return; }
   if (me.role === 'buyer' ? !('values' in me) : !me.costs) { main.innerHTML = ev + lock + '<div class="panel">Getting your card for this round…</div>'; return; }
-  main.innerHTML = ev + lock + (me.role === 'buyer' ? (p.round.mode === 'fast' ? buyerFast() : buyerOffers()) : (p.round.mode === 'fast' ? shopFast() : shopOffers()));
+  main.innerHTML = ev + lock + msCardHtml() + (me.role === 'buyer' ? (p.round.mode === 'fast' ? buyerFast() : buyerOffers()) : (p.round.mode === 'fast' ? shopFast() : shopOffers()));
   main.onclick = onClick;
 }
 function badgesHtml() {
@@ -3762,6 +4132,9 @@ function onClick(e) {
     if (key === 'o' || key === 'c') S.compose.price = nv; else S.price[key] = nv;
     sfx('blip'); return render();
   }
+  if (a === 'ms-spot') { sSend({ type: 'spot', n: +b.dataset.n, ans: b.dataset.v }); sfx('pop'); $$('[data-a=ms-spot]').forEach(x => { x.disabled = true; x.classList.toggle('sel', x === b); }); return; }
+  if (a === 'ms-guess') { const g = +b.dataset.v; sSend({ type: 'guess', n: +b.dataset.n, price: g }); sfx('pop'); $$('[data-a=ms-guess]').forEach(x => x.classList.toggle('sel', x === b)); return toast('Guess saved: ' + k(g)); }
+  if (a === 'rs-open') return msShowResult(true);
   if (a === 'pred') { sSend({ type: 'pred', id: p.pred.id, product: b.dataset.p, dir: b.dataset.d }); $$(`[data-a=pred][data-p="${b.dataset.p}"]`).forEach(x => x.classList.toggle('sel', x === b)); sfx('pop'); return; }
   if (a === 'shopname') { const v = ($('#shopName').value || '').trim(); if (!v) return toast('Type a name first.'); sSend({ type: 'shopname', name: v }); $('#shopName').blur(); sfx('pop'); return toast('Shop name saved.'); }
   if (a === 'compose') { const pr = b.dataset.p, v = me.values[pr], ask = p.shops[b.dataset.shop].asks[pr]; S.compose = { shop: b.dataset.shop, product: pr, price: lockFor(pr) ?? Math.min(v, ask != null ? ask - 2 : v - 4) }; return render(); }

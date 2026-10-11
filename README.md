@@ -175,6 +175,17 @@ Level 2's Section A (20 marks) uses one source only: **the chocolate market befo
 
 The debrief keeps the menu-price and price-by-round tables. Parts (c), (e) and (f) have AI mark schemes. After updating, redeploy the marking function once (`npx supabase functions deploy mark --no-verify-jwt`). Until then, those parts get a keyword estimate that is flagged for you to check.
 
+### Level 2 missions, price guesses, round results and the team race
+**Missions.** At the start of every round each student gets a private mission that their card can achieve. A buyer whose card is worth more than the price gets a trading goal (for example "Buy with a gain of at least 2k"). A buyer who is priced out gets something they can still do, such as haggling with two shops, posting an offer, or a quick "Spot it" question ("Which shop has the cheapest price?", "Why is it harder to buy this round?"). Shops get goals such as "Sell 2 units", "Make at least 4k profit" or "Make a counter-offer that a buyer accepts". The app checks missions itself. "Spot it" questions have one try and can be answered until the next round starts.
+
+**Price guess.** For the first 30 seconds of each scored round, students tap a guess for the class's average price. A guess within 1k of the actual average counts as correct, and the closest guess is named on the result card.
+
+**Bonus sweets.** Each mission done and each correct guess earns 1 bonus sweet on top of the prize pool. When you open the room, you can choose "None" instead. The prize table and the printed prize list include the bonus. New badges: 🗺️ Mission master (3 missions) and 👁️ Sharp eye (a guess within 1k).
+
+**Round result card.** When a round ends, every student's device shows the demand and supply curves drawing in, with the equilibrium marked. After a shock, the old curve fades and the new one slides across. Under the chart are two or three short lines in English, with Vietnamese support, plus a line about the student's own result. For example: "Your card was worth 13k, less than the price of about 15.5k. You were priced out: that is the demand curve at work." The card also shows the student's mission and guess results and their team's place. Students tap **Got it** to close it, and can play it again from their between-rounds screen. It closes by itself when you open the knowledge check or the debrief.
+
+**Team race.** Choose **Team race** on the board (or **🏁 Team race on the board** in the Missions panel). Tables race each other (students pick a table in the lobby). If fewer than two tables are in use, buyers race the shops. A team's score is the average per member of market score + 20 points per mission + 10 per correct guess, so big and small tables are treated the same. The **🎯 Missions** panel on your console shows how many missions are done, the guesses and who had which mission.
+
 ### Level 2 knowledge check (Paper 1 style)
 At the end of Level 2, open **📝 Knowledge check** in the console (between rounds). Each student gets **10 multiple-choice questions (A–D)** on their device, and every wrong option is a common misconception. The questions cover:
 - **Shifts or movements (2.2, 2.3):** what shifts demand or supply, compared with a movement along a curve.
@@ -227,15 +238,16 @@ File: `level2.html`. Every student trades online. **Buyers** get a value card ea
 - **Products:** chocolate only (default), candy only, or both.
 - **Lesson plan:** Standard (default) or Advanced.
 
-**Standard plan** (fast mode: an open order book; buyers post offers, shops post asks, trades happen automatically):
+**Standard plan** (a bargaining round, then fast mode: an open order book where buyers post offers, shops post asks and trades happen automatically):
 
 | Round | What it shows | Chocolate, from the cards |
 |---|---|---|
 | Practice (1 minute, unscored) | Learning the buttons | |
-| 1: Find the price | Equilibrium (2.4.2) | about 15–16k, 10 sold |
-| 2: Menu prices | Each shop chooses ONE price for the whole round. Too high: unsold stock (a surplus). Too low: buyers turned away (a shortage). (2.4.3) | |
-| 3: Cacao harvest hit | Costs +3k: decrease in supply (2.3.3) | about 17k, 9 sold |
-| 4: Halloween | Values +4k: increase in demand (2.2.3) | about 17k, 13 sold |
+| 1: Bargaining (board off) | Buyers buy at a shop's price or haggle: send an offer, and the shop accepts, counters or declines. No price board, so prices are spread out. Use 2–3 minutes. | about 15–16k, 10 sold |
+| 2: Find the price | Equilibrium (2.4.2): with an open market, prices close in | about 15–16k, 10 sold |
+| 3: Menu prices | Each shop chooses ONE price for the whole round. Too high: unsold stock (a surplus). Too low: buyers turned away (a shortage). (2.4.3) | |
+| 4: Cacao harvest hit | Costs +3k: decrease in supply (2.3.3) | about 17k, 9 sold |
+| 5: Halloween | Values +4k: increase in demand (2.2.3) | about 17k, 13 sold |
 
 For candy only, round 3 is the sugar harvest instead. In fast mode a shop's ask stays up for its next unit if it is still at or above that unit's lowest price, so shops don't re-enter prices after every sale.
 
