@@ -5,7 +5,7 @@
    2. markerUrl: leave empty. AI marking then uses your Supabase "mark" function.
    Leave everything empty to run in test mode (students in other tabs of the same browser). */
 window.MARKET_CONFIG = {
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  supabaseUrl: 'https://qdeakgxqsffomgnhczmi.supabase.co',
+  supabaseAnonKey: 'sb_publishable_nXHnb7VpK75SRXPOvWP9CA_INkeSXFx',
   markerUrl: ''
 };
