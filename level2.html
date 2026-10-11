@@ -2202,7 +2202,8 @@ const M2 = (() => {
     const cancelBid = (slot, p) => book[p].bids.delete(slot);
     const cancelAsk = (shop, p) => book[p].asks.delete(shop);
     return { n, mode, events, lock, trades, sold, bought, book, check, trade, bid, ask, cancelBid, cancelAsk, bestAsk, bestBid, nextCost, val,
-      stock: (shop, p) => UNITS - sold[shop][p], hasCard: slot => card.has(slot) };
+      stock: (shop, p) => UNITS - sold[shop][p], hasCard: slot => card.has(slot),
+      forSale: (shop, p, price) => { let k = 0; for (let u = sold[shop][p]; u < UNITS && costOf(shop, p, u, events) <= price; u++) k++; return k; } };
   }
 
   /* ---- robots ---- */
@@ -2657,7 +2658,7 @@ const you = pid => { if (pid) sendPrivate(pid, youFor(pid)); };
 const youAll = () => T.s.humans.forEach(h => you(h.pid));
 function pubState() {
   const s = T.s, r = curRound(), R = T.R, last = r || s.rounds[s.rounds.length - 1];
-  const shops = Object.fromEntries(M2.SHOP_IDS.map(sh => [sh, { name: (s.shopNames || {})[sh] || '', asks: { ...(T.asks && T.asks[sh] || {}) }, stock: R ? Object.fromEntries(PX().map(p => [p, R.stock(sh, p)])) : { choc: 4, candy: 4 }, human: isShopHuman(sh), busy: openOffersFor(sh) >= MAX_OFFERS_PER_SHOP }]));
+  const shops = Object.fromEntries(M2.SHOP_IDS.map(sh => [sh, { name: (s.shopNames || {})[sh] || '', asks: { ...(T.asks && T.asks[sh] || {}) }, stock: R ? Object.fromEntries(PX().map(p => [p, R.stock(sh, p)])) : { choc: 4, candy: 4 }, avail: R && T.asks && T.asks[sh] ? Object.fromEntries(PX().filter(p => T.asks[sh][p] != null).map(p => [p, R.forSale(sh, p, T.asks[sh][p])])) : {}, human: isShopHuman(sh), busy: openOffersFor(sh) >= MAX_OFFERS_PER_SHOP }]));
   const book = R && r.mode === 'fast' ? Object.fromEntries(PX().map(p => [p, { bid: (R.bestBid(p) || {}).price ?? null, ask: (R.bestAsk(p) || {}).price ?? null }])) : null;
   return { type: 'state', vi: viOnT(), level: 2, db: DB.Tch.pub(), pk: T.pk, phase: s.phase, n: s.humans.length, products: s.products, sSound: s.sSound !== false, pred: predPub(),
     round: r ? { n: r.n, label: r.label, mode: r.mode, practice: r.practice, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) } : null,
@@ -3679,10 +3680,10 @@ function buyerOffers() {
   const stalls = M2.SHOP_IDS.map(sh => {
     const shop = p.shops[sh];
     return `<div class="mstall" style="--stall:${SHOPC(sh)}"><div class="mstall-awn"></div><div class="mstall-name"><span>${esc(shopLab(sh))}</span>${shop.busy ? '<small>busy</small>' : shop.human ? '' : '<small>robot</small>'}</div>${PX().map(pr => {
-      const ask = shop.asks[pr], stock = shop.stock[pr], done = me.bought && me.bought[pr];
-      const canBuy = ask != null && stock > 0 && !done && ask <= me.values[pr];
+      const ask = shop.asks[pr], stock = shop.stock[pr], done = me.bought && me.bought[pr], avail = ask != null && shop.avail && shop.avail[pr] != null ? Math.min(stock, shop.avail[pr]) : stock;
+      const canBuy = ask != null && avail > 0 && !done && ask <= me.values[pr];
       const comp = S.compose && S.compose.shop === sh && S.compose.product === pr;
-      return `<div class="mcell"><div class="mcell-top"><span class="mini-art">${ART3[pr]}</span>${stock > 0 ? `<span class="mtag">${ask != null ? k(ask) : '–'}</span><span class="mstock"><span class="dots">${'●'.repeat(stock)}</span> ${stock} left</span>` : '<small class="muted">sold out</small>'}</div>
+      return `<div class="mcell"><div class="mcell-top"><span class="mini-art">${ART3[pr]}</span>${stock > 0 ? `<span class="mtag">${ask != null ? k(ask) : '–'}</span>${avail > 0 ? `<span class="mstock"><span class="dots">${'●'.repeat(avail)}</span> ${avail} left${avail < stock ? ' at this price' : ''}</span>` : `<span class="mstock">none left at this price</span>`}` : '<small class="muted">sold out</small>'}</div>
         ${stock <= 0 ? '' : done ? '<small class="muted">bought ✓</small>' : comp ? `${stepper('o', S.compose.price, 'your offer', 1, me.values[pr])}<div class="row" style="gap:6px"><button class="btn small primary" data-a="send">Offer ${pv('o', S.compose.price)}</button><button class="btn small ghost" data-a="close">✕</button></div>` :
           `<div class="row" style="gap:6px"><button class="btn small buyer" data-a="buy" data-shop="${sh}" data-p="${pr}" ${canBuy ? '' : 'disabled'}>Buy</button>${p.round.mode === 'menu' ? '' : `<button class="btn small" data-a="compose" data-shop="${sh}" data-p="${pr}" ${shop.busy ? 'disabled' : ''}>Offer</button>`}</div>`}</div>`;
     }).join('')}</div>`;
