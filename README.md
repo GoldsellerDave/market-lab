@@ -187,6 +187,9 @@ Two questions come from your class's market: which curve the harvest shock moved
 
 The console shows results by question (weakest first) and by student, with a CSV download. **Show class results on the board** puts the results on the projector. Marks also appear as "Paper 1 check" in the Debrief and Paper 2 grades panel. **Close** hides the check; **Open again** keeps the results. If the debrief is open at the same time, students get two tabs: **📝 Knowledge check** and **📊 Debrief, extension and Paper 2**. After submitting the check, a button takes them to the debrief. Section A and Section B appear only once you switch them on in the Debrief and Paper 2 panel.
 
+### Round length (Levels 1 and 2)
+Rounds can be 1 to 5 minutes long in Level 1, and 1 to 6 minutes long in Level 2. Choose a length when you open the room. You can change it between rounds with **Round length** next to the start button, and it applies to the next round. In tests with 1-minute rounds, the robots still reached the equilibrium quantity (10 chocolate bars in Level 2, 8 in Level 1). Suggested lengths: 1–2 minutes for fast-mode and menu rounds, and 2–3 minutes for rounds with offers, because offers last 30 seconds.
+
 ### Vietnamese on or off
 The game is called **Market Town** (Thị Trấn Chợ). Every teacher console has a **🇻🇳 Tiếng Việt: on / Vietnamese: off** button in the top bar; the home page has one for that device, which also sets the default for your new rooms.
 - **On:** Vietnamese appears as before: headlines, news broadcasts, chips, team names, titles and the glossary.

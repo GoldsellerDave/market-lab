@@ -2359,7 +2359,7 @@ function teacherBoot() {
     <div class="panel stack">
       <div><label class="field" for="tp">Connection</label><select id="tp"><option value="supabase" ${ONLINE_READY ? 'selected' : 'disabled'}>Online: students use their own tablets or laptops${ONLINE_READY ? '' : ' (add Supabase details to enable)'}</option><option value="local" ${ONLINE_READY ? '' : 'selected'}>Test mode: students in other tabs on this computer</option></select></div>
       <div><label class="field" for="gd">What does the market sell? (use the same as Level 0)</label><select id="gd"><option value="trasua">Trà sữa (prices in 5.000đ steps)</option><option value="banhmi">Bánh mì (prices in 2.500đ steps)</option><option value="choco">Chocolate bar (prices in 2.500đ steps)</option></select></div>
-      <div><label class="field" for="rl">Round length</label><select id="rl"><option value="120">2 minutes</option><option value="180" selected>3 minutes</option><option value="240">4 minutes</option></select></div>
+      <div><label class="field" for="rl">Round length</label><select id="rl"><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180" selected>3 minutes</option><option value="240">4 minutes</option><option value="300">5 minutes</option></select></div>
       <label class="row" style="gap:8px"><input type="checkbox" id="bots" checked style="width:22px;height:22px"> Fill empty places with robot traders (keeps the market at 30 traders). Recommended: with robots off and a small class, the curves have only a few steps.</label>
       <button class="btn primary" id="create">Open a new room</button>
     </div><p class="muted"><a href="?">Back to start</a></p></div>`);
@@ -2661,7 +2661,7 @@ function stepsHtml() {
     { label: 'Badges and podium', btn: s.phase === 'finish' ? ['podium', '🏆 Podium', false] : ['finish', 'Show badges', running], done: s.phase === 'finish', now: s.phase === 'finish' }
   ];
   return `<ol class="steps">${L.map(x => `<li class="${x.done ? 'done' : x.now ? 'now' : ''}"><div><div>${esc(x.label)}</div><div class="row" style="gap:6px;margin-top:4px">${x.btn ? `<button class="btn small ${x.now ? 'primary' : x.ghost ? 'ghost' : ''}" data-act="${x.btn[0]}" ${x.btn[2] ? 'disabled' : ''}>${esc(x.btn[1])}</button>` : ''}${x.note ? `<small class="muted">${esc(x.note)}</small>` : ''}</div></div></li>`).join('')}</ol>
-    ${s.current ? `<button class="btn block" data-act="end">End this round now</button>` : ''}`;
+    ${s.current ? `<button class="btn block" data-act="end">End this round now</button>` : `<div class="row" style="justify-content:flex-end"><label class="row" style="gap:6px;margin:0"><small class="muted">Round length</small><select id="rlNow" style="width:auto;padding:4px 8px">${[60, 120, 180, 240, 300, 360].map(v => `<option value="${v}" ${T.s.roundLen === v ? 'selected' : ''}>${v / 60} min</option>`).join('')}</select></label></div>`}`;
 }
 function renderTBody() {
   const el = $('#tbody'); if (!el) return;
@@ -3832,5 +3832,6 @@ document.addEventListener('click', e => {
   toast(T.s.vi ? 'Vietnamese is on.' : 'Vietnamese is off on the console and the board. Students still see small Vietnamese help.');
 });
 </script>
+<script>document.addEventListener('change', e => { if (e.target && e.target.id === 'rlNow' && typeof T !== 'undefined' && T.s) { T.s.roundLen = +e.target.value; tSave(); toast('Next rounds: ' + (T.s.roundLen / 60) + (T.s.roundLen === 60 ? ' minute' : ' minutes') + ' each.'); } });</script>
 </body>
 </html>
