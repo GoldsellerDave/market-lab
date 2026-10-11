@@ -2793,7 +2793,7 @@ function renderCheck2(main) {
   const score = P.submitted ? P.qs.filter((q, i) => P.ans[i] != null && q.opts[P.ans[i]].ok).length : 0;
   main.innerHTML = `<div class="panel stack paper">
     <div class="row" style="justify-content:space-between"><h2 style="margin:0">📝 Knowledge check</h2>${P.submitted ? '' : '<span class="timer" id="ckTimer"></span>'}</div>
-    ${P.submitted ? `<div class="${score >= 8 ? 'good' : score >= 5 ? 'note' : 'bad'}"><b>Your mark: ${score} / ${n}</b>. ${score >= 8 ? 'Excellent: you can explain how markets react to news.' : 'Read the explanation under each question you got wrong.'}</div>` :
+    ${P.submitted ? `<div class="${score >= 8 ? 'good' : score >= 5 ? 'note' : 'bad'}"><b>Your mark: ${score} / ${n}</b>. ${score >= 8 ? 'Excellent: you can explain how markets react to news.' : 'Read the explanation under each question you got wrong.'}${S.pub && !S.pub.round && DB.S.active(S.pub) ? ' <button class="btn small primary" data-v2="db">Go to the debrief and Paper 2 →</button>' : ''}</div>` :
       `<p class="muted" style="margin:0">Paper 1 style. ${n} questions, one mark each. Choose A, B, C or D. In the exam you have about 1.5 minutes per question.</p>`}
     ${P.qs.map((q, i) => { const my = P.ans[i], right = q.opts.findIndex(o => o.ok);
       return `<div class="mcq ${P.submitted ? (my === right ? 'right' : 'wrong') : ''}" id="mcq-${i}"><div class="mq"><span class="qn">${i + 1}</span><div>${q.text}</div></div>
@@ -2819,7 +2819,7 @@ function ckClick2(e) {
     const items = P.qs.map((q, i) => ({ id: q.id, correct: P.ans[i] != null && q.opts[P.ans[i]].ok })), score = items.filter(x => x.correct).length;
     sSend({ type: 'check2', id: P.id, score, total: P.qs.length, items });
     sfx(score >= 8 ? 'fanfare' : 'chime'); if (score >= 8 && typeof confetti === 'function') confetti();
-    renderCheck2($('#sMain')); window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+    renderCheck2($('#sSub') || $('#sMain')); window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
   }
 }
 /* ---- teacher ---- */
@@ -3528,8 +3528,21 @@ function render() {
   const ev = (p.events || []).length ? `<div class="evbar">${p.events.map(e => `<span>${e.icon} ${esc(e.label)}: ${esc(e.detail)}</span>`).join('')}</div>` : '';
   const lock = (p.lock ? `<div class="note" style="margin:0 0 12px">📌 This round the price of ${PROD[p.lock.product].name.toLowerCase()} is fixed at <b>${k(p.lock.price)}</b>. It cannot change.</div>` : '') + (p.round && p.round.mode === 'menu' ? `<div class="note" style="margin:0 0 12px">📋 <b>Menu prices.</b> ${me.role === 'buyer' ? 'Each shop has one price for the whole round. Buy where you like.' : 'Choose ONE price for each product. You cannot change it this round.'}</div>` : '');
   if (!me.role) { main.innerHTML = `<div class="panel stack"><h2 style="margin:0">${FX.avOf(S.av)} Hi ${esc(S.nick)}, you're in.</h2><p style="margin:0">Your teacher will give you a role: a <b>buyer</b> with a value card, or part of a <b>shop</b>. Good trades fill your prize jar with real sweets.</p>${FX.avatarPicker(S.av)}${FX.teamPicker(S.team)}</div>`; main.onclick = null; return; }
-  if (!p.round && p.ck && p.ck.open) { if (!(S.ck2 && S.ck2.id === p.ck.id && $('#sMain .paper'))) renderCheck2(main); main.onclick = ckClick2; return; }
-  if (!p.round && DB.S.active(p)) { DB.S.render(main, p); main.onclick = null; return; }
+  // between rounds: the knowledge check and the debrief (with extension and Paper 2) can both be open, so students get two tabs
+  const ckOn = !p.round && p.ck && p.ck.open, dbOn = !p.round && DB.S.active(p);
+  if (ckOn && dbOn) {
+    if (!S.view2) S.view2 = S.ck2 && S.ck2.id === p.ck.id && S.ck2.submitted ? 'db' : 'ck';
+    if (!$('#sTabs2')) main.innerHTML = '<div class="db-tabs" id="sTabs2" style="margin-bottom:10px"></div><div id="sSub"></div>';
+    $('#sTabs2').innerHTML = [['ck', '📝 Knowledge check (Paper 1)'], ['db', '📊 Debrief, extension and Paper 2']].map(([v, l]) => `<button class="db-tab ${S.view2 === v ? 'sel' : ''}" data-v2="${v}">${l}</button>`).join('');
+    const sub = $('#sSub');
+    if (S.view2 === 'ck') { if (sub.dataset.v !== 'ck' || !(S.ck2 && S.ck2.id === p.ck.id && sub.querySelector('.paper'))) { sub.dataset.v = 'ck'; renderCheck2(sub); } }
+    else { if (sub.dataset.v !== 'db') { sub.dataset.v = 'db'; sub.innerHTML = ''; } DB.S.render(sub, p); }
+    main.onclick = e => { const t = e.target.closest('[data-v2]'); if (t) { S.view2 = t.dataset.v2; window.scrollTo({ top: 0 }); return render(); } if (S.view2 === 'ck') ckClick2(e); };
+    return;
+  }
+  if ($('#sTabs2')) main.innerHTML = '';
+  if (ckOn) { if (!(S.ck2 && S.ck2.id === p.ck.id && $('#sMain .paper'))) renderCheck2(main); main.onclick = ckClick2; return; }
+  if (dbOn) { DB.S.render(main, p); main.onclick = null; return; }
   if (!p.round) { main.innerHTML = ev + lock + betweenHtml(); main.onclick = onClick; return; }
   if (me.role === 'buyer' ? !('values' in me) : !me.costs) { main.innerHTML = ev + lock + '<div class="panel">Getting your card for this round…</div>'; return; }
   main.innerHTML = ev + lock + (me.role === 'buyer' ? (p.round.mode === 'fast' ? buyerFast() : buyerOffers()) : (p.round.mode === 'fast' ? shopFast() : shopOffers()));

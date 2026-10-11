@@ -153,7 +153,7 @@ At the end of Level 2, open **📝 Knowledge check** in the console (between rou
 
 Two questions come from your class's market: which curve the harvest shock moved, and the shortage at the old price. Papers are shuffled per student, marked when submitted, and explain every answer.
 
-The console shows results by question (weakest first) and by student, with a CSV download. **Show class results on the board** puts the results on the projector. Marks also appear as "Paper 1 check" in the Debrief and Paper 2 grades panel. **Close** hides the check; **Open again** keeps the results.
+The console shows results by question (weakest first) and by student, with a CSV download. **Show class results on the board** puts the results on the projector. Marks also appear as "Paper 1 check" in the Debrief and Paper 2 grades panel. **Close** hides the check; **Open again** keeps the results. If the debrief is open at the same time, students get two tabs: **📝 Knowledge check** and **📊 Debrief, extension and Paper 2**. After submitting the check, a button takes them to the debrief. Section A and Section B appear only once you switch them on in the Debrief and Paper 2 panel.
 
 ### Vietnamese on or off
 The game is called **Market Town** (Thị Trấn Chợ). Every teacher console has a **🇻🇳 Tiếng Việt: on / Vietnamese: off** button in the top bar; the home page has one for that device, which also sets the default for your new rooms.
