@@ -1921,19 +1921,6 @@ function toast(msg, ms = 2600) {
 }
 
 /* ---------------- Transports ---------------- */
-function localTransport(room) {
-  let bc;
-  return {
-    kind: 'local',
-    async connect(onMsg, onStatus) {
-      bc = new BroadcastChannel(CHANNEL(room));
-      bc.onmessage = e => onMsg(e.data);
-      onStatus && onStatus('SUBSCRIBED');
-    },
-    send(msg) { bc && bc.postMessage(msg); },
-    close() { bc && bc.close(); }
-  };
-}
 let sbLoading = null;
 function loadSupabase() {
   if (window.supabase) return Promise.resolve();
@@ -1945,26 +1932,84 @@ function loadSupabase() {
   });
   return sbLoading;
 }
-function supabaseTransport(room) {
-  let client, ch;
+/* Supabase counts every copy of a message: 1 when sent + 1 for each device that receives it (free plan: 100 a second).
+   So there is one room channel for what everyone needs (the teacher's shared state), and one private channel
+   ("pipe") per student, joined only by that student and the teacher: cards, marks and everything a student
+   sends go there and cost 2, not 1 + the whole class. Sending is paced, and a newer state replaces one still waiting. */
+const RT = { sent: 0, recv: 0, sec: {} }; // message counts (the tests read these)
+const rtTick = () => { const k = Math.floor(Date.now() / 1000); RT.sec[k] = (RT.sec[k] || 0) + 1; };
+const RT_BUDGET = { teacher: { rate: 35, burst: 10 }, student: { rate: 1.5, burst: 4 } }; // teacher: counted copies a second; student: messages a second
+function makeTransport(kind, room, opt = {}) {
+  const teacher = !!opt.teacher, me = opt.pid || null, online = kind === 'supabase', MAXPIPES = 90;
+  const pipeName = pid => CHANNEL(room) + ':' + pid;
+  const pipes = new Map(); // teacher: pid -> { ch, wait, dead }
+  let client = null, roomCh = null, myPipe = null, pipeOk = false, onMsg = null, nextJoin = 0;
+  async function open(name, onIn, onStatus) {
+    if (!online) {
+      const bc = new BroadcastChannel(name); bc.onmessage = e => onIn(e.data);
+      onStatus && onStatus('SUBSCRIBED');
+      return { send: m => bc.postMessage(m), close: () => bc.close() };
+    }
+    if (!client) { await loadSupabase(); client = client || window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey); }
+    const c = client, ch = c.channel(name, { config: { broadcast: { self: false } } });
+    ch.on('broadcast', { event: 'm' }, ({ payload }) => onIn(payload));
+    await new Promise((res, rej) => ch.subscribe(status => {
+      onStatus && onStatus(status);
+      if (status === 'SUBSCRIBED') res();
+      else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') rej(new Error('Could not connect to the online room (' + status + ').'));
+    }));
+    return { send: m => ch.send({ type: 'broadcast', event: 'm', payload: m }), close: () => c.removeChannel(ch) };
+  }
+  const inbound = via => m => {
+    if (!m) return; RT.recv++; rtTick();
+    if (teacher) { if (via === 'room' && typeof m.from === 'string' && /^p-/.test(m.from)) pipeFor(m.from); }
+    else if (via === 'pipe' && m.from === 'teacher') pipeOk = true;
+    onMsg && onMsg(m);
+  };
+  // teacher: join a student's pipe (joins are spaced out; Supabase allows 100 joins a second)
+  function pipeFor(pid) {
+    let p = pipes.get(pid); if (p) return p;
+    if (pipes.size >= MAXPIPES) return null;
+    p = { ch: null, wait: [], dead: false }; pipes.set(pid, p);
+    const at = Math.max(Date.now(), nextJoin); nextJoin = at + 30;
+    setTimeout(() => open(pipeName(pid), inbound('pipe')).then(ch => { p.ch = ch; }).catch(() => { p.dead = true; })
+      .finally(() => { q.unshift(...p.wait.splice(0)); pump(); }), at - Date.now());
+    return p;
+  }
+  // paced sending
+  const B = RT_BUDGET[teacher ? 'teacher' : 'student'], q = [];
+  let tokens = B.burst, last = Date.now(), timer = null;
+  function pump() {
+    clearTimeout(timer); timer = null;
+    if (!roomCh) return;
+    const now = Date.now(); tokens = Math.min(B.burst, tokens + (now - last) / 1000 * B.rate); last = now;
+    while (q.length) {
+      const it = q[0]; let ch = roomCh;
+      if (teacher && it.to) { const p = pipeFor(it.to); if (p && !p.dead) { if (!p.ch) { q.shift(); p.wait.push(it); continue; } ch = p.ch; } }
+      if (!teacher && pipeOk && myPipe) ch = myPipe;
+      const cost = !teacher ? 1 : ch === roomCh ? 1 + Math.max(1, pipes.size) : 2, need = Math.min(cost, B.burst);
+      if (tokens < need) { timer = setTimeout(pump, Math.max(15, (need - tokens) / B.rate * 1000)); return; }
+      q.shift(); tokens -= cost; RT.sent++; rtTick();
+      try { ch.send(it.m); } catch (e) { console.warn('Send failed', e); }
+    }
+  }
+  function send(m) {
+    if (teacher && m.type === 'state' && !m.to) { const old = q.find(it => !it.to && it.m.type === 'state'); if (old) { old.m = m; return; } }
+    q.push({ m, to: teacher ? m.to || null : null }); pump();
+  }
   return {
-    kind: 'supabase',
-    async connect(onMsg, onStatus) {
-      await loadSupabase();
-      client = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
-      ch = client.channel(CHANNEL(room), { config: { broadcast: { self: false } } });
-      ch.on('broadcast', { event: 'm' }, ({ payload }) => onMsg(payload));
-      await new Promise((res, rej) => ch.subscribe(status => {
-        onStatus && onStatus(status);
-        if (status === 'SUBSCRIBED') res();
-        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') rej(new Error('Could not connect to the online room (' + status + ').'));
-      }));
+    kind,
+    async connect(handler, onStatus) {
+      onMsg = handler;
+      const own = !teacher && me ? open(pipeName(me), inbound('pipe')).then(ch => { myPipe = ch; }).catch(() => null) : null;
+      roomCh = await open(CHANNEL(room), inbound('room'), onStatus);
+      await own; pump();
     },
-    send(msg) { ch && ch.send({ type: 'broadcast', event: 'm', payload: msg }); },
-    close() { if (ch && client) client.removeChannel(ch); }
+    send,
+    watch: pid => { if (teacher) pipeFor(pid); },
+    close() { clearTimeout(timer); [roomCh, myPipe, ...[...pipes.values()].map(p => p.ch)].forEach(c => { try { c && c.close(); } catch { } }); }
   };
 }
-const makeTransport = (kind, room) => kind === 'supabase' ? supabaseTransport(room) : localTransport(room);
 
 /* ===== Level 2 shared (reused) ===== */
 const shell = inner => inner + `<div id="sheet" class="sheet hidden"></div><div id="toast" class="toast hidden"></div><canvas id="fx" class="fx" aria-hidden="true"></canvas>`;
@@ -2349,12 +2394,12 @@ async function teacherStart() {
     extraLabel: 'Paper 1 check', extra: pid => { const c = (T.s.checks2 || {})[pid]; return c ? { got: c.score, max: c.total } : null; }, version: 'l2-sectionA-1table',
     readyNote: () => T.s.rounds.some(r => r.menu) ? '' : 'Best after the menu-prices round and the shock round.' });
   Sound.on = T.s.sound;
-  T.tr = makeTransport(T.s.transport, T.s.room);
+  T.tr = makeTransport(T.s.transport, T.s.room, { teacher: true });
   renderT();
   try { await initCrypto(); } catch (e) { console.warn('No card encryption', e); }
   try { await T.tr.connect(tOnMsg, st => { T.connected = st === 'SUBSCRIBED'; connBadge(); }); T.connected = true; } catch (e) { T.connected = false; toast(e.message, 6000); }
   connBadge(); tBroadcast(true); youAll();
-  setInterval(() => { if (!T.s.current) tBroadcast(true); }, 2500);
+  setInterval(() => { if (Date.now() - (T.lastSent || 0) > 2900) tBroadcast(true); }, 1000); // heartbeat: devices count the timer down themselves
   addEventListener('resize', drawCharts);
 }
 function connBadge() { const el = $('#conn'); if (el) el.innerHTML = T.connected ? `<span class="dot ok"></span>${T.s.transport === 'local' ? 'Test mode' : 'Online'}` : '<span class="dot bad"></span>Not connected'; }
@@ -2425,7 +2470,7 @@ function startRound(step) {
     if (!s.current) return;
     const left = Math.round((s.current.endsAt - Date.now()) / 1000);
     expireOffers();
-    if (left <= 0) endRound(); else { updateTimer(); if (left % 3 === 0) tBroadcast(true); }
+    if (left <= 0) endRound(); else { updateTimer(); }
   }, 1000);
   if (T.hold) { const R0 = T.R; setTimeout(() => { if (T.R === R0 && T.s.current) startBots(len); }, T.hold); } else startBots(len); // robots wait for the news to finish
 }
@@ -3490,7 +3535,7 @@ function studentBoot() {
 }
 async function connect() {
   const kind = PARAMS.get('t') === 'local' || !ONLINE_READY ? 'local' : 'supabase';
-  S.tr = makeTransport(kind, S.room);
+  S.tr = makeTransport(kind, S.room, { pid: S.pid });
   document.body.innerHTML = shell(`<header class="topbar"><span class="brand" id="hRole">Market Town</span><span class="chip" id="hPrize">🍬 0</span><span id="hTitle"></span><span class="spacer"></span><span class="timer" id="hTimer"></span>
     <button class="btn small ghost" id="sSnd" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">${S.sound ? '🔊 Sound on' : '🔇 Sound off'}</button>${FX.calmBtn('color:#fbf3ea;border-color:rgba(255,255,255,.3)')}<span class="chip" id="hConn"><span class="dot wait"></span>…</span></header>
     <main class="wrap" id="sMain"><div class="panel">Looking for room <b>${esc(S.room)}</b>…</div></main>`);

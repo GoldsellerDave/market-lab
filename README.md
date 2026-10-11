@@ -32,6 +32,27 @@ Open the site, choose **Open Level 0**, then **Open a new room**, then **Open a 
 4. Wait a minute, open the home page: it should say **Online**. Open **Setup check → Test the online connection**. It should say ✓ Connected.
 No database tables are needed: the app only uses Realtime Broadcast, and nothing about students is stored on Supabase. If the test fails, check that Realtime allows public channels and ask school IT to allow `*.supabase.co`.
 
+#### Does the free plan fit a class of 30?
+Yes, for a class of 30. The free plan allows 200 devices at once, 100 messages a second and 2 million messages a month. Supabase counts every copy of a message: 1 when it is sent, plus 1 for each device that receives it. The app is built to stay well under the limits:
+- The room channel carries only what everyone needs: the shared state from your console.
+- Each student also has a private channel that only that student and your console join. Cards, marks and everything a student sends go there, so each message counts 2, not 31.
+- Your console paces what it sends (at most about 45 a second). A newer update replaces one that is still waiting.
+- No updates every second during a round. Devices count the timer down themselves, and your console sends a heartbeat every 3 seconds.
+
+Measured with 30 simulated students trading in Level 1 (each sending an order every few seconds):
+
+| | Before | Now |
+|---|---|---|
+| Waiting between rounds | 12 a second | 10 a second |
+| Round start (busiest second) | 915 | 52 |
+| During a round (average / busiest second) | 270 / 671 | 41 / 65 |
+
+Level 2 is similar (31 a second on average in a round, 71 in the busiest second). A 50-minute lesson uses roughly 60,000–80,000 messages, so the monthly allowance covers about 25–30 lessons with a class of 30. Over the monthly allowance, or for several classes at once, the Pro plan ($25 a month) allows 500 a second and 5 million a month.
+
+Two other things to know:
+- A free project **pauses after 7 days without use**. Open the Supabase dashboard and press **Restore** before a lesson if you haven't used it for a week.
+- AI marking: the free plan includes 500,000 function calls a month, far more than you need. The Claude API is paid separately: about half a US cent per marked answer, roughly $1–2 per lesson for 30 students.
+
 ### 4. Turn on AI marking (Level 1 Explain question)
 1. Get a Claude API key at console.anthropic.com (this needs credit on the account).
 2. Install Node.js on your computer if you don't have it. In a terminal, in the folder that contains `supabase/functions/mark`:
