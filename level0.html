@@ -1563,13 +1563,14 @@ const DB = (() => {
   let TC = null;
   function tInit(cfg) { TC = cfg; }
   const tS = () => { const s = TC.state(); return (s.db ||= { pack: null, open: { debrief: false, ext: false, A: false, B: false }, res: {}, sub: {}, ov: {} }); };
-  function tOpen(build) {
+  function tOpen(build, silent) {
     const d = tS();
-    if (d.pack && !confirm('Open the debrief again with the latest class data? Students who have started keep their answers only if the numbers are the same, so do this before they start.')) return;
+    if (d.pack && !silent && !confirm('Open the debrief again with the latest class data? Students who have started keep their answers only if the numbers are the same, so do this before they start.')) return;
     const pack = build(); if (!pack) return;
-    pack.id = 'p' + Date.now().toString(36); pack.at = Date.now();
+    pack.id = 'p' + Date.now().toString(36); pack.at = Date.now(); pack.v = TC.version || '';
     if (d.pack) { d.res = {}; d.sub = {}; d.ov = {}; }
-    d.pack = pack; d.open = { debrief: true, ext: true, A: false, B: false };
+    const keepOpen = silent && d.pack ? d.open : null;
+    d.pack = pack; d.open = keepOpen || { debrief: true, ext: true, A: false, B: false };
     TC.save(); TC.changed(true); tSendPack();
   }
   let lastPack = 0;
@@ -1601,12 +1602,16 @@ const DB = (() => {
     const d = tS(), P = d.pack;
     if (!P) return `<div class="panel stack"><h2 style="margin:0">Debrief and Paper 2</h2><p style="margin:0">Build the debrief from this lesson's data: a debrief, an extension activity and a Paper 2 style Section A (data response) and Section B. ${TC.readyNote ? TC.readyNote() : ''}</p><div class="row"><button class="btn primary" data-act="db-open">Open the debrief from our data</button></div></div>`;
     const R = rows(), st = stats(R.filter(r => r.pct != null).map(r => r.pct)), flag = r => st && st.n >= 3 && r.pct != null && r.pct < st.mean - st.sd;
+    // a debrief built by an older version of the app: rebuild it (automatically if no student has started)
+    const stale = TC.version && P.v !== TC.version, started = Object.keys(d.res || {}).length || Object.keys(d.sub || {}).length;
+    if (stale && !started && !tPanel.auto) { tPanel.auto = true; setTimeout(() => { tOpen(TC.build, true); if (typeof toast === 'function') toast('The debrief was rebuilt with the latest questions.'); }, 0); }
+    const staleNote = stale ? `<div class="note" style="margin:0">This debrief was built with an older version of the app, so students may see old questions. <button class="btn small primary" data-act="db-open">Rebuild with the latest questions</button></div>` : '';
     const tog = (k, l) => `<button class="btn small ${d.open[k] ? 'primary' : ''}" data-act="db-tog" data-k="${k}">${d.open[k] ? '✓ ' : ''}${l}</button>`;
     const fmt = x => x ? `${x.got} / ${x.max}${x.est ? '*' : ''}` : '–';
     const partStats = ['A', 'B'].map(k => P[k] ? P[k].tasks.filter(t => t.marks).map((t, i) => { const ms = R.filter(r => (d.sub[r.pid] || {})[k]).map(r => (markOf(r.pid, t.id) || {}).mark || 0); return `<tr><td>${k}${P[k].numbers ? P[k].numbers[P[k].tasks.indexOf(t)] : i + 1}</td><td>${h(t.cmd || '')}</td><td>${ms.length ? Math.round(100 * ms.reduce((a, b) => a + b, 0) / ms.length / t.marks) + '%' : '–'}</td></tr>`; }).join('') : '').join('');
     const dStats = P.debrief.tasks.filter(t => t.kind !== 'info').map((t, i) => { const tried = R.filter(r => (d.res[r.pid] || {})[t.id]); const f = tried.filter(r => d.res[r.pid][t.id].firstOk).length; return `<tr><td>Debrief ${i + 1}</td><td>${h(t.cmd || t.kind)}</td><td>${tried.length ? Math.round(100 * f / tried.length) + '% right first time' : '–'}</td></tr>`; }).join('');
     const texts = ['debrief', 'ext', 'A', 'B'].flatMap(k => P[k] ? P[k].tasks.filter(t => t.kind === 'text').map(t => [k, t]) : []);
-    return `<div class="panel stack" id="dbPanel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Debrief and Paper 2</h2><small class="muted">Data frozen ${new Date(P.at).toLocaleTimeString()}${P.fallback ? ' · ' + h(P.fallback) : ''}</small></div>
+    return `<div class="panel stack" id="dbPanel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Debrief and Paper 2</h2><small class="muted">Data frozen ${new Date(P.at).toLocaleTimeString()}${P.fallback ? ' · ' + h(P.fallback) : ''}</small></div>${staleNote}
       <div class="row">${tog('debrief', 'Debrief')}${tog('ext', 'Extension')}${tog('A', 'Section A (in class)')}${tog('B', 'Section B (homework)')}</div>
       <div class="row"><button class="btn small" data-act="db-print" data-k="A">🖨 Print Section A</button><button class="btn small" data-act="db-print" data-k="B">🖨 Print Section B</button><button class="btn small" data-act="db-print" data-k="debrief">🖨 Print debrief + extension</button><button class="btn small" data-act="db-print" data-k="ms">🖨 Print mark scheme</button><button class="btn small" data-act="db-csv">Download grades (CSV)</button><button class="btn small ghost" data-act="db-open">Rebuild from latest data</button></div>
       <div class="table-wrap"><table><tr><th>Student</th><th>Debrief</th><th>Extension</th><th>Section A</th><th>Section B</th>${TC.extraLabel ? `<th>${h(TC.extraLabel)}</th>` : ''}<th>Total</th><th></th></tr>
