@@ -129,7 +129,7 @@ At the end of each level, open the **Debrief and Paper 2** panel in the teacher 
 - Explain, Analyse and Discuss answers are marked by AI against the mark schemes in the Supabase `mark` function (redeploy it: there are 21 new schemes). If AI marking is not set up, a keyword estimate is shown, marked "estimate", and flagged for you to check.
 - You can change any written mark in the panel.
 
-**Grades.** The panel shows each student's debrief, extension, Section A, Section B and (Levels 0 and 1) the Paper 1 check. It also shows the total and percentage, the class average and standard deviation, and flags anyone more than 1 SD below the average. "Which parts the class found hard" lists the average per part, and grades download as CSV. Level 1's old /15 debrief and /25 lesson grade are replaced by this.
+**Grades.** The panel shows each student's debrief, extension, Section A, Section B and the Paper 1 check (every level). It also shows the total and percentage, the class average and standard deviation, and flags anyone more than 1 SD below the average. "Which parts the class found hard" lists the average per part, and grades download as CSV. Level 1's old /15 debrief and /25 lesson grade are replaced by this.
 
 **Printables.** Print Section A, Section B, the debrief and extension, or the teacher mark scheme (answers, model points, the levels table and a worked diagram). Each print includes the class's data, with a name line and answer lines.
 
@@ -142,6 +142,18 @@ With few students, one wrong tap can make a curve slope the wrong way. Level 0 h
 - **Robot cards.** Robots answer exactly as their card says for every card no student holds, so the market always has at least 12 cards (6 buyers and 6 sellers). The projector and the student screen say how many robots joined. Turn them on or off at setup (**Robot cards fill the empty places**) or under **Robot cards** in the settings panel during the lesson. With 12 or more students, robots are not needed.
 - **Check your card.** If a student's answer goes against their own card (for example, buying when the price is above what the card allows), a message asks them to check. They can choose **Change my answer** or **Keep** it.
 - **Debrief data.** The debrief step has a **Data** choice: *class answers (if the curves are normal)* or *the cards (always clean)*. On automatic, the app uses the cards if a class curve is unfinished, slopes the wrong way, or never crosses the other one. The source then says that the data came from the cards and that robot cards were included.
+
+### Level 2 knowledge check (Paper 1 style)
+At the end of Level 2, open **📝 Knowledge check** in the console (between rounds). Each student gets **10 multiple-choice questions (A–D)** on their device, and every wrong option is a common misconception. The questions cover:
+- **Shifts or movements (2.2, 2.3):** what shifts demand or supply, compared with a movement along a curve.
+- **Price changes (2.5):** which way price and quantity move when demand or supply rises or falls, when both shift together, and what happens first after a shock.
+- **Diagrams and tables:** reading a shift and finding a new equilibrium.
+- **Shortages and surpluses (2.4):** from fixed or menu prices.
+- **The price mechanism (2.4):** signal, incentive and rationing.
+
+Two questions come from your class's market: which curve the harvest shock moved, and the shortage at the old price. Papers are shuffled per student, marked when submitted, and explain every answer.
+
+The console shows results by question (weakest first) and by student, with a CSV download. **Show class results on the board** puts the results on the projector. Marks also appear as "Paper 1 check" in the Debrief and Paper 2 grades panel. **Close** hides the check; **Open again** keeps the results.
 
 ### Vietnamese on or off
 The game is called **Market Town** (Thị Trấn Chợ). Every teacher console has a **🇻🇳 Tiếng Việt: on / Vietnamese: off** button in the top bar; the home page has one for that device, which also sets the default for your new rooms.

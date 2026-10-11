@@ -2316,6 +2316,7 @@ function teacherBoot() {
 }
 async function teacherStart() {
   DB.Tch.init({ state: () => T.s, save: tSave, changed: () => { renderBody(); tBroadcast(true); }, send: m => tSend(m), humans: () => T.s.humans, build: buildPack2,
+    extraLabel: 'Paper 1 check', extra: pid => { const c = (T.s.checks2 || {})[pid]; return c ? { got: c.score, max: c.total } : null; },
     readyNote: () => T.s.rounds.some(r => r.menu) ? '' : 'Best after the menu-prices round and the shock round.' });
   Sound.on = T.s.sound;
   T.tr = makeTransport(T.s.transport, T.s.room);
@@ -2494,6 +2495,11 @@ function tOnMsg(m) {
   if (!m || m.from === 'teacher') return;
   if (m.type === 'whois') return tBroadcast(true);
   const s = T.s;
+  if (m.type === 'check2') {
+    if (!s.ck || m.id !== s.ck.id || !s.humans.find(h => h.pid === m.pid)) return;
+    (s.checks2 ||= {})[m.pid] = { score: m.score | 0, total: m.total | 0, items: (m.items || []).slice(0, 12).map(x => ({ id: String(x.id), correct: !!x.correct })) };
+    Sound.play('pop'); tSave(); renderBody(); if (T.projector) renderProj(true); return;
+  }
   if (m.type === 'hello') {
     if (m.pk && JSON.stringify(s.pks[m.pid]) !== JSON.stringify(m.pk)) { s.pks[m.pid] = m.pk; delete T.keys[m.pid]; }
     if (!s.humans.find(h => h.pid === m.pid)) { s.humans.push({ pid: m.pid, nick: String(m.nick || 'Student').slice(0, 18), at: Date.now() }); Sound.play('pop'); if (Object.keys(s.roles).length) s.roles[m.pid] = 'buyer'; }
@@ -2581,6 +2587,7 @@ function pubState() {
   return { type: 'state', vi: viOnT(), level: 2, db: DB.Tch.pub(), pk: T.pk, phase: s.phase, n: s.humans.length, products: s.products, sSound: s.sSound !== false, pred: predPub(),
     round: r ? { n: r.n, label: r.label, mode: r.mode, practice: r.practice, left: Math.max(0, Math.round((s.current.endsAt - Date.now()) / 1000)) } : null,
     last: last ? { n: last.n, label: last.label } : null, shops, book, lock: s.lock, events: s.events.filter(e => e.active).map(e => ({ key: e.key, vi: e.vi, icon: e.icon, label: e.label, detail: e.detail })),
+    ck: s.ck && s.ck.open ? { open: true, id: s.ck.id, data: s.ck.data } : null,
     rev: !r && last && s.revealed[last.n] ? { n: last.n, ...revealInfo(last) } : null,
     prices: r && s.board.visible ? r.trades.slice(-12).map(t => ({ id: r.n + '-' + t.i, p: t.product, price: t.price, shop: t.shop })) : [], pricesHidden: !!(r && !s.board.visible), classSweets: Math.round(totalPrizePool()) };
 }
@@ -2679,6 +2686,174 @@ function botBuyerRespond(o) {
   }, 900 + Math.random() * 1800);
 }
 
+
+/* =====================================================================
+   KNOWLEDGE CHECK (Paper 1 style): 10 multiple-choice questions, A-D, one mark each.
+   Every wrong option is a common misconception. 8 from the bank below, 2 from the class's own market.
+   ===================================================================== */
+const tbl2 = (rows, head) => `<div class="table-wrap"><table class="mcq-table"><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+const QBANK2 = [
+  // category, id, syllabus, short label, question, [correct, wrong, wrong, wrong], explanation
+  ['shift', 's1', '2.2', 'Movement or shift (price change)', 'The price of chocolate falls. What happens in the chocolate market?',
+    ['A movement along the demand curve: quantity demanded extends', 'The demand curve shifts to the right', 'The demand curve shifts to the left', 'The supply curve shifts to the right'],
+    'A change in the good\'s own price causes a movement along the curve, not a shift.'],
+  ['shift', 's2', '2.2', 'Cause of a demand shift', 'Which of these shifts the demand curve for candy to the right?',
+    ['Students get more pocket money', 'The price of candy falls', 'The cost of sugar rises', 'A new candy factory opens'],
+    'Higher income means buyers want more at every price, so demand shifts right. A price change only moves along the curve; costs and factories affect supply.'],
+  ['shift', 's3', '2.3', 'Cause of a supply shift', 'Which of these shifts the supply curve for chocolate to the left?',
+    ['A storm destroys part of the cacao harvest', 'The price of chocolate rises', 'Chocolate becomes more fashionable', 'Buyers\' incomes rise'],
+    'Fewer cacao beans raise the cost of making chocolate, so less is supplied at every price.'],
+  ['shift', 's4', '2.2', 'Substitutes', 'The price of trà sữa rises sharply. What happens to the demand for fruit juice, a substitute?',
+    ['It increases: the demand curve for juice shifts right', 'It decreases: the demand curve for juice shifts left', 'Quantity demanded of juice contracts along its curve', 'Nothing changes in the juice market'],
+    'When a substitute becomes more expensive, people switch to juice, so the demand for juice increases.'],
+  ['shift', 's5', '2.3', 'Costs and supply', 'Wages for bakers rise. What happens in the bánh mì market?',
+    ['Supply decreases: the supply curve shifts left', 'Supply increases: the supply curve shifts right', 'Demand decreases: the demand curve shifts left', 'Quantity supplied extends along the supply curve'],
+    'Higher costs of production mean less is supplied at every price.'],
+  ['shift', 's6', '2.2', 'Advertising', 'A successful advertising campaign for a chocolate brand will:',
+    ['shift the demand curve for that brand to the right', 'shift the supply curve for that brand to the right', 'cause a movement down the demand curve', 'shift the demand curve to the left'],
+    'Advertising changes tastes, so buyers want more at every price: demand increases.'],
+  ['dir', 'r1', '2.5', 'Supply decreases', 'The supply of chocolate decreases. Demand does not change. What happens to the equilibrium?',
+    ['Price rises, quantity falls', 'Price falls, quantity rises', 'Price rises, quantity rises', 'Price falls, quantity falls'],
+    'Supply shifts left: there is a shortage at the old price, so the price rises and less is sold.'],
+  ['dir', 'r2', '2.5', 'Demand increases', 'Demand for candy increases at Halloween. Supply does not change. What happens to the equilibrium?',
+    ['Price rises, quantity rises', 'Price rises, quantity falls', 'Price falls, quantity rises', 'Price falls, quantity falls'],
+    'Demand shifts right: the price rises and quantity supplied extends, so more is sold.'],
+  ['dir', 'r3', '2.5', 'Supply increases', 'A new factory makes sweets more cheaply. What happens to the equilibrium in the sweets market?',
+    ['Price falls, quantity rises', 'Price rises, quantity falls', 'Price falls, quantity falls', 'Price rises, quantity rises'],
+    'Supply shifts right: there is a surplus at the old price, so the price falls and more is sold.'],
+  ['dir', 'r4', '2.5', 'Demand decreases', 'A health campaign makes students want fewer sweets. What happens to the equilibrium?',
+    ['Price falls, quantity falls', 'Price rises, quantity rises', 'Price falls, quantity rises', 'Price rises, quantity falls'],
+    'Demand shifts left: there is a surplus at the old price, so the price falls and less is sold.'],
+  ['dir', 'r5', '2.5', 'What happens first after a shock', 'The cacao harvest fails. At the old price of chocolate, what does the market have first?',
+    ['A shortage, so the price starts to rise', 'A surplus, so the price starts to fall', 'Equilibrium, so nothing changes', 'A surplus, so the price starts to rise'],
+    'Supply falls but buyers still want the same amount at the old price: a shortage, which pushes the price up.'],
+  ['both', 'b1', '2.5', 'Both curves shift (opposite ways)', 'At Halloween, demand for chocolate increases. At the same time, a poor cacao harvest decreases supply. What happens?',
+    ['Price rises; the change in quantity depends on which shift is bigger', 'Price falls; quantity rises', 'Price and quantity both fall', 'Price stays the same; quantity rises'],
+    'Both shifts push the price up. More demand raises quantity, less supply lowers it, so the quantity change depends on the sizes.'],
+  ['both', 'b2', '2.5', 'Both curves shift (same way)', 'Demand for candy increases and the supply of candy increases by the same amount. What happens?',
+    ['Quantity rises; the price stays about the same', 'Price rises; quantity falls', 'Price and quantity both fall', 'Nothing changes'],
+    'Both shifts raise quantity. One pushes the price up and the other pushes it down, so with equal shifts the price hardly changes.'],
+  ['dia', 'g1', '2.5', 'Reading a supply shift', 'On a diagram, supply moves from S1 to S2, which is to the left of S1. Demand does not move. Which is correct?',
+    ['The new equilibrium is at a higher price and a lower quantity', 'The new equilibrium is at a lower price and a higher quantity', 'Demand has decreased', 'Quantity supplied has extended along S1'],
+    'A leftward shift of supply meets the same demand curve higher up and further left.'],
+  ['dia', 'g2', '2.5', 'New equilibrium from a table', 'The table shows the market for bánh mì before and after flour becomes more expensive. What is the new equilibrium price?' + tbl2([['10.000đ', 90, 10, 0], ['15.000đ', 70, 30, 0], ['20.000đ', 50, 50, 10], ['25.000đ', 30, 70, 30], ['30.000đ', 10, 90, 50]], ['Price', 'Quantity demanded', 'Quantity supplied before', 'Quantity supplied after']),
+    ['25.000đ', '20.000đ', '15.000đ', '30.000đ'], 'After the change, quantity demanded equals quantity supplied (30) at 25.000đ. 20.000đ was the old equilibrium.'],
+  ['gap', 'f1', '2.4', 'Price fixed below equilibrium', 'The government fixes the price of bánh mì below the equilibrium price. What happens?',
+    ['A shortage: quantity demanded is greater than quantity supplied', 'A surplus: quantity supplied is greater than quantity demanded', 'The market stays in equilibrium', 'The supply curve shifts right'],
+    'Below equilibrium, more people want to buy than sellers are willing to sell.'],
+  ['gap', 'f2', '2.4', 'Menu price too high', 'A shop keeps one menu price all day, above the equilibrium price. What is most likely?',
+    ['Some stock is left unsold: a surplus', 'Buyers are turned away: a shortage', 'It sells everything at once', 'The demand for its product increases'],
+    'At a price above equilibrium, quantity supplied is greater than quantity demanded.'],
+  ['pm', 'm1', '2.4', 'Price as a signal after a shock', 'After the cacao harvest fails, the price of chocolate rises. How does the higher price help the market?',
+    ['It rations chocolate to buyers who value it most and encourages more supply', 'It makes everyone buy more chocolate', 'It shifts the demand curve to the right', 'It removes every buyer from the market'],
+    'The price mechanism signals scarcity: the higher price rations the smaller supply and gives firms an incentive to supply more.'],
+  ['pm', 'm2', '2.4', 'Rationing', 'In the price mechanism, "rationing" means:',
+    ['a higher price reduces quantity demanded to match the smaller quantity available', 'the government shares goods out equally', 'shops sell only one item to each buyer', 'the price falls so that more is sold'],
+    'When something is scarce, a higher price makes some buyers drop out until demand matches supply.'],
+  ['pm', 'm3', '2.4', 'Incentive', 'A higher price gives producers an incentive to:',
+    ['supply more, because it is more profitable', 'supply less', 'close their business', 'buy more of the product themselves'],
+    'Higher prices make extra units profitable, so quantity supplied extends.']
+];
+const BLUEPRINT2 = { shift: 2, dir: 2, both: 1, dia: 1, gap: 1, pm: 1, data: 2 };
+const CHECK_LABELS2 = Object.fromEntries(QBANK2.map(q => [q[1], q[3]]).concat([['x1', 'Class data: which curve shifted'], ['x2', 'Class data: shortage at the old price']]));
+/** The class's own market, from the cards (sent to students with the check) */
+function ckData2() {
+  const s = T.s, pr = PX().includes('choc') ? 'choc' : PX()[0], last = s.rounds[s.rounds.length - 1], cards = last ? last.cards : buyerSlots();
+  const def = EVENTS3.find(e => e.key === (pr === 'choc' ? 'cacao' : 'sugar')), ev = def.parts.map(x => ({ ...x, active: true }));
+  const a = M2.adjustment(cards, pr, [], ev); if (!a) return null;
+  return { name: PROD[pr].name, unit: pr === 'choc' ? 'bars' : 'bags', shock: def.label, P1: a.P1, Q1: a.Q1, P2: a.P2, Q2: a.Q2, qd: a.qdAtOld, qs: a.qsAtOld };
+}
+function dataQuestions2(d) {
+  if (!d) return [];
+  const lc = d.name.toLowerCase(), sh = d.shock.toLowerCase(), out = [];
+  out.push(['data', 'x1', '2.5', CHECK_LABELS2.x1, `In your market, the ${sh} moved the equilibrium for ${lc} from ${k(d.P1)} (${d.Q1} sold) to ${k(d.P2)} (${d.Q2} sold). Which curve shifted, and which way?`,
+    ['Supply shifted left (supply decreased)', 'Supply shifted right (supply increased)', 'Demand shifted right (demand increased)', 'Demand shifted left (demand decreased)'],
+    `Shops' costs rose, so they offered less at every price: supply shifted left. The price rose from ${k(d.P1)} to ${k(d.P2)} and fewer were sold.`]);
+  if (d.qd > d.qs) out.push(['data', 'x2', '2.5', CHECK_LABELS2.x2, `In your market, just after the ${sh}, at the old price of ${k(d.P1)}, buyers wanted ${d.qd} ${d.unit || ''} but shops offered only ${d.qs}. What did this create?`,
+    [`A shortage of ${d.qd - d.qs}, so the price rose`, `A surplus of ${d.qd - d.qs}, so the price fell`, `A shortage of ${d.qd - d.qs}, so the price fell`, 'Equilibrium, so the price stayed the same'],
+    `Quantity demanded (${d.qd}) was greater than quantity supplied (${d.qs}): a shortage of ${d.qd - d.qs}. Buyers competed for the few ${d.unit || 'units'}, so the price rose to about ${k(d.P2)}.`]);
+  return out;
+}
+function buildPaper2(data) {
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const bp = { ...BLUEPRINT2 }, dq = dataQuestions2(data).slice(0, bp.data);
+  if (dq.length < 2) bp.dir += 2 - dq.length;
+  const pick = [];
+  Object.entries(bp).forEach(([cat, n]) => { if (cat !== 'data') pick.push(...shuffle(QBANK2.filter(q => q[0] === cat)).slice(0, n)); });
+  pick.push(...dq);
+  const order = ['shift', 'dir', 'both', 'dia', 'data', 'gap', 'pm'];
+  pick.sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]));
+  return { qs: pick.map(q => ({ id: q[1], ref: q[2], text: q[4], opts: shuffle(q[5].map((t, i) => ({ t, ok: i === 0 }))), why: q[6] })), ans: {}, submitted: false, started: Date.now() };
+}
+/* ---- student ---- */
+const ckKey2 = () => SK() + ':ck2:' + ((S.pub && S.pub.ck && S.pub.ck.id) || '');
+function renderCheck2(main) {
+  if (!S.ck2 || S.ck2.id !== S.pub.ck.id) { S.ck2 = sstore.get(ckKey2(), null) || { id: S.pub.ck.id, ...buildPaper2(S.pub.ck.data) }; S.ck2.id = S.pub.ck.id; sstore.set(ckKey2(), S.ck2); }
+  const P = S.ck2, n = P.qs.length, answered = Object.keys(P.ans).length, L = 'ABCD';
+  const score = P.submitted ? P.qs.filter((q, i) => P.ans[i] != null && q.opts[P.ans[i]].ok).length : 0;
+  main.innerHTML = `<div class="panel stack paper">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">📝 Knowledge check</h2>${P.submitted ? '' : '<span class="timer" id="ckTimer"></span>'}</div>
+    ${P.submitted ? `<div class="${score >= 8 ? 'good' : score >= 5 ? 'note' : 'bad'}"><b>Your mark: ${score} / ${n}</b>. ${score >= 8 ? 'Excellent: you can explain how markets react to news.' : 'Read the explanation under each question you got wrong.'}</div>` :
+      `<p class="muted" style="margin:0">Paper 1 style. ${n} questions, one mark each. Choose A, B, C or D. In the exam you have about 1.5 minutes per question.</p>`}
+    ${P.qs.map((q, i) => { const my = P.ans[i], right = q.opts.findIndex(o => o.ok);
+      return `<div class="mcq ${P.submitted ? (my === right ? 'right' : 'wrong') : ''}" id="mcq-${i}"><div class="mq"><span class="qn">${i + 1}</span><div>${q.text}</div></div>
+        <div class="mopts">${q.opts.map((o, j) => `<button class="mopt ${my === j ? 'sel' : ''} ${P.submitted && j === right ? 'correct' : ''}" data-ck="pick" data-i="${i}" data-k="${j}" ${P.submitted ? 'disabled' : ''}><span class="ml">${L[j]}</span><span>${esc(o.t)}</span></button>`).join('')}</div>
+        ${P.submitted ? `<div class="${my === right ? 'good' : 'bad'}">${my === right ? 'Correct. ' : my == null ? `Not answered. The answer is ${L[right]}. ` : `The answer is ${L[right]}. `}${q.why} <span class="muted">(${q.ref})</span></div>` : ''}</div>`; }).join('')}
+    ${P.submitted ? '' : `<div class="row" style="justify-content:space-between"><span class="muted" id="ckCount2">${answered} of ${n} answered</span><button class="btn primary" data-ck="submit">Submit my answers</button></div>`}
+  </div>`;
+  clearInterval(S.ckTimer2);
+  if (!P.submitted) { const guide = n * 90, upd = () => { const el = $('#ckTimer'); if (!el) return clearInterval(S.ckTimer2); const left = guide - Math.floor((Date.now() - P.started) / 1000); el.textContent = left >= 0 ? `Exam pace: ${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')} left` : `${Math.floor(-left / 60)}:${String(-left % 60).padStart(2, '0')} over exam pace`; el.classList.toggle('late', left < 0); }; upd(); S.ckTimer2 = setInterval(upd, 1000); }
+}
+function ckClick2(e) {
+  const b = e.target.closest('[data-ck]'); if (!b || b.disabled) return;
+  const P = S.ck2; if (!P) return;
+  if (b.dataset.ck === 'pick') {
+    if (P.submitted) return;
+    const i = +b.dataset.i, j = +b.dataset.k; P.ans[i] = j; sstore.set(ckKey2(), P); sfx('blip');
+    $$(`#mcq-${i} .mopt`).forEach((x, m) => x.classList.toggle('sel', m === j));
+    const c = $('#ckCount2'); if (c) c.textContent = `${Object.keys(P.ans).length} of ${P.qs.length} answered`;
+  } else if (b.dataset.ck === 'submit') {
+    const missing = P.qs.length - Object.keys(P.ans).length;
+    if (missing && !confirm(`You have ${missing} unanswered question${missing > 1 ? 's' : ''}. Submit anyway?`)) return;
+    P.submitted = true; clearInterval(S.ckTimer2); sstore.set(ckKey2(), P);
+    const items = P.qs.map((q, i) => ({ id: q.id, correct: P.ans[i] != null && q.opts[P.ans[i]].ok })), score = items.filter(x => x.correct).length;
+    sSend({ type: 'check2', id: P.id, score, total: P.qs.length, items });
+    sfx(score >= 8 ? 'fanfare' : 'chime'); if (score >= 8 && typeof confetti === 'function') confetti();
+    renderCheck2($('#sMain')); window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+  }
+}
+/* ---- teacher ---- */
+function checkStats2() {
+  const res = T.s.checks2 || {}, byQ = {};
+  Object.values(res).forEach(r => r.items.forEach(it => { const q = (byQ[it.id] ||= { n: 0, ok: 0 }); q.n++; if (it.correct) q.ok++; }));
+  const sc = Object.values(res).map(r => r.score / r.total);
+  return { res, byQ, n: sc.length, avg: sc.length ? sc.reduce((a, b) => a + b, 0) / sc.length : null };
+}
+function ckPanel2() {
+  const s = T.s, ck = s.ck || {}, st = checkStats2();
+  if (!ck.open && !st.n) return `<div class="panel stack"><h2 style="margin:0">📝 Knowledge check (Paper 1 style)</h2><p style="margin:0">10 multiple-choice questions on shifts in demand and supply, price changes and the price mechanism (2.2–2.5). Two are built from your class's own market. Auto-marked, about 15 minutes. Best at the end of the lesson.</p><div class="row"><button class="btn small primary" data-act="ck-open" ${s.current ? 'disabled' : ''}>Open the knowledge check</button>${s.current ? '<small class="muted">End the round first.</small>' : ''}</div></div>`;
+  const qrows = Object.entries(st.byQ).sort((a, b) => a[1].ok / a[1].n - b[1].ok / b[1].n).map(([id, q]) => `<tr><td>${esc(CHECK_LABELS2[id] || id)}</td><td>${q.n}</td><td><div class="row" style="gap:6px;flex-wrap:nowrap"><div class="poll-bar" style="width:90px"><i style="width:${Math.round(100 * q.ok / q.n)}%"></i></div>${Math.round(100 * q.ok / q.n)}%</div></td></tr>`).join('');
+  const srows = s.humans.map(h => { const r = st.res[h.pid]; return `<tr><td>${esc(h.nick)}</td><td>${r ? r.score + ' / ' + r.total : '–'}</td></tr>`; }).join('');
+  return `<div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">📝 Knowledge check: ${st.n} of ${s.humans.length} submitted</h2>
+      <div class="row" style="gap:6px">${ck.open ? '<button class="btn small" data-act="ck-close">Close</button>' : `<button class="btn small" data-act="ck-open" ${s.current ? 'disabled' : ''}>Open again</button>`}<button class="btn small" data-act="ck-reveal">${ck.reveal ? 'Hide results on the board' : 'Show class results on the board'}</button></div></div>
+    ${st.n ? `<p style="margin:0">Class average: <b>${Math.round(100 * st.avg)}%</b></p>` : '<p class="muted" style="margin:0">Students see the check on their device now. Results appear here as they submit.</p>'}
+    ${qrows ? `<h3 style="margin:0">By question (weakest first)</h3><div class="table-wrap"><table><tr><th>Question</th><th>Answered</th><th>Correct</th></tr>${qrows}</table></div><small class="muted">The weakest questions show which misconception to reteach.</small>` : ''}
+    <details><summary>By student</summary><div class="table-wrap"><table><tr><th>Student</th><th>Mark</th></tr>${srows}</table></div></details>
+    <button class="btn small" data-act="ck-csv" ${st.n ? '' : 'disabled'}>Download results (CSV)</button></div>`;
+}
+function ckProjHtml2() {
+  const s = T.s, st = checkStats2();
+  const bars = Object.entries(st.byQ).sort((a, b) => a[1].ok / a[1].n - b[1].ok / b[1].n).map(([id, q]) => `<div class="cbar"><span>${esc(CHECK_LABELS2[id] || id)}</span><div class="poll-bar"><i style="width:${Math.round(100 * q.ok / q.n)}%"></i></div><b>${Math.round(100 * q.ok / q.n)}%</b></div>`).join('');
+  return `<div class="selfpace"><h1>📝 Knowledge check</h1><p class="lead">Paper 1 style: 10 questions, about 15 minutes. Work on your own.</p>
+    <div class="yescount"><span>${st.n}</span><small>of ${s.humans.length} submitted</small></div>
+    ${s.ck && s.ck.reveal && st.n ? `<div class="panel stack"><h2 style="margin:0">Class results: ${Math.round(100 * st.avg)}% average</h2>${bars}</div>` : ''}</div>`;
+}
+function ckCsv2() {
+  const s = T.s, ids = Object.keys(CHECK_LABELS2), lines = [['student', 'score', 'total', ...ids].join(',')];
+  Object.entries(s.checks2 || {}).forEach(([pid, r]) => { const m = Object.fromEntries(r.items.map(x => [x.id, x.correct ? 1 : 0])); lines.push([JSON.stringify(nick(pid)), r.score, r.total, ...ids.map(id => m[id] ?? '')].join(',')); });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' })); a.download = `knowledge-check-level2-${s.room}.csv`; a.click();
+}
+
 /* ---- console ---- */
 function renderT() {
   document.body.innerHTML = shell(`
@@ -2713,6 +2888,7 @@ function renderBody() {
         ${s.rounds.length ? `<div class="row"><span>Equilibrium on the board for the last round:</span><button class="btn small" data-act="reveal">${s.revealed[(r || s.rounds[s.rounds.length - 1]).n] ? 'Hide' : 'Reveal'}</button></div>` : ''}
       </div>
       ${predPanel()}
+      ${ckPanel2()}
       <div class="panel stack"><h2 style="margin:0">Events</h2>
         <div class="row">${EVENTS3.filter(e => eventFits(e, PX())).map(e => `<button class="btn small" data-act="event" data-k="${e.key}">${e.icon} ${esc(e.label)}</button>`).join('')}</div>
         <details><summary>Custom event</summary><div class="row" style="margin-top:8px"><select id="ceSide" style="width:auto"><option value="sellers">Shops' costs</option><option value="buyers">Buyers' values</option></select><select id="ceProd" style="width:auto"><option value="choc">Chocolate</option><option value="candy">Candy</option><option value="both">Both</option></select><input id="ceAmt" type="number" value="2" style="max-width:80px"><input id="ceLab" type="text" placeholder="Headline" style="flex:1;min-width:140px"><button class="btn small" data-act="custom-event">Add</button></div></details>
@@ -2786,6 +2962,10 @@ function tClick(e) {
   else if (a === 'custom-round') startRound({ label: ($('#rlab').value || '').trim() || null, mode: $('#rmode').value, board: null, events: [] });
   else if (a === 'end') endRound();
   else if (a === 'board') { s.board.visible = !s.board.visible; tSave(); renderBody(); if (T.projector) renderProj(true); }
+  else if (a === 'ck-open') { if (s.current) return toast('End the round first.'); if (s.ck && s.ck.id) s.ck.open = true; else { s.ck = { open: true, id: rid(6), reveal: false, data: ckData2() }; s.checks2 = {}; } Sound.play('sting'); FX.news({ icon: '📝', kicker: 'KNOWLEDGE CHECK · KIỂM TRA KIẾN THỨC', title: 'Knowledge check', detail: '10 questions, Paper 1 style. Answer on your device.', theme: 'round', ms: 3500, sound: false }); tSave(); renderBody(); tBroadcast(true); if (T.projector) renderProj(true); }
+  else if (a === 'ck-close') { if (s.ck) s.ck.open = false; tSave(); renderBody(); tBroadcast(true); if (T.projector) renderProj(true); }
+  else if (a === 'ck-reveal') { if (s.ck) s.ck.reveal = !s.ck.reveal; tSave(); renderBody(); if (T.projector) renderProj(true); }
+  else if (a === 'ck-csv') ckCsv2();
   else if (a === 'hero-p') { s.heroP = b.dataset.p; tSave(); renderHero(true); if (T.projector) renderProj(true); }
   else if (a === 'peek') { T.peek = !T.peek; renderHero(true); }
   else if (a === 'shift-again') { const rd = heroRound(); if (rd) { T.revealAnim = { n: rd.n, t0: Date.now() + 150 }; setTimeout(animReveal, 150); } }
@@ -2870,7 +3050,8 @@ function renderProj(fresh) {
 function projDynamic() {
   const s = T.s, st = $('#pStage'); if (!st) return;
   const r = curRound(), last = r || s.rounds[s.rounds.length - 1];
-  if (s.pred && s.pred.open && !r) st.innerHTML = predProjHtml();
+  if (s.ck && s.ck.open && !r) st.innerHTML = ckProjHtml2();
+  else if (s.pred && s.pred.open && !r) st.innerHTML = predProjHtml();
   else if (s.board.view === 'floor' && (s.board.visible || !r)) { if (!$('#cFl')) st.innerHTML = `<div class="floor-col"><div id="pEq"></div><div class="floor-wrap"><div class="chart-box tall"><canvas id="cFl"></canvas></div></div></div>`; const pe = $('#pEq'); if (pe && last) pe.innerHTML = eqStripHtml(last, !!s.revealed[last.n]); drawFloor($('#cFl'), last); }
   else if (s.board.view === 'leaders') st.innerHTML = leadersHtml();
   else if (r && !s.board.visible) st.innerHTML = `<div class="lobby-stage"><h1>${esc(r.label)}</h1><p class="lead">Prices are hidden this round. Compare the shops yourself.</p><div class="art-row">${ART3.choc}${ART3.candy}</div></div>`;
@@ -3347,6 +3528,7 @@ function render() {
   const ev = (p.events || []).length ? `<div class="evbar">${p.events.map(e => `<span>${e.icon} ${esc(e.label)}: ${esc(e.detail)}</span>`).join('')}</div>` : '';
   const lock = (p.lock ? `<div class="note" style="margin:0 0 12px">📌 This round the price of ${PROD[p.lock.product].name.toLowerCase()} is fixed at <b>${k(p.lock.price)}</b>. It cannot change.</div>` : '') + (p.round && p.round.mode === 'menu' ? `<div class="note" style="margin:0 0 12px">📋 <b>Menu prices.</b> ${me.role === 'buyer' ? 'Each shop has one price for the whole round. Buy where you like.' : 'Choose ONE price for each product. You cannot change it this round.'}</div>` : '');
   if (!me.role) { main.innerHTML = `<div class="panel stack"><h2 style="margin:0">${FX.avOf(S.av)} Hi ${esc(S.nick)}, you're in.</h2><p style="margin:0">Your teacher will give you a role: a <b>buyer</b> with a value card, or part of a <b>shop</b>. Good trades fill your prize jar with real sweets.</p>${FX.avatarPicker(S.av)}${FX.teamPicker(S.team)}</div>`; main.onclick = null; return; }
+  if (!p.round && p.ck && p.ck.open) { if (!(S.ck2 && S.ck2.id === p.ck.id && $('#sMain .paper'))) renderCheck2(main); main.onclick = ckClick2; return; }
   if (!p.round && DB.S.active(p)) { DB.S.render(main, p); main.onclick = null; return; }
   if (!p.round) { main.innerHTML = ev + lock + betweenHtml(); main.onclick = onClick; return; }
   if (me.role === 'buyer' ? !('values' in me) : !me.costs) { main.innerHTML = ev + lock + '<div class="panel">Getting your card for this round…</div>'; return; }
