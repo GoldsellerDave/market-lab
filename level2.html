@@ -1463,11 +1463,12 @@ const DB = (() => {
   const DW = { W: 360, H: 310, L: 52, R: 14, T: 14, B: 40 };
   function drawGeom(t) {
     const pw = DW.W - DW.L - DW.R, ph = DW.H - DW.T - DW.B, prices = t.rows.map(r => r.price);
-    const pMax = t.pMax || Math.max(...prices) * 1.15, qMax = t.qMax;
-    return { pw, ph, pMax, qMax, X: q => DW.L + q / qMax * pw, Y: p => DW.T + ph - p / pMax * ph, iq: x => (x - DW.L) / pw * qMax, ip: y => (DW.T + ph - y) / ph * pMax };
+    const pMax = t.pMax || Math.max(...prices) * 1.15, qMax = t.qMax, p0 = t.pMin || 0; // pMin: the price axis can start above 0 (a broken axis)
+    return { pw, ph, pMax, qMax, X: q => DW.L + q / qMax * pw, Y: p => DW.T + ph - (p - p0) / (pMax - p0) * ph, iq: x => (x - DW.L) / pw * qMax, ip: y => p0 + (DW.T + ph - y) / ph * (pMax - p0) };
   }
   const tolQ = t => t.tolQ ?? Math.max(t.qStep || 1, t.qMax * .045);
   function markDraw(t, a) {
+    if (t.shift) return markShift(t, a);
     const near = (pts, want) => want.every(w => (pts || []).some(p => p.price === w.price && Math.abs(p.q - w.q) <= tolQ(t)));
     const d = near(a.d, t.rows.map(r => ({ price: r.price, q: r.qd }))), s = near(a.s, t.rows.map(r => ({ price: r.price, q: r.qs })));
     const e = a.e && (t.eq.lo != null ? a.e.price >= t.eq.lo - 1e-9 && a.e.price <= t.eq.hi + 1e-9 : Math.abs(a.e.price - t.eq.price) < 1e-9) && Math.abs(a.e.q - t.eq.qty) <= tolQ(t) * 1.5;
@@ -1475,27 +1476,49 @@ const DB = (() => {
     const mark = [d, s, e, ax].filter(Boolean).length;
     return { mark, max: 4, ok: mark === 4, fb: `${d ? '✓' : '✗'} demand curve · ${s ? '✓' : '✗'} supply curve · ${e ? '✓' : '✗'} equilibrium marked · ${ax ? '✓' : '✗'} axes labelled`, parts: { d, s, e, ax } };
   }
+  /** Before-and-after diagram: demand, supply before (S1), supply after (S2), both equilibria. 1 mark each for D, S1, S2; 1 for both equilibria. */
+  function markShift(t, a) {
+    const near = (pts, want) => want.every(w => (pts || []).some(p => p.price === w.price && Math.abs(p.q - w.q) <= tolQ(t)));
+    const at = (pt, e) => pt && Math.abs(pt.price - e.price) < 1e-9 && Math.abs(pt.q - e.qty) <= tolQ(t) * 1.5;
+    const d = near(a.d, t.rows.map(r => ({ price: r.price, q: r.qd }))), s1 = near(a.s, t.rows.map(r => ({ price: r.price, q: r.qs }))), s2 = near(a.s2, t.rows.map(r => ({ price: r.price, q: r.qs2 })));
+    const e = at(a.e, t.eq) && at(a.e2, t.eq2);
+    const mark = [d, s1, s2, e].filter(Boolean).length;
+    return { mark, max: 4, ok: mark === 4, fb: `${d ? '✓' : '✗'} demand curve · ${s1 ? '✓' : '✗'} S1 (before) · ${s2 ? '✓' : '✗'} S2 (after) · ${e ? '✓' : '✗'} both equilibria (E1 and E2)`, parts: { d, s1, s2, e } };
+  }
   function drawSvg(t, a, locked) {
     const G = drawGeom(t), fp = v => (t.pLab && t.pLab[v]) || v, fq = v => v;
     let s = '';
     t.rows.forEach(r => { s += `<line x1="${DW.L}" y1="${G.Y(r.price)}" x2="${DW.L + G.pw}" y2="${G.Y(r.price)}" stroke="var(--line)"/><text x="${DW.L - 5}" y="${G.Y(r.price) + 4}" font-size="10" text-anchor="end" fill="var(--muted)">${h(fp(r.price))}</text>`; });
     const qs = t.qTicks || 5; for (let k = 0; k <= qs; k++) { const q = Math.round(G.qMax * k / qs); s += `<line x1="${G.X(q)}" y1="${DW.T}" x2="${G.X(q)}" y2="${DW.T + G.ph}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${G.X(q)}" y="${DW.T + G.ph + 14}" font-size="10" text-anchor="middle" fill="var(--muted)">${h(fq(q))}</text>`; }
     s += `<path d="M${DW.L} ${DW.T} V${DW.T + G.ph} H${DW.L + G.pw}" stroke="var(--ink)" stroke-width="2" fill="none"/>`;
+    if (t.pMin) s += `<path d="M${DW.L - 6} ${DW.T + G.ph - 14} l12 -5 M${DW.L - 6} ${DW.T + G.ph - 8} l12 -5" stroke="var(--ink)" stroke-width="2"/><text x="${DW.L - 5}" y="${DW.T + G.ph + 4}" font-size="10" text-anchor="end" fill="var(--muted)">0</text>`;
     const lab = { p: 'Price', q: 'Quantity', r: 'Revenue', c: 'Cost' };
-    s += `<text x="${DW.L + G.pw / 2}" y="${DW.H - 6}" font-size="12" font-weight="700" text-anchor="middle" fill="${a.ax ? 'var(--ink)' : 'var(--muted)'}">${a.ax ? lab[a.ax] : 'x-axis: ?'}</text>`;
-    s += `<text transform="translate(13 ${DW.T + G.ph / 2}) rotate(-90)" font-size="12" font-weight="700" text-anchor="middle" fill="${a.ay ? 'var(--ink)' : 'var(--muted)'}">${a.ay ? lab[a.ay] : 'y-axis: ?'}</text>`;
+    const ax = t.shift ? 'q' : a.ax, ay = t.shift ? 'p' : a.ay;
+    s += `<text x="${DW.L + G.pw / 2}" y="${DW.H - 6}" font-size="12" font-weight="700" text-anchor="middle" fill="${ax ? 'var(--ink)' : 'var(--muted)'}">${ax ? lab[ax] : 'x-axis: ?'}</text>`;
+    s += `<text transform="translate(13 ${DW.T + G.ph / 2}) rotate(-90)" font-size="12" font-weight="700" text-anchor="middle" fill="${ay ? 'var(--ink)' : 'var(--muted)'}">${ay ? lab[ay] : 'y-axis: ?'}</text>`;
     const line = (pts, col, L) => { if (!pts || !pts.length) return ''; const p2 = pts.slice().sort((x, y) => x.price - y.price); let o = p2.length > 1 ? `<polyline points="${p2.map(p => G.X(p.q) + ',' + G.Y(p.price)).join(' ')}" fill="none" stroke="${col}" stroke-width="3"/>` : ''; o += p2.map(p => `<circle cx="${G.X(p.q)}" cy="${G.Y(p.price)}" r="5.5" fill="${col}"/>`).join(''); const top = L === 'D' ? p2[0] : p2[p2.length - 1]; if (p2.length > 1) o += `<text x="${G.X(top.q) + 8}" y="${G.Y(top.price) + 4}" font-size="14" font-weight="800" fill="${col}">${L}</text>`; return o; };
-    s += line(a.d, 'var(--buyer)', 'D') + line(a.s, 'var(--seller)', 'S');
-    if (a.e) s += `<circle cx="${G.X(a.e.q)}" cy="${G.Y(a.e.price)}" r="10" fill="none" stroke="var(--mint)" stroke-width="3"/><path d="M${DW.L} ${G.Y(a.e.price)} H${G.X(a.e.q)} V${DW.T + G.ph}" stroke="var(--mint)" stroke-dasharray="5 4" fill="none" stroke-width="2"/><text x="${G.X(a.e.q) + 12}" y="${G.Y(a.e.price) - 8}" font-size="11" font-weight="800" fill="var(--mint)">E</text>`;
+    s += line(a.d, 'var(--buyer)', 'D') + line(a.s, 'var(--seller)', t.shift ? 'S1' : 'S') + (t.shift ? line(a.s2, S2C, 'S2') : '');
+    const eMark = (e, col, L) => e ? `<circle cx="${G.X(e.q)}" cy="${G.Y(e.price)}" r="10" fill="none" stroke="${col}" stroke-width="3"/><path d="M${DW.L} ${G.Y(e.price)} H${G.X(e.q)} V${DW.T + G.ph}" stroke="${col}" stroke-dasharray="5 4" fill="none" stroke-width="2"/><text x="${G.X(e.q) + 12}" y="${G.Y(e.price) - 8}" font-size="11" font-weight="800" fill="${col}">${L}</text>` : '';
+    s += eMark(a.e, 'var(--mint)', t.shift ? 'E1' : 'E') + (t.shift ? eMark(a.e2, '#6a3fb5', 'E2') : '');
     return `<svg class="db-draw" data-db-draw="${h(t.id)}" viewBox="0 0 ${DW.W} ${DW.H}" role="img" aria-label="Diagram">${s}<rect x="${DW.L}" y="${DW.T}" width="${G.pw}" height="${G.ph}" fill="transparent" ${locked ? '' : 'class="db-hit"'}/></svg>`;
   }
+  const S2C = '#b86b00';
   function drawHtml(t, a, locked) {
+    if (t.shift) return shiftHtml(t, a, locked);
     const mode = a.mode || 'd', btn = (m, l, c) => `<button type="button" class="db-mode ${mode === m ? 'sel' : ''}" data-db-mode="${m}" data-id="${h(t.id)}" style="--mc:${c}" ${locked ? 'disabled' : ''}>${l}</button>`;
     return `<div class="db-drawbox"><div class="db-modes">${btn('d', '● Demand points', 'var(--buyer)')}${btn('s', '● Supply points', 'var(--seller)')}${btn('e', '◎ Equilibrium', 'var(--mint)')}${locked ? '' : `<button type="button" class="db-mode" data-db-clear="${h(t.id)}">Clear ${mode === 'd' ? 'demand' : mode === 's' ? 'supply' : 'equilibrium'}</button>`}</div>
       ${drawSvg(t, a, locked)}
       <div class="db-axes"><label>x-axis <select data-db-ax="x" data-id="${h(t.id)}" ${locked ? 'disabled' : ''}><option value="">choose</option>${[['p', 'Price'], ['q', 'Quantity'], ['r', 'Revenue']].map(([v, l]) => `<option value="${v}" ${a.ax === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <label>y-axis <select data-db-ax="y" data-id="${h(t.id)}" ${locked ? 'disabled' : ''}><option value="">choose</option>${[['p', 'Price'], ['q', 'Quantity'], ['c', 'Cost']].map(([v, l]) => `<option value="${v}" ${a.ay === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
       <small class="muted">Tap the grid to place a point for each price in the table. Tap a point again to remove it. ${t.qStep > 1 ? `Quantities snap to steps of ${t.qStep}.` : ''}</small></div>`;
+  }
+
+  function shiftHtml(t, a, locked) {
+    const mode = a.mode || 'd', names = { d: 'demand', s: 'S1', s2: 'S2', e: 'E1', e2: 'E2' };
+    const btn = (m, l, c) => `<button type="button" class="db-mode ${mode === m ? 'sel' : ''}" data-db-mode="${m}" data-id="${h(t.id)}" style="--mc:${c}" ${locked ? 'disabled' : ''}>${l}</button>`;
+    return `<div class="db-drawbox"><div class="db-modes">${btn('d', '● Demand (D)', 'var(--buyer)')}${btn('s', '● Supply before (S1)', 'var(--seller)')}${btn('s2', '● Supply after (S2)', S2C)}${btn('e', '◎ E1 (before)', 'var(--mint)')}${btn('e2', '◎ E2 (after)', '#6a3fb5')}${locked ? '' : `<button type="button" class="db-mode" data-db-clear="${h(t.id)}">Clear ${names[mode]}</button>`}</div>
+      ${drawSvg(t, a, locked)}
+      <small class="muted">Choose a curve, then tap the grid at each price in the table. Tap a point again to remove it. Then mark E1 (before) and E2 (after) where the curves cross.</small></div>`;
   }
 
   /* ---------- SVG charts for printing and the source panel ---------- */
@@ -1513,6 +1536,7 @@ const DB = (() => {
   }
   function answerSvg(t) {
     const a = { d: t.rows.map(r => ({ price: r.price, q: r.qd })), s: t.rows.map(r => ({ price: r.price, q: r.qs })), e: { price: t.eq.price, q: t.eq.qty }, ax: 'q', ay: 'p' };
+    if (t.shift) { a.s2 = t.rows.map(r => ({ price: r.price, q: r.qs2 })); a.e2 = { price: t.eq2.price, q: t.eq2.qty }; }
     return drawSvg(t, a, true);
   }
 
@@ -1655,7 +1679,7 @@ const DB = (() => {
     if (el.dataset.dbOrd) { const id = el.dataset.id, [k] = findTask(id), st = stOf(k); st.ans[id] = [...(st.ans[id] || []), el.dataset.dbOrd]; sSave(); return rerender(k); }
     if (el.dataset.dbOrdreset) { const id = el.dataset.dbOrdreset, [k] = findTask(id); stOf(k).ans[id] = []; sSave(); return rerender(k); }
     if (el.dataset.dbMode) { const id = el.dataset.id, [k] = findTask(id), a = (stOf(k).ans[id] ||= {}); a.mode = el.dataset.dbMode; sSave(); return redraw(id); }
-    if (el.dataset.dbClear) { const id = el.dataset.dbClear, [k] = findTask(id), a = (stOf(k).ans[id] ||= {}), m = a.mode || 'd'; if (m === 'e') delete a.e; else a[m] = []; sSave(); return redraw(id); }
+    if (el.dataset.dbClear) { const id = el.dataset.dbClear, [k] = findTask(id), a = (stOf(k).ans[id] ||= {}), m = a.mode || 'd'; if (m === 'e' || m === 'e2') delete a[m]; else a[m] = []; sSave(); return redraw(id); }
   }
   function sDraw(e) {
     const hit = e.target.closest && e.target.closest('.db-hit'); if (!hit) return;
@@ -1666,9 +1690,9 @@ const DB = (() => {
     let q = Math.max(0, Math.min(t.qMax, Math.round(G.iq(loc.x) / step) * step));
     const pRaw = G.ip(loc.y), price = t.rows.map(r => r.price).reduce((b, p) => Math.abs(p - pRaw) < Math.abs(b - pRaw) ? p : b, t.rows[0].price);
     const a = (st.ans[id] ||= {}), mode = a.mode || 'd';
-    if (mode === 'e') {
-      let ep = pRaw; const ps = t.rows.map(r => r.price).sort((x, y) => x - y), gap = (ps[1] - ps[0]) / 2; ep = Math.round(pRaw / gap) * gap;
-      a.e = { price: ep, q };
+    if (mode === 'e' || mode === 'e2') {
+      let ep = pRaw; const ps = t.rows.map(r => r.price).sort((x, y) => x - y), gap = (ps[1] - ps[0]) / 2; ep = t.shift ? price : Math.round(pRaw / gap) * gap;
+      a[mode] = { price: ep, q };
     } else {
       const arr = (a[mode] ||= []), same = arr.findIndex(p => p.price === price && Math.abs(p.q - q) <= Math.max(step, t.qMax * .03));
       if (same >= 0) arr.splice(same, 1); else { const i = arr.findIndex(p => p.price === price); if (i >= 0) arr.splice(i, 1); arr.push({ price, q }); }
@@ -1769,6 +1793,7 @@ const DB = (() => {
     else if (t.kind === 'choice') ans = t.options.filter(o => t.correct.includes(o.id)).map(o => `<b>${o.text}</b>`).join('; ') + ((t.pick || 1) > 1 ? ' (1 mark each)' : '');
     else if (t.kind === 'grid') ans = t.rows.map(r => `${r.label}: ${r.cells.filter(c => c && c.answer != null).map(c => c.show || c.answer).join(', ')}`).join(' · ');
     else if (t.kind === 'order') ans = t.correct.map((id, i) => `${i + 1}. ${t.items.find(x => x.id === id).text}`).join('<br>');
+    else if (t.kind === 'draw' && t.shift) ans = `1 mark each: demand curve plotted correctly · S1 (supply before) plotted correctly · S2 (supply after) plotted correctly · both equilibria labelled (E1 at ${h(t.eqShow || '')}, E2 at ${h(t.eq2Show || '')}).<div style="max-width:360px">${answerSvg(t)}</div>`;
     else if (t.kind === 'draw') ans = `1 mark each: demand curve plotted correctly · supply curve plotted correctly · equilibrium identified (price ${h(t.eqShow || '')}) · axes labelled price (y) and quantity (x).<div style="max-width:360px">${answerSvg(t)}</div>`;
     else if (t.kind === 'text') ans = `${t.scheme || ''}${t.levels ? `<table class="pq-t"><tr><th>Level</th><th>Marks</th><th>Description</th></tr><tr><td>3</td><td>6–8</td><td>A reasoned discussion that accurately considers two sides of the argument, using economic concepts and terms accurately.</td></tr><tr><td>2</td><td>3–5</td><td>A reasoned discussion using economic information and clear analysis; may lack depth or be one-sided.</td></tr><tr><td>1</td><td>1–2</td><td>Relevant definitions and/or relevant statements that are not developed.</td></tr><tr><td>0</td><td>0</td><td>No creditable content.</td></tr></table>` : ''}${t.model ? `<div><i>Model answer:</i> ${t.model}</div>` : ''}`;
     return `<div class="pq"><div class="pq-h"><b>${h(n)}</b> ${t.cmd ? `<b>${h(t.cmd)}</b> ` : ''}${t.q}${t.marks ? ` <span class="pq-m">[${t.marks}]</span>` : ''}</div><div class="ms">${ans}${t.explain ? `<div class="pq-note">${t.explain}</div>` : ''}</div></div>`;
@@ -3376,9 +3401,20 @@ function buildPack2() {
   const clear = sched.reduce((b, x) => Math.abs(x.qd - x.qs) < Math.abs(b.qd - b.qs) ? x : b, sched[0]);
   const ext = shuffleSeeded([...r2, clear].filter((x, i, a) => a.findIndex(y => y.price === x.price) === i), seed).slice(0, 4).sort((a, b) => a.price - b.price);
   const factory = EVENTS3.find(e => e.key === 'factory'), evF = factory.parts.map(x => ({ ...x, active: true })), eqF = M2.equilibrium(cards, pr, evF);
+  // ---- Paper 2 Section A: one table only (the market before and after the harvest shock) ----
+  const exactAt = (lo, hi, evs) => { for (let x = Math.ceil(lo); x <= Math.floor(hi); x++) { const q = M2.atPrice(cards, pr, evs, x); if (q.qd === q.qs && q.qd > 0) return { p: x, q: q.qd }; } return null; };
+  const E1 = (eqB.qty && exactAt(eqB.lo, eqB.hi, base)) || { p: adj ? adj.P1 : P0, q: eqB.qty }, E2 = (eqA.qty && exactAt(eqA.lo, eqA.hi, shockEv)) || { p: adj ? adj.P2 : Math.round(eqA.price), q: eqA.qty };
+  const rowAt = x => ({ price: x, qd: M2.atPrice(cards, pr, base, x).qd, qs: M2.atPrice(cards, pr, base, x).qs, qs2: M2.atPrice(cards, pr, shockEv, x).qs });
+  const aPrices = [...new Set([E1.p - 3, E1.p - 1, E1.p, E1.p + 1, E2.p, E2.p + 1, E2.p + 3])].filter(x => x >= 1).sort((a, b) => a - b);
+  const aRows = aPrices.map(rowAt), r1 = rowAt(E1.p), shortA = r1.qd - r1.qs2, sh = shockDef.label.toLowerCase();
+  const dPrices = aPrices.filter(x => x >= E1.p - 1 && x <= E2.p + 1), dRowsA = dPrices.map(rowAt);
+  sources.push({ key: 'p2', title: `Source A: the ${lname} market before and after the ${sh}`, note: `${shockDef.detail}. From the buyer cards and shop schedules in your market.`, table: { head: ['Price', 'Quantity demanded', 'Quantity supplied before', 'Quantity supplied after'], rows: aRows.map(x => [k(x.price), x.qd, x.qs, x.qs2]) } });
+  const drawA = T2.draw('a_d', `a demand and supply diagram using Source A for prices ${k(dPrices[0])} to ${k(dPrices[dPrices.length - 1])}. Show the market before (S1) and after (S2) the ${sh}. Label both equilibria.`, { shift: true, rows: dRowsA, eq: { price: E1.p, qty: E1.q }, eq2: { price: E2.p, qty: E2.q }, eqShow: `${k(E1.p)}, ${E1.q} ${unit}`, eq2Show: `${k(E2.p)}, ${E2.q} ${unit}`, qMax: Math.max(...dRowsA.map(x => Math.max(x.qd, x.qs, x.qs2))) + 2, qStep: 1, pLab: Object.fromEntries(dRowsA.map(x => [x.price, k(x.price)])), pMin: dPrices[0] - 2, pMax: dPrices[dPrices.length - 1] + 1, ref: '2.5' });
+  const ctxA = { p1: k(E1.p), q1: shortA, p2: k(E2.p), q2: E2.q, price: k(E1.p), qty: E1.q, extra: String(r1.qs2) };
+  Object.assign(ctx, ctxA);
   const pack = {
     level: 2, title: `Market Town: the ${lname} market`, ctx, sources, meta,
-    debrief: { sources: sources.map(x => x.key), intro: 'Look back at your market: the menu prices, the shock, and how the price moved.', tasks: [
+    debrief: { sources: sources.map(x => x.key).filter(x => x !== 'p2'), intro: 'Look back at your market: the menu prices, the shock, and how the price moved.', tasks: [
       ...(menu && (short.length || surp.length) ? [T2.choice('d1', 'Identify', short.length ? 'one shop in Source A that had a shortage: it turned buyers away.' : 'one shop in Source A that had a surplus: it had unsold stock.', 1, shopOpts, (short.length ? short : surp).map(x => x.shop), { explain: short.length ? `${short.map(x => x.name).join(', ')} turned buyers away. Its menu price was too low: buyers wanted more than the shop was willing to sell at that price.` : `${surp.map(x => x.name).join(', ')} had unsold stock. Its menu price was too high for buyers.`, ref: '2.4.3' })] : []),
       ...(menu && aUsesAway && totUnsold ? [T2.num('d2', 'Calculate', `the total number of unsold ${lname} ${unit} in Source A.`, 1, totUnsold, { explain: 'Add the "unsold" column. Each unsold unit is part of a surplus: the price was too high for enough buyers.', ref: '2.4.3' })] : []),
       ...(menu && !aUsesAway && totAway ? [T2.num('d2', 'Calculate', `the total number of buyers turned away in Source A.`, 1, totAway, { explain: 'Add the "buyers turned away" column. Each one is part of a shortage: they wanted to buy at that shop\'s price.', ref: '2.4.3' })] : []),
@@ -3398,12 +3434,14 @@ function buildPack2() {
       T2.choice('e5', 'Identify', 'what happens to the equilibrium price.', 0, [{ id: 'up', text: 'It rises' }, { id: 'down', text: 'It falls' }, { id: 'same', text: 'It stays the same' }], [eqF.price < eqB.price - .25 ? 'down' : eqF.price > eqB.price + .25 ? 'up' : 'same'], { explain: `From the cards: about ${k(eqB.price)} before, about ${k(eqF.price)} after.` }),
       T2.text('e6', 'Explain', 'how the price mechanism moves the market to the new equilibrium after the factory opens.', 0, { frames: ['At the old price there is now a surplus because…', 'Shops cut their prices, so…', 'The lower price…'], kw: [kw('a surplus at the old price', ['surplus', 'excess supply', 'unsold']), kw('the price falls', ['price (falls|goes down|decreases)', 'cut', 'lower price']), kw('quantity demanded extends (more buyers)', ['demand[^.]{0,30}(extend|rise|increase)', 'more buyers'])] })
     ] },
-    A: { sources: sources.map(x => x.key), numbers: [...numsAB, '(c)', '(d)', '(e)', '(f)'], intro: `${menu ? 'Source A shows the menu-price round. ' : ''}Source B shows the ${lname} market from your cards, before and after the ${shockDef.label.toLowerCase()}.${rr.length ? ' Source C shows the prices in your rounds.' : ''}`, tasks: [
-      ...partsAB,
-      T2.text('a_c', 'Explain', totAway ? 'why some shops turned buyers away even though they had a menu price.' : 'why there is a shortage when the price is below the equilibrium price.', 2, { qid: 'l2-a-c', ref: '2.4.3', scheme: '1 mark: the (menu) price was below the equilibrium price / too low. 1 mark: at that price quantity demanded was greater than the quantity the shop was willing and able to sell (its next units cost more than the price), so it ran out: a shortage.', kw: [kw('the price was below equilibrium / too low', ['too low', 'below (the )?equilibrium', 'low price', 'cheap']), kw('more buyers wanted to buy than the shop would sell: a shortage', ['shortage', 'more (buyers|demand)', 'demand[^.]{0,30}(greater|more|higher)', 'sold out', 'ran out', 'cost more'])] }),
-      draw,
-      T2.text('a_e', 'Analyse', `the effect of the ${shockDef.label.toLowerCase()} on the price and quantity of ${lname} in Source B.`, 4, { qid: 'l2-a-e', ref: '2.4.2, 2.5', scheme: `1 mark each, up to 4: costs rise so quantity supplied falls at every price (supply decreases) · at the old price (${ctx.p1}) there is a shortage (${ctx.q1}) · the shortage signals the price to rise; the higher price gives shops an incentive to sell more (extension of supply) and rations buyers (contraction of demand) · new equilibrium about ${ctx.p2} with ${ctx.q2} sold: higher price, lower quantity; uses the data.`, kw: [kw('quantity supplied falls at every price (supply decreases)', ['suppl[^.]{0,30}(fall|decrease|less|lower|left)', 'costs? (rise|increase|higher)']), kw('a shortage at the old price', ['shortage', 'excess demand']), kw('signal, incentive and rationing', ['signal', 'incentive', 'ration', 'extend', 'contract']), kw('higher price, lower quantity (uses data)', ['higher price', 'price (rises|rose|increase)', '\\d+k', 'fewer', 'lower quantity'])] }),
-      T2.text('a_f', 'Discuss', `whether or not shops should keep one menu price for the whole day.`, 6, { qid: 'l2-a-f', ref: '2.4.3', scheme: 'Up to 4 marks for each side, maximum 6. Keep one price: simple and clear for buyers, no time spent changing prices, buyers trust it, less bargaining. Change the price: a price below equilibrium causes a shortage (buyers turned away, lost profit) and a price above causes a surplus (unsold stock); events (Halloween, a poor harvest) move the equilibrium during the day; adjusting removes shortages and surpluses. A conclusion (e.g. it depends how often demand and supply change) can be credited.', kw: [kw('one price is simple, clear, trusted', ['simple', 'clear', 'easy', 'trust', 'know the price'], 'yes'), kw('a price that is too low causes a shortage', ['shortage', 'turned away', 'too low'], 'no'), kw('a price that is too high causes a surplus', ['surplus', 'unsold', 'too high'], 'no'), kw('demand and supply change during the day', ['change', 'halloween', 'harvest', 'event'], 'no'), kw('a conclusion', ['overall', 'in conclusion', 'depends', 'so shops should'])] })
+    A: { sources: ['p2'], numbers: ['(a)', '(b)(i)', '(b)(ii)', '(c)', '(d)', '(e)', '(f)'], intro: `Source A shows the ${lname} market in your class, before and after the ${sh}. ${shockDef.detail}.`, tasks: [
+      T2.num('a_a', 'Calculate', `the shortage at the old price of ${k(E1.p)} after the ${sh}. Show your working.`, 2, shortA, { unit, working: `${r1.qd} − ${r1.qs2} = ${shortA}`, explain: `At ${k(E1.p)}, quantity demanded is ${r1.qd} but quantity supplied after the ${sh} is only ${r1.qs2}: a shortage of ${shortA} ${unit}.`, ref: '2.4, 2.5' }),
+      T2.choice('a_b1', 'Identify', `the new equilibrium price after the ${sh}.`, 1, aRows.map(x => ({ id: 'p' + x.price, text: k(x.price) })), ['p' + E2.p], { ref: '2.4' }),
+      T2.num('a_b2', 'Identify', `the new equilibrium quantity after the ${sh}.`, 1, E2.q, { unit, ref: '2.4' }),
+      T2.text('a_c', 'Explain', `why quantity supplied fell at every price after the ${sh}.`, 2, { qid: 'l2-a2-c', ref: '2.3, 2.5', scheme: `1 mark: the ${sh} raised the cost of making each ${one} (by 3k). 1 mark: so fewer units are worth selling at each price / shops' lowest acceptable price rose: supply decreases (the supply curve shifts left).`, kw: [kw('costs of production rose (3k for each unit)', ['cost', 'expensive', '3k', 'raw material', 'cacao', 'sugar']), kw('so less is supplied at every price: supply decreases / shifts left', ['suppl[^.]{0,40}(decrease|fall|less|left|lower)', 'shift[^.]{0,20}left', 'fewer', 'less (is )?(sold|supplied|offered)', 'not worth', 'not profitable', 'loss'])] }),
+      drawA,
+      T2.text('a_e', 'Analyse', `how the price mechanism moved the ${lname} market from the old equilibrium to the new one. Use data from Source A.`, 4, { qid: 'l2-a2-e', ref: '2.4, 2.5', scheme: `1 mark each, up to 4. Signal: at the old price ${k(E1.p)} there is a shortage of ${shortA} (quantity demanded ${r1.qd}, quantity supplied ${r1.qs2}), which pushes the price up. Incentive: the higher price makes more units worth selling, so quantity supplied extends (from ${r1.qs2} to ${E2.q}). Rationing: the higher price makes some buyers drop out, so quantity demanded contracts (from ${r1.qd} to ${E2.q}). New equilibrium: ${k(E2.p)} with ${E2.q} sold. Each mark needs the idea and, for full marks, data from Source A.`, kw: [kw(`signal: the shortage at ${k(E1.p)} pushes the price up`, ['shortage', 'excess demand', 'signal', 'price (rises|rose|goes up|increase)']), kw('incentive: quantity supplied extends', ['incentive', 'extend', 'suppl[^.]{0,30}(rise|increase|more)', 'more profitable']), kw('rationing: quantity demanded contracts', ['ration', 'contract', 'demand[^.]{0,30}(fall|decrease|less)', 'drop out', 'fewer buyers']), kw(`new equilibrium ${k(E2.p)}, ${E2.q} sold (uses data)`, [String(E2.p) + '\\s*k', String(E2.p) + '\\.?000', 'new equilibrium'])] }),
+      T2.text('a_f', 'Discuss', `whether or not the ${sh} is bad for everyone in the ${lname} market.`, 6, { qid: 'l2-a2-f', ref: '2.5', scheme: `Up to 4 marks for each side, maximum 6. Bad: buyers pay a higher price (${k(E2.p)} instead of ${k(E1.p)}) and fewer get one (${E2.q} instead of ${E1.q}); shops' costs rose by 3k for every unit, so profit on each unit can fall; shops sell fewer units in total. Not bad for everyone: shops receive a higher price, which covers part of the cost rise; low-cost shops can still make a profit; sellers of substitutes (for example ${pr === 'choc' ? 'candy' : 'chocolate'}) may gain as some buyers switch; buyers who value it most still buy. A conclusion that weighs both sides can be credited.`, kw: [kw('buyers pay a higher price / fewer can buy', ['higher price', 'pay more', 'fewer', 'less', 'cannot afford', 'more expensive'], 'yes'), kw('shops have higher costs / lower profit', ['cost', 'profit', 'lose', 'loss'], 'yes'), kw('shops get a higher price for each unit', ['higher price[^.]{0,40}(shop|seller|business)', '(shop|seller|business)[^.]{0,40}(higher price|more money|earn)'], 'no'), kw('sellers of substitutes may gain', ['substitute', 'candy', 'chocolate', 'switch', 'other (sweets|products|goods)'], 'no'), kw('a conclusion', ['overall', 'in conclusion', 'depends', 'mostly', 'not everyone'])] })
     ] },
     B: { numbers: ['(a)', '(b)', '(c)', '(d)'], intro: 'Answer all parts. This section is homework and includes 2.5 (changes in demand and supply).', tasks: [
       T2.text('b_a', 'Define', '\'shortage\'.', 2, { qid: 'l2-b-a', ref: '2.4.3', scheme: '1 mark: when quantity demanded is greater than quantity supplied. 1 mark: at a given price / the price is below the equilibrium price (excess demand).', model: 'A shortage is when quantity demanded is greater than quantity supplied at a given price, because the price is below the equilibrium price.', kw: [kw('quantity demanded greater than quantity supplied', ['demand[^.]{0,30}(greater|more|higher|exceed)[^.]{0,30}suppl']), kw('at a price below equilibrium / excess demand', ['below (the )?equilibrium', 'excess demand', 'at (a|that|the) price'])] }),

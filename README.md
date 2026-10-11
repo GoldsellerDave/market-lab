@@ -143,6 +143,17 @@ With few students, one wrong tap can make a curve slope the wrong way. Level 0 h
 - **Check your card.** If a student's answer goes against their own card (for example, buying when the price is above what the card allows), a message asks them to check. They can choose **Change my answer** or **Keep** it.
 - **Debrief data.** The debrief step has a **Data** choice: *class answers (if the curves are normal)* or *the cards (always clean)*. On automatic, the app uses the cards if a class curve is unfinished, slopes the wrong way, or never crosses the other one. The source then says that the data came from the cards and that robot cards were included.
 
+### Level 2 Paper 2 Section A: one table
+Level 2's Section A (20 marks) uses one source only: **the chocolate market before and after the cacao harvest hit**, with 7 rows taken from your class's cards. The candy version uses the sugar harvest instead. The parts are:
+- **(a) Calculate [2]:** the shortage at the old price after the harvest hit.
+- **(b) Identify [1+1]:** the new equilibrium price and quantity.
+- **(c) Explain [2]:** why quantity supplied fell at every price.
+- **(d) Draw [4]:** demand, S1 (before), S2 (after) and both equilibria (E1 and E2), drawn on the tablet. The price axis starts just below the data.
+- **(e) Analyse [4]:** how the price mechanism (signal, incentive, rationing) moved the market to the new equilibrium, using data.
+- **(f) Discuss [6]:** whether or not the harvest hit is bad for everyone in the market.
+
+The debrief keeps the menu-price and price-by-round tables. Parts (c), (e) and (f) have AI mark schemes. After updating, redeploy the marking function once (`npx supabase functions deploy mark --no-verify-jwt`). Until then, those parts get a keyword estimate that is flagged for you to check.
+
 ### Level 2 knowledge check (Paper 1 style)
 At the end of Level 2, open **📝 Knowledge check** in the console (between rounds). Each student gets **10 multiple-choice questions (A–D)** on their device, and every wrong option is a common misconception. The questions cover:
 - **Shifts or movements (2.2, 2.3):** what shifts demand or supply, compared with a movement along a curve.

@@ -1362,11 +1362,12 @@ const DB = (() => {
   const DW = { W: 360, H: 310, L: 52, R: 14, T: 14, B: 40 };
   function drawGeom(t) {
     const pw = DW.W - DW.L - DW.R, ph = DW.H - DW.T - DW.B, prices = t.rows.map(r => r.price);
-    const pMax = t.pMax || Math.max(...prices) * 1.15, qMax = t.qMax;
-    return { pw, ph, pMax, qMax, X: q => DW.L + q / qMax * pw, Y: p => DW.T + ph - p / pMax * ph, iq: x => (x - DW.L) / pw * qMax, ip: y => (DW.T + ph - y) / ph * pMax };
+    const pMax = t.pMax || Math.max(...prices) * 1.15, qMax = t.qMax, p0 = t.pMin || 0; // pMin: the price axis can start above 0 (a broken axis)
+    return { pw, ph, pMax, qMax, X: q => DW.L + q / qMax * pw, Y: p => DW.T + ph - (p - p0) / (pMax - p0) * ph, iq: x => (x - DW.L) / pw * qMax, ip: y => p0 + (DW.T + ph - y) / ph * (pMax - p0) };
   }
   const tolQ = t => t.tolQ ?? Math.max(t.qStep || 1, t.qMax * .045);
   function markDraw(t, a) {
+    if (t.shift) return markShift(t, a);
     const near = (pts, want) => want.every(w => (pts || []).some(p => p.price === w.price && Math.abs(p.q - w.q) <= tolQ(t)));
     const d = near(a.d, t.rows.map(r => ({ price: r.price, q: r.qd }))), s = near(a.s, t.rows.map(r => ({ price: r.price, q: r.qs })));
     const e = a.e && (t.eq.lo != null ? a.e.price >= t.eq.lo - 1e-9 && a.e.price <= t.eq.hi + 1e-9 : Math.abs(a.e.price - t.eq.price) < 1e-9) && Math.abs(a.e.q - t.eq.qty) <= tolQ(t) * 1.5;
@@ -1374,27 +1375,49 @@ const DB = (() => {
     const mark = [d, s, e, ax].filter(Boolean).length;
     return { mark, max: 4, ok: mark === 4, fb: `${d ? '✓' : '✗'} demand curve · ${s ? '✓' : '✗'} supply curve · ${e ? '✓' : '✗'} equilibrium marked · ${ax ? '✓' : '✗'} axes labelled`, parts: { d, s, e, ax } };
   }
+  /** Before-and-after diagram: demand, supply before (S1), supply after (S2), both equilibria. 1 mark each for D, S1, S2; 1 for both equilibria. */
+  function markShift(t, a) {
+    const near = (pts, want) => want.every(w => (pts || []).some(p => p.price === w.price && Math.abs(p.q - w.q) <= tolQ(t)));
+    const at = (pt, e) => pt && Math.abs(pt.price - e.price) < 1e-9 && Math.abs(pt.q - e.qty) <= tolQ(t) * 1.5;
+    const d = near(a.d, t.rows.map(r => ({ price: r.price, q: r.qd }))), s1 = near(a.s, t.rows.map(r => ({ price: r.price, q: r.qs }))), s2 = near(a.s2, t.rows.map(r => ({ price: r.price, q: r.qs2 })));
+    const e = at(a.e, t.eq) && at(a.e2, t.eq2);
+    const mark = [d, s1, s2, e].filter(Boolean).length;
+    return { mark, max: 4, ok: mark === 4, fb: `${d ? '✓' : '✗'} demand curve · ${s1 ? '✓' : '✗'} S1 (before) · ${s2 ? '✓' : '✗'} S2 (after) · ${e ? '✓' : '✗'} both equilibria (E1 and E2)`, parts: { d, s1, s2, e } };
+  }
   function drawSvg(t, a, locked) {
     const G = drawGeom(t), fp = v => (t.pLab && t.pLab[v]) || v, fq = v => v;
     let s = '';
     t.rows.forEach(r => { s += `<line x1="${DW.L}" y1="${G.Y(r.price)}" x2="${DW.L + G.pw}" y2="${G.Y(r.price)}" stroke="var(--line)"/><text x="${DW.L - 5}" y="${G.Y(r.price) + 4}" font-size="10" text-anchor="end" fill="var(--muted)">${h(fp(r.price))}</text>`; });
     const qs = t.qTicks || 5; for (let k = 0; k <= qs; k++) { const q = Math.round(G.qMax * k / qs); s += `<line x1="${G.X(q)}" y1="${DW.T}" x2="${G.X(q)}" y2="${DW.T + G.ph}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${G.X(q)}" y="${DW.T + G.ph + 14}" font-size="10" text-anchor="middle" fill="var(--muted)">${h(fq(q))}</text>`; }
     s += `<path d="M${DW.L} ${DW.T} V${DW.T + G.ph} H${DW.L + G.pw}" stroke="var(--ink)" stroke-width="2" fill="none"/>`;
+    if (t.pMin) s += `<path d="M${DW.L - 6} ${DW.T + G.ph - 14} l12 -5 M${DW.L - 6} ${DW.T + G.ph - 8} l12 -5" stroke="var(--ink)" stroke-width="2"/><text x="${DW.L - 5}" y="${DW.T + G.ph + 4}" font-size="10" text-anchor="end" fill="var(--muted)">0</text>`;
     const lab = { p: 'Price', q: 'Quantity', r: 'Revenue', c: 'Cost' };
-    s += `<text x="${DW.L + G.pw / 2}" y="${DW.H - 6}" font-size="12" font-weight="700" text-anchor="middle" fill="${a.ax ? 'var(--ink)' : 'var(--muted)'}">${a.ax ? lab[a.ax] : 'x-axis: ?'}</text>`;
-    s += `<text transform="translate(13 ${DW.T + G.ph / 2}) rotate(-90)" font-size="12" font-weight="700" text-anchor="middle" fill="${a.ay ? 'var(--ink)' : 'var(--muted)'}">${a.ay ? lab[a.ay] : 'y-axis: ?'}</text>`;
+    const ax = t.shift ? 'q' : a.ax, ay = t.shift ? 'p' : a.ay;
+    s += `<text x="${DW.L + G.pw / 2}" y="${DW.H - 6}" font-size="12" font-weight="700" text-anchor="middle" fill="${ax ? 'var(--ink)' : 'var(--muted)'}">${ax ? lab[ax] : 'x-axis: ?'}</text>`;
+    s += `<text transform="translate(13 ${DW.T + G.ph / 2}) rotate(-90)" font-size="12" font-weight="700" text-anchor="middle" fill="${ay ? 'var(--ink)' : 'var(--muted)'}">${ay ? lab[ay] : 'y-axis: ?'}</text>`;
     const line = (pts, col, L) => { if (!pts || !pts.length) return ''; const p2 = pts.slice().sort((x, y) => x.price - y.price); let o = p2.length > 1 ? `<polyline points="${p2.map(p => G.X(p.q) + ',' + G.Y(p.price)).join(' ')}" fill="none" stroke="${col}" stroke-width="3"/>` : ''; o += p2.map(p => `<circle cx="${G.X(p.q)}" cy="${G.Y(p.price)}" r="5.5" fill="${col}"/>`).join(''); const top = L === 'D' ? p2[0] : p2[p2.length - 1]; if (p2.length > 1) o += `<text x="${G.X(top.q) + 8}" y="${G.Y(top.price) + 4}" font-size="14" font-weight="800" fill="${col}">${L}</text>`; return o; };
-    s += line(a.d, 'var(--buyer)', 'D') + line(a.s, 'var(--seller)', 'S');
-    if (a.e) s += `<circle cx="${G.X(a.e.q)}" cy="${G.Y(a.e.price)}" r="10" fill="none" stroke="var(--mint)" stroke-width="3"/><path d="M${DW.L} ${G.Y(a.e.price)} H${G.X(a.e.q)} V${DW.T + G.ph}" stroke="var(--mint)" stroke-dasharray="5 4" fill="none" stroke-width="2"/><text x="${G.X(a.e.q) + 12}" y="${G.Y(a.e.price) - 8}" font-size="11" font-weight="800" fill="var(--mint)">E</text>`;
+    s += line(a.d, 'var(--buyer)', 'D') + line(a.s, 'var(--seller)', t.shift ? 'S1' : 'S') + (t.shift ? line(a.s2, S2C, 'S2') : '');
+    const eMark = (e, col, L) => e ? `<circle cx="${G.X(e.q)}" cy="${G.Y(e.price)}" r="10" fill="none" stroke="${col}" stroke-width="3"/><path d="M${DW.L} ${G.Y(e.price)} H${G.X(e.q)} V${DW.T + G.ph}" stroke="${col}" stroke-dasharray="5 4" fill="none" stroke-width="2"/><text x="${G.X(e.q) + 12}" y="${G.Y(e.price) - 8}" font-size="11" font-weight="800" fill="${col}">${L}</text>` : '';
+    s += eMark(a.e, 'var(--mint)', t.shift ? 'E1' : 'E') + (t.shift ? eMark(a.e2, '#6a3fb5', 'E2') : '');
     return `<svg class="db-draw" data-db-draw="${h(t.id)}" viewBox="0 0 ${DW.W} ${DW.H}" role="img" aria-label="Diagram">${s}<rect x="${DW.L}" y="${DW.T}" width="${G.pw}" height="${G.ph}" fill="transparent" ${locked ? '' : 'class="db-hit"'}/></svg>`;
   }
+  const S2C = '#b86b00';
   function drawHtml(t, a, locked) {
+    if (t.shift) return shiftHtml(t, a, locked);
     const mode = a.mode || 'd', btn = (m, l, c) => `<button type="button" class="db-mode ${mode === m ? 'sel' : ''}" data-db-mode="${m}" data-id="${h(t.id)}" style="--mc:${c}" ${locked ? 'disabled' : ''}>${l}</button>`;
     return `<div class="db-drawbox"><div class="db-modes">${btn('d', '● Demand points', 'var(--buyer)')}${btn('s', '● Supply points', 'var(--seller)')}${btn('e', '◎ Equilibrium', 'var(--mint)')}${locked ? '' : `<button type="button" class="db-mode" data-db-clear="${h(t.id)}">Clear ${mode === 'd' ? 'demand' : mode === 's' ? 'supply' : 'equilibrium'}</button>`}</div>
       ${drawSvg(t, a, locked)}
       <div class="db-axes"><label>x-axis <select data-db-ax="x" data-id="${h(t.id)}" ${locked ? 'disabled' : ''}><option value="">choose</option>${[['p', 'Price'], ['q', 'Quantity'], ['r', 'Revenue']].map(([v, l]) => `<option value="${v}" ${a.ax === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <label>y-axis <select data-db-ax="y" data-id="${h(t.id)}" ${locked ? 'disabled' : ''}><option value="">choose</option>${[['p', 'Price'], ['q', 'Quantity'], ['c', 'Cost']].map(([v, l]) => `<option value="${v}" ${a.ay === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
       <small class="muted">Tap the grid to place a point for each price in the table. Tap a point again to remove it. ${t.qStep > 1 ? `Quantities snap to steps of ${t.qStep}.` : ''}</small></div>`;
+  }
+
+  function shiftHtml(t, a, locked) {
+    const mode = a.mode || 'd', names = { d: 'demand', s: 'S1', s2: 'S2', e: 'E1', e2: 'E2' };
+    const btn = (m, l, c) => `<button type="button" class="db-mode ${mode === m ? 'sel' : ''}" data-db-mode="${m}" data-id="${h(t.id)}" style="--mc:${c}" ${locked ? 'disabled' : ''}>${l}</button>`;
+    return `<div class="db-drawbox"><div class="db-modes">${btn('d', '● Demand (D)', 'var(--buyer)')}${btn('s', '● Supply before (S1)', 'var(--seller)')}${btn('s2', '● Supply after (S2)', S2C)}${btn('e', '◎ E1 (before)', 'var(--mint)')}${btn('e2', '◎ E2 (after)', '#6a3fb5')}${locked ? '' : `<button type="button" class="db-mode" data-db-clear="${h(t.id)}">Clear ${names[mode]}</button>`}</div>
+      ${drawSvg(t, a, locked)}
+      <small class="muted">Choose a curve, then tap the grid at each price in the table. Tap a point again to remove it. Then mark E1 (before) and E2 (after) where the curves cross.</small></div>`;
   }
 
   /* ---------- SVG charts for printing and the source panel ---------- */
@@ -1412,6 +1435,7 @@ const DB = (() => {
   }
   function answerSvg(t) {
     const a = { d: t.rows.map(r => ({ price: r.price, q: r.qd })), s: t.rows.map(r => ({ price: r.price, q: r.qs })), e: { price: t.eq.price, q: t.eq.qty }, ax: 'q', ay: 'p' };
+    if (t.shift) { a.s2 = t.rows.map(r => ({ price: r.price, q: r.qs2 })); a.e2 = { price: t.eq2.price, q: t.eq2.qty }; }
     return drawSvg(t, a, true);
   }
 
@@ -1554,7 +1578,7 @@ const DB = (() => {
     if (el.dataset.dbOrd) { const id = el.dataset.id, [k] = findTask(id), st = stOf(k); st.ans[id] = [...(st.ans[id] || []), el.dataset.dbOrd]; sSave(); return rerender(k); }
     if (el.dataset.dbOrdreset) { const id = el.dataset.dbOrdreset, [k] = findTask(id); stOf(k).ans[id] = []; sSave(); return rerender(k); }
     if (el.dataset.dbMode) { const id = el.dataset.id, [k] = findTask(id), a = (stOf(k).ans[id] ||= {}); a.mode = el.dataset.dbMode; sSave(); return redraw(id); }
-    if (el.dataset.dbClear) { const id = el.dataset.dbClear, [k] = findTask(id), a = (stOf(k).ans[id] ||= {}), m = a.mode || 'd'; if (m === 'e') delete a.e; else a[m] = []; sSave(); return redraw(id); }
+    if (el.dataset.dbClear) { const id = el.dataset.dbClear, [k] = findTask(id), a = (stOf(k).ans[id] ||= {}), m = a.mode || 'd'; if (m === 'e' || m === 'e2') delete a[m]; else a[m] = []; sSave(); return redraw(id); }
   }
   function sDraw(e) {
     const hit = e.target.closest && e.target.closest('.db-hit'); if (!hit) return;
@@ -1565,9 +1589,9 @@ const DB = (() => {
     let q = Math.max(0, Math.min(t.qMax, Math.round(G.iq(loc.x) / step) * step));
     const pRaw = G.ip(loc.y), price = t.rows.map(r => r.price).reduce((b, p) => Math.abs(p - pRaw) < Math.abs(b - pRaw) ? p : b, t.rows[0].price);
     const a = (st.ans[id] ||= {}), mode = a.mode || 'd';
-    if (mode === 'e') {
-      let ep = pRaw; const ps = t.rows.map(r => r.price).sort((x, y) => x - y), gap = (ps[1] - ps[0]) / 2; ep = Math.round(pRaw / gap) * gap;
-      a.e = { price: ep, q };
+    if (mode === 'e' || mode === 'e2') {
+      let ep = pRaw; const ps = t.rows.map(r => r.price).sort((x, y) => x - y), gap = (ps[1] - ps[0]) / 2; ep = t.shift ? price : Math.round(pRaw / gap) * gap;
+      a[mode] = { price: ep, q };
     } else {
       const arr = (a[mode] ||= []), same = arr.findIndex(p => p.price === price && Math.abs(p.q - q) <= Math.max(step, t.qMax * .03));
       if (same >= 0) arr.splice(same, 1); else { const i = arr.findIndex(p => p.price === price); if (i >= 0) arr.splice(i, 1); arr.push({ price, q }); }
@@ -1668,6 +1692,7 @@ const DB = (() => {
     else if (t.kind === 'choice') ans = t.options.filter(o => t.correct.includes(o.id)).map(o => `<b>${o.text}</b>`).join('; ') + ((t.pick || 1) > 1 ? ' (1 mark each)' : '');
     else if (t.kind === 'grid') ans = t.rows.map(r => `${r.label}: ${r.cells.filter(c => c && c.answer != null).map(c => c.show || c.answer).join(', ')}`).join(' · ');
     else if (t.kind === 'order') ans = t.correct.map((id, i) => `${i + 1}. ${t.items.find(x => x.id === id).text}`).join('<br>');
+    else if (t.kind === 'draw' && t.shift) ans = `1 mark each: demand curve plotted correctly · S1 (supply before) plotted correctly · S2 (supply after) plotted correctly · both equilibria labelled (E1 at ${h(t.eqShow || '')}, E2 at ${h(t.eq2Show || '')}).<div style="max-width:360px">${answerSvg(t)}</div>`;
     else if (t.kind === 'draw') ans = `1 mark each: demand curve plotted correctly · supply curve plotted correctly · equilibrium identified (price ${h(t.eqShow || '')}) · axes labelled price (y) and quantity (x).<div style="max-width:360px">${answerSvg(t)}</div>`;
     else if (t.kind === 'text') ans = `${t.scheme || ''}${t.levels ? `<table class="pq-t"><tr><th>Level</th><th>Marks</th><th>Description</th></tr><tr><td>3</td><td>6–8</td><td>A reasoned discussion that accurately considers two sides of the argument, using economic concepts and terms accurately.</td></tr><tr><td>2</td><td>3–5</td><td>A reasoned discussion using economic information and clear analysis; may lack depth or be one-sided.</td></tr><tr><td>1</td><td>1–2</td><td>Relevant definitions and/or relevant statements that are not developed.</td></tr><tr><td>0</td><td>0</td><td>No creditable content.</td></tr></table>` : ''}${t.model ? `<div><i>Model answer:</i> ${t.model}</div>` : ''}`;
     return `<div class="pq"><div class="pq-h"><b>${h(n)}</b> ${t.cmd ? `<b>${h(t.cmd)}</b> ` : ''}${t.q}${t.marks ? ` <span class="pq-m">[${t.marks}]</span>` : ''}</div><div class="ms">${ans}${t.explain ? `<div class="pq-note">${t.explain}</div>` : ''}</div></div>`;
