@@ -288,7 +288,7 @@ File: `breakout.html` (built from `src/breakout/` by `build.sh`). Five teams, on
 | 4 (Boss) | Equilibrium, shortage and surplus from a table | 2.4 |
 | Finale | The storm: Halloween and a drought in the same week | 2.5 |
 
-**Passcodes.** Each room gets five random codes. They are on the console under **Passcodes → Show** and never appear on the projector. You can change them, and **Print a passcode card**.
+**Passcodes** are the same every lesson: `MARKET21` (after Level 1), `DEMAND22`, `SUPPLY23`, `EQUIL24`, and `STORM25` (after the finale, for the licence). They are on the console under **Passcodes → Show** and never appear on the projector. You can change them for a room, and **Print a passcode card**.
 
 **Gamification:**
 - A race map on the projector, Minh's market health meter, and a countdown (30–60 minutes, with +5 minutes and pause).

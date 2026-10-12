@@ -1676,7 +1676,7 @@ const STOPS = LV.map(L => ({ icon: L.icon, label: L.boss ? 'Boss' : L.n === NLV 
    ===================================================================== */
 const T = { s: null, tr: null, projector: false, tick: null, showCodes: false, lastSent: 0, sendTimer: null, connected: false };
 const codeWord = ['MARKET', 'DEMAND', 'SUPPLY', 'EQUIL', 'STORM'];
-const newCodes = () => Object.fromEntries(LV.map((L, i) => [L.n, codeWord[i] + (10 + Math.floor(Math.random() * 90))]));
+const newCodes = () => Object.fromEntries(LV.map((L, i) => [L.n, codeWord[i] + (21 + i)])); // the same every lesson: MARKET21, DEMAND22, SUPPLY23, EQUIL24, STORM25
 function newT(o) { return { v: 1, room: roomCode(), transport: o.transport, minutes: o.minutes, codes: newCodes(), phase: 'lobby', endsAt: null, pausedLeft: null, teams: {}, order: [], news: null, newsUsed: [], log: [], vi: FX.get('vi', true) !== false, createdAt: Date.now() }; }
 const teams = () => T.s.order.map(id => T.s.teams[id]).filter(Boolean);
 const leftNow = () => { const s = T.s; if (s.phase === 'running') return Math.max(0, Math.round((s.endsAt - Date.now()) / 1000)); if (s.phase === 'paused') return s.pausedLeft; if (s.phase === 'lobby') return s.minutes * 60; return 0; };
@@ -1861,7 +1861,7 @@ function renderBody() {
         <p class="muted" style="margin:0">${ts.length} team${ts.length === 1 ? '' : 's'} joined. ${ts.filter(t => t.ready).length ? `<b>✋ Ready for inspection: ${ts.filter(t => t.ready).map(t => esc(t.name)).join(', ')}</b>` : ''}</p></div>
       <div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">🔐 Passcodes</h2><button class="btn small" data-act="codes">${T.showCodes ? '🙈 Hide' : '👁 Show'}</button></div>
         <p class="muted" style="margin:0">Never shown on the projector. Show a team its code after you have checked every worksheet. Each code opens the next level.</p>
-        ${T.showCodes ? `<div class="bk-codes">${LV.map(L => `<label><span>${L.icon} After ${L.boss ? 'the Boss' : L.n === NLV ? 'the finale' : 'Level ' + L.n}${L.n === NLV ? ' (licence)' : ''}</span><input type="text" data-code="${L.n}" value="${esc(s.codes[L.n])}" maxlength="12" autocomplete="off"></label>`).join('')}</div><div class="row"><button class="btn small" data-act="printcodes">🖨 Print a passcode card</button><button class="btn small ghost" data-act="newcodes">New random codes</button></div>` : ''}</div>
+        ${T.showCodes ? `<div class="bk-codes">${LV.map(L => `<label><span>${L.icon} After ${L.boss ? 'the Boss' : L.n === NLV ? 'the finale' : 'Level ' + L.n}${L.n === NLV ? ' (licence)' : ''}</span><input type="text" data-code="${L.n}" value="${esc(s.codes[L.n])}" maxlength="12" autocomplete="off"></label>`).join('')}</div><div class="row"><button class="btn small" data-act="printcodes">🖨 Print a passcode card</button><button class="btn small ghost" data-act="newcodes">Back to the usual codes</button></div>` : ''}</div>
       <div class="panel stack"><h2 style="margin:0">Teams</h2>${ts.length ? ts.map(t => { const st = statusOf(t); return `<div class="bk-team ${st[2]}" style="--c:${t.color}"><div class="row" style="justify-content:space-between"><b>${t.icon} ${esc(t.name)}</b><span class="chip">${t.done ? '🏅 Done' : 'Level ' + t.level}</span></div>
           <small class="muted">${(t.members || []).map(esc).join(', ') || 'Members not entered yet'}</small><div>${st[0]} ${esc(st[1])} · 💰 ${k(t.fees)} ${t.badges.map(b => BADGES[b][0]).join('')}</div>
           ${t.done ? '' : `<div class="row"><button class="btn small" data-act="unlock" data-tid="${t.pid}">Open the next level by hand</button>${Date.now() < (t.lockUntil || 0) ? `<button class="btn small" data-act="unlockcode" data-tid="${t.pid}">Clear the lock</button>` : ''}</div>`}</div>`; }).join('') : '<p class="muted" style="margin:0">No teams yet. Each team opens the home page on its device, types the room code and its team name.</p>'}</div>
@@ -1889,7 +1889,7 @@ function tClick(e) {
   else if (a === 'plus5') addTime(5);
   else if (a === 'minus5') { s.minutes = Math.max(10, s.minutes - 5); tSave(); renderBody(); tBroadcast(true); }
   else if (a === 'codes') { T.showCodes = !T.showCodes; renderBody(); }
-  else if (a === 'newcodes') { if (confirm('Make new random passcodes? Print the card again afterwards.')) { s.codes = newCodes(); tSave(); renderBody(); } }
+  else if (a === 'newcodes') { s.codes = newCodes(); tSave(); renderBody(); toast('Passcodes: ' + Object.values(s.codes).join(', ')); }
   else if (a === 'printcodes') printCodes();
   else if (a === 'unlock') { const t = s.teams[b.dataset.tid]; if (t && confirm(`Open the next level for ${t.name} without a passcode?`)) unlock(t, true); }
   else if (a === 'unlockcode') { const t = s.teams[b.dataset.tid]; if (t) { t.lockUntil = 0; t.wrong = 0; tSave(); renderBody(); you(t.pid); } }
