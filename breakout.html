@@ -2161,7 +2161,14 @@ function onMsg(m) {
 }
 function tick() {
   const el = $('#hTimer'); if (el && S.pub && S.leftAt) { const l = S.pub.phase === 'running' ? Math.max(0, S.leftAt.left - Math.floor((Date.now() - S.leftAt.at) / 1000)) : S.pub.left; el.textContent = mmss(l); FX.timer(el, S.pub.phase === 'running' ? l : null, S.sound); }
-  $$('[data-left]').forEach(x => { const v = Math.max(0, +x.dataset.left - 1); x.dataset.left = v; x.textContent = v + 's'; if (v === 0 && x.dataset.rerender) render(); });
+  $$('[data-left]').forEach(x => { const v = Math.max(0, +x.dataset.left - 1); x.dataset.left = v; x.textContent = v + 's'; if (v === 0 && x.dataset.rerender) { if (S.me) S.me.lockLeft = 0; render(); } });
+}
+/* The device screen is split into parts, and a part is only replaced when its content really changed,
+   so the case-file pictures and their animations never restart while the team is working */
+function setPart(el, html) {
+  if (!el) return;
+  const key = html.replace(/ data-left="\d+"( data-rerender="1")?>\d+s</g, '><');
+  if (el._key === key) return; el._key = key; el.innerHTML = html;
 }
 function render() {
   const main = $('#sMain'); if (!main || !S.pub) return;
@@ -2170,11 +2177,15 @@ function render() {
   if (!me) { main.innerHTML = '<div class="panel">Joining…</div>'; return; }
   $('#hTeam').textContent = `${me.icon} ${me.name}`; $('#hTeam').style.color = '#fff';
   $('#hLevel').textContent = me.done ? '🏅 Licensed' : `Level ${me.level} of ${NLV}`; $('#hFees').textContent = `💰 ${k(me.fees)}`;
-  const news = p.news && !(me.newsAns && me.newsAns[p.news.id] != null) ? newsHtml(p.news) : '';
-  if (p.phase === 'lobby' || !(me.members || []).length) { main.innerHTML = news + setupHtml(); main.onclick = devClick; return; }
-  main.innerHTML = news + (p.phase === 'ended' ? '<div class="note" style="margin-bottom:12px">⏰ <b>Time is up.</b> Finish the level you are on if your teacher allows it.</div>' : '') + (me.done ? doneHtml() : levelHtml(LV[me.level - 1]));
-  main.onclick = devClick;
+  if (!$('#sDyn')) { main.innerHTML = '<div id="sNews"></div><div id="sHead"></div><div id="sFile"></div><div id="sDyn"></div>'; main.onclick = devClick; }
+  setPart($('#sNews'), p.news && !(me.newsAns && me.newsAns[p.news.id] != null) ? newsHtml(p.news) : '');
+  if (p.phase === 'lobby' || !(me.members || []).length) { setPart($('#sHead'), setupHtml()); setPart($('#sFile'), ''); setPart($('#sDyn'), ''); return; }
+  const ended = p.phase === 'ended' ? '<div class="note">⏰ <b>Time is up.</b> Finish the level you are on if your teacher allows it.</div>' : '';
+  if (me.done) { setPart($('#sHead'), ended + doneHtml()); setPart($('#sFile'), ''); setPart($('#sDyn'), ''); return; }
+  const parts = levelParts(LV[me.level - 1]);
+  setPart($('#sHead'), ended + parts[0]); setPart($('#sFile'), parts[1]); setPart($('#sDyn'), parts[2]);
 }
+document.addEventListener('toggle', e => { if (e.target && e.target.matches && e.target.matches('#sFile details')) S.openFile = e.target.open; }, true);
 function setupHtml() {
   const me = S.me, mem = (S.members && S.members.length ? S.members : me.members || []);
   return `<div class="panel stack"><h1 style="margin:0">${me.icon} ${esc(me.name)}</h1><p style="margin:0">Your consultancy firm will rescue Minh's chocolate business. Type the first name of every member (3 to 6). Roles change every level, so everyone does every job.</p>
@@ -2185,7 +2196,7 @@ function setupHtml() {
 }
 function rolesHtml(n) { return `<div class="bk-rolerow">${rolesFor(S.me.members, n).map(x => `<span>${x.role[0]} <b>${esc(x.name)}</b> <small>${esc(x.role[1])}</small></span>`).join('')}</div>`; }
 function sourceHtml(src) { return src ? `<div class="table-wrap"><table class="bk-src"><caption>${esc(src.title)}</caption><tr>${src.head.map(h => `<th>${esc(h)}</th>`).join('')}</tr>${src.rows.map(r => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th>${esc(c)}</th>`).join('')}</tr>`).join('')}</table></div>` : ''; }
-function levelHtml(L) {
+function levelParts(L) {
   const me = S.me, done = shortsDone(me.shorts, L.n), rec = (me.shorts || {})[L.n] || {}, hints = (me.hints || {})[L.n] || {};
   const head = `<div class="bk-lhead"><span class="bk-licon">${L.icon}</span><div><div class="bk-lk">LEVEL ${L.n} OF ${NLV} · SYLLABUS ${L.syl}${L.boss ? ' · BOSS' : ''}</div><h1 style="margin:0">${esc(L.title)}${viSpan(L.vi)}</h1></div></div>${rolesHtml(L.n)}`;
   const file = `<div class="panel stack bk-file"><div class="bk-filetab">📁 CASE FILE ${L.n} · HỒ SƠ</div>${tilesHtml(L.n)}<p style="margin:0">${gl(L.story)}${viBlock(L.storyVi)}</p>${sourceHtml(L.source)}<small class="muted">💡 Tap an <span class="term demo">underlined word</span> to see what it means.</small></div>`;
@@ -2195,7 +2206,7 @@ function levelHtml(L) {
         ${ok ? `<div class="bk-qa">${q.num ? esc(q.ans + ' ' + q.unit) : esc(q.opts[q.ans])}</div>` : q.num ? `<div class="row"><input type="number" inputmode="decimal" data-num="${q.id}" data-draft="n${L.n}${q.id}" value="${esc(S.draft['n' + L.n + q.id] ?? '')}" style="max-width:150px"> <span>${esc(q.unit)}</span><button class="btn small primary" data-a="checknum" data-q="${q.id}">Check</button></div>`
           : `<div class="bk-opts">${q.opts.map((o, i) => `<button class="bk-opt" data-a="opt" data-q="${q.id}" data-i="${i}">${esc(o)}${q.optsVi ? `<small class="vi" lang="vi">${esc(q.optsVi[i])}</small>` : ''}</button>`).join('')}</div>`}
         ${!ok && h ? `<div class="bk-hint">💡 ${esc(q.hint)}</div>` : !ok ? `<button class="btn small ghost" data-a="hint" data-q="${q.id}">💡 Hint ${r.tries >= 2 ? '(free)' : `(−${FEES.hint}k)`}</button>` : ''}</div>`; }).join('')}</div>`;
-  if (!done) return head + file + shorts;
+  if (!done) return [head, file, shorts];
   const W = (S.written[L.n] ||= []), all = (me.members || []).every(n2 => W.includes(n2));
   const sheet = `<div class="panel stack bk-sheet"><h2 style="margin:0">✍️ Worksheet: Level ${L.n}</h2><p style="margin:0"><b>Everyone writes their own answers</b> on the worksheet. Your teacher checks every sheet.</p>
     <ol class="bk-sq">${L.sheet.map(x => `<li><b>${esc(x[0])}</b> ${gl(x[1])} <b>[${x[2]}]</b></li>`).join('')}</ol>
@@ -2204,7 +2215,7 @@ function levelHtml(L) {
   const lock = me.lockLeft > 0 ? `<div class="bad">🚨 Minh's security alarm! Wait <span data-left="${me.lockLeft}" data-rerender="1">${me.lockLeft}s</span>.</div>` : '';
   const code = me.ready ? `<div class="panel stack bk-code"><h2 style="margin:0">🔐 Passcode</h2><p style="margin:0">Your teacher is coming to check every worksheet. When your work is OK, your teacher shows you the passcode.</p>${lock}
     <div class="row"><input type="text" class="code-input" maxlength="12" autocomplete="off" autocapitalize="characters" data-draft="code${L.n}" id="codeIn" value="${esc(S.draft['code' + L.n] ?? '')}" style="max-width:260px" ${me.lockLeft > 0 ? 'disabled' : ''}><button class="btn primary" data-a="code" ${me.lockLeft > 0 ? 'disabled' : ''}>Unlock</button></div></div>${vaultHtml()}` : '';
-  return head + `<details class="panel" ${S.openFile ? 'open' : ''}><summary>📁 Minh's file and short answers (done ✅)</summary><div class="stack" style="margin-top:10px">${tilesHtml(L.n)}<p style="margin:0">${gl(L.story)}</p>${sourceHtml(L.source)}</div></details>` + sheet + code;
+  return [head, `<details class="panel" ${S.openFile ? 'open' : ''}><summary>📁 Minh's file and short answers (done ✅)</summary><div class="stack" style="margin-top:10px">${tilesHtml(L.n)}<p style="margin:0">${gl(L.story)}</p>${sourceHtml(L.source)}</div></details>`, sheet + code];
 }
 function vaultHtml() {
   const me = S.me, left = VAULT.filter(q => (me.vault || {})[q.id] == null), right = Object.values(me.vault || {}).filter(Boolean).length;
