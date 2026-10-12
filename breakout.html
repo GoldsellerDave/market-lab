@@ -1,0 +1,2084 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Saigon Chocolate Crisis: a Market Town breakout</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍫</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cocoa: #3a2217;
+  --cocoa-2: #5b3826;
+  --ink: #23170f;
+  --muted: #6d6158;
+  --paper: #f3f4f7;
+  --panel: #ffffff;
+  --line: #dcd8de;
+  --foil: #d8a21f;
+  --foil-2: #f2cf6b;
+  --buyer: #12648c;
+  --buyer-soft: #e2eff6;
+  --seller: #b02a3f;
+  --seller-soft: #f8e5e8;
+  --mint: #22805a;
+  --mint-soft: #e1f2e9;
+  --warn: #9a5b00;
+  --warn-soft: #fbf0dc;
+  --shadow: 0 1px 2px rgba(35, 23, 15, .08), 0 6px 18px rgba(35, 23, 15, .06);
+  --r-sm: 8px;
+  --r-md: 14px;
+  --buyer-card: #12648c;
+  --seller-card: #b02a3f;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --font-display: "Bricolage Grotesque", "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #f3ebe4; --muted: #b8aca2; --paper: #17120f; --panel: #221b16; --line: #3c322b;
+    --buyer: #5fb3dc; --buyer-soft: #16303d; --seller: #ec7a8c; --seller-soft: #3d1c22;
+    --mint: #5cc79a; --mint-soft: #16332a; --warn: #f0b85a; --warn-soft: #3a2c12;
+    --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #f3ebe4; --muted: #b8aca2; --paper: #17120f; --panel: #221b16; --line: #3c322b;
+  --buyer: #5fb3dc; --buyer-soft: #16303d; --seller: #ec7a8c; --seller-soft: #3d1c22;
+  --mint: #5cc79a; --mint-soft: #16332a; --warn: #f0b85a; --warn-soft: #3a2c12;
+  --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; min-height: 100%; background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0 0 .4em; letter-spacing: -.01em; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); font-weight: 800; }
+h2 { font-size: 1.3rem; font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0 0 .8em; max-width: 68ch; }
+small, .muted { color: var(--muted); }
+a { color: var(--buyer); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--foil); outline-offset: 2px; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 16px; }
+.narrow { max-width: 520px; margin: 0 auto; padding: 16px; }
+
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 16px; background: var(--cocoa); color: #fbf3ea;
+}
+.topbar .brand { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; }
+.topbar .spacer { flex: 1; }
+.topbar .chip { background: rgba(255,255,255,.12); color: #fbf3ea; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; box-shadow: var(--shadow); }
+.panel + .panel { margin-top: 14px; }
+.stack > * + * { margin-top: 12px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  border-radius: 999px; padding: 10px 18px; font-weight: 700; cursor: pointer; min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+}
+.btn:hover { border-color: var(--muted); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--cocoa); border-color: var(--cocoa); color: #fbf3ea; }
+:root[data-theme="dark"] .btn.primary { background: var(--foil); border-color: var(--foil); color: #23170f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { background: var(--foil); border-color: var(--foil); color: #23170f; } }
+.btn.buyer { background: var(--buyer-card); border-color: var(--buyer-card); color: #fff; }
+.btn.seller { background: var(--seller-card); border-color: var(--seller-card); color: #fff; }
+.btn.small { min-height: 34px; padding: 5px 12px; font-size: .9rem; }
+.btn.block { width: 100%; }
+.btn.ghost { background: transparent; }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: .88rem; background: var(--paper); border: 1px solid var(--line); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.dot.ok { background: var(--mint); } .dot.bad { background: var(--seller); } .dot.wait { background: var(--foil); }
+
+label.field { display: block; font-weight: 700; margin-bottom: 4px; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 12px; background: var(--panel); min-height: 44px;
+}
+textarea { min-height: 120px; resize: vertical; line-height: 1.45; }
+.code-input { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: .25em; text-transform: uppercase; text-align: center; }
+
+.note { padding: 10px 12px; border-radius: var(--r-sm); background: var(--warn-soft); color: var(--ink); border-left: 4px solid var(--warn); }
+.good { padding: 10px 12px; border-radius: var(--r-sm); background: var(--mint-soft); border-left: 4px solid var(--mint); }
+.bad { padding: 10px 12px; border-radius: var(--r-sm); background: var(--seller-soft); border-left: 4px solid var(--seller); }
+
+/* Home */
+.home-hero { padding: 40px 0 20px; }
+.home-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.choice { text-align: left; padding: 22px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--panel); cursor: pointer; box-shadow: var(--shadow); }
+.choice h2 { margin-bottom: .2em; }
+
+/* The chocolate bar card: the one bold element */
+.bar {
+  position: relative; border-radius: 16px; overflow: hidden; color: #fff; box-shadow: 0 10px 28px rgba(35,23,15,.25);
+  background: var(--buyer-card);
+}
+.bar.seller { background: var(--seller-card); }
+.bar .foil { height: 14px; background: linear-gradient(90deg, var(--foil), var(--foil-2), var(--foil), var(--foil-2)); }
+.bar .body { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 16px 18px 18px; }
+.bar .role { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; }
+.bar .say { font-size: 1rem; opacity: .95; margin: 2px 0 0; }
+.bar .slab {
+  width: 112px; height: 112px; border-radius: 10px; display: grid; place-items: center;
+  background:
+    linear-gradient(var(--cocoa) 0 0) padding-box,
+    var(--cocoa);
+  background-image:
+    linear-gradient(90deg, transparent 47%, rgba(0,0,0,.35) 47% 53%, transparent 53%),
+    linear-gradient(0deg, transparent 47%, rgba(0,0,0,.35) 47% 53%, transparent 53%),
+    linear-gradient(145deg, var(--cocoa-2), var(--cocoa));
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.12), inset 0 -3px 0 rgba(0,0,0,.25);
+}
+.bar .slab span { font-family: var(--font-display); font-size: 3.4rem; font-weight: 800; color: var(--foil-2); text-shadow: 0 2px 0 rgba(0,0,0,.4); line-height: 1; }
+.bar .slab small { display: block; color: #f6e2b0; text-align: center; font-size: .78rem; margin-top: 2px; }
+
+/* Market */
+.quotes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.quote { border-radius: var(--r-sm); padding: 10px 12px; border: 1px solid var(--line); background: var(--panel); }
+.quote .q-label { font-size: .88rem; color: var(--muted); }
+.quote .q-val { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; }
+.quote.bid .q-val { color: var(--buyer); } .quote.ask .q-val { color: var(--seller); }
+.stepper { display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; gap: 8px; }
+.stepper button { min-height: 56px; border-radius: 12px; font-size: 1.6rem; font-weight: 800; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+.stepper .val { text-align: center; font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; }
+.tape { display: flex; flex-wrap: wrap; gap: 6px; }
+.tape .chip { font-weight: 700; }
+.timer { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; }
+.big-timer { font-size: 2.2rem; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 700; color: var(--muted); font-size: .9rem; }
+tr.eq td { background: var(--mint-soft); font-weight: 700; }
+
+/* Teacher stepper */
+ol.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+ol.steps li::before { content: counter(s); width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .9rem; background: var(--paper); border: 1px solid var(--line); }
+ol.steps li.done::before { content: "✓"; background: var(--mint); border-color: var(--mint); color: #fff; }
+ol.steps li.now::before { background: var(--foil); border-color: var(--foil); color: #23170f; }
+ol.steps li .btn { justify-self: start; }
+
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.roster .who { padding: 6px 8px; border-radius: var(--r-sm); border: 1px solid var(--line); font-size: .9rem; display: flex; justify-content: space-between; gap: 6px; }
+.roster .who.buyer { border-left: 4px solid var(--buyer); } .roster .who.seller { border-left: 4px solid var(--seller); }
+.roster .who.done { background: var(--mint-soft); }
+
+.chart-box { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 220px; }
+.chart-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Projector overlay */
+.projector { position: fixed; inset: 0; z-index: 50; background: var(--paper); display: grid; grid-template-columns: 1fr 340px; gap: 20px; padding: calc(16px + env(safe-area-inset-top, 0px)) 20px calc(16px + env(safe-area-inset-bottom, 0px)); }
+.projector .chart-box { aspect-ratio: auto; height: 100%; }
+.projector .side { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+.projector .code { font-family: var(--font-display); font-size: 3.4rem; font-weight: 800; letter-spacing: .12em; line-height: 1; }
+@media (max-width: 900px) { .projector { grid-template-columns: 1fr; grid-template-rows: 1fr auto; } }
+
+.envelope { border-radius: var(--r-md); padding: 18px; background: var(--cocoa); color: #fbf3ea; text-align: center; }
+.envelope .seal { width: 54px; height: 54px; border-radius: 50%; background: var(--foil); margin: 0 auto 8px; display: grid; place-items: center; font-weight: 800; color: #23170f; }
+.envelope.open { animation: openup .9s cubic-bezier(.2,.8,.2,1); }
+.envelope .pred { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--foil-2); }
+@keyframes openup { 0% { transform: rotateX(70deg) scale(.9); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .envelope.open { animation: none; } }
+
+.qr { background: #fff; padding: 8px; border-radius: 8px; width: max-content; }
+.qr img, .qr canvas { display: block; }
+
+/* Tasks */
+.tier { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; margin: 18px 0 8px; display: flex; align-items: center; gap: 8px; }
+.tier .chip { font-family: var(--font-body); font-weight: 400; }
+.task { border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; background: var(--panel); }
+.task + .task { margin-top: 10px; }
+.task.solved { border-color: var(--mint); }
+.task .ref { font-size: .82rem; color: var(--muted); }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.opt { min-width: 48px; min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); font-weight: 700; cursor: pointer; padding: 6px 12px; }
+.opt.sel { border-color: var(--cocoa); background: var(--cocoa); color: #fbf3ea; }
+.frames { font-size: .95rem; color: var(--muted); margin: 6px 0; padding-left: 18px; }
+.plot svg { width: 100%; max-width: 420px; height: auto; touch-action: manipulation; user-select: none; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 8px 14px; font-weight: 700; cursor: pointer; min-height: 40px; }
+.seg button.on.d { background: var(--buyer); color: #fff; } .seg button.on.s { background: var(--seller); color: #fff; }
+
+/* Glossary */
+.term { border: 0; background: none; padding: 0; font: inherit; color: inherit; text-decoration: underline dotted 2px; text-underline-offset: 3px; cursor: help; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 80; background: var(--panel); border-top: 3px solid var(--foil); padding: 16px 18px calc(18px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -8px 24px rgba(0,0,0,.18); max-width: 640px; margin: 0 auto; border-radius: 16px 16px 0 0; }
+.sheet .vi { color: var(--muted); }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 90; background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font-weight: 700; max-width: 92vw; text-align: center; }
+
+.poll-bar { height: 12px; border-radius: 6px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; }
+.poll-bar > i { display: block; height: 100%; background: var(--foil); }
+
+details summary { cursor: pointer; font-weight: 700; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
+.hidden { display: none !important; }
+.topbar .btn.primary { background: var(--foil); border-color: var(--foil); color: #23170f; }
+.dot.ok, .dot.bad, .dot.wait { padding: 0; border: 0; border-radius: 50%; width: 9px; height: 9px; }
+.dot.bad { background: var(--seller); }
+
+/* ===== Level 0 additions ===== */
+.fx { position: fixed; inset: 0; pointer-events: none; z-index: 95; width: 100vw; height: 100vh; }
+.lead { font-size: 1.15rem; }
+.code-big { font-family: var(--font-display); font-size: 2rem; font-weight: 800; letter-spacing: .12em; line-height: 1.1; }
+.art-join { width: 90px; }
+.art-join svg, .art svg, .art-big svg { width: 100%; height: auto; display: block; }
+kbd { font-family: var(--font-body); font-size: .72em; font-weight: 700; padding: 1px 6px; border-radius: 5px; border: 1px solid currentColor; opacity: .6; margin-left: 4px; }
+@media (hover: none) { kbd { display: none; } }
+
+/* student two-column layout for tablets and laptops */
+.sgrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 820px) { .sgrid { grid-template-columns: 1fr; } }
+.ask-mini { position: relative; }
+.ask-mini .art { width: 92px; float: right; margin: 0 0 6px 12px; }
+.ask-mini.demand { border-top: 6px solid var(--buyer-card); }
+.ask-mini.supply { border-top: 6px solid var(--seller-card); }
+.yn { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; clear: both; }
+.yn .btn { min-height: 72px; font-size: 1.5rem; border-radius: 16px; border-width: 2px; }
+.yn .btn.yes.sel { background: var(--mint); border-color: var(--mint); color: #fff; }
+.yn .btn.no.sel { background: var(--seller-card); border-color: var(--seller-card); color: #fff; }
+.opt.big { min-height: 60px; font-size: 1.15rem; padding: 8px 20px; }
+tr.cur td { background: var(--warn-soft); font-weight: 700; }
+
+.bdg { font-size: 1.6rem; line-height: 1; display: inline-block; }
+.bdg.off { filter: grayscale(1); opacity: .3; }
+.bdg.big { font-size: 2.6rem; }
+.badgewall { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.bw { border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; background: var(--panel); }
+.bw.locked { opacity: .45; filter: grayscale(1); }
+.meter { height: 16px; border-radius: 8px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; margin-top: 4px; }
+.meter > i { display: block; height: 100%; background: linear-gradient(90deg, var(--foil), var(--foil-2)); transition: width .6s ease; }
+.feed-item { padding: 4px 0; border-bottom: 1px dashed var(--line); }
+
+/* robot deals */
+.chat { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px; }
+.msg { max-width: 82%; padding: 8px 12px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line); }
+.msg .who { display: block; font-size: .78rem; color: var(--muted); font-weight: 700; }
+.msg.y { align-self: flex-end; background: var(--buyer-soft); }
+.dline { width: 100%; max-width: 460px; height: auto; display: block; margin: 4px 0; }
+
+/* projector, Level 0 */
+.projector.l0 { grid-template-columns: 1fr 320px; }
+.pmain { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.news { display: flex; align-items: center; gap: 14px; background: var(--cocoa); color: #fbf3ea; border-radius: var(--r-md); padding: 12px 16px; font-size: clamp(1.05rem, 1.6vw, 1.4rem); }
+.news .flag { background: var(--foil); color: #23170f; font-weight: 800; padding: 4px 10px; border-radius: 6px; white-space: nowrap; font-family: var(--font-display); }
+.news.slide { animation: slidein .6s cubic-bezier(.2,.8,.2,1); }
+@keyframes slidein { from { transform: translateY(-30px); opacity: 0; } to { transform: none; opacity: 1; } }
+.pstage { flex: 1; min-height: 0; display: flex; }
+.pstage > * { flex: 1; min-height: 0; }
+.lobby-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; }
+.lobby-stage h1 { font-size: clamp(2rem, 4vw, 3.4rem); }
+.art-big { width: clamp(120px, 14vw, 200px); }
+.bubbles { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 900px; }
+.bubble { padding: 6px 14px; border-radius: 999px; background: var(--panel); border: 2px solid var(--foil); font-weight: 700; animation: pop .4s ease; }
+.ask-stage { display: grid; grid-template-columns: minmax(260px, 34%) 1fr; gap: 18px; min-height: 0; }
+.ask-stage.wide { grid-template-columns: 1fr minmax(240px, 30%); }
+.ask-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px; display: flex; flex-direction: column; gap: 10px; overflow: auto; }
+.ask-card.demand { border-top: 8px solid var(--buyer-card); } .ask-card.supply { border-top: 8px solid var(--seller-card); }
+.ask-card .art { width: 46%; max-width: 170px; align-self: center; }
+.ask-card h2 { font-size: clamp(1.3rem, 2.2vw, 2rem); }
+.ask-card .story { font-size: 1.05rem; margin: 0; }
+.pricetag { align-self: center; font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 4.5vw, 3.8rem); background: var(--foil); color: #23170f; padding: 4px 22px; border-radius: 14px; transform: rotate(-3deg); box-shadow: 0 6px 0 rgba(0,0,0,.18); }
+.yescount { display: flex; align-items: baseline; gap: 10px; justify-content: center; }
+.yescount span { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.4rem, 5vw, 4.4rem); line-height: 1; }
+.yescount.pop span { animation: pop .35s ease; }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.chart-box.tall { aspect-ratio: auto; height: 100%; min-height: 300px; }
+.chart-box.mid { aspect-ratio: 16 / 7; }
+.meet-text { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; overflow: auto; }
+.selfpace, .finish { display: flex; flex-direction: column; gap: 12px; overflow: auto; }
+.roster.big .who { font-size: 1.05rem; padding: 10px; }
+@media (prefers-reduced-motion: reduce) { .bubble, .yescount.pop span, .news.slide { animation: none; } .meter > i { transition: none; } }
+@media (max-width: 900px) { .projector.l0 { grid-template-columns: 1fr; } .ask-stage, .ask-stage.wide { grid-template-columns: 1fr; } }
+.bar.compact .body { padding: 10px 14px 12px; }
+.bar.compact .slab { width: 84px; height: 84px; }
+.bar.compact .slab span { font-size: 2.5rem; }
+.bar.compact .role { font-size: 1.25rem; }
+.sgrid.wide-main { grid-template-columns: minmax(0, 1fr) 230px; }
+.deal-grid { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start; }
+@media (min-width: 900px) { .deal-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .deal-grid .chat { max-height: 520px; } }
+@media (max-width: 820px) { .sgrid.wide-main { grid-template-columns: 1fr; } }
+.profile { border-radius: var(--r-md); padding: 12px 14px; color: #fff; }
+.profile.buyer { background: var(--buyer-card); } .profile.seller { background: var(--seller-card); }
+.profile .pname { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; }
+.profile .psub { opacity: .9; font-size: .92rem; }
+.profile .pgrid { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; margin-top: 6px; }
+.profile .term { color: #fff; }
+.yn.three { grid-template-columns: repeat(3, 1fr); }
+.btn.qty { flex-direction: column; gap: 0; min-height: 84px; font-size: 1.8rem; line-height: 1.1; }
+.btn.qty small { font-size: .78rem; font-weight: 700; opacity: .8; }
+.btn.qty.sel { background: var(--cocoa); border-color: var(--cocoa); color: #fbf3ea; }
+table.helper td, table.helper th { text-align: left; }
+.ok, .okt { color: var(--mint); font-weight: 800; } .no, .not { color: var(--seller); font-weight: 800; }
+/* knowledge check */
+.paper .mcq { border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; background: var(--panel); }
+.paper .mcq.right { border-color: var(--mint); } .paper .mcq.wrong { border-color: var(--seller); }
+.mq { display: grid; grid-template-columns: 34px 1fr; gap: 8px; font-size: 1.05rem; }
+.qn { width: 30px; height: 30px; border-radius: 50%; background: var(--cocoa); color: #fbf3ea; display: grid; place-items: center; font-weight: 800; }
+.mopts { display: grid; gap: 8px; margin: 10px 0 8px 42px; }
+.mopt { display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 8px; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 8px 12px; min-height: 48px; cursor: pointer; }
+.mopt .ml { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--muted); display: grid; place-items: center; font-weight: 800; }
+.mopt.sel { border-color: var(--cocoa); background: var(--warn-soft); } .mopt.sel .ml { background: var(--cocoa); color: #fbf3ea; border-color: var(--cocoa); }
+.mopt.correct { border-color: var(--mint); } .mopt.correct .ml { border-color: var(--mint); color: var(--mint); }
+.mopt:disabled { cursor: default; }
+.mcq-table { margin-top: 8px; max-width: 420px; } .mcq-table td, .mcq-table th { text-align: center; }
+#ckTimer.late { color: var(--seller); }
+.cbar { display: grid; grid-template-columns: 1fr 160px 50px; gap: 10px; align-items: center; font-size: 1.1rem; }
+@media (max-width: 640px) { .mopts { margin-left: 0; } }
+/* status dots must not pick up the alert-box styles of .good/.bad */
+.dot.ok, .dot.bad, .dot.wait { padding: 0; border: 0; border-radius: 50%; width: 9px; height: 9px; }
+.dot.bad { background: var(--seller); }
+.profile .bignum { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; }
+
+/* ===== Level 1 additions ===== */
+.trade-stage { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: 16px; min-height: 0; flex: 1; }
+.trade-stage + .ticker { flex: 0 0 auto; }
+.pstage { flex-direction: column; gap: 10px; }
+.chart-box.short { aspect-ratio: 16 / 7; min-height: 150px; }
+.ticker { display: flex; gap: 8px; overflow: hidden; min-height: 48px; align-items: center; }
+.tick-item { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--panel); border: 2px solid var(--foil); font-weight: 800; font-size: 1.1rem; white-space: nowrap; animation: tickin .5s cubic-bezier(.2,.8,.2,1); }
+.tick-item .tk-art { width: 22px; display: inline-block; } .tick-item .tk-art svg { width: 100%; height: auto; display: block; }
+@keyframes tickin { from { transform: translateX(-40px) scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
+.profile .bignum { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; }
+.timer.late { color: var(--seller); }
+#sMain.flash > .panel:nth-child(2) { animation: flashbg .8s ease; }
+@keyframes flashbg { 0% { box-shadow: 0 0 0 0 var(--mint); } 30% { box-shadow: 0 0 0 6px var(--mint); } 100% { box-shadow: var(--shadow); } }
+@media (prefers-reduced-motion: reduce) { .tick-item, #sMain.flash > .panel { animation: none; } }
+@media (max-width: 900px) { .trade-stage { grid-template-columns: 1fr; } }
+/* debrief layout: schedule and plot first, questions beside them on wide screens */
+.debrief-grid { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start; }
+@media (min-width: 1000px) { .debrief-grid { grid-template-columns: minmax(380px, 1fr) minmax(0, 1fr); } }
+.sticky-col .task { border: 0; padding: 0; margin-top: 8px; }
+table.sched tr.plotrow td { background: var(--warn-soft); }
+.markpill { font-weight: 800; font-size: .9rem; color: var(--muted); }
+.markpill.full { color: var(--mint); } .markpill.part { color: var(--warn); } .markpill.zero { color: var(--seller); }
+.scorebox { display: flex; flex-direction: column; align-items: flex-end; } .scorebox b { font-family: var(--font-display); font-size: 1.6rem; } .scorebox small { color: var(--muted); }
+.scorebox.big b { font-size: 2.2rem; }
+.grades tr.flag td { background: var(--seller-soft); font-weight: 700; }
+.mini-in { width: 64px; min-height: 34px; padding: 4px 6px; }
+.sgrid.wide-main { grid-template-columns: minmax(0, 1fr) 200px; }
+.mini-sched { position: sticky; top: calc(58px + env(safe-area-inset-top, 0px)); z-index: 5; padding: 8px 12px; }
+table.msched th, table.msched td { padding: 3px 8px; text-align: center; font-size: .92rem; }
+table.msched th { text-align: left; }
+.grades tr.inc td { background: var(--warn-soft); }
+.warn-t { color: var(--warn); font-weight: 700; }
+.sgrid.solo { grid-template-columns: minmax(0, 1fr); }
+table.sched td, table.sched th { padding: 4px 10px; }
+@media (min-width: 1000px) { .debrief-grid { grid-template-columns: minmax(420px, 1fr) minmax(0, 1.1fr); } }
+
+/* ===== Level 2: till and board ===== */
+.tillgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.prod.choc { border-top: 8px solid var(--seller-card); } .prod.candy { border-top: 8px solid var(--buyer-card); }
+.prodname { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; }
+.prodname .pa { width: 64px; display: inline-block; } .prodname .pa svg, .mart svg, .art-row svg { width: 100%; height: auto; display: block; }
+.stockdots { font-size: 1.4rem; letter-spacing: 2px; } .stockdots small { font-size: .85rem; letter-spacing: 0; color: var(--muted); }
+.unitrow { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.unitrow .u { border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; font-weight: 700; }
+.unitrow .u.done { opacity: .4; text-decoration: line-through; } .unitrow .u.cur { border-color: var(--foil); background: var(--warn-soft); }
+.bigin { font-family: var(--font-display); font-size: 2rem; text-align: center; min-height: 64px; }
+.soldbtn { min-height: 72px; font-size: 1.4rem; }
+.soldout { text-align: center; font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--muted); padding: 30px 0; }
+.lockpill { background: var(--warn-soft); border-radius: 999px; padding: 2px 10px; font-weight: 700; }
+.tillfoot { margin-top: 16px; gap: 20px; font-size: 1.1rem; }
+.evbar { display: flex; gap: 14px; flex-wrap: wrap; background: var(--cocoa); color: #fbf3ea; border-radius: var(--r-md); padding: 10px 14px; margin-bottom: 14px; font-weight: 700; }
+.shoppick { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.shopbtn { min-height: 110px; font-size: 2.6rem; font-family: var(--font-display); flex-direction: column; border-radius: 18px; }
+.shopbtn small { font-size: .85rem; font-family: var(--font-body); }
+.modal { position: fixed; inset: 0; z-index: 70; background: rgba(20, 12, 8, .55); display: grid; place-items: center; padding: 16px; }
+.mbox { background: var(--panel); border-radius: 18px; padding: 22px; max-width: 560px; width: 100%; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.mbox h2 { font-size: 1.6rem; margin: 0; } .mart { width: 90px; } .btn.big { min-height: 64px; font-size: 1.3rem; flex: 1; }
+#tMain.flash2 .tillgrid { animation: flashbg .8s ease; }
+.shopgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.shopcell { border: 1px dashed var(--line); border-radius: 10px; padding: 8px; text-align: center; display: flex; flex-direction: column; }
+.shopcell b { font-family: var(--font-display); font-size: 1.5rem; } .shopcell.on { border-style: solid; border-color: var(--mint); background: var(--mint-soft); }
+.shopcell small { font-size: .78rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+table.livegrid td, table.livegrid th { text-align: left; } .stock { letter-spacing: 2px; }
+.board-live table.livegrid { font-size: clamp(1.1rem, 2vw, 1.8rem); } .board-live .stock { font-size: 1.3em; }
+.board-live .row { font-size: clamp(1rem, 1.6vw, 1.4rem); }
+table.rounds-t { font-size: clamp(.95rem, 1.4vw, 1.25rem); }
+.lockbox { margin-top: 10px; padding: 10px 12px; border-radius: var(--r-sm); background: var(--warn-soft); border-left: 4px solid var(--warn); }
+.sales-log { max-height: 380px; overflow: auto; } .sales-log tr.undone td { text-decoration: line-through; color: var(--muted); }
+.banner { position: fixed; inset: 0; z-index: 60; background: rgba(35, 23, 15, .88); color: #fbf3ea; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; animation: tickin .5s ease; }
+.banner .b-icon { font-size: 6rem; } .banner .b-title { font-family: var(--font-display); font-size: clamp(2.4rem, 6vw, 5rem); font-weight: 800; }
+.banner .b-vi { font-size: clamp(1.4rem, 3vw, 2.4rem); color: var(--foil-2); } .banner .b-detail { font-size: clamp(1.2rem, 2.4vw, 2rem); }
+.art-row { display: flex; gap: 30px; justify-content: center; } .art-row svg { width: 160px; }
+/* printing */
+.print-only { display: none; }
+@media print {
+  body > *:not(#printArea) { display: none !important; }
+  #printArea { display: block !important; color: #000; }
+  .psheet { page-break-after: always; } .psheet h2 { font-size: 16pt; }
+  .pgrid-num { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6mm; }
+  .numtag { border: 2px solid #000; border-radius: 4mm; height: 32mm; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 36pt; font-weight: 800; }
+  .numtag small { font-size: 10pt; font-weight: 400; }
+  .shopsign { border: 3px solid #000; height: 120mm; display: flex; align-items: center; justify-content: center; font-size: 110pt; font-weight: 800; page-break-after: always; }
+  .cashrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-bottom: 6mm; }
+  .note-cash { border: 2px dashed #000; height: 30mm; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 26pt; font-weight: 800; }
+  .note-cash small { font-size: 8pt; font-weight: 400; }
+}
+.prodname .pa { height: 44px; display: inline-flex; align-items: center; }
+.prodname .pa svg { max-height: 44px; }
+.board-live .tick-item { font-size: clamp(1rem, 1.6vw, 1.4rem); }
+table.rounds-t td { white-space: nowrap; } table.rounds-t td:first-child, table.rounds-t td:nth-child(2) { white-space: normal; }
+.tillgrid > .panel { margin-top: 0; }
+
+/* ===== Level 2 online ===== */
+.tradegrid { display: grid; grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .tradegrid { grid-template-columns: 1fr; } }
+table.shoptable td, table.shoptable th { text-align: left; vertical-align: top; }
+table.shoptable td.cell { min-width: 150px; }
+.askline { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; } .askp { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; }
+.offer { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 10px; } .offer.counter { border-color: var(--foil); background: var(--warn-soft); }
+.prizebox { font-size: 1.15rem; } .prizebox b { font-family: var(--font-display); font-size: 1.4rem; }
+.unitline { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; } .unitline > span:first-child { min-width: 86px; font-weight: 700; }
+.unitline .u { background: rgba(255,255,255,.15); border-radius: 6px; padding: 2px 7px; font-weight: 700; } .unitline .u.done { opacity: .45; text-decoration: line-through; } .unitline .u.cur { background: var(--foil); color: #23170f; }
+.pricerow { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.fastp.choc { border-top: 6px solid var(--seller-card); } .fastp.candy { border-top: 6px solid var(--buyer-card); }
+.stepper.small { grid-template-columns: 44px 1fr 44px; } .stepper.small button { min-height: 44px; font-size: 1.3rem; } .stepper.small .val { font-size: 1.6rem; }
+.pstat { margin-top: 6px; } .eqtag { background: var(--mint-soft); border-radius: 999px; padding: 1px 8px; font-weight: 700; }
+.funcbox { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+.board-live .funcbox, .pstage > .funcbox { font-size: clamp(1rem, 1.6vw, 1.35rem); }
+.func h3 { margin: 6px 0 4px; } ol.funcs { margin: 0; padding-left: 22px; } ol.funcs li { margin: 4px 0; }
+table.prizelist { width: 100%; border-collapse: collapse; } table.prizelist td, table.prizelist th { border: 1px solid #000; padding: 4px 8px; }
+.tillgrid > .panel, .pricerow > .panel, .tradegrid > .panel { margin-top: 0; }
+
+/* ---- Saigon Chocolate Crisis breakout ---- */
+.bk-race { position: relative; display: flex; flex-direction: column; gap: 12px; padding-top: 46px; }
+.bk-stops { position: absolute; left: 34px; right: 34px; top: 0; height: 40px; }
+.bk-stops span { position: absolute; transform: translateX(-50%); text-align: center; line-height: 1.05; }
+.bk-stops b { display: block; font-size: 1.3rem; }
+.bk-stops small { font-size: .72rem; color: var(--muted); white-space: nowrap; }
+.bk-race.big { padding-top: 70px; gap: 18px; }
+.bk-race.big .bk-stops { height: 64px; }
+.bk-race.big .bk-stops b { font-size: 2.4rem; }
+.bk-race.big .bk-stops small { font-size: 1rem; }
+.bk-lname { font-size: .95rem; margin-bottom: 4px; }
+.bk-race.big .bk-lname { font-size: 1.3rem; }
+.bk-track { position: relative; height: 30px; margin: 0 34px; border-radius: 999px; background: repeating-linear-gradient(90deg, var(--paper) 0 30px, var(--line) 30px 32px); border: 3px solid var(--c); }
+.bk-race.big .bk-track { height: 52px; }
+.bk-track i { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: color-mix(in srgb, var(--c) 28%, transparent); transition: width 1.6s ease; }
+.bk-van { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; transition: left 1.6s cubic-bezier(.25, .9, .3, 1); filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+.bk-race.big .bk-van { font-size: 2.8rem; }
+.bk-lane.ready .bk-track { box-shadow: 0 0 0 4px var(--foil-2); animation: bkpulse 1.2s ease-in-out infinite; }
+.bk-lane.locked .bk-track { border-style: dashed; }
+@keyframes bkpulse { 50% { box-shadow: 0 0 0 9px rgba(242, 207, 107, .35); } }
+.bk-health { margin-top: 6px; }
+.bk-hbar { height: 16px; border-radius: 999px; background: var(--seller-soft); overflow: hidden; margin: 4px 0; }
+.bk-hbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--foil), var(--mint)); transition: width 1.4s ease; }
+.bk-scene { font-size: 1.5rem; letter-spacing: 2px; }
+.bk-lead { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.bk-lead li { display: flex; gap: 8px; align-items: center; padding: 6px 10px; border-radius: 10px; background: var(--paper); }
+.bk-lead li small { color: var(--muted); margin-left: auto; }
+.bk-lead .fee { min-width: 72px; text-align: right; }
+.bk-codes { display: grid; gap: 8px; }
+.bk-codes label { display: grid; grid-template-columns: 1fr 160px; gap: 8px; align-items: center; }
+.bk-codes input { font-family: var(--font-display); letter-spacing: .12em; text-transform: uppercase; }
+.bk-team { border-left: 6px solid var(--c); padding: 8px 10px; border-radius: 10px; background: var(--paper); display: flex; flex-direction: column; gap: 4px; }
+.bk-team.ready { background: var(--warn-soft); box-shadow: 0 0 0 2px var(--foil); }
+.bk-team.done { background: var(--mint-soft); }
+.proj { position: fixed; inset: 0; z-index: 70; background: var(--paper); overflow: auto; }
+.bk-proj { min-height: 100vh; display: flex; flex-direction: column; gap: 14px; padding: 16px 20px; }
+.bk-ptop { display: flex; align-items: center; gap: 16px; background: var(--cocoa); color: #fbf3ea; border-radius: 16px; padding: 10px 18px; }
+.bk-ptitle { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.3rem, 2.6vw, 2rem); display: flex; flex-direction: column; flex: 1; }
+.bk-ptitle small { font-family: var(--font-body); font-weight: 400; font-size: .5em; color: #f2cf6b; }
+.bk-pclock .timer { font-size: clamp(2.4rem, 6vw, 4.4rem); }
+.bk-proom { font-size: 1.2rem; }
+.bk-proom b { letter-spacing: .14em; font-size: 1.5rem; }
+.bk-pmain { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; flex: 1; }
+@media (max-width: 900px) { .bk-pmain { grid-template-columns: 1fr; } }
+.bk-pstage { display: flex; flex-direction: column; gap: 14px; }
+.bk-pside { display: flex; flex-direction: column; gap: 12px; }
+.bk-ready { font-size: clamp(1.2rem, 2.4vw, 1.8rem); font-weight: 800; padding: 12px 16px; border-radius: 14px; background: var(--warn-soft); border: 3px solid var(--foil); animation: bkpulse 1.2s ease-in-out infinite; }
+.bk-joined { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.bk-joined span { border: 3px solid var(--c); border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 1.2rem; background: var(--panel); }
+.bk-joined span.in { background: var(--mint-soft); }
+.bk-pnews { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; padding: 20px; border-radius: 20px; background: #1d120b; color: #fbf3ea; }
+.bk-pnews h1 { font-size: clamp(2rem, 4.5vw, 3.4rem); margin: 0; }
+.bk-pnews h2 { font-size: clamp(1.4rem, 3vw, 2.2rem); margin: 0; color: #f7d36b; }
+.bk-pnews-icon { font-size: 5rem; line-height: 1; }
+.bk-pnews-k { font-weight: 800; letter-spacing: .08em; color: #f7d36b; }
+.bk-pnews .bk-joined span { color: var(--ink); }
+.lobby-stage { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+/* team device */
+.bk-dev { max-width: 860px; }
+.bk-dev > * + * { margin-top: 12px; }
+.bk-lhead { display: flex; gap: 14px; align-items: center; padding: 12px 16px; border-radius: 16px; background: var(--cocoa); color: #fbf3ea; }
+.bk-lhead h1 { color: #fbf3ea; font-size: clamp(1.4rem, 4vw, 2rem); }
+.bk-lhead .vi { color: #f2cf6b; font-size: .55em; font-weight: 400; display: block; }
+.bk-licon { font-size: 2.6rem; }
+.bk-lk { font-size: .8rem; font-weight: 800; letter-spacing: .08em; color: #f2cf6b; }
+.bk-rolerow { display: flex; flex-wrap: wrap; gap: 6px; }
+.bk-rolerow span { padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: .9rem; }
+.bk-rolerow small { color: var(--muted); }
+.bk-src { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.bk-src caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
+.bk-src th, .bk-src td { border: 1px solid var(--line); padding: 6px 10px; text-align: center; }
+.bk-src th { background: var(--paper); }
+.bk-q { border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.bk-q.ok { border-color: var(--mint); background: var(--mint-soft); }
+.bk-q.tried { border-color: var(--seller); }
+.bk-qq { font-weight: 700; font-size: 1.05rem; }
+.bk-qq .vi, .bk-opt .vi { display: block; font-weight: 400; font-size: .85em; color: var(--muted); }
+.bk-qa { font-weight: 800; color: var(--mint); }
+.bk-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.bk-opt { min-height: 52px; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-weight: 700; color: var(--ink); padding: 8px 12px; cursor: pointer; text-align: left; }
+.bk-opt:hover { border-color: var(--foil); }
+.bk-opt.sel { border-color: var(--foil); background: var(--warn-soft); }
+.bk-hint { padding: 8px 10px; border-radius: 10px; background: var(--warn-soft); }
+.bk-sq { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.bk-ticks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.bk-tick { min-height: 48px; padding: 6px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--paper); font: inherit; font-weight: 700; color: var(--ink); cursor: pointer; }
+.bk-tick.on { border-color: var(--mint); background: var(--mint-soft); }
+.bk-code { border: 3px solid var(--foil); }
+.bk-mem { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.bk-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.bk-roles div { padding: 8px 10px; border-radius: 10px; background: var(--paper); display: flex; flex-direction: column; }
+.bk-roles small { color: var(--muted); }
+.bk-news { padding: 14px 16px; border-radius: 16px; background: #1d120b; color: #fbf3ea; display: flex; flex-direction: column; gap: 10px; border: 3px solid #f7d36b; }
+.bk-news .bk-qq { color: #f7d36b; }
+.bk-news .bk-opt { background: #2c1d13; color: #fbf3ea; border-color: #5b3826; }
+.bk-news .vi { color: #f2cf6b; }
+.bk-news-k { font-weight: 800; letter-spacing: .08em; color: #f7d36b; }
+.bk-lic, .bk-lic-in { text-align: center; padding: 22px; border-radius: 20px; border: 6px double var(--foil); background: var(--panel); display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.bk-lic-top { font-weight: 800; letter-spacing: .1em; color: var(--muted); font-size: .9rem; }
+.bk-lic h1, .bk-lic-in h1 { margin: 0; }
+.print-only { display: none; }
+@media print {
+  body > *:not(#printArea) { display: none !important; }
+  #printArea { display: block !important; }
+  .psheet { page-break-after: always; padding: 10mm; font-family: var(--font-body); color: #000; }
+  .bk-ptable { width: 100%; border-collapse: collapse; font-size: 14pt; }
+  .bk-ptable td, .bk-ptable th { border: 1px solid #000; padding: 8px; text-align: left; }
+  .bk-pcode { font-family: monospace; font-size: 20pt; letter-spacing: .15em; font-weight: 800; }
+  .bk-licence .bk-lic-in { border: 8px double #b8860b; padding: 18mm 14mm; min-height: 240mm; justify-content: center; gap: 14px; }
+  .bk-licence h1 { font-size: 30pt; } .bk-licence h2 { font-size: 24pt; }
+  .bk-lic-sign { display: flex; justify-content: space-between; width: 80%; margin-top: 18mm; }
+  .bk-lic-sign span { border-top: 1px solid #000; padding-top: 4px; min-width: 40%; }
+}
+.bk-viblock { display: block; margin-top: 4px; font-size: .9em; color: var(--muted); }
+</style>
+<script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!--FX-CSS--><style id="fx-css">
+/* ===== EcoLogic Market Lab: shared game layer ===== */
+.fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 96; overflow: hidden; }
+.fx-float { position: absolute; transform: translate(-50%, -50%); font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; white-space: nowrap; animation: fxfloat 1.2s cubic-bezier(.2,.8,.2,1) forwards; text-shadow: 0 2px 0 var(--panel), 0 0 8px var(--panel); }
+.fx-float.good { color: var(--mint); } .fx-float.bad { color: var(--seller); } .fx-float.gold { color: var(--foil); }
+@keyframes fxfloat { 0% { opacity: 0; transform: translate(-50%, -20%) scale(.7); } 15% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); } 100% { opacity: 0; transform: translate(-50%, -260%) scale(1); } }
+.fx-coin { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff3b0, #e9b32a 45%, #a87412); box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.fx-coin::after { content: 'đ'; position: absolute; inset: 0; display: grid; place-items: center; font: 800 12px/1 sans-serif; color: #7a5408; }
+.fx-coin.sweet { background: radial-gradient(circle at 35% 35%, #fff, #ff6fa8 45%, #c2185b); }
+.fx-coin.sweet::after { content: ''; }
+.fx-shake { animation: fxshake .42s ease; }
+@keyframes fxshake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+.fx-pulse { animation: fxpulse .6s ease; }
+@keyframes fxpulse { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+/* breaking news */
+.fx-news { position: fixed; inset: 0; z-index: 97; display: flex; flex-direction: column; background: radial-gradient(ellipse at center, rgba(58,34,23,.92), rgba(20,12,8,.97)); color: #fbf3ea; overflow: hidden; cursor: pointer; animation: fxin .35s ease; }
+.fx-news.hidden { display: none; }
+.fx-news.storm { background: radial-gradient(ellipse at center, rgba(30,48,70,.94), rgba(8,14,24,.98)); }
+.fx-news.spooky { background: radial-gradient(ellipse at center, rgba(70,30,80,.94), rgba(18,6,22,.98)); }
+.fx-news.harvest { background: radial-gradient(ellipse at center, rgba(110,80,20,.94), rgba(40,26,6,.98)); }
+.fx-news.money, .fx-news.health { background: radial-gradient(ellipse at center, rgba(24,90,60,.94), rgba(6,30,18,.98)); }
+.fx-news.factory { background: radial-gradient(ellipse at center, rgba(70,70,76,.94), rgba(20,20,24,.98)); }
+@keyframes fxin { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+.fx-news-strip { background: #c62828; color: #fff; font-family: var(--font-display); font-weight: 800; letter-spacing: .12em; padding: 10px 0; overflow: hidden; white-space: nowrap; position: relative; z-index: 2; font-size: clamp(1rem, 2.4vw, 1.6rem); }
+.fx-news-strip span { display: inline-block; padding-left: 100%; animation: fxmarquee 6s linear infinite; }
+.fx-news.calm .fx-news-strip span { animation: none; padding-left: 16px; }
+@keyframes fxmarquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+.fx-news-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; padding: 16px; position: relative; z-index: 2; }
+.fx-news-icon { font-size: clamp(4rem, 14vw, 9rem); line-height: 1; animation: fxbounce 1s cubic-bezier(.3,1.6,.5,1); }
+.fx-news.calm .fx-news-icon { animation: none; }
+@keyframes fxbounce { 0% { transform: scale(.2) rotate(-12deg); } 60% { transform: scale(1.15) rotate(4deg); } 100% { transform: scale(1); } }
+.fx-news-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 7vw, 5rem); line-height: 1.05; }
+.fx-news-vi { font-size: clamp(1.2rem, 3.4vw, 2.4rem); color: var(--foil-2); font-weight: 700; }
+.fx-news-detail { font-size: clamp(1.1rem, 3vw, 2.1rem); max-width: 36ch; }
+.fx-news-tap { font-size: .9rem; opacity: .6; margin-top: 10px; }
+.fx-bits { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.fx-bit { position: absolute; top: -10%; font-size: clamp(1.6rem, 4vw, 3rem); animation: fxfall linear infinite; opacity: .9; }
+.fx-news.spooky .fx-bit, .fx-news.money .fx-bit, .fx-news.health .fx-bit { animation-name: fxdrift; }
+.fx-news.factory .fx-bit { animation-name: fxrise; top: auto; bottom: -10%; }
+@keyframes fxfall { from { transform: translateY(0) rotate(0); } to { transform: translateY(120vh) rotate(40deg); } }
+@keyframes fxdrift { 0% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(30px, 60vh) rotate(-15deg); } 100% { transform: translate(-20px, 120vh) rotate(10deg); } }
+@keyframes fxrise { from { transform: translateY(0); opacity: .9; } to { transform: translateY(-120vh); opacity: 0; } }
+
+/* badge and title pop-ups */
+.fx-pop { position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 98; display: flex; align-items: center; gap: 12px; background: var(--panel); color: var(--ink); border: 3px solid var(--foil); border-radius: 18px; padding: 10px 18px 10px 12px; box-shadow: 0 10px 30px rgba(0,0,0,.25); animation: fxpopin .5s cubic-bezier(.2,1.4,.4,1); max-width: 92vw; }
+.fx-pop.out { animation: fxpopout .3s ease forwards; }
+.fx-pop.calm { animation: none; }
+@keyframes fxpopin { from { transform: translate(-50%, -140%) scale(.8); } to { transform: translate(-50%, 0) scale(1); } }
+@keyframes fxpopout { to { transform: translate(-50%, -140%); opacity: 0; } }
+.fx-pop-icon { font-size: 2.6rem; line-height: 1; animation: fxspin 1s ease; }
+@keyframes fxspin { from { transform: rotate(-200deg) scale(.3); } to { transform: none; } }
+.fx-pop-head { font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: var(--warn); font-weight: 800; }
+.fx-pop-title { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; line-height: 1.15; }
+.fx-pop-sub { font-size: .9rem; color: var(--muted); }
+
+/* prize jar */
+.fx-jar { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; }
+.fx-jar svg { width: 92px; height: auto; display: block; overflow: visible; }
+.fx-jar.big svg { width: 150px; } .fx-jar.small svg { width: 54px; }
+.fx-jar-lab { font-family: var(--font-display); font-weight: 800; font-size: 1rem; }
+.fx-jar.small .fx-jar-lab { font-size: .85rem; }
+.fx-drop { animation: fxdrop .7s cubic-bezier(.3,1.5,.5,1) both; transform-box: fill-box; transform-origin: center; }
+@keyframes fxdrop { from { transform: translateY(-110px) rotate(-90deg); opacity: 0; } 60% { opacity: 1; } to { transform: none; opacity: 1; } }
+
+/* tap-to-price tag */
+.fx-tag { display: flex; flex-direction: column; gap: 6px; }
+.fx-tag-label { font-weight: 700; }
+.fx-tag-row { display: grid; grid-template-columns: 64px 1fr 64px; gap: 8px; align-items: center; }
+.fx-step { min-height: 60px; border-radius: 14px; font-size: 1.25rem; font-weight: 800; border: 2px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; touch-action: manipulation; }
+.fx-step:active { transform: scale(.94); background: var(--paper); }
+.fx-tag-card { position: relative; background: #fff8e1; color: #23170f; border: 3px solid var(--foil); border-radius: 12px 26px 26px 12px; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 10px 6px 26px; box-shadow: 0 3px 0 rgba(0,0,0,.08); }
+.fx-tag-card .fx-hole { position: absolute; left: 9px; top: 50%; width: 11px; height: 11px; margin-top: -5.5px; border-radius: 50%; background: var(--paper); border: 2px solid var(--foil); }
+.fx-tag-val { font-family: var(--font-display); font-size: 2.3rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.fx-tag-card small { font-size: .8rem; color: #6d6158; }
+.fx-tag.buyer .fx-tag-card { border-color: var(--buyer); } .fx-tag.seller .fx-tag-card { border-color: var(--seller); }
+.fx-range { width: 100%; height: 36px; accent-color: var(--foil); margin: 0; touch-action: pan-y; }
+.fx-range-ends { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); margin-top: -6px; }
+
+/* stall */
+.fx-stall { border-radius: var(--r-md); overflow: hidden; background: var(--panel); border: 2px solid var(--stall); box-shadow: var(--shadow); }
+.fx-awning { height: 34px; background: repeating-linear-gradient(90deg, var(--stall) 0 26px, #fff 26px 52px); position: relative; }
+.fx-awning::after { content: ''; position: absolute; left: 0; right: 0; bottom: -10px; height: 12px; background: radial-gradient(circle at 13px 0, var(--stall) 12px, transparent 13px) 0 0 / 52px 12px repeat-x, radial-gradient(circle at 39px 0, #fff 12px, transparent 13px) 0 0 / 52px 12px repeat-x; }
+.fx-stall-head { display: flex; gap: 10px; align-items: center; padding: 16px 14px 6px; }
+.fx-avs { font-size: 2rem; line-height: 1; display: inline-flex; gap: 2px; }
+.fx-stall-name { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; color: var(--stall); line-height: 1.1; }
+:root[data-theme="dark"] .fx-stall-name { filter: brightness(1.6); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fx-stall-name { filter: brightness(1.6); } }
+.fx-stall-sub { font-size: .9rem; color: var(--muted); }
+.fx-shelf { padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
+.fx-shelf-label { font-weight: 800; font-size: .9rem; margin-bottom: 2px; }
+.fx-units { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; border-bottom: 6px solid #8a5a22; padding-bottom: 4px; }
+.fx-units:has(> :only-child) { grid-template-columns: minmax(0, 160px); }
+.fx-unit { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px; border-radius: 8px; transition: opacity .3s; }
+.fx-unit-art { width: 100%; max-width: 70px; } .fx-unit-art svg { width: 100%; height: auto; display: block; }
+.fx-unit-tag { font-size: .82rem; font-weight: 700; color: var(--muted); text-align: center; line-height: 1.15; }
+.fx-unit.cur { background: var(--warn-soft); outline: 2px dashed var(--foil); }
+.fx-unit.cur .fx-unit-tag { color: var(--ink); }
+.fx-unit.sold .fx-unit-art { opacity: .18; filter: grayscale(1); }
+.fx-sold { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) rotate(-14deg); border: 2px solid var(--mint); color: var(--mint); font-weight: 800; font-size: .8rem; padding: 0 5px; border-radius: 4px; background: var(--panel); letter-spacing: .06em; }
+.fx-unit.justsold .fx-unit-art { animation: fxslide .8s ease-in both; animation-delay: var(--fxd, 0ms); }
+.fx-unit.justsold .fx-sold { animation: fxstamp .5s cubic-bezier(.2,1.6,.4,1) both; animation-delay: calc(var(--fxd, 0ms) + 500ms); }
+@keyframes fxslide { 0% { opacity: 1; filter: none; transform: none; } 60% { opacity: .8; transform: translate(26px, -26px) rotate(14deg); } 100% { opacity: .18; filter: grayscale(1); transform: none; } }
+@keyframes fxstamp { from { transform: translate(-50%, -50%) rotate(-14deg) scale(2.4); opacity: 0; } to { transform: translate(-50%, -50%) rotate(-14deg) scale(1); opacity: 1; } }
+.fx-stall-foot { border-top: 1px solid var(--line); padding: 8px 14px; font-size: .92rem; }
+
+/* buyer wallet */
+.fx-wallet { border-radius: var(--r-md); overflow: hidden; background: var(--panel); border: 2px solid var(--buyer); box-shadow: var(--shadow); }
+.fx-wallet-head { display: flex; gap: 10px; align-items: center; padding: 12px 14px; background: var(--buyer); color: #fff; }
+.fx-wallet-name { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; line-height: 1.1; }
+.fx-wallet-sub { font-size: .9rem; opacity: .92; }
+.fx-wallet-head .term { color: #fff; }
+.fx-wallet-items { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.fx-witem { display: grid; grid-template-columns: 58px 1fr auto; gap: 10px; align-items: center; }
+.fx-witem-art svg { width: 100%; height: auto; display: block; }
+.fx-witem-txt small { color: var(--muted); }
+.fx-worth { position: relative; background: #fff8e1; color: #23170f; border: 3px solid var(--buyer); border-radius: 10px 22px 22px 10px; padding: 4px 14px 4px 12px; text-align: center; min-width: 96px; }
+.fx-worth small { display: block; font-size: .7rem; color: #6d6158; line-height: 1; }
+.fx-worth b { font-family: var(--font-display); font-size: 1.7rem; line-height: 1.05; }
+.fx-witem.bought .fx-worth { opacity: .45; }
+.fx-basket { display: flex; align-items: center; gap: 6px; min-height: 52px; padding: 6px 12px 10px; border-top: 1px dashed var(--line); }
+.fx-basket-ico { font-size: 1.8rem; }
+.fx-binit { width: 54px; display: inline-block; } .fx-binit svg { width: 100%; height: auto; display: block; }
+.fx-binit.drop { animation: fxbasket .7s cubic-bezier(.3,1.5,.5,1) both; }
+@keyframes fxbasket { from { transform: translateY(-80px) rotate(-30deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.fx-wallet-foot { border-top: 1px solid var(--line); padding: 8px 14px; font-size: .92rem; }
+
+/* ticker */
+.fx-ticker { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 0; min-height: 46px; align-items: center; }
+.fx-ticker::-webkit-scrollbar { display: none; }
+.fx-tk { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: var(--panel); border: 2px solid var(--line); white-space: nowrap; font-size: 1rem; }
+.fx-tk b { font-family: var(--font-display); font-size: 1.1rem; }
+.fx-tk i { font-style: normal; font-size: .8rem; color: var(--muted); }
+.fx-tk.up { border-color: var(--mint); } .fx-tk.up i { color: var(--mint); }
+.fx-tk.down { border-color: var(--seller); } .fx-tk.down i { color: var(--seller); }
+.fx-tk small { color: var(--muted); }
+.fx-tk-art { width: 22px; display: inline-block; } .fx-tk-art svg { width: 100%; height: auto; display: block; }
+.fx-tk.new { animation: fxtk .5s cubic-bezier(.2,1.4,.4,1); }
+@keyframes fxtk { from { transform: translateX(-30px) scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
+.timer.late { color: #e0303a; animation: fxlate 1s steps(2) infinite; }
+.topbar .timer.late { color: #ff8a8a; }
+@keyframes fxlate { 50% { opacity: .55; } }
+
+/* pickers */
+.fx-pick-lab { font-weight: 700; margin-bottom: 6px; }
+.fx-avgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 6px; }
+.fx-av { font-size: 1.7rem; min-height: 50px; border-radius: 12px; border: 2px solid var(--line); background: var(--panel); cursor: pointer; line-height: 1; }
+.fx-av.sel { border-color: var(--foil); background: var(--warn-soft); transform: scale(1.06); }
+.fx-teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.fx-team { min-height: 52px; border-radius: 12px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.fx-team small { font-weight: 400; color: var(--muted); font-size: .8rem; }
+.fx-team.sel { border-color: var(--team); box-shadow: inset 0 0 0 2px var(--team); }
+.fx-title { font-weight: 700; }
+
+/* leaderboard, teams, podium */
+.fx-lb { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.fx-lb li { display: grid; grid-template-columns: 34px 34px 1fr auto; gap: 6px; align-items: center; padding: 6px 10px; border-radius: 10px; background: var(--paper); border: 1px solid var(--line); }
+.fx-lb-rank { font-size: 1.3rem; text-align: center; font-weight: 800; color: var(--muted); }
+.fx-lb-av { font-size: 1.5rem; }
+.fx-lb-nick { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fx-lb-nick small { font-weight: 400; color: var(--muted); }
+.fx-lb b { font-family: var(--font-display); }
+.fx-improved { margin-top: 8px; padding: 6px 10px; border-radius: 10px; background: var(--mint-soft); }
+.fx-improved.big { font-size: 1.4rem; padding: 10px 16px; }
+.fx-teambars { display: flex; flex-direction: column; gap: 8px; }
+.fx-tb-top { display: flex; justify-content: space-between; gap: 8px; font-weight: 700; }
+.fx-tb-top small { color: var(--muted); font-weight: 400; }
+.fx-tb-bar { height: 14px; border-radius: 7px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; }
+.fx-tb-bar i { display: block; height: 100%; transition: width .6s ease; }
+.fx-podium-wrap { position: fixed; inset: 0; z-index: 94; background: radial-gradient(ellipse at top, var(--panel), var(--paper)); display: flex; padding: 20px; overflow: auto; }
+.fx-podium-inner { margin: auto; width: min(1100px, 100%); display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.fx-podium-inner h1 { font-size: clamp(1.8rem, min(5vw, 6vh), 3.8rem); margin: 0; }
+.fx-podium-inner .lead { margin: 0; }
+.fx-podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: end; width: min(900px, 100%); }
+.fx-pod { display: flex; flex-direction: column; align-items: stretch; }
+.fx-pod-who { opacity: 0; transform: translateY(30px) scale(.8); transition: all .6s cubic-bezier(.2,1.4,.4,1); padding-bottom: 8px; }
+.fx-pod.in .fx-pod-who { opacity: 1; transform: none; }
+.fx-pod-av { font-size: clamp(2.6rem, min(8vw, 9vh), 6rem); line-height: 1; }
+.fx-pod-nick { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.2rem, 2.6vw, 2rem); }
+.fx-pod-val { color: var(--muted); font-size: clamp(1rem, 1.8vw, 1.4rem); }
+.fx-pod-step { border-radius: 14px 14px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 8px; font-size: clamp(1.4rem, 3vh, 2.2rem); color: #23170f; line-height: 1.1; }
+.fx-pod-step b { font-family: var(--font-display); font-size: clamp(1.6rem, min(5vw, 6vh), 3.6rem); line-height: 1; }
+.fx-pod.p1 .fx-pod-step { height: min(230px, 24vh); background: linear-gradient(var(--foil-2), var(--foil)); }
+.fx-pod.p2 .fx-pod-step { height: min(170px, 18vh); background: linear-gradient(#e8e8ee, #b9bcc6); }
+.fx-pod.p3 .fx-pod-step { height: min(120px, 13vh); background: linear-gradient(#f0c9a0, #c58a52); }
+.fx-podium-teams { width: min(700px, 100%); text-align: left; }
+@media (max-width: 640px) { .fx-pod.p1 .fx-pod-step { height: 150px; } .fx-pod.p2 .fx-pod-step { height: 110px; } .fx-pod.p3 .fx-pod-step { height: 80px; } }
+
+/* prediction cards */
+.fx-predict { border: 3px solid var(--foil); border-radius: var(--r-md); background: var(--warn-soft); padding: 12px 14px; }
+.fx-predict h3 { margin: 0 0 6px; }
+.fx-arrows { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.fx-arrow { min-height: 72px; border-radius: 14px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-weight: 800; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1rem; }
+.fx-arrow span { font-size: 2rem; line-height: 1; }
+.fx-arrow.sel { border-color: var(--foil); box-shadow: inset 0 0 0 2px var(--foil); background: #fff8e1; color: #23170f; }
+
+/* replay and floor charts on the projector */
+.fx-replay { position: absolute; right: 10px; top: 8px; z-index: 2; }
+.fx-chart-wrap { position: relative; }
+
+/* grids never grow wider than the screen (a long ticker scrolls inside its panel instead) */
+.sgrid > *, .tradegrid > *, .grid2 > *, .deal-grid > * { min-width: 0; }
+.fx-ticker { max-width: 100%; }
+@media (max-width: 900px) { .topbar #hConn, .topbar #sConn { font-size: 0; gap: 0; padding: 6px 8px; } .topbar .fx-lab { display: none; } }
+
+/* ===== news broadcast (three scenes) ===== */
+.fx-bc { position: fixed; inset: 0; z-index: 98; display: flex; flex-direction: column; color: #fbf3ea; overflow: hidden; cursor: pointer; background: radial-gradient(ellipse at 50% 30%, #3a2a20, #120b07); animation: fxin .35s ease; }
+.fx-bc.hidden { display: none; }
+.fx-bc.storm { background: linear-gradient(180deg, #17222f 0%, #24384d 55%, #1d2b1f 100%); }
+.fx-bc.spooky { background: linear-gradient(180deg, #120a24 0%, #3a1748 60%, #2a1406 100%); }
+.fx-bc.harvest { background: linear-gradient(180deg, #f2b44a 0%, #b0661c 55%, #5c3a12 100%); }
+.fx-bc.money, .fx-bc.health { background: linear-gradient(180deg, #0f4a33 0%, #1d6b4a 60%, #10301f 100%); }
+.fx-bc.factory { background: linear-gradient(180deg, #3b3f46 0%, #5a5f68 55%, #26282c 100%); }
+.fx-bc-top { display: flex; align-items: center; gap: 14px; padding: 10px 18px; background: rgba(0,0,0,.45); font-weight: 800; font-size: clamp(.9rem, 2vw, 1.25rem); position: relative; z-index: 3; }
+.fx-bc-live { color: #ff4d4d; animation: fxlate 1.2s infinite; letter-spacing: .08em; }
+.fx-bc-chan { flex: 1; }
+.fx-bc-clock { font-variant-numeric: tabular-nums; opacity: .85; }
+.fx-bc-strip { background: #c62828; color: #fff; font-family: var(--font-display); font-weight: 800; letter-spacing: .1em; padding: 9px 0; overflow: hidden; white-space: nowrap; position: relative; z-index: 3; font-size: clamp(1rem, 2.6vw, 1.7rem); }
+.fx-bc-strip span { display: inline-block; padding-left: 100%; animation: fxmarquee 14s linear infinite; }
+.fx-bc.calm .fx-bc-strip span { animation: none; padding-left: 16px; }
+.fx-bc-stage { flex: 1; position: relative; min-height: 0; }
+.fx-bc-scene { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 18px 20px; gap: 10px; }
+.fx-bc-scene.on { display: flex; animation: fxin .45s ease; }
+.fx-bc-icon { font-size: clamp(4.5rem, 16vw, 10rem); line-height: 1; animation: fxbounce 1s cubic-bezier(.3,1.6,.5,1); filter: drop-shadow(0 8px 20px rgba(0,0,0,.4)); }
+.fx-bc-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.1rem, 7.5vw, 5.4rem); line-height: 1.05; max-width: 20ch; text-shadow: 0 4px 18px rgba(0,0,0,.45); }
+.fx-bc-vi { font-size: clamp(1.25rem, 3.6vw, 2.5rem); color: #f7d36b; font-weight: 800; }
+.fx-bc-scene.s2 { flex-direction: row; gap: clamp(12px, 3vw, 40px); align-items: stretch; justify-content: center; }
+.fx-bc-art { position: relative; flex: 0 1 44%; min-width: 220px; border-radius: 22px; overflow: hidden; background: rgba(0,0,0,.25); box-shadow: inset 0 0 0 3px rgba(255,255,255,.12); display: flex; flex-direction: column; justify-content: space-between; padding: 14px 10px; }
+.fx-bc-art > div { display: flex; justify-content: space-around; font-size: clamp(2rem, 6vw, 4.6rem); line-height: 1; position: relative; z-index: 1; }
+.fx-bc-art .a-mid { font-size: clamp(1.4rem, 4vw, 3rem); }
+.fx-bc-art .a-ground span { animation: fxbob 1.8s ease-in-out infinite; animation-delay: calc(var(--i) * .2s); display: inline-block; }
+.fx-bc-art .a-flash { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.art-storm { background: linear-gradient(180deg, #0e1620, #2c4560); }
+.art-storm .a-sky span { animation: fxcloud 4s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -.7s); display: inline-block; }
+.art-storm .a-mid span { animation: fxrain 0.9s linear infinite; animation-delay: calc(var(--i) * .15s); display: inline-block; }
+.art-storm .a-flash { background: #fff; opacity: 0; animation: fxlightning 3.2s infinite; }
+.art-storm::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(105deg, rgba(180,210,255,.18) 0 2px, transparent 2px 14px); animation: fxsheet .5s linear infinite; z-index: 0; }
+.art-spooky { background: radial-gradient(circle at 75% 20%, #3d2b63, #120a24 70%); }
+.art-spooky .a-sky { justify-content: flex-end; padding-right: 8%; }
+.art-spooky .a-sky span { animation: fxglow 2.4s ease-in-out infinite alternate; display: inline-block; }
+.art-spooky .a-mid span { animation: fxbat 3.2s ease-in-out infinite; animation-delay: calc(var(--i) * -.8s); display: inline-block; }
+.art-harvest { background: linear-gradient(180deg, #ffcf6b, #c9792a); }
+.art-harvest .a-sky span { animation: fxsun 3s ease-in-out infinite alternate; display: inline-block; }
+.art-harvest .a-mid span { animation: fxwind 1.6s linear infinite; animation-delay: calc(var(--i) * .5s); display: inline-block; }
+.art-harvest .a-ground { filter: saturate(.6) sepia(.4); }
+.art-money .a-sky span, .art-health .a-sky span { animation: fxrain 1.6s linear infinite; animation-delay: calc(var(--i) * .3s); display: inline-block; }
+.art-factory .a-sky span { animation: fxsmoke 2.6s ease-out infinite; animation-delay: calc(var(--i) * 1.2s); display: inline-block; }
+.art-factory .a-mid span { animation: fxspin2 2s linear infinite; display: inline-block; }
+.fx-bc.calm .fx-bc-art *, .fx-bc.calm .fx-bc-art::after { animation: none !important; }
+.fx-bc-story { flex: 1 1 50%; max-width: 640px; display: flex; flex-direction: column; justify-content: center; gap: 10px; text-align: left; }
+.fx-bc-reporter { font-weight: 800; color: #f7d36b; letter-spacing: .04em; font-size: clamp(.95rem, 2vw, 1.25rem); }
+.fx-bc-story p { margin: 0; padding: 10px 14px; border-radius: 14px; background: rgba(0,0,0,.35); border-left: 5px solid #f7d36b; opacity: 0; animation: fxline .6s ease forwards; }
+.fx-bc.calm .fx-bc-story p { animation: none; opacity: 1; }
+.fx-bc-story b { display: block; font-size: clamp(1.15rem, 2.9vw, 2rem); line-height: 1.2; }
+.fx-bc-story small { display: block; color: #f7d36b; font-size: clamp(.9rem, 2vw, 1.3rem); margin-top: 3px; }
+.fx-bc-h3 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem, 4.4vw, 3rem); }
+.fx-bc-cards { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; max-width: 1100px; }
+.fx-bc-card { display: flex; gap: 12px; align-items: center; text-align: left; background: #fbf3ea; color: #2b1a10; border-radius: 18px; padding: 14px 18px; min-width: min(100%, 300px); flex: 1 1 300px; max-width: 520px; box-shadow: 0 10px 30px rgba(0,0,0,.35); opacity: 0; animation: fxline .5s ease forwards; }
+.fx-bc.calm .fx-bc-card { animation: none; opacity: 1; }
+.fx-bc-card .ic { font-size: clamp(2.2rem, 5vw, 3.4rem); }
+.fx-bc-card .who { font-weight: 800; font-size: clamp(.95rem, 2vw, 1.2rem); color: #8a5a2b; text-transform: uppercase; letter-spacing: .05em; }
+.fx-bc-card .txt { font-weight: 800; font-size: clamp(1.1rem, 2.6vw, 1.7rem); line-height: 1.2; }
+.fx-bc-card .vi { font-size: clamp(.9rem, 2vw, 1.15rem); color: #6b4a2f; margin-top: 2px; }
+.fx-bc-ask { font-size: clamp(1.2rem, 3vw, 2rem); font-weight: 800; color: #f7d36b; margin-top: 6px; }
+.fx-bc-low { display: flex; align-items: center; gap: 14px; padding: 10px 18px 14px; background: rgba(0,0,0,.4); position: relative; z-index: 3; }
+.fx-bc-dots { display: flex; gap: 6px; } .fx-bc-dots i { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.3); } .fx-bc-dots i.on { background: #f7d36b; }
+.fx-bc-bar { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.2); overflow: hidden; } .fx-bc-bar b { display: block; height: 100%; width: 0; background: #f7d36b; transition: width .25s linear; }
+.fx-bc-skip { min-height: 44px; padding: 6px 16px; border-radius: 999px; border: 2px solid rgba(255,255,255,.5); background: transparent; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+@media (max-width: 760px) { .fx-bc-scene.s2 { flex-direction: column; } .fx-bc-art { flex: 0 0 auto; min-height: 150px; } }
+@keyframes fxbob { 50% { transform: translateY(-8px); } }
+@keyframes fxcloud { from { transform: translateX(-12px); } to { transform: translateX(12px); } }
+@keyframes fxrain { from { transform: translateY(-30px); opacity: 0; } 30% { opacity: 1; } to { transform: translateY(60px); opacity: 0; } }
+@keyframes fxlightning { 0%, 86%, 92%, 100% { opacity: 0; } 88% { opacity: .55; } 90% { opacity: .1; } 91% { opacity: .4; } }
+@keyframes fxsheet { from { background-position: 0 0; } to { background-position: -14px 40px; } }
+@keyframes fxglow { from { filter: drop-shadow(0 0 6px #ffe9a0); } to { filter: drop-shadow(0 0 26px #ffe9a0); } }
+@keyframes fxbat { 0%, 100% { transform: translate(0, 0) rotate(-8deg); } 25% { transform: translate(40px, -18px) rotate(8deg); } 50% { transform: translate(-10px, 10px); } 75% { transform: translate(-40px, -12px) rotate(10deg); } }
+@keyframes fxsun { from { transform: scale(1); filter: drop-shadow(0 0 8px #fff3b0); } to { transform: scale(1.12); filter: drop-shadow(0 0 30px #fff3b0); } }
+@keyframes fxwind { from { transform: translateX(-60px); opacity: 0; } 40% { opacity: 1; } to { transform: translateX(80px); opacity: 0; } }
+@keyframes fxsmoke { from { transform: translateY(20px) scale(.6); opacity: .9; } to { transform: translateY(-50px) scale(1.4); opacity: 0; } }
+@keyframes fxspin2 { to { transform: rotate(360deg); } }
+@keyframes fxline { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* ===== news crawl along the bottom ===== */
+.fx-crawl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: stretch; background: #1d120b; color: #fbf3ea; font-weight: 700; font-size: clamp(.95rem, 1.8vw, 1.2rem); box-shadow: 0 -4px 16px rgba(0,0,0,.25); }
+.fx-crawl-tag { background: #c62828; color: #fff; padding: 10px 14px; font-weight: 800; letter-spacing: .06em; white-space: nowrap; }
+.fx-crawl-run { flex: 1; overflow: hidden; white-space: nowrap; display: flex; align-items: center; }
+.fx-crawl-run span { display: inline-block; padding-left: 100%; animation: fxmarquee 30s linear infinite; }
+body.fx-crawling { padding-bottom: 48px; }
+body.fx-crawling .projector { padding-bottom: 52px; }
+.fx-crawl.calm .fx-crawl-run span { animation-duration: 70s !important; }
+
+/* ===== big demand and supply panel on the teacher console ===== */
+.fx-hero { margin-bottom: 18px; display: flex; flex-direction: column; gap: 10px; border-width: 2px; }
+.fx-hero-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fx-hero-head h2 { margin: 0; font-size: clamp(1.3rem, 2.4vw, 1.75rem); }
+.fx-hero .chart-box { aspect-ratio: 16 / 7.2; min-height: 340px; }
+@media (max-width: 900px) { .fx-hero .chart-box { aspect-ratio: 4 / 3.2; min-height: 300px; } }
+.fx-eqstrip { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+.fx-eq { flex: 1 1 210px; min-width: 0; border-radius: 16px; padding: 8px 16px; background: var(--mint-soft); border: 2px solid var(--mint); display: flex; flex-direction: column; justify-content: center; }
+.fx-eq small { color: var(--muted); font-weight: 700; }
+.fx-eq .v { font-family: var(--font-display); font-size: clamp(1.4rem, 2.6vw, 2rem); font-weight: 800; white-space: nowrap; }
+.fx-eq .v s { color: var(--muted); font-weight: 700; font-size: .75em; }
+.fx-eq .arr { color: var(--muted); font-size: .8em; }
+.fx-eq .dir { font-size: .62em; padding: 2px 8px; border-radius: 999px; vertical-align: middle; }
+.fx-eq .dir.up { background: var(--seller-soft); color: var(--seller); } .fx-eq .dir.down { background: var(--buyer-soft, #e3eef7); color: var(--buyer); } .fx-eq .dir.same { color: var(--muted); }
+.fx-eq .n { font-weight: 600; }
+.fx-eq.wait { background: var(--panel); border-style: dashed; border-color: var(--line); }
+.fx-eq.shift { background: var(--warn-soft); border-color: var(--foil); }
+.fx-eqnote { flex: 1 1 100%; color: var(--ink); }
+
+.fx-bc-rain { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.fx-bc-rain span { position: absolute; top: -10%; font-size: clamp(1.6rem, 3.5vw, 2.6rem); animation: fxfall linear infinite; opacity: .8; }
+.fx-bc.calm .fx-bc-rain { display: none; }
+.fx-bc-scene.s1 > :not(.fx-bc-rain) { position: relative; z-index: 1; }
+
+/* ===== Vietnamese switch ===== */
+body.no-vi .vi { display: none !important; }
+body.vi-sub .vi { font-size: .82em; font-weight: 500; opacity: .85; letter-spacing: 0; text-transform: none; }
+body.vi-sub .fx-news-vi, body.vi-sub .fx-bc-vi { font-size: clamp(.95rem, 2.4vw, 1.35rem); font-weight: 600; }
+body.vi-sub .fx-news-strip .vi, body.vi-sub .fx-bc-strip .vi, body.vi-sub .fx-crawl-tag .vi, body.vi-sub .fx-bc-chan .vi, body.vi-sub .fx-bc-h3 .vi { display: none; }
+.vi-toggle { white-space: nowrap; }
+</style><!--/FX-CSS-->
+</head>
+<body>
+<noscript>This activity needs JavaScript turned on.</noscript>
+<!--FX-JS--><script id="fx-js">
+/* =====================================================================
+   EcoLogic Market Lab: shared game layer (FX), used by every level.
+   Sounds are synthesised (no audio files); pictures are drawn in code.
+   Every effect is short (under about a second) and can be switched off
+   on each device with the ✨ button (or the system "reduce motion" setting).
+   ===================================================================== */
+const FX = (() => {
+  const LS = 'ecologic-market:';
+  const get = (k, d) => { try { const v = localStorage.getItem(LS + k); return v == null ? d : JSON.parse(v); } catch { return d; } };
+  const set = (k, v) => { try { localStorage.setItem(LS + k, JSON.stringify(v)); } catch { } };
+  const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const sysReduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const calm = () => sysReduced || !!get('calm', false);
+
+  /* ---------- Vietnamese: shown, hidden (teacher screens), or kept as small support text (student devices) ---------- */
+  let viState = get('vi', true) !== false, viRole = /[?&]mode=teacher/.test(location.search) ? 'teacher' : 'student';
+  const isVi = s => /[ăâêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹàáèéìíòóùúý]/i.test(String(s || '').replace(/\d[\d.,]*đ|đồng|café/gi, ''));
+  const viOn = () => viState;
+  const viHidden = () => !viState && viRole !== 'student';
+  /** Vietnamese text, marked so it can be hidden or shown as support text */
+  const vi = (s, cls = '') => s ? `<span class="vi ${cls}" lang="vi">${h(s)}</span>` : '';
+  /** "English · Tiếng Việt": escapes it and marks the Vietnamese parts (with their separator) */
+  const bi = s => String(s ?? '').split(' · ').map((part, i) => isVi(part) ? `<span class="vi" lang="vi">${i ? ' · ' : ''}${h(part)}</span>` : (i ? ' · ' : '') + h(part)).join('');
+  /** on: Vietnamese shown. role: 'teacher' (off = hidden) or 'student' (off = small support text only) */
+  function setVi(on, role) {
+    viState = on !== false; if (role) viRole = role;
+    const apply = () => { document.body.classList.toggle('no-vi', !viState && viRole !== 'student'); document.body.classList.toggle('vi-sub', !viState && viRole === 'student'); };
+    if (document.body) apply(); else document.addEventListener('DOMContentLoaded', apply);
+  }
+  setVi(viState);
+
+  /* ---------- avatars, teams, titles ---------- */
+  const AVATARS = ['🐼', '🦊', '🐯', '🐸', '🐵', '🐨', '🐙', '🦄', '🐲', '🐧', '🦁', '🐰', '🐻', '🐱', '🐶', '🦉', '🐢', '🐬', '🐝', '🦋', '🌟', '🚀', '🎸', '⚽'];
+  const TEAMS = {
+    r: { icon: '🔴', name: 'Red table', vi: 'Bàn Đỏ', color: '#d64545' },
+    b: { icon: '🔵', name: 'Blue table', vi: 'Bàn Xanh dương', color: '#2f74c0' },
+    g: { icon: '🟢', name: 'Green table', vi: 'Bàn Xanh lá', color: '#2e9a5c' },
+    y: { icon: '🟡', name: 'Yellow table', vi: 'Bàn Vàng', color: '#d9a400' }
+  };
+  const TITLES = [
+    { icon: '🧺', en: 'Street Vendor', vi: 'Người bán rong' },
+    { icon: '🛒', en: 'Market Trader', vi: 'Tiểu thương' },
+    { icon: '🏪', en: 'Merchant', vi: 'Nhà buôn' },
+    { icon: '👑', en: 'Tycoon', vi: 'Đại gia' }
+  ];
+  const SHOP_COLORS = { A: '#c0392b', B: '#16768a', C: '#7b4fbf', D: '#b86b00', E: '#2a7f4f' };
+  const myAvatar = () => { const a = get('avatar', null); return AVATARS.includes(a) ? a : null; };
+  const avOf = a => AVATARS.includes(a) ? a : '🙂';
+  const teamOf = t => TEAMS[t] || null;
+
+  /** Title from a score and 3 thresholds (for titles 2, 3, 4) */
+  function title(score, th) { let i = 0; th.forEach((t, k) => { if (score >= t) i = k + 1; }); return { i, ...TITLES[i] }; }
+  const titleMem = {};
+  /** Returns the title and celebrates a promotion (not the first time it is seen) */
+  function titleWatch(key, score, th, onUp) {
+    const t = title(score, th), prev = titleMem[key];
+    titleMem[key] = t.i;
+    if (prev != null && t.i > prev) { levelUp(t); onUp && onUp(t); }
+    return t;
+  }
+  const titleChip = t => `<span class="chip fx-title"${viHidden() ? '' : ` title="${h(t.vi)}"`}>${t.icon} ${h(t.en)}</span>`;
+
+  /* ---------- sound: extra synthesised sounds added to each level's Sound ---------- */
+  let gain = 1, installed = false, gate = null;
+  /** Play a sound if this device allows it (students choose; the teacher's switch can mute all students) */
+  const snd = (n, o) => { if (typeof Sound === 'undefined' || (gate && !gate())) return; Sound.play(n, o); };
+  const EXTRA = {
+    coin(c, t, o) { const up = Math.min(6, Math.max(0, (o && o.big) || 0)); [1319, 1760, 2349].slice(0, 2 + (up > 2 ? 1 : 0)).forEach((f, i) => this.note(f * (1 + up * .02), t + i * .055, .16, 'triangle', .06)); },
+    bonk(c, t) { this.note(170, t, .2, 'sine', .14, 80); this.note(95, t, .12, 'triangle', .06); },
+    tick(c, t) { this.note(1900, t, .03, 'square', .025); },
+    tock(c, t) { this.note(1250, t, .04, 'square', .03); },
+    pop(c, t) { this.note(520, t, .09, 'sine', .08, 980); },
+    jar(c, t) { this.note(2637, t, .08, 'sine', .05); this.note(3136, t + .05, .12, 'sine', .04); },
+    badge(c, t) { [1319, 1568, 2093, 2637].forEach((f, i) => this.note(f, t + i * .06, .3, 'sine', .07)); },
+    levelup(c, t) { [523, 659, 784, 1047, 1319].forEach((f, i) => this.note(f, t + i * .07, .25, 'square', .035)); this.note(262, t, .5, 'triangle', .06); },
+    news(c, t) { [[784, 0], [988, .1], [1175, .2], [1568, .32]].forEach(([f, d]) => { this.note(f, t + d, .22, 'triangle', .08); this.note(f / 2, t + d, .22, 'sine', .05); }); this.note(392, t + .5, .6, 'sawtooth', .03); },
+    whoosh(c, t) { noise.call(this, c, t, .45, 400, 3200, .05); },
+    storm(c, t) { noise.call(this, c, t, 1.4, 900, 160, .08); this.note(70, t + .2, 1, 'sine', .08, 45); },
+    spooky(c, t) { [659, 622, 587, 554].forEach((f, i) => this.note(f, t + i * .18, .3, 'triangle', .05)); this.note(110, t, .9, 'sawtooth', .02); },
+    harvest(c, t) { noise.call(this, c, t, .8, 1600, 600, .04); [392, 349, 330].forEach((f, i) => this.note(f, t + .1 + i * .15, .25, 'triangle', .05)); },
+    money(c, t) { [1568, 2093, 1568, 2093, 2637].forEach((f, i) => this.note(f, t + i * .06, .1, 'square', .03)); },
+    factory(c, t) { [0, .18, .36].forEach(d => { this.note(110, t + d, .12, 'square', .04); noise.call(this, c, t + d, .1, 2000, 800, .04); }); },
+    health(c, t) { [523, 659, 784].forEach((f, i) => this.note(f, t + i * .1, .35, 'sine', .07)); },
+    podium(c, t) { [[392, 0], [523, .15], [659, .3], [784, .45], [1047, .65]].forEach(([f, d]) => { this.note(f, t + d, .55, 'triangle', .09); this.note(f / 2, t + d, .55, 'sine', .05); }); }
+  };
+  function noise(c, t, dur, f1, f2, vol) {
+    const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = this.noiseBuf(); f.type = 'bandpass'; f.Q.value = 1.2;
+    f.frequency.setValueAtTime(f1, t); f.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol * gain, t + .05); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f).connect(g).connect(c.destination); src.start(t); src.stop(t + dur + .05);
+  }
+  /** Call once when the page starts. opts.gain scales every sound (students are quieter than the projector). */
+  function install(opts = {}) {
+    gain = opts.gain ?? 1; gate = opts.gate || null;
+    if (installed || typeof Sound === 'undefined') return; installed = true;
+    const note = Sound.note, play = Sound.play;
+    Sound.note = function (f, t0, dur, type, vol = .12, f2) { return note.call(this, f, t0, dur, type, vol * gain, f2); };
+    Sound.play = function (name, o) {
+      if (!EXTRA[name]) return play.call(this, name);
+      if (!this.on) return; const c = this.ensure(); if (!c) return;
+      try { EXTRA[name].call(this, c, c.currentTime + .01, o); } catch (e) { /* audio is optional */ }
+    };
+    document.addEventListener('pointerdown', () => { try { Sound.ensure(); } catch { } }, { once: true });
+  }
+  const setGain = g => { gain = g; };
+
+  /* ---------- change tracking: lets an animation carry on across re-renders ---------- */
+  const chg = {};
+  /** ms since `val` last changed for `key` (Infinity the first time a key is seen) */
+  function since(key, val) {
+    const now = performance.now(), c = chg[key];
+    if (!c) { chg[key] = { v: val, from: val, t: -1e9 }; return Infinity; }
+    if (c.v !== val) { c.from = c.v; c.v = val; c.t = now; }
+    return now - c.t;
+  }
+  const fromOf = key => chg[key] ? chg[key].from : null;
+  /** style for an element whose animation started `ms` ago (so a re-render continues it) */
+  const late = (ms, extra = 0) => `animation-delay:${Math.round(extra - ms)}ms`;
+
+  /* ---------- small helpers ---------- */
+  function pt(at) {
+    if (!at) return { x: innerWidth / 2, y: innerHeight * .4 };
+    if (typeof at === 'string') at = document.querySelector(at);
+    if (at && at.getBoundingClientRect) { const r = at.getBoundingClientRect(); if (!r.width && !r.height) return { x: innerWidth / 2, y: innerHeight * .4 }; return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+    return at;
+  }
+  function layer() { let el = document.getElementById('fxLayer'); if (!el) { el = document.createElement('div'); el.id = 'fxLayer'; el.className = 'fx-layer'; el.setAttribute('aria-hidden', 'true'); document.body.appendChild(el); } return el; }
+
+  /** "+3k" floating up from an element */
+  function float(text, at, cls = 'good') {
+    if (calm()) return;
+    const p = pt(at), el = document.createElement('div');
+    el.className = 'fx-float ' + cls; el.textContent = text; el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
+    layer().appendChild(el); setTimeout(() => el.remove(), 1300);
+  }
+  /** Coins flying from one element to another */
+  function coins(from, to, n = 6, kind = 'coin') {
+    if (calm()) return;
+    const a = pt(from), b = pt(to), L = layer();
+    for (let i = 0; i < n; i++) {
+      const el = document.createElement('div'); el.className = 'fx-coin ' + kind;
+      el.style.left = a.x + 'px'; el.style.top = a.y + 'px'; L.appendChild(el);
+      const dx = b.x - a.x + (Math.random() - .5) * 20, dy = b.y - a.y + (Math.random() - .5) * 10, arc = -60 - Math.random() * 60;
+      const anim = el.animate([
+        { transform: 'translate(-50%,-50%) scale(.5)', opacity: 0 },
+        { transform: `translate(calc(-50% + ${dx * .45}px), calc(-50% + ${dy * .45 + arc}px)) scale(1.15)`, opacity: 1, offset: .45 },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.6)`, opacity: .3 }
+      ], { duration: 620 + i * 55, delay: i * 45, easing: 'cubic-bezier(.3,.7,.4,1)', fill: 'forwards' });
+      anim.onfinish = () => el.remove(); setTimeout(() => el.remove(), 1600);
+    }
+  }
+  /** Shake an element (a blocked move) */
+  function shake(el) { if (typeof el === 'string') el = document.querySelector(el); if (!el || calm()) return; el.classList.remove('fx-shake'); void el.offsetWidth; el.classList.add('fx-shake'); setTimeout(() => el.classList.remove('fx-shake'), 450); }
+  function pulse(el) { if (typeof el === 'string') el = document.querySelector(el); if (!el || calm()) return; el.classList.remove('fx-pulse'); void el.offsetWidth; el.classList.add('fx-pulse'); }
+
+  /* ---------- breaking news ---------- */
+  const THEMES = {
+    cacao: { sound: 'storm', bits: ['🌧️', '💧', '⛈️', '💧'], cls: 'storm' },
+    sugar: { sound: 'harvest', bits: ['🌾', '💨', '🌾', '☀️'], cls: 'harvest' },
+    halloween: { sound: 'spooky', bits: ['🎃', '🦇', '👻', '🍬'], cls: 'spooky' },
+    pocket: { sound: 'money', bits: ['💵', '💰', '💵'], cls: 'money' },
+    factory: { sound: 'factory', bits: ['🏭', '⚙️', '📦'], cls: 'factory' },
+    health: { sound: 'health', bits: ['🥗', '🍎', '🥦'], cls: 'health' },
+    round: { sound: null, bits: ['✨', '⭐', '✨'], cls: 'round' },
+    reveal: { sound: null, bits: ['🎉', '✨', '✉️', '⭐'], cls: 'money' }
+  };
+  let newsT = null;
+  /** Full-screen headline. o: {icon, title, detail, vi, theme, ms, kicker, sound} */
+  function news(o) {
+    const th = THEMES[o.theme] || THEMES.round, quiet = calm();
+    let el = document.getElementById('fxNews');
+    if (!el) { el = document.createElement('div'); el.id = 'fxNews'; document.body.appendChild(el); el.onclick = () => el.classList.add('hidden'); }
+    el.className = 'fx-news ' + th.cls + (quiet ? ' calm' : '');
+    const bits = quiet ? '' : Array.from({ length: 18 }, (_, i) => `<span class="fx-bit" style="left:${(i * 37 + 7) % 100}%;animation-delay:${(i % 6) * .18}s;animation-duration:${2.2 + (i % 4) * .5}s">${th.bits[i % th.bits.length]}</span>`).join('');
+    el.innerHTML = `<div class="fx-bits">${bits}</div><div class="fx-news-strip"><span>${bi(o.kicker || 'BREAKING NEWS · TIN NÓNG')}</span></div>
+      <div class="fx-news-body"><div class="fx-news-icon">${o.icon || '📣'}</div><div class="fx-news-title">${h(o.title)}</div>${o.vi ? `<div class="fx-news-vi vi" lang="vi">${h(o.vi)}</div>` : ''}${o.detail ? `<div class="fx-news-detail">${h(o.detail)}</div>` : ''}<div class="fx-news-tap">Tap to close</div></div>`;
+    el.classList.remove('hidden');
+    if (o.sound !== false) { snd('news'); if (th.sound) setTimeout(() => snd(th.sound), 550); }
+    clearTimeout(newsT); newsT = setTimeout(() => el.classList.add('hidden'), o.ms || 4500);
+  }
+
+  /* ---------- badges and promotions ---------- */
+  const popQ = []; let popBusy = false;
+  function pop(icon, head, title, sub, sound) {
+    popQ.push({ icon, head, title, sub, sound }); if (!popBusy) nextPop();
+  }
+  function nextPop() {
+    const x = popQ.shift(); if (!x) { popBusy = false; return; }
+    popBusy = true;
+    const el = document.createElement('div'); el.className = 'fx-pop' + (calm() ? ' calm' : '');
+    el.innerHTML = `<div class="fx-pop-icon">${x.icon}</div><div><div class="fx-pop-head">${h(x.head)}</div><div class="fx-pop-title">${h(x.title)}</div>${x.sub ? `<div class="fx-pop-sub${isVi(x.sub) ? ' vi' : ''}">${h(x.sub)}</div>` : ''}</div>`;
+    document.body.appendChild(el);
+    if (x.sound) snd(x.sound);
+    if (!calm() && typeof confetti === 'function') confetti(40);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); nextPop(); }, 300); }, 2600);
+  }
+  /** New badge: icon, name, what it is for. sound: name of the sound, or false */
+  const badge = (icon, name, desc, sound = 'badge') => pop(icon, 'New badge', name, desc, sound);
+  function levelUp(t, sound = 'levelup') { pop(t.icon, 'New title', t.en, t.vi, sound); }
+
+  /* ---------- prize jar (sweets) or coin jar (points) ---------- */
+  const SWEET_COLS = ['#e74c3c', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#e67e22', '#ff6fa8'];
+  /** SVG jar with n sweets. opt: {key, kind:'sweet'|'coin', cap, label} */
+  function jar(n, opt = {}) {
+    n = Math.max(0, Math.round(n || 0));
+    const key = 'jar:' + (opt.key || 'jar'), cap = opt.cap || 36, shown = Math.min(n, cap);
+    const el = since(key, n), prev = fromOf(key);
+    const fresh = el < 1600 && prev != null && n > prev && !calm() ? Math.min(n - prev, 12, shown) : 0;
+    const coin = opt.kind === 'coin', per = 6, r = 7.2;
+    let s = '';
+    for (let i = 0; i < shown; i++) {
+      const row = Math.floor(i / per), col = i % per, off = row % 2 ? 6 : 0;
+      const inRow = Math.min(per, shown - row * per), x = 65 + (col - (inRow - 1) / 2) * 14 + (row % 2 ? 3 : -3), y = 124 - row * 12.5;
+      const isNew = i >= shown - fresh, st = isNew ? late(el, (i - (shown - fresh)) * 70) : '';
+      s += coin ? `<g class="${isNew ? 'fx-drop' : ''}" style="${st}"><circle cx="${x}" cy="${y}" r="${r}" fill="#e9b32a" stroke="#a87412" stroke-width="1.6"/><text x="${x}" y="${y + 3}" font-size="8" font-weight="800" text-anchor="middle" fill="#7a5408">đ</text></g>`
+        : `<g class="${isNew ? 'fx-drop' : ''}" style="${st}"><path d="M${x - r - 4} ${y - 3} l4 3 -4 3z M${x + r + 4} ${y - 3} l-4 3 4 3z" fill="${SWEET_COLS[(i * 3) % 7]}" opacity=".8"/><circle cx="${x}" cy="${y}" r="${r}" fill="${SWEET_COLS[(i * 3) % 7]}"/><path d="M${x - 4} ${y - 2} q4 -4 8 0" stroke="#fff" stroke-width="1.6" fill="none" opacity=".7"/></g>`;
+    }
+    const lab = opt.label != null ? opt.label : (coin ? `${n} point${n === 1 ? '' : 's'}` : `${n} sweet${n === 1 ? '' : 's'}`);
+    return `<div class="fx-jar ${opt.size || ''}" ${fresh ? 'data-fresh="1"' : ''}><svg viewBox="0 0 130 150" role="img" aria-label="${h(lab)}">
+      <rect x="34" y="6" width="62" height="14" rx="5" fill="${coin ? '#5b3826' : '#d8a21f'}"/>
+      <path d="M30 22 h70 q8 0 8 10 v6 q10 6 10 20 v68 q0 16 -16 16 h-64 q-16 0 -16 -16 v-68 q0 -14 10 -20 v-6 q0 -10 8 -10z" fill="rgba(200,225,240,.25)" stroke="var(--muted)" stroke-width="2.5"/>
+      <g>${s}</g>${n > cap ? `<text x="65" y="40" font-size="14" font-weight="800" text-anchor="middle" fill="var(--ink)">+${n - cap}</text>` : ''}
+      <path d="M22 60 q-3 30 0 60" stroke="#fff" stroke-width="4" opacity=".45" fill="none" stroke-linecap="round"/></svg><div class="fx-jar-lab">${h(lab)}</div></div>`;
+  }
+  const jarGrew = html => html.includes('data-fresh="1"');
+
+  /* ---------- tap-to-price tag ---------- */
+  /** o: {key, val, min, max, fmt, minus, plus (attribute strings for the − and + buttons), label, sub, role} */
+  function priceTag(o) {
+    const fmt = o.fmt || (v => v), min = Math.min(o.min, o.val), max = Math.max(o.max, o.val);
+    return `<div class="fx-tag ${o.role || ''}" data-fx-tag="${h(o.key)}">
+      ${o.label ? `<div class="fx-tag-label">${o.label}</div>` : ''}
+      <div class="fx-tag-row"><button type="button" class="fx-step" ${o.minus} aria-label="Lower price">−${o.stepLabel || ''}</button>
+        <div class="fx-tag-card"><span class="fx-hole"></span><b class="fx-tag-val" data-fx-val="${h(o.key)}">${fmt(o.val)}</b>${o.sub ? `<small>${o.sub}</small>` : ''}</div>
+        <button type="button" class="fx-step" ${o.plus} aria-label="Raise price">+${o.stepLabel || ''}</button></div>
+      ${max > min ? `<input type="range" class="fx-range" min="${min}" max="${max}" step="1" value="${o.val}" data-fx-range="${h(o.key)}" aria-label="Price">
+      <div class="fx-range-ends"><span>${fmt(min)}</span><span>${fmt(max)}</span></div>` : ''}</div>`;
+  }
+  let rangeFn = null, holding = false, deferred = new Set();
+  const onRange = fn => { rangeFn = fn; };
+  document.addEventListener('input', e => { const r = e.target.closest && e.target.closest('.fx-range'); if (r && rangeFn) rangeFn(r.dataset.fxRange, +r.value, false, r); });
+  document.addEventListener('change', e => { const r = e.target.closest && e.target.closest('.fx-range'); if (r && rangeFn) rangeFn(r.dataset.fxRange, +r.value, true, r); });
+  document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('.fx-range')) holding = true; }, true);
+  const release = () => { if (!holding) return; holding = false; setTimeout(() => { const fs = [...deferred]; deferred.clear(); fs.forEach(f => { try { f(); } catch (err) { console.error(err); } }); }, 0); };
+  document.addEventListener('pointerup', release, true); document.addEventListener('pointercancel', release, true);
+  /** While a slider is held, put off a full re-render (it would drop the slider). Returns true if put off. */
+  function hold(fn) { if (!holding) return false; deferred.add(fn); return true; }
+  const setVal = (key, text) => document.querySelectorAll(`[data-fx-val="${CSS.escape(key)}"]`).forEach(el => { el.textContent = text; });
+
+  /* ---------- market stall (shops and businesses) ---------- */
+  /** o: {name, color, avatars, sub, rows:[{label, art, units:[{tag, state:'sold'|'cur'|'left', fresh}]}], foot} */
+  function stall(o) {
+    return `<div class="fx-stall" style="--stall:${o.color || '#b02a3f'}"><div class="fx-awning" aria-hidden="true"></div>
+      <div class="fx-stall-head"><span class="fx-avs">${o.avatars || ''}</span><div><div class="fx-stall-name">${h(o.name)}</div>${o.sub ? `<div class="fx-stall-sub">${o.sub}</div>` : ''}</div></div>
+      <div class="fx-shelf">${o.rows.map(r => `<div class="fx-shelf-row">${r.label ? `<div class="fx-shelf-label">${r.label}</div>` : ''}<div class="fx-units">${r.units.map(u => `<div class="fx-unit ${u.state || ''} ${u.fresh != null && !calm() ? 'justsold' : ''}" style="${u.fresh != null ? '--fxd:' + Math.round(-u.fresh) + 'ms' : ''}"><div class="fx-unit-art">${r.art}</div><div class="fx-unit-tag">${u.tag}</div>${u.state === 'sold' ? '<div class="fx-sold">SOLD</div>' : ''}</div>`).join('')}</div></div>`).join('')}</div>
+      ${o.foot ? `<div class="fx-stall-foot">${o.foot}</div>` : ''}</div>`;
+  }
+  /* ---------- buyer: shopping list and basket ---------- */
+  /** o: {name, avatar, sub, items:[{label, art, worth, bought, fresh, note}], foot} */
+  function wallet(o) {
+    return `<div class="fx-wallet"><div class="fx-wallet-head"><span class="fx-avs">${o.avatar || ''}</span><div><div class="fx-wallet-name">${h(o.name)}</div>${o.sub ? `<div class="fx-wallet-sub">${o.sub}</div>` : ''}</div></div>
+      <div class="fx-wallet-items">${o.items.map(it => `<div class="fx-witem ${it.bought ? 'bought' : ''}"><div class="fx-witem-art">${it.art}</div><div class="fx-witem-txt"><div>${it.label}</div>${it.note ? `<small>${it.note}</small>` : ''}</div><div class="fx-worth"><small>${it.tag || 'worth to you'}</small><b>${it.worth}</b></div></div>`).join('')}</div>
+      ${o.basket === false ? '' : `<div class="fx-basket"><span class="fx-basket-ico">🧺</span>${(o.basket || o.items.filter(it => it.bought)).map(it => `<span class="fx-binit ${it.fresh != null && !calm() ? 'drop' : ''}" style="${it.fresh != null ? late(it.fresh) : ''}">${it.art}</span>`).join('') || `<small>${o.empty || 'Your basket is empty'}</small>`}</div>`}
+      ${o.foot ? `<div class="fx-wallet-foot">${o.foot}</div>` : ''}</div>`;
+  }
+
+  /* ---------- live price ticker ---------- */
+  const seen = {};
+  /** items: oldest first [{id, price, label, art, key}] ; fmt for the price. New items slide in. */
+  function ticker(items, fmt, key = 'tick') {
+    const n = items.length, now = performance.now(), first = !seen[key], mem = (seen[key] ||= {});
+    if (!n) return `<div class="fx-ticker empty"><small>No trades yet. Prices appear here.</small></div>`;
+    const lastOf = {}, rows = items.map((it, i) => { const k = it.key || 'x', p = lastOf[k]; lastOf[k] = it.price; const id = it.id ?? i; if (mem[id] == null) mem[id] = first ? -1e9 : now; return { ...it, dir: p == null ? 0 : Math.sign(it.price - p), el: now - mem[id] }; });
+    return `<div class="fx-ticker" role="list">${rows.slice(-10).reverse().map(it => `<span role="listitem" class="fx-tk ${it.dir > 0 ? 'up' : it.dir < 0 ? 'down' : ''} ${it.el < 600 && !calm() ? 'new' : ''}" style="${it.el < 600 ? late(it.el) : ''}">${it.art ? `<span class="fx-tk-art">${it.art}</span>` : ''}${it.label ? `<small>${h(it.label)}</small>` : ''}<b>${fmt(it.price)}</b><i>${it.dir > 0 ? '▲' : it.dir < 0 ? '▼' : '•'}</i></span>`).join('')}</div>`;
+  }
+
+  /* ---------- timer: red and ticking in the last 10 seconds ---------- */
+  let lastTick = null;
+  function timer(el, left, sound) {
+    if (typeof el === 'string') el = document.querySelector(el);
+    if (el) el.classList.toggle('late', left != null && left <= 10 && left > 0);
+    if (left != null && left <= 10 && left > 0 && left !== lastTick && sound) snd(left <= 3 ? 'tock' : 'tick');
+    lastTick = left;
+  }
+
+  /* ---------- pickers ---------- */
+  function avatarPicker(cur) {
+    return `<div class="fx-pick"><div class="fx-pick-lab">Choose your avatar</div><div class="fx-avgrid">${AVATARS.map(a => `<button type="button" class="fx-av ${a === cur ? 'sel' : ''}" data-fx-av="${a}" aria-label="Avatar ${a}">${a}</button>`).join('')}</div></div>`;
+  }
+  function teamPicker(cur) {
+    return `<div class="fx-pick"><div class="fx-pick-lab">Your table (team)</div><div class="fx-teams">${Object.entries(TEAMS).map(([k, t]) => `<button type="button" class="fx-team ${k === cur ? 'sel' : ''}" data-fx-team="${k}" style="--team:${t.color}">${t.icon} ${h(t.name)}<small class="vi" lang="vi">${h(t.vi)}</small></button>`).join('')}</div></div>`;
+  }
+  let avFn = null;
+  const onPick = fn => { avFn = fn; };
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('[data-fx-av]'), t = e.target.closest && e.target.closest('[data-fx-team]');
+    if (a) { set('avatar', a.dataset.fxAv); document.querySelectorAll('[data-fx-av]').forEach(b => b.classList.toggle('sel', b === a)); avFn && avFn('avatar', a.dataset.fxAv); snd('pop'); }
+    if (t) { document.querySelectorAll('[data-fx-team]').forEach(b => b.classList.toggle('sel', b === t)); avFn && avFn('team', t.dataset.fxTeam); snd('pop'); }
+    const c = e.target.closest && e.target.closest('[data-fx-calm]');
+    if (c) { set('calm', !get('calm', false)); document.querySelectorAll('[data-fx-calm]').forEach(b => { b.innerHTML = calmLabel(); b.setAttribute('aria-pressed', String(!calm())); }); }
+  });
+  const calmLabel = () => `✨<span class="fx-lab"> Effects ${calm() ? 'off' : 'on'}</span>`;
+  const calmBtn = (style = '') => `<button type="button" class="btn small ghost" data-fx-calm aria-pressed="${!calm()}" style="${style}">${calmLabel()}</button>`;
+
+  /* ---------- leaderboard, teams, podium ---------- */
+  /** rows: [{nick, av, value, sub}] sorted best first. Only the top n are shown, never the bottom. */
+  function leaderboard(rows, o = {}) {
+    const top = rows.slice(0, o.n || 5), medals = ['🥇', '🥈', '🥉', '4', '5', '6', '7'];
+    if (!top.length) return `<p class="muted" style="margin:0">${o.empty || 'The leaderboard appears after the first trades.'}</p>`;
+    return `<ol class="fx-lb">${top.map((r, i) => `<li><span class="fx-lb-rank">${medals[i]}</span><span class="fx-lb-av">${avOf(r.av)}</span><span class="fx-lb-nick">${h(r.nick)}${r.sub ? ` <small>${h(r.sub)}</small>` : ''}</span><b>${h(r.value)}</b></li>`).join('')}</ol>${o.improved ? `<div class="fx-improved">📈 Most improved: <span>${avOf(o.improved.av)} <b>${h(o.improved.nick)}</b></span> <small>${h(o.improved.value)}</small></div>` : ''}`;
+  }
+  /** teams: [{icon, name, value (0-1 share for the bar), label, color, n}] */
+  function teamBars(teams) {
+    const live = teams.filter(t => t.n > 0); if (!live.length) return '';
+    const best = Math.max(...live.map(t => t.value), 1e-9);
+    return `<div class="fx-teambars">${live.map(t => `<div class="fx-tb"><div class="fx-tb-top"><span>${t.icon} ${h(t.name)} <small>(${t.n})</small></span><b>${h(t.label)}</b></div><div class="fx-tb-bar"><i style="width:${Math.max(4, Math.round(100 * t.value / best))}%;background:${t.color}"></i></div></div>`).join('')}</div>`;
+  }
+  /** Projector podium: reveals 3rd, 2nd, 1st with a drumroll. rows: [{nick, av, value}] best first */
+  function podium(o) {
+    const rows = o.rows.slice(0, 3); if (!rows.length) return;
+    let el = document.getElementById('fxPodium'); if (el) el.remove();
+    el = document.createElement('div'); el.id = 'fxPodium'; el.className = 'fx-podium-wrap';
+    const order = [1, 0, 2].filter(i => rows[i]);
+    el.innerHTML = `<div class="fx-podium-inner"><h1>${h(o.title || 'Top traders')}</h1>${o.sub ? `<p class="lead">${h(o.sub)}</p>` : ''}
+      <div class="fx-podium">${order.map(i => `<div class="fx-pod p${i + 1}" data-i="${i}"><div class="fx-pod-who"><div class="fx-pod-av">${avOf(rows[i].av)}</div><div class="fx-pod-nick">${h(rows[i].nick)}</div><div class="fx-pod-val">${h(rows[i].value)}</div></div><div class="fx-pod-step">${['🥇', '🥈', '🥉'][i]}<b>${i + 1}</b></div></div>`).join('')}</div>
+      ${o.improved ? `<div class="fx-improved big">📈 Most improved: ${avOf(o.improved.av)} <b>${h(o.improved.nick)}</b> <small>${h(o.improved.value)}</small></div>` : ''}
+      ${o.teams ? `<div class="fx-podium-teams">${o.teams}</div>` : ''}<button class="btn" data-fx-close>Close</button></div>`;
+    document.body.appendChild(el);
+    el.querySelector('[data-fx-close]').onclick = () => el.remove();
+    const q = calm();
+    const steps = [2, 1, 0].filter(i => rows[i]);
+    snd('drumroll');
+    steps.forEach((i, k) => setTimeout(() => {
+      const p = el.querySelector(`.fx-pod[data-i="${i}"]`); if (p) p.classList.add('in');
+      snd(i === 0 ? 'podium' : 'pop');
+      if (i === 0 && typeof confetti === 'function') confetti(160);
+    }, q ? 0 : 1700 + k * 900));
+  }
+
+  /* ---------- replay: draws a chart at growing fractions of the round ---------- */
+  let replayStop = null;
+  function replay(draw, ms = 6500) {
+    if (replayStop) replayStop();
+    let stop = false, last = -1; const t0 = performance.now();
+    replayStop = () => { stop = true; draw(1); replayStop = null; };
+    (function frame(now) {
+      if (stop) return;
+      const f = Math.min(1, (now - t0) / ms), n = draw(f);
+      if (typeof n === 'number' && n > last && last >= 0) snd('tick');
+      last = typeof n === 'number' ? n : last;
+      if (f < 1) requestAnimationFrame(frame); else { replayStop = null; snd('chime'); }
+    })(t0);
+  }
+
+  return { snd, since, late, get, set, calm, isVi, viOn, viHidden, vi, bi, setVi, AVATARS, TEAMS, TITLES, SHOP_COLORS, myAvatar, avOf, teamOf, title, titleWatch, titleChip,
+    install, setGain, float, coins, shake, pulse, news, badge, levelUp, jar, jarGrew, priceTag, onRange, hold, setVal, stall, wallet, ticker, timer,
+    avatarPicker, teamPicker, onPick, calmBtn, leaderboard, teamBars, podium, replay };
+})();
+
+/* =====================================================================
+   News broadcasts, the news crawl, and equilibrium callouts on charts.
+   ===================================================================== */
+Object.assign(FX, (() => {
+  const bi = s => FX.bi(s);
+  const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // picture for each kind of news: sky, middle and ground rows of emoji, animated in CSS
+  const ART = {
+    storm: { sky: ['☁️', '⛈️', '☁️', '🌩️', '☁️'], mid: ['💧', '💧', '💧', '💧', '💧', '💧'], ground: ['🌳', '🍫', '🌳', '🌱', '🌳', '🍫'], cls: 'storm', sound: 'storm' },
+    spooky: { sky: ['🌕'], mid: ['🦇', '🦇', '👻', '🦇'], ground: ['🎃', '🍬', '🎃', '🍫', '🎃', '🍭'], cls: 'spooky', sound: 'spooky' },
+    harvest: { sky: ['☀️'], mid: ['💨', '💨', '💨'], ground: ['🌾', '🥀', '🌾', '🌾', '🥀', '🌾'], cls: 'harvest', sound: 'harvest' },
+    money: { sky: ['💵', '💰', '💵', '🪙', '💵'], mid: [], ground: ['🧒', '🛍️', '👧', '🛍️', '🧑'], cls: 'money', sound: 'money' },
+    factory: { sky: ['💨', '💨'], mid: ['⚙️', '⚙️'], ground: ['🏭', '📦', '📦', '🚚', '📦'], cls: 'factory', sound: 'factory' },
+    health: { sky: ['🍎', '🥦', '🍌'], mid: [], ground: ['🥗', '🏃', '🍎', '🚴', '🥕'], cls: 'health', sound: 'health' },
+    market: { sky: ['✨', '⭐', '✨'], mid: [], ground: ['🏪', '🍫', '🍬', '🏪', '🍫'], cls: 'round', sound: null }
+  };
+  const THEME_ART = { cacao: 'storm', sugar: 'harvest', halloween: 'spooky', pocket: 'money', factory: 'factory', health: 'health' };
+  let bcT = [], bcTick = null;
+  const clearBc = () => { bcT.forEach(clearTimeout); bcT = []; clearInterval(bcTick); bcTick = null; };
+  function artHtml(a) {
+    const row = (xs, cls) => `<div class="${cls}">${xs.map((x, i) => `<span style="--i:${i}">${x}</span>`).join('')}</div>`;
+    return `<div class="fx-bc-art art-${a.cls}">${row(a.sky, 'a-sky')}${a.mid.length ? row(a.mid, 'a-mid') : ''}<div class="a-flash"></div>${row(a.ground, 'a-ground')}</div>`;
+  }
+  /**
+   * A TV-style news broadcast in three scenes: the headline, the story (with a picture), and what changes.
+   * o: {theme, icon, kicker, title, vi, lines:[[en, vi]], impact:[{icon, who, text, vi}] or a function that returns them,
+   *     ask, ms:[headline, story, impact], sound, onClose}. Tap moves to the next scene; Skip closes. Returns the total time.
+   */
+  function broadcast(o) {
+    clearBc();
+    if (window.FX_TEST_NO_BROADCAST) { if (o.onClose) o.onClose(); return 0; } // automated tests only
+    const quiet = FX.calm(), a = ART[THEME_ART[o.theme] || o.theme] || ART.market, ms = o.ms || [4500, 8000, 7500];
+    let el = document.getElementById('fxBc');
+    if (!el) { el = document.createElement('div'); el.id = 'fxBc'; document.body.appendChild(el); }
+    el.className = 'fx-bc ' + a.cls + (quiet ? ' calm' : '');
+    const lines = o.lines || [];
+    const clock = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    el.innerHTML = `<div class="fx-bc-top"><span class="fx-bc-live">● LIVE</span><span class="fx-bc-chan">${bi('📺 Market Town News · Bản tin Thị Trấn Chợ')}</span><span class="fx-bc-clock">${clock()}</span></div>
+      <div class="fx-bc-strip"><span>${bi(o.kicker || 'BREAKING NEWS · TIN NÓNG')} &nbsp;•&nbsp; ${h(o.title)}${o.vi ? `<span class="vi" lang="vi"> &nbsp;•&nbsp; ${h(o.vi)}</span>` : ''} &nbsp;•&nbsp; ${bi(o.kicker || 'BREAKING NEWS · TIN NÓNG')}</span></div>
+      <div class="fx-bc-stage">
+        <section class="fx-bc-scene s1"><div class="fx-bc-rain">${quiet ? '' : Array.from({ length: 16 }, (_, i) => `<span style="left:${(i * 41 + 5) % 100}%;animation-delay:${(i % 8) * .35}s;animation-duration:${3 + (i % 4) * .6}s">${a.sky.concat(a.ground)[i % (a.sky.length + a.ground.length)]}</span>`).join('')}</div><div class="fx-bc-icon">${o.icon || '📣'}</div><div class="fx-bc-title">${h(o.title)}</div>${o.vi ? `<div class="fx-bc-vi vi" lang="vi">${h(o.vi)}</div>` : ''}</section>
+        <section class="fx-bc-scene s2">${artHtml(a)}<div class="fx-bc-story"><div class="fx-bc-reporter">${bi('🎙️ Reporter · Phóng viên')}</div>${lines.map((l, i) => `<p style="animation-delay:${.4 + i * Math.max(1.2, (ms[1] / 1000 - 1.5) / Math.max(1, lines.length))}s"><b>${h(l[0])}</b>${l[1] ? `<small class="vi" lang="vi">${h(l[1])}</small>` : ''}</p>`).join('')}</div></section>
+        <section class="fx-bc-scene s3"><div class="fx-bc-h3">${bi('What changes · Điều gì thay đổi')}</div><div class="fx-bc-cards" id="fxBcCards"></div>${o.ask ? `<div class="fx-bc-ask">🤔 ${h(o.ask)}</div>` : ''}</section>
+      </div>
+      <div class="fx-bc-low"><div class="fx-bc-dots"><i></i><i></i><i></i></div><div class="fx-bc-bar"><b></b></div><button class="fx-bc-skip" type="button">Skip ⏭</button></div>`;
+    el.classList.remove('hidden');
+    let scene = 0;
+    const total = ms.reduce((x, y) => x + y, 0);
+    const fillCards = () => { const c = el.querySelector('#fxBcCards'); if (!c) return; const im = typeof o.impact === 'function' ? o.impact() : (o.impact || []); c.innerHTML = im.map((x, i) => `<div class="fx-bc-card" style="animation-delay:${i * .35}s"><div class="ic">${x.icon || '📌'}</div><div><div class="who">${bi(x.who)}</div><div class="txt">${h(x.text)}</div>${x.vi ? `<div class="vi" lang="vi">${h(x.vi)}</div>` : ''}</div></div>`).join(''); };
+    const close = () => { clearBc(); el.classList.add('hidden'); el.innerHTML = ''; if (o.onClose) o.onClose(); };
+    const show = k => {
+      scene = k; bcT.forEach(clearTimeout); bcT = [];
+      if (k > 2) return close();
+      t0 = Date.now() - ms.slice(0, k).reduce((x, y) => x + y, 0);
+      el.querySelectorAll('.fx-bc-scene').forEach((s, i) => s.classList.toggle('on', i === k));
+      el.querySelectorAll('.fx-bc-dots i').forEach((d, i) => d.classList.toggle('on', i <= k));
+      if (k === 2) fillCards();
+      if (o.sound !== false) { if (k === 0) { FX.snd('news'); if (a.sound) bcT.push(setTimeout(() => FX.snd(a.sound), 650)); } else if (k === 1 && a.sound) FX.snd(a.sound); else if (k === 2) FX.snd('badge'); }
+      bcT.push(setTimeout(() => show(k + 1), ms[k]));
+    };
+    let t0 = Date.now(); const bar = el.querySelector('.fx-bc-bar b');
+    // the bar shows how far through the broadcast we are
+    bcTick = setInterval(() => { if (bar) bar.style.width = Math.min(100, 100 * (Date.now() - t0) / total) + '%'; }, 250);
+    el.querySelector('.fx-bc-skip').onclick = e => { e.stopPropagation(); close(); };
+    el.onclick = () => show(scene + 1);
+    show(0);
+    return total;
+  }
+  const bcOpen = () => { const el = document.getElementById('fxBc'); return !!(el && !el.classList.contains('hidden') && el.innerHTML); };
+
+  /** News crawl along the bottom of the screen while an event is on. items: [string] or null to remove */
+  function crawl(items) {
+    let el = document.getElementById('fxCrawl');
+    if (!items || !items.length) { if (el) el.remove(); document.body.classList.remove('fx-crawling'); return; }
+    const txt = items.join('   •   ');
+    if (!el) { el = document.createElement('div'); el.id = 'fxCrawl'; document.body.appendChild(el); }
+    el.className = 'fx-crawl' + (FX.calm() ? ' calm' : '');
+    if (el.dataset.txt === txt) return;
+    el.dataset.txt = txt;
+    const dur = Math.max(18, txt.length / 7);
+    el.innerHTML = `<span class="fx-crawl-tag">${bi('📺 NEWS · TIN TỨC')}</span><div class="fx-crawl-run"><span style="animation-duration:${dur}s">${h(txt)}   •   ${h(txt)}</span></div>`;
+    document.body.classList.add('fx-crawling');
+  }
+
+  /** Equilibrium chips. items: [{label, vi, value, from, dir, note, kind}] */
+  function eqStrip(items, note) {
+    return `<div class="fx-eqstrip">${items.map(x => `<div class="fx-eq ${x.kind || ''}"><small>${h(x.label)}${x.vi ? `<span class="vi" lang="vi"> · ${h(x.vi)}</span>` : ''}</small><div class="v">${x.from != null ? `<s>${h(x.from)}</s> <span class="arr">→</span> ` : ''}<b>${h(x.value)}</b>${x.dir ? ` <span class="dir ${x.dir > 0 ? 'up' : 'down'}">${x.dir > 0 ? '▲' : '▼'}${x.delta != null ? ' ' + h(x.delta) : ''}</span>` : x.from != null ? ' <span class="dir same">=</span>' : ''}</div>${x.note ? `<small class="n">${h(x.note)}</small>` : ''}</div>`).join('')}${note ? `<div class="fx-eqnote">${note}</div>` : ''}</div>`;
+  }
+
+  /* ---------- canvas helpers ---------- */
+  function rrect(g, x, y, w, ht, r) { g.beginPath(); g.moveTo(x + r, y); g.lineTo(x + w - r, y); g.quadraticCurveTo(x + w, y, x + w, y + r); g.lineTo(x + w, y + ht - r); g.quadraticCurveTo(x + w, y + ht, x + w - r, y + ht); g.lineTo(x + r, y + ht); g.quadraticCurveTo(x, y + ht, x, y + ht - r); g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y); g.closePath(); }
+  /** A thick arrow from (x1, y1) to (x2, y2) */
+  function arrow(g, x1, y1, x2, y2, col, w = 5) {
+    const ang = Math.atan2(y2 - y1, x2 - x1), hd = Math.max(12, w * 3);
+    g.save(); g.strokeStyle = col; g.fillStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.setLineDash([]);
+    g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - Math.cos(ang) * hd * .8, y2 - Math.sin(ang) * hd * .8); g.stroke();
+    g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - hd * Math.cos(ang - .45), y2 - hd * Math.sin(ang - .45)); g.lineTo(x2 - hd * Math.cos(ang + .45), y2 - hd * Math.sin(ang + .45)); g.closePath(); g.fill(); g.restore();
+  }
+  /**
+   * Equilibrium point with dashed guides and labels on both axes.
+   * o: {X, Y, L, T, ph, fs, font, p, q, pTxt, qTxt, tag, col, ink, panel, faded, labelSide}
+   */
+  function eqMark(g, o) {
+    const x = o.X(o.q), y = o.Y(o.p), fs = o.fs, col = o.col, base = o.T + o.ph;
+    g.save(); g.globalAlpha = o.faded ? .55 : 1;
+    g.strokeStyle = col; g.lineWidth = o.faded ? 2 : 2.5; g.setLineDash([7, 6]);
+    g.beginPath(); g.moveTo(o.L, y); g.lineTo(x, y); g.lineTo(x, base); g.stroke(); g.setLineDash([]);
+    g.beginPath(); g.arc(x, y, fs * (o.faded ? .5 : .7), 0, Math.PI * 2); g.fillStyle = o.faded ? o.panel : col; g.fill(); g.lineWidth = 3; g.strokeStyle = col; g.stroke();
+    if (!o.faded) { g.lineWidth = 3; g.beginPath(); g.arc(x, y, fs * 1.25, 0, Math.PI * 2); g.globalAlpha = .45; g.stroke(); g.globalAlpha = 1; }
+    const bf = `800 ${Math.round(fs * (o.faded ? .9 : 1.05))}px ${o.font}`; g.font = bf;
+    const box = (txt, cx, cy, align) => { const tw = g.measureText(txt).width, bw = tw + fs * .9, bh = fs * 1.55; let bx = align === 'right' ? cx - bw : align === 'center' ? cx - bw / 2 : cx; rrect(g, bx, cy - bh / 2, bw, bh, bh / 2.6); g.fillStyle = o.faded ? o.panel : col; g.fill(); g.lineWidth = 2; g.strokeStyle = col; g.stroke(); g.fillStyle = o.faded ? col : '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, bx + bw / 2, cy + 1); };
+    if (o.pTxt) box(o.pTxt, o.L - 4, y + (o.pDy || 0), 'right');
+    if (o.qTxt) box(o.qTxt, x, base + fs * 1.05 + (o.qRow || 0) * fs * 1.7, 'center');
+    if (o.tag) { g.font = `800 ${Math.round(fs * 1.15)}px ${o.font}`; g.fillStyle = col; g.textAlign = o.labelSide === 'left' ? 'right' : 'left'; g.textBaseline = 'bottom'; g.fillText(o.tag, x + (o.labelSide === 'left' ? -fs * 1.2 : fs * 1.2), y - fs * .5); }
+    g.restore();
+  }
+  return { broadcast, bcOpen, crawl, eqStrip, arrow, eqMark, rrect };
+})());
+</script><!--/FX-JS-->
+<script>
+/* Saigon Chocolate Crisis: Market Rescue! A breakout for Cambridge IGCSE Economics 0455, 2.1-2.5 */
+const CONFIG = Object.assign({ supabaseUrl: '', supabaseAnonKey: '', markerUrl: '' }, window.MARKET_CONFIG || {});
+const CHANNEL = room => 'ecologic-market:' + room; // the same channels as the levels, so the home page can find the room
+const SUPABASE_SRC = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';
+const PARAMS = new URLSearchParams(location.search);
+const ONLINE_READY = !!(String(CONFIG.supabaseUrl).trim() && String(CONFIG.supabaseAnonKey).trim());
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const rid = (n = 10) => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => (b % 36).toString(36)).join('');
+const roomCode = () => Array.from(crypto.getRandomValues(new Uint8Array(4)), b => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[b % 24]).join('');
+const store = {
+  get(k, d = null) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { } },
+  del(k) { try { localStorage.removeItem(k); } catch { } }
+};
+const sstore = PARAMS.get('t') === 'local' ? {
+  get(k, d = null) { try { const v = sessionStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch { } }
+} : store;
+function toast(msg, ms = 2600) { const el = $('#toast'); if (!el) return; el.textContent = msg; el.classList.remove('hidden'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.add('hidden'), ms); }
+let sbLoading = null;
+function loadSupabase() {
+  if (window.supabase) return Promise.resolve();
+  if (!sbLoading) sbLoading = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = SUPABASE_SRC; s.onload = res;
+    s.onerror = () => { sbLoading = null; rej(new Error('Could not load the Supabase library. Check the internet connection.')); };
+    document.head.appendChild(s);
+  });
+  return sbLoading;
+}
+/* Supabase counts every copy of a message: 1 when sent + 1 for each device that receives it (free plan: 100 a second).
+   So there is one room channel for what everyone needs (the teacher's shared state), and one private channel
+   ("pipe") per student, joined only by that student and the teacher: cards, marks and everything a student
+   sends go there and cost 2, not 1 + the whole class. Sending is paced, and a newer state replaces one still waiting. */
+const RT = { sent: 0, recv: 0, sec: {} }; // message counts (the tests read these)
+const rtTick = () => { const k = Math.floor(Date.now() / 1000); RT.sec[k] = (RT.sec[k] || 0) + 1; };
+const RT_BUDGET = { teacher: { rate: 35, burst: 10 }, student: { rate: 1.5, burst: 4 } }; // teacher: counted copies a second; student: messages a second
+function makeTransport(kind, room, opt = {}) {
+  const teacher = !!opt.teacher, me = opt.pid || null, online = kind === 'supabase', MAXPIPES = 90;
+  const pipeName = pid => CHANNEL(room) + ':' + pid;
+  const pipes = new Map(); // teacher: pid -> { ch, wait, dead }
+  let client = null, roomCh = null, myPipe = null, pipeOk = false, onMsg = null, nextJoin = 0;
+  async function open(name, onIn, onStatus) {
+    if (!online) {
+      const bc = new BroadcastChannel(name); bc.onmessage = e => onIn(e.data);
+      onStatus && onStatus('SUBSCRIBED');
+      return { send: m => bc.postMessage(m), close: () => bc.close() };
+    }
+    if (!client) { await loadSupabase(); client = client || window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey); }
+    const c = client, ch = c.channel(name, { config: { broadcast: { self: false } } });
+    ch.on('broadcast', { event: 'm' }, ({ payload }) => onIn(payload));
+    await new Promise((res, rej) => ch.subscribe(status => {
+      onStatus && onStatus(status);
+      if (status === 'SUBSCRIBED') res();
+      else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') rej(new Error('Could not connect to the online room (' + status + ').'));
+    }));
+    return { send: m => ch.send({ type: 'broadcast', event: 'm', payload: m }), close: () => c.removeChannel(ch) };
+  }
+  const inbound = via => m => {
+    if (!m) return; RT.recv++; rtTick();
+    if (teacher) { if (via === 'room' && typeof m.from === 'string' && /^p-/.test(m.from)) pipeFor(m.from); }
+    else if (via === 'pipe' && m.from === 'teacher') pipeOk = true;
+    onMsg && onMsg(m);
+  };
+  // teacher: join a student's pipe (joins are spaced out; Supabase allows 100 joins a second)
+  function pipeFor(pid) {
+    let p = pipes.get(pid); if (p) return p;
+    if (pipes.size >= MAXPIPES) return null;
+    p = { ch: null, wait: [], dead: false }; pipes.set(pid, p);
+    const at = Math.max(Date.now(), nextJoin); nextJoin = at + 30;
+    setTimeout(() => open(pipeName(pid), inbound('pipe')).then(ch => { p.ch = ch; }).catch(() => { p.dead = true; })
+      .finally(() => { q.unshift(...p.wait.splice(0)); pump(); }), at - Date.now());
+    return p;
+  }
+  // paced sending
+  const B = RT_BUDGET[teacher ? 'teacher' : 'student'], q = [];
+  let tokens = B.burst, last = Date.now(), timer = null;
+  function pump() {
+    clearTimeout(timer); timer = null;
+    if (!roomCh) return;
+    const now = Date.now(); tokens = Math.min(B.burst, tokens + (now - last) / 1000 * B.rate); last = now;
+    while (q.length) {
+      const it = q[0]; let ch = roomCh;
+      if (teacher && it.to) { const p = pipeFor(it.to); if (p && !p.dead) { if (!p.ch) { q.shift(); p.wait.push(it); continue; } ch = p.ch; } }
+      if (!teacher && pipeOk && myPipe) ch = myPipe;
+      const cost = !teacher ? 1 : ch === roomCh ? 1 + Math.max(1, pipes.size) : 2, need = Math.min(cost, B.burst);
+      if (tokens < need) { timer = setTimeout(pump, Math.max(15, (need - tokens) / B.rate * 1000)); return; }
+      q.shift(); tokens -= cost; RT.sent++; rtTick();
+      try { ch.send(it.m); } catch (e) { console.warn('Send failed', e); }
+    }
+  }
+  function send(m) {
+    if (teacher && m.type === 'state' && !m.to) { const old = q.find(it => !it.to && it.m.type === 'state'); if (old) { old.m = m; return; } }
+    q.push({ m, to: teacher ? m.to || null : null }); pump();
+  }
+  return {
+    kind,
+    async connect(handler, onStatus) {
+      onMsg = handler;
+      const own = !teacher && me ? open(pipeName(me), inbound('pipe')).then(ch => { myPipe = ch; }).catch(() => null) : null;
+      roomCh = await open(CHANNEL(room), inbound('room'), onStatus);
+      await own; pump();
+    },
+    send,
+    watch: pid => { if (teacher) pipeFor(pid); },
+    close() { clearTimeout(timer); [roomCh, myPipe, ...[...pipes.values()].map(p => p.ch)].forEach(c => { try { c && c.close(); } catch { } }); }
+  };
+}
+
+const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---- sound (Web Audio, no files) ---- */
+const Sound = {
+  ctx: null, on: true, lastBlip: 0, noise: null,
+  ensure() {
+    if (!this.ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; this.ctx = new C(); }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  note(f, t0, dur, type = 'sine', vol = .12, f2) {
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t0);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .015); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(c.destination); o.start(t0); o.stop(t0 + dur + .05);
+  },
+  noiseBuf() {
+    if (this.noise) return this.noise;
+    const c = this.ctx, b = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return (this.noise = b);
+  },
+  play(name) {
+    if (!this.on) return;
+    const c = this.ensure(); if (!c) return;
+    const t = c.currentTime + .01;
+    if (name === 'blip') { if (performance.now() - this.lastBlip < 70) return; this.lastBlip = performance.now(); this.note(700 + Math.random() * 400, t, .09, 'triangle', .07); }
+    else if (name === 'step') this.note(330, t, .28, 'sine', .12, 880);
+    else if (name === 'chime') [1047, 1319, 1568].forEach((f, i) => this.note(f, t + i * .08, .4, 'sine', .1));
+    else if (name === 'cash') { this.note(1568, t, .07, 'square', .05); this.note(2093, t + .07, .25, 'square', .05); }
+    else if (name === 'sting') [392, 523, 659, 784].forEach((f, i) => this.note(f, t + i * .07, .22, 'sawtooth', .05));
+    else if (name === 'wrong') this.note(220, t, .22, 'square', .05, 180);
+    else if (name === 'drumroll') {
+      const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = this.noiseBuf(); f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = .7;
+      g.gain.setValueAtTime(0, t);
+      for (let k = 0; k < 40; k++) { const tt = t + k * .04; g.gain.setValueAtTime(.06 + k * .004, tt); g.gain.setValueAtTime(.015, tt + .02); }
+      g.gain.setValueAtTime(0.0001, t + 1.62);
+      src.connect(f).connect(g).connect(c.destination); src.start(t); src.stop(t + 1.65);
+    }
+    else if (name === 'fanfare') [[523, 0], [659, .12], [784, .24], [1047, .4]].forEach(([fq, d]) => { this.note(fq, t + d, .5, 'triangle', .1); this.note(fq / 2, t + d, .5, 'sine', .06); });
+  }
+};
+
+/* ---- confetti ---- */
+function confetti(n = 70) {
+  if (REDUCED) return;
+  const cv = $('#fx'); if (!cv) return;
+  const W = cv.width = innerWidth, H = cv.height = innerHeight, g = cv.getContext('2d');
+  const cols = ['#d8a21f', '#12648c', '#b02a3f', '#22805a', '#f2cf6b'];
+  const ps = Array.from({ length: n }, () => ({ x: W / 2 + (Math.random() - .5) * W * .3, y: H * .35, vx: (Math.random() - .5) * 12, vy: -Math.random() * 12 - 4, r: 4 + Math.random() * 5, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6 }));
+  const t0 = performance.now();
+  (function frame(now) {
+    g.clearRect(0, 0, W, H);
+    ps.forEach(p => { p.vy += .45; p.x += p.vx; p.y += p.vy; p.a += .2; g.save(); g.translate(p.x, p.y); g.rotate(p.a); g.fillStyle = p.c; g.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); g.restore(); });
+    if (now - t0 < 1600) requestAnimationFrame(frame); else g.clearRect(0, 0, W, H);
+  })(t0);
+}
+
+/* =====================================================================
+   Saigon Chocolate Crisis: the content of each level (same as the worksheet and answer key)
+   Short answers are checked on the team device; the worksheet is checked by the teacher.
+   ===================================================================== */
+const ROLES = [['🖊️', 'Lead Economist', 'types the short answers'], ['📋', 'Data Scribe', 'checks everyone has written'], ['📈', 'Diagram Specialist', 'checks every diagram is labelled'], ['🎤', 'Spokesperson', 'explains if the teacher asks']];
+const MKT = ['Product market', 'Factor market'], MKT_VI = ['Thị trường hàng hóa', 'Thị trường yếu tố sản xuất'];
+const DMOV = ['Movement along D', 'D shifts right', 'D shifts left'], DMOV_VI = ['Di chuyển dọc đường cầu', 'Cầu dịch phải', 'Cầu dịch trái'];
+const SMOV = ['S shifts left', 'S shifts right'], SMOV_VI = ['Cung dịch trái', 'Cung dịch phải'];
+const LV = [
+  { n: 1, icon: '🏪', title: "Minh's markets", vi: 'Các thị trường của Minh', syl: '2.1',
+    story: 'Minh runs Saigon Artisan Chocolate Co. This week he rents land in Bến Tre to grow cocoa, hires two technicians for his factory in Thủ Đức, and sells chocolate bars to shops in District 1. Five shops sell chocolate bars in the market.',
+    storyVi: 'Minh thuê đất ở Bến Tre để trồng ca cao, thuê hai kỹ thuật viên cho nhà máy và bán sô-cô-la cho các cửa hàng ở Quận 1.',
+    source: { title: 'Source 1: bars each shop is willing and able to sell at each price (per day)', head: ['Price', 'Shop A', 'Shop B', 'Shop C', 'Shop D', 'Shop E'], rows: [['10k', 1, 1, 1, 0, 0], ['15k', 3, 2, 2, 2, 1], ['20k', 4, 4, 3, 3, 2], ['25k', 4, 4, 4, 4, 4]] },
+    shorts: [
+      { id: 'a', q: 'Minh sells bars to shops in District 1.', vi: 'Minh bán sô-cô-la cho cửa hàng.', opts: MKT, optsVi: MKT_VI, ans: 0, hint: 'Finished goods and services are bought and sold in the product market.' },
+      { id: 'b', q: 'Minh hires two factory technicians.', vi: 'Minh thuê hai kỹ thuật viên.', opts: MKT, optsVi: MKT_VI, ans: 1, hint: 'Labour is a factor of production.' },
+      { id: 'c', q: 'Minh rents land in Bến Tre to grow cocoa.', vi: 'Minh thuê đất ở Bến Tre.', opts: MKT, optsVi: MKT_VI, ans: 1, hint: 'Land is a factor of production.' },
+      { id: 'd', q: 'Market supply at 15k (Source 1)', vi: 'Cung thị trường ở mức giá 15k', num: true, ans: 10, unit: 'bars', hint: 'Add the five shops across the 15k row.' },
+      { id: 'e', q: '"Should Minh make dark bars or truffles?" answers which question?', vi: 'Câu hỏi này trả lời vấn đề nào?', opts: ['What to produce', 'How to produce', 'For whom to produce'], ans: 0, hint: 'It is about which goods to make.' },
+      { id: 'f', q: '"Robot or workers?" answers which question?', opts: ['What to produce', 'How to produce', 'For whom to produce'], ans: 1, hint: 'It is about the method of production.' },
+      { id: 'g', q: '"Who gets the bars?" answers which question?', opts: ['What to produce', 'How to produce', 'For whom to produce'], ans: 2, hint: 'It is about who the goods go to.' }
+    ],
+    sheet: [['(a)', 'Define the term market.', 2], ['(b)', 'Complete the Market supply column, then plot the market supply curve. Label the axes and S.', 3], ['(c)', 'Explain how the price mechanism decides for whom chocolate is produced.', 4]] },
+  { n: 2, icon: '🛍️', title: 'Demand decoder', vi: 'Giải mã cầu', syl: '2.2',
+    story: "Four things happen to Minh's dark chocolate this month. (1) Minh cuts the price of a bar by 20%. (2) A TikTok video says dark chocolate is healthy, and it goes viral. (3) The price of a rival candy bar rises. (4) The price of the gift boxes people buy with Minh's chocolate doubles.",
+    storyVi: 'Bốn sự kiện: giảm giá 20%, video TikTok lan truyền, giá kẹo đối thủ tăng, giá hộp quà tăng gấp đôi.',
+    shorts: [
+      { id: 'a', q: 'Event 1: Minh cuts the price by 20%.', vi: 'Giảm giá 20%', opts: DMOV, optsVi: DMOV_VI, ans: 0, hint: "A change in the good's own price moves along the curve." },
+      { id: 'b', q: 'Event 2: the TikTok video goes viral.', vi: 'Video TikTok lan truyền', opts: DMOV, optsVi: DMOV_VI, ans: 1, hint: 'Tastes change in favour of the good: a non-price factor.' },
+      { id: 'c', q: 'Event 3: a rival candy bar costs more.', vi: 'Kẹo đối thủ đắt hơn', opts: DMOV, optsVi: DMOV_VI, ans: 1, hint: 'The rival bar is a substitute.' },
+      { id: 'd', q: 'Event 4: gift boxes cost twice as much.', vi: 'Hộp quà đắt gấp đôi', opts: DMOV, optsVi: DMOV_VI, ans: 2, hint: 'Gift boxes are a complement.' }
+    ],
+    sheet: [['(a)', 'Explain the difference between an extension in demand and an increase in demand. Use events 1 and 2.', 4], ['(b)', 'Draw a diagram to show the effect of the TikTok video. Label the axes, both demand curves and the shift.', 3], ['(c)', 'The intern wrote "Demand increased when the price fell." Identify the mistake and rewrite it.', 2]] },
+  { n: 3, icon: '🏭', title: 'Supply audit', vi: 'Kiểm toán cung', syl: '2.3',
+    story: "Three pieces of news reach Minh's factory. (1) A drought in West Africa doubles the price of cocoa beans. (2) Minh installs a high-speed robot that tempers chocolate faster, with fewer workers. (3) The government adds a sugar tax of 2k on every bar sold.",
+    storyVi: 'Hạn hán làm giá ca cao tăng gấp đôi; robot mới; thuế đường 2k mỗi thanh.',
+    shorts: [
+      { id: 'a', q: 'News 1: the cocoa drought', vi: 'Hạn hán ca cao', opts: SMOV, optsVi: SMOV_VI, ans: 0, hint: 'Costs of production rise.' },
+      { id: 'b', q: 'News 2: the tempering robot', vi: 'Robot mới', opts: SMOV, optsVi: SMOV_VI, ans: 1, hint: 'Better technology lowers the cost of each bar.' },
+      { id: 'c', q: 'News 3: the sugar tax', vi: 'Thuế đường', opts: SMOV, optsVi: SMOV_VI, ans: 0, hint: 'A tax on each bar is like an extra cost.' },
+      { id: 'd', q: 'The sugar tax shifts the supply curve up by how much?', vi: 'Thuế làm đường cung dịch lên bao nhiêu?', num: true, ans: 2, unit: 'k', hint: 'The tax is the same on every bar.' }
+    ],
+    sheet: [['(a)', 'Identify two causes of a decrease in supply from the news.', 2], ['(b)', 'Draw a diagram to show the effect of the cocoa drought. Label the old and new equilibrium price and quantity, then explain.', 4], ['(c)', 'Explain why a higher price for chocolate leads to an extension in supply.', 4]] },
+  { n: 4, icon: '⚖️', title: 'Boss: equilibrium', vi: 'Trùm cuối: cân bằng', syl: '2.4', boss: true,
+    story: "On Friday, Minh's shops sold chocolate at 10k a bar. There were 100-person queues and empty shelves. Last month, at 30k a bar, the warehouse was full of melting stock.",
+    storyVi: 'Ở giá 10k có hàng dài người xếp hàng; ở giá 30k kho đầy hàng tồn.',
+    source: { title: 'Source 2: the chocolate market in District 1 (bars per week)', head: ['Price', '10k', '15k', '20k', '25k', '30k'], rows: [['Quantity demanded', 900, 700, 500, 300, 100], ['Quantity supplied', 300, 400, 500, 600, 700]] },
+    shorts: [
+      { id: 'a', q: 'Equilibrium price', vi: 'Giá cân bằng', num: true, ans: 20, unit: 'k', hint: 'Find the price where quantity demanded equals quantity supplied.' },
+      { id: 'b', q: 'Shortage at 10k', vi: 'Thiếu hụt ở mức giá 10k', num: true, ans: 600, unit: 'bars', hint: 'Quantity demanded minus quantity supplied.' },
+      { id: 'c', q: 'Surplus at 25k', vi: 'Dư thừa ở mức giá 25k', num: true, ans: 300, unit: 'bars', hint: 'Quantity supplied minus quantity demanded.' }
+    ],
+    sheet: [['(a)', 'Draw demand and supply from Source 2. Label Pe and Qe, and show the shortage at 10k.', 4], ['(b)', 'Explain how the market removes the shortage at 10k.', 4], ['(c)', 'Calculate the surplus at 30k.', 1]] },
+  { n: 5, icon: '🌪️', title: 'Finale: the storm', vi: 'Chung kết: cơn bão', syl: '2.5',
+    story: "Breaking news: in the same week, Halloween arrives and the cocoa drought gets worse. Every child in District 1 wants chocolate, and Minh's cocoa beans cost even more.",
+    storyVi: 'Halloween đến và hạn hán ca cao trầm trọng hơn trong cùng một tuần.',
+    shorts: [
+      { id: 'a', q: 'The demand curve…', vi: 'Đường cầu…', opts: ['shifts right', 'shifts left', 'does not move'], optsVi: ['dịch phải', 'dịch trái', 'không đổi'], ans: 0, hint: 'Halloween: more buyers want chocolate at every price.' },
+      { id: 'b', q: 'The supply curve…', vi: 'Đường cung…', opts: ['shifts right', 'shifts left', 'does not move'], optsVi: ['dịch phải', 'dịch trái', 'không đổi'], ans: 1, hint: 'The drought raises costs.' },
+      { id: 'c', q: 'The equilibrium price…', vi: 'Giá cân bằng…', opts: ['rises', 'falls', "can't tell"], optsVi: ['tăng', 'giảm', 'không xác định'], ans: 0, hint: 'Both shifts push the price the same way.' },
+      { id: 'd', q: 'The equilibrium quantity…', vi: 'Sản lượng cân bằng…', opts: ['rises', 'falls', "can't tell"], optsVi: ['tăng', 'giảm', 'không xác định'], ans: 2, hint: 'Demand pushes quantity up, supply pushes it down: it depends which shift is bigger.' }
+    ],
+    sheet: [['(a)', 'Analyse the effect of Halloween and the cocoa drought on the equilibrium price of Minh\'s chocolate. You may use a diagram.', 4]] }
+];
+const NLV = LV.length;
+/* Bonus Vault: quick questions for teams waiting for inspection (one try each) */
+const VAULT = [
+  { id: 'v1', q: 'Which is a non-price factor that shifts demand?', opts: ['Income', "The good's own price", 'Costs of production'], ans: 0 },
+  { id: 'v2', q: 'At a price above equilibrium there is…', opts: ['a surplus', 'a shortage', 'no change'], ans: 0 },
+  { id: 'v3', q: 'Tea and milk are…', opts: ['complements', 'substitutes', 'unrelated'], ans: 0 },
+  { id: 'v4', q: 'Quantity demanded contracts when…', opts: ['the price rises', 'income rises', "a substitute's price rises"], ans: 0 },
+  { id: 'v5', q: 'Market demand is…', opts: ['the sum of all buyers\' demand at each price', 'the demand of the richest buyer', 'the number of shops'], ans: 0 },
+  { id: 'v6', q: 'A subsidy to chocolate makers makes supply…', opts: ['increase', 'decrease', 'stay the same'], ans: 0 },
+  { id: 'v7', q: 'The equilibrium price is where…', opts: ['Qd = Qs', 'Qd > Qs', 'the price is highest'], ans: 0 },
+  { id: 'v8', q: 'A shortage makes the price…', opts: ['rise', 'fall', 'stay the same'], ans: 0 },
+  { id: 'v9', q: 'Better technology shifts the supply curve…', opts: ['right', 'left', 'nowhere'], ans: 0 },
+  { id: 'v10', q: "Saigon's population grows. Demand for chocolate…", opts: ['increases', 'decreases', 'stays the same'], ans: 0 },
+  { id: 'v11', q: 'Which answers "how to produce"?', opts: ['Robots or workers', 'Who buys the bars', 'Dark bars or truffles'], ans: 0 },
+  { id: 'v12', q: 'Wages in the factory rise. Supply…', opts: ['decreases', 'increases', 'stays the same'], ans: 0 }
+];
+/* Breaking news: the teacher sends one; every team has 60 seconds */
+const NEWS = [
+  { id: 'n1', icon: '🌀', title: "Typhoon hits Bến Tre's cocoa farms!", vi: 'Bão đổ bộ vào vườn ca cao Bến Tre!', q: 'Which curve shifts, and which way?', opts: ['S shifts left', 'S shifts right', 'D shifts left'], ans: 0, theme: 'cacao' },
+  { id: 'n2', icon: '📚', title: 'Exam season: students buy chocolate for energy!', vi: 'Mùa thi: học sinh mua sô-cô-la!', q: 'Which curve shifts, and which way?', opts: ['D shifts right', 'D shifts left', 'S shifts right'], ans: 0, theme: 'pocket' },
+  { id: 'n3', icon: '👷', title: "Wages rise in Thủ Đức's factories!", vi: 'Lương công nhân tăng!', q: 'Which curve shifts, and which way?', opts: ['S shifts left', 'D shifts right', 'S shifts right'], ans: 0, theme: 'factory' },
+  { id: 'n4', icon: '🏛️', title: 'The government gives chocolate makers a subsidy!', vi: 'Chính phủ trợ cấp cho nhà sản xuất!', q: 'Which curve shifts, and which way?', opts: ['S shifts right', 'S shifts left', 'D shifts right'], ans: 0, theme: 'money' },
+  { id: 'n5', icon: '🥗', title: 'Doctors warn: too much sugar is bad for you!', vi: 'Bác sĩ cảnh báo: nhiều đường có hại!', q: 'Which curve shifts, and which way?', opts: ['D shifts left', 'D shifts right', 'S shifts left'], ans: 0, theme: 'health' }
+];
+const BADGES = {
+  first: ['⚡', 'First to unlock', 'First team to open a level'],
+  sharp: ['🎯', 'Sharp shooters', 'Every short answer right first time on a level'],
+  nohint: ['🧠', 'No hints', 'Finished without paying for a hint'],
+  news: ['🗞️', 'News hounds', 'Two breaking news questions right'],
+  vault: ['🔐', 'Vault cracker', 'Five Bonus Vault questions right'],
+  licence: ['🏅', 'Licensed', 'Earned the HCMC Market Rescuer Licence']
+};
+const TEAM_LOOK = [['🦊', '#c0392b'], ['🐯', '#16768a'], ['🐼', '#7b4fbf'], ['🐸', '#b86b00'], ['🦉', '#2a7f4f'], ['🐬', '#2f74c0'], ['🐝', '#9a5b00'], ['🦄', '#b02a3f']];
+const FEES = { short1: 2, short: 1, hint: 2, unlock: 10, rank: [5, 3, 1], vault: 2, news: 3, newsFirst: 2 };
+
+/* =====================================================================
+   Saigon Chocolate Crisis: Market Rescue! (breakout)
+   Teacher console (projected) + one device per team. Teams solve short answers on the device,
+   every student writes the worksheet, the teacher checks it and shows the passcode, which opens the next level.
+   ===================================================================== */
+const PAGE = 'breakout.html', APP = 'saigon-breakout', TKEY = APP + ':teacher';
+const tSave = () => store.set(TKEY, T.s);
+const k = n => (Math.round(n * 10) / 10) + 'k';
+const mmss = s => s == null ? '' : Math.floor(Math.max(0, s) / 60) + ':' + String(Math.max(0, s) % 60).padStart(2, '0');
+const viSpan = v => v ? ` <span class="vi" lang="vi">${esc(v)}</span>` : '';
+const viBlock = v => v ? `<span class="vi bk-viblock" lang="vi">${esc(v)}</span>` : '';
+const shell = inner => inner + `<div id="toast" class="toast hidden"></div><canvas id="fx" class="fx" aria-hidden="true"></canvas><div id="printArea" class="print-only"></div>`;
+const rolesFor = (members, n) => (members || []).map((name, i) => ({ name, role: ROLES[(i + n - 1) % ROLES.length] }));
+const shortsDone = (shorts, n) => { const L = LV[n - 1]; return !!L && L.shorts.every(q => shorts && shorts[n] && shorts[n][q.id] && shorts[n][q.id].ok); };
+const STOPS = LV.map(L => ({ icon: L.icon, label: L.boss ? 'Boss' : L.n === NLV ? 'Storm' : 'Level ' + L.n })).concat([{ icon: '🏅', label: 'Licence' }]);
+
+/* =====================================================================
+   TEACHER CONSOLE
+   ===================================================================== */
+const T = { s: null, tr: null, projector: false, tick: null, showCodes: false, lastSent: 0, sendTimer: null, connected: false };
+const codeWord = ['MARKET', 'DEMAND', 'SUPPLY', 'EQUIL', 'STORM'];
+const newCodes = () => Object.fromEntries(LV.map((L, i) => [L.n, codeWord[i] + (10 + Math.floor(Math.random() * 90))]));
+function newT(o) { return { v: 1, room: roomCode(), transport: o.transport, minutes: o.minutes, codes: newCodes(), phase: 'lobby', endsAt: null, pausedLeft: null, teams: {}, order: [], news: null, newsUsed: [], log: [], vi: FX.get('vi', true) !== false, createdAt: Date.now() }; }
+const teams = () => T.s.order.map(id => T.s.teams[id]).filter(Boolean);
+const leftNow = () => { const s = T.s; if (s.phase === 'running') return Math.max(0, Math.round((s.endsAt - Date.now()) / 1000)); if (s.phase === 'paused') return s.pausedLeft; if (s.phase === 'lobby') return s.minutes * 60; return 0; };
+const viOnT = () => T.s ? T.s.vi !== false : FX.get('vi', true) !== false;
+
+function teacherBoot() {
+  const saved = store.get(TKEY);
+  document.body.innerHTML = shell(`<header class="topbar"><span class="brand">🍫 Saigon Chocolate Crisis</span><span class="chip">Breakout · teacher</span><span class="spacer"></span><a class="btn small ghost" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)" href="index.html">All lessons</a></header>
+    <main class="narrow stack" style="padding-top:24px"><h1>Market Rescue! A breakout</h1>
+    <p style="margin:0">Five teams, one device each, rescue Minh's chocolate business: four levels and a finale (syllabus 2.1–2.5). Each team solves short answers on its device; every student writes the worksheet; you check it and show the team the passcode.</p>
+    ${saved && saved.room ? `<div class="panel stack"><h2 style="margin:0">Resume room ${esc(saved.room)}</h2><p class="muted" style="margin:0">${(saved.order || []).length} teams joined.</p><button class="btn primary" id="resume">Resume room ${esc(saved.room)}</button></div>` : ''}
+    <div class="panel stack">
+      <div><label class="field" for="tp">Connection</label><select id="tp"><option value="supabase" ${ONLINE_READY ? 'selected' : 'disabled'}>Online: team devices join from their own browser${ONLINE_READY ? '' : ' (add Supabase details to enable)'}</option><option value="local" ${ONLINE_READY ? '' : 'selected'}>Test mode: team tabs on this computer</option></select></div>
+      <div><label class="field" for="mins">Time for the whole breakout</label><select id="mins">${[30, 35, 40, 45, 50, 60].map(m => `<option value="${m}" ${m === 40 ? 'selected' : ''}>${m} minutes</option>`).join('')}</select></div>
+      <button class="btn primary" id="create">Open a new room</button></div>
+    <p class="muted" style="margin:0">The worksheet and answer key match the levels in this activity. Print one worksheet per student.</p></main>`);
+  $('#create').onclick = () => { Sound.ensure(); T.s = newT({ transport: $('#tp').value, minutes: +$('#mins').value }); tSave(); teacherStart(); };
+  const r = $('#resume'); if (r) r.onclick = () => { Sound.ensure(); T.s = saved; tSave(); teacherStart(); };
+}
+async function teacherStart() {
+  FX.install({ gain: 1 }); Sound.on = true; FX.setVi(viOnT(), 'teacher');
+  T.tr = makeTransport(T.s.transport, T.s.room, { teacher: true });
+  renderT();
+  try { await T.tr.connect(tOnMsg, st => { T.connected = st === 'SUBSCRIBED'; connBadge(); }); T.connected = true; } catch (e) { T.connected = false; toast(e.message, 6000); }
+  connBadge(); tBroadcast(true); teams().forEach(t => you(t.pid));
+  setInterval(() => { if (Date.now() - (T.lastSent || 0) > 2900) tBroadcast(true); }, 1000);
+  clearInterval(T.tick); T.tick = setInterval(tickT, 1000);
+}
+function connBadge() { const el = $('#conn'); if (el) el.innerHTML = T.connected ? `<span class="dot ok"></span>${T.s.transport === 'local' ? 'Test mode' : 'Online'}` : '<span class="dot bad"></span>Not connected'; }
+const joinUrl = () => { const u = new URL('index.html', location.href); u.search = ''; u.hash = ''; u.searchParams.set('room', T.s.room); if (T.s.transport === 'local') u.searchParams.set('t', 'local'); return u.toString(); };
+function tSend(m) { T.tr && T.tr.send({ ...m, from: 'teacher', room: T.s.room }); }
+function pubState() {
+  const s = T.s, N = s.news;
+  return { type: 'state', page: PAGE, level: 'breakout', vi: viOnT(), phase: s.phase, left: leftNow(),
+    teams: teams().map(t => ({ tid: t.pid, name: t.name, icon: t.icon, color: t.color, level: t.level, ready: !!t.ready, done: !!t.done, fees: t.fees, n: (t.members || []).length })),
+    news: N && N.open ? { id: N.id, icon: N.icon, title: N.title, vi: N.vi, q: N.q, opts: N.opts, theme: N.theme, left: Math.max(0, Math.round((N.endsAt - Date.now()) / 1000)) } : null,
+    newsRes: N && !N.open ? { id: N.id, title: N.title, right: N.opts[N.ans], winners: Object.entries(N.answers).filter(([, a]) => a.ok).sort((a, b) => a[1].at - b[1].at).map(([pid]) => T.s.teams[pid] ? T.s.teams[pid].name : '') } : null };
+}
+function tBroadcast(now) {
+  const go = () => { T.lastSent = Date.now(); T.sendTimer = null; try { tSend(pubState()); } catch (e) { console.error(e); } };
+  if (now || Date.now() - T.lastSent > 300) { clearTimeout(T.sendTimer); go(); } else if (!T.sendTimer) T.sendTimer = setTimeout(go, 300);
+}
+function youFor(pid) {
+  const t = T.s.teams[pid]; if (!t) return null;
+  return { tid: pid, name: t.name, icon: t.icon, color: t.color, members: t.members || [], level: t.level, ready: !!t.ready, done: !!t.done, fees: t.fees, badges: t.badges, shorts: t.shorts, hints: t.hints,
+    lockLeft: Math.max(0, Math.round(((t.lockUntil || 0) - Date.now()) / 1000)), vault: t.vault, newsAns: t.newsAns, place: placeOf(pid), doneAt: t.doneAt, unlocked: t.unlocked };
+}
+const you = pid => { const y = youFor(pid); if (y) tSend({ type: 'you', to: pid, you: y }); };
+const placeOf = pid => { const R = ranked(); const i = R.findIndex(t => t.pid === pid); return i < 0 ? null : i + 1; };
+const ranked = () => teams().slice().sort((a, b) => (b.done ? 1 : 0) - (a.done ? 1 : 0) || b.level - a.level || (a.doneAt || 9e15) - (b.doneAt || 9e15) || b.fees - a.fees);
+function addFee(t, v, why) { t.fees = Math.round((t.fees + v) * 10) / 10; T.s.log.push({ at: Date.now(), team: t.name, ev: why, fee: v }); }
+function award(t, id) { if (!BADGES[id] || t.badges.includes(id)) return; t.badges.push(id); Sound.play('badge'); }
+function fail(pid, error) { tSend({ type: 'ack', to: pid, ok: false, error }); }
+
+function tOnMsg(m) {
+  if (!m || m.from === 'teacher') return;
+  if (m.type === 'whois') return tBroadcast(true);
+  const s = T.s;
+  if (m.type === 'hello') {
+    let t = s.teams[m.pid];
+    if (!t) {
+      const i = s.order.length, look = TEAM_LOOK[i % TEAM_LOOK.length];
+      t = s.teams[m.pid] = { pid: m.pid, name: String(m.nick || 'Team ' + (i + 1)).slice(0, 18), icon: look[0], color: look[1], members: [], level: 1, ready: false, done: false, fees: 0, badges: [], shorts: {}, hints: {}, vault: {}, newsAns: {}, unlocked: {}, wrong: 0, lockUntil: 0, joinedAt: Date.now() };
+      s.order.push(m.pid); Sound.play('pop'); toast(`${t.icon} ${t.name} joined`);
+    }
+    if (Array.isArray(m.members) && m.members.length && !(t.members || []).length) t.members = m.members.map(x => String(x).slice(0, 16)).filter(Boolean).slice(0, 6);
+    tSave(); renderBody(); you(m.pid); tBroadcast(true); return;
+  }
+  const t = s.teams[m.pid]; if (!t) return;
+  if (m.type === 'members') { t.members = (m.members || []).map(x => String(x).replace(/\s+/g, ' ').trim().slice(0, 16)).filter(Boolean).slice(0, 6); tSave(); renderBody(); you(m.pid); return; }
+  if (m.type === 'news') {
+    const N = s.news; if (!N || !N.open || N.id !== m.id || N.answers[m.pid]) return;
+    const ok = +m.ans === N.ans; N.answers[m.pid] = { ans: +m.ans, ok, at: Date.now() };
+    if (ok) { addFee(t, FEES.news, 'news'); if (!Object.entries(N.answers).some(([p, a]) => a.ok && p !== m.pid)) addFee(t, FEES.newsFirst, 'news first'); t.newsRight = (t.newsRight || 0) + 1; if (t.newsRight >= 2) award(t, 'news'); }
+    (t.newsAns ||= {})[N.id] = ok; Sound.play(ok ? 'coin' : 'bonk'); tSave(); renderBody(); you(m.pid); tBroadcast(); return;
+  }
+  if (s.phase === 'lobby') return fail(m.pid, 'not-started');
+  const L = LV[t.level - 1];
+  if (m.type === 'short') {
+    if (!L || +m.n !== t.level) return;
+    const q = L.shorts.find(x => x.id === m.id); if (!q) return;
+    const rec = ((t.shorts[L.n] ||= {})[q.id] ||= { ok: false, tries: 0 }); if (rec.ok) return;
+    rec.tries++; if (m.ok) { rec.ok = true; addFee(t, rec.tries === 1 ? FEES.short1 : FEES.short, 'short ' + L.n + q.id); Sound.play('pop'); }
+    if (shortsDone(t.shorts, L.n) && L.shorts.every(x => t.shorts[L.n][x.id].tries === 1)) award(t, 'sharp');
+    tSave(); renderBody(); you(m.pid); tBroadcast(); return;
+  }
+  if (m.type === 'hint') {
+    if (!L || +m.n !== t.level) return; const q = L.shorts.find(x => x.id === m.id); if (!q) return;
+    const h = (t.hints[L.n] ||= {}); if (h[q.id]) return;
+    const rec = (t.shorts[L.n] || {})[q.id], free = rec && rec.tries >= 2; h[q.id] = free ? 'free' : 'paid';
+    if (!free) { addFee(t, -FEES.hint, 'hint'); t.paidHint = true; }
+    tSave(); renderBody(); you(m.pid); return;
+  }
+  if (m.type === 'ready') {
+    if (!L || +m.n !== t.level || !shortsDone(t.shorts, L.n)) return fail(m.pid, 'shorts');
+    if (!t.ready) { t.ready = true; t.readyAt = Date.now(); Sound.play('chime'); }
+    tSave(); renderBody(); you(m.pid); tBroadcast(true); if (T.projector) projDynamic(); return;
+  }
+  if (m.type === 'code') {
+    if (t.done) return;
+    if (Date.now() < (t.lockUntil || 0)) return fail(m.pid, 'locked');
+    if (!L || +m.n !== t.level) return fail(m.pid, 'stale');
+    if (!shortsDone(t.shorts, L.n)) return fail(m.pid, 'shorts');
+    const code = String(m.code || '').toUpperCase().replace(/\s+/g, '');
+    if (code !== String(s.codes[L.n] || '').toUpperCase().replace(/\s+/g, '')) {
+      t.wrong = (t.wrong || 0) + 1; if (t.wrong % 3 === 0) t.lockUntil = Date.now() + 30000;
+      tSave(); renderBody(); you(m.pid); Sound.play('bonk'); return fail(m.pid, t.wrong % 3 === 0 ? 'locked' : 'wrong-code');
+    }
+    unlock(t); return;
+  }
+  if (m.type === 'vault') {
+    const q = VAULT.find(x => x.id === m.id); if (!q || t.vault[q.id] != null) return;
+    const ok = +m.ans === q.ans; t.vault[q.id] = ok; if (ok) addFee(t, FEES.vault, 'vault');
+    if (Object.values(t.vault).filter(Boolean).length >= 5) award(t, 'vault');
+    tSave(); renderBody(); you(m.pid); tBroadcast(); return;
+  }
+}
+/** Passcode accepted: open the next level (or the licence after the finale) */
+function unlock(t, manual) {
+  const s = T.s, n = t.level, before = teams().filter(x => x !== t && x.unlocked[n]).length;
+  t.unlocked[n] = Date.now(); t.ready = false; t.wrong = 0; t.lockUntil = 0;
+  addFee(t, FEES.unlock + (FEES.rank[before] || 0), (manual ? 'unlocked by teacher ' : 'unlocked ') + n);
+  if (before === 0) award(t, 'first');
+  if (n >= NLV) { t.done = true; t.doneAt = Date.now(); award(t, 'licence'); if (!t.paidHint) award(t, 'nohint'); Sound.play('fanfare'); confetti(140); FX.news({ icon: '🏅', kicker: 'MARKET RESCUED · GIẢI CỨU THÀNH CÔNG', title: `${t.icon} ${t.name} earned the licence!`, theme: 'reveal', ms: 3500, sound: false }); }
+  else { t.level = n + 1; Sound.play('levelup'); FX.news({ icon: LV[n].icon, kicker: 'FILE UNLOCKED · MỞ KHÓA', title: `${t.icon} ${t.name} → Level ${n + 1}: ${LV[n].title}`, theme: 'round', ms: 2200, sound: false }); }
+  tSave(); renderBody(); you(t.pid); tBroadcast(true); if (T.projector) projDynamic();
+}
+/* ---- clock ---- */
+function tickT() {
+  const s = T.s; if (!s) return;
+  if (s.phase === 'running' && Date.now() >= s.endsAt) { s.phase = 'ended'; Sound.play('fanfare'); FX.news({ icon: '⏰', kicker: "TIME'S UP · HẾT GIỜ", title: 'Pens down! Time is up.', theme: 'round', ms: 3500, sound: false }); tSave(); renderBody(); tBroadcast(true); }
+  if (s.news && s.news.open && Date.now() >= s.news.endsAt) closeNews();
+  timerT();
+}
+function timerT() { const l = leftNow(); ['#tTimer', '#pTimer'].forEach(id => { const el = $(id); if (el) { el.textContent = mmss(l); FX.timer(el, T.s.phase === 'running' ? l : null, id === '#pTimer' || !T.projector); } }); const nl = $('#pNewsLeft'); if (nl && T.s.news && T.s.news.open) nl.textContent = Math.max(0, Math.round((T.s.news.endsAt - Date.now()) / 1000)) + 's'; }
+function startClock() { const s = T.s; if (s.phase === 'lobby') { s.endsAt = Date.now() + s.minutes * 60000; s.phase = 'running'; Sound.play('sting'); FX.broadcast({ icon: '🍫', title: 'The Saigon Chocolate Crisis', vi: 'Khủng hoảng sô-cô-la Sài Gòn', kicker: 'BREAKING NEWS · TIN NÓNG', lines: [["Minh's chocolate shops are in chaos.", 'Các cửa hàng của Minh đang hỗn loạn.'], ['100-person queues and empty shelves on one day…', 'Hàng dài người xếp hàng, kệ trống…'], ['…a warehouse of melting stock the next.', '…rồi kho đầy hàng tồn tan chảy.']], theme: 'market', impact: [{ icon: '🕵️', who: 'Your firm · Công ty của bạn', text: 'Fix his market, one file at a time.' }, { icon: '🔐', who: 'Each level · Mỗi cấp độ', text: 'Short answers, then everyone writes the worksheet, then the passcode.' }, { icon: '🏅', who: 'The prize · Phần thưởng', text: 'Finish all five to earn the Market Rescuer Licence!' }] }); }
+  else if (s.phase === 'paused') { s.endsAt = Date.now() + s.pausedLeft * 1000; s.pausedLeft = null; s.phase = 'running'; }
+  tSave(); renderBody(); tBroadcast(true); if (T.projector) renderProj(true); }
+function pauseClock() { const s = T.s; if (s.phase !== 'running') return; s.pausedLeft = leftNow(); s.phase = 'paused'; tSave(); renderBody(); tBroadcast(true); }
+function addTime(min) { const s = T.s; if (s.phase === 'running') s.endsAt += min * 60000; else if (s.phase === 'paused') s.pausedLeft += min * 60; else if (s.phase === 'ended') { s.endsAt = Date.now() + min * 60000; s.phase = 'running'; } else s.minutes += min; tSave(); renderBody(); tBroadcast(true); }
+/* ---- breaking news ---- */
+function sendNews(id) {
+  const s = T.s, n = NEWS.find(x => x.id === id); if (!n || (s.news && s.news.open)) return;
+  s.news = { ...n, open: true, endsAt: Date.now() + 60000, answers: {} }; if (!s.newsUsed.includes(id)) s.newsUsed.push(id);
+  FX.news({ icon: n.icon, kicker: 'BREAKING NEWS · TIN NÓNG · 60 s', title: n.title, vi: n.vi, detail: n.q, theme: n.theme, ms: 3500 });
+  tSave(); renderBody(); tBroadcast(true); if (T.projector) renderProj(true);
+}
+function closeNews() { const s = T.s; if (!s.news) return; s.news.open = false; Sound.play('fanfare'); tSave(); renderBody(); tBroadcast(true); teams().forEach(t => you(t.pid)); if (T.projector) renderProj(true); }
+
+/* ---- console ---- */
+function renderT() {
+  document.body.innerHTML = shell(`<header class="topbar"><span class="brand">🍫 Saigon Chocolate Crisis</span><span class="chip">Room <b style="letter-spacing:.12em">${esc(T.s.room)}</b></span><span class="spacer"></span>
+    <span class="timer big-timer" id="tTimer"></span><button class="btn small ghost" id="viT" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">🇻🇳 Vietnamese: ${viOnT() ? 'on' : 'off'}</button>
+    <button class="btn small" id="projBtn">📽 Projector view</button><span class="chip" id="conn"></span></header>
+    <main class="wrap"><div id="tbody"></div></main><div id="proj" class="proj hidden"></div>`);
+  $('#projBtn').onclick = () => { T.projector = true; renderProj(true); };
+  $('#viT').onclick = () => { T.s.vi = !viOnT(); FX.set('vi', T.s.vi); FX.setVi(T.s.vi, 'teacher'); $('#viT').textContent = '🇻🇳 Vietnamese: ' + (T.s.vi ? 'on' : 'off'); tSave(); tBroadcast(true); if (T.projector) renderProj(true); };
+  connBadge(); renderBody();
+}
+function statusOf(t) { return t.done ? ['🏅', 'Licensed', 'done'] : t.ready ? ['✋', 'Ready for inspection', 'ready'] : Date.now() < (t.lockUntil || 0) ? ['🔒', 'Locked (wrong codes)', 'locked'] : shortsDone(t.shorts, t.level) ? ['✍️', 'Writing the worksheet', 'writing'] : ['🔎', 'Solving the file', 'working']; }
+function raceHtml(big) {
+  const ts = teams(); if (!ts.length) return `<p class="muted" style="margin:0">Teams appear here when they join.</p>`;
+  const W = STOPS.length - 1;
+  return `<div class="bk-race ${big ? 'big' : ''}"><div class="bk-stops">${STOPS.map((x, i) => `<span style="left:${100 * i / W}%"><b>${x.icon}</b><small>${esc(x.label)}</small></span>`).join('')}</div>
+    ${ts.map(t => { const st = statusOf(t), pos = t.done ? 1 : Math.min(1, (t.level - 1 + (t.ready ? .55 : shortsDone(t.shorts, t.level) ? .35 : .12)) / W);
+      return `<div class="bk-lane ${st[2]}" style="--c:${t.color}"><div class="bk-lname">${t.icon} <b>${esc(t.name)}</b> <small>${st[0]} ${esc(st[1])} · 💰 ${k(t.fees)}</small></div><div class="bk-track"><i style="width:${100 * pos}%"></i><span class="bk-van" style="left:${100 * pos}%">${t.icon}</span></div></div>`; }).join('')}</div>`;
+}
+function healthHtml() {
+  const ts = teams(), got = ts.reduce((a, t) => a + (t.done ? NLV : t.level - 1), 0), all = Math.max(1, ts.length * NLV), f = got / all;
+  const face = f >= 1 ? '😄' : f > .6 ? '🙂' : f > .3 ? '😐' : '😩', queue = Math.round((1 - f) * 10);
+  return `<div class="bk-health"><div><b>Minh's market health</b> <small class="muted">${Math.round(100 * f)}% fixed</small></div><div class="bk-hbar"><i style="width:${Math.round(100 * f)}%"></i></div><div class="bk-scene">${face} 🏪 ${'🧍'.repeat(queue)}${queue ? '' : ' ✨'}</div></div>`;
+}
+function leaderHtml(n) { const R = ranked(); return R.length ? `<ol class="bk-lead">${R.slice(0, n || 8).map((t, i) => `<li><span>${['🥇', '🥈', '🥉'][i] || i + 1}</span> ${t.icon} <b>${esc(t.name)}</b><small>${t.done ? '🏅' : 'L' + t.level}</small><b class="fee">💰 ${k(t.fees)}</b></li>`).join('')}</ol>` : ''; }
+function renderBody() {
+  const el = $('#tbody'); if (!el || !T.s) return;
+  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#tbody') && ae.matches('input')) { ae.onblur = () => setTimeout(renderBody, 0); return; }
+  const s = T.s, ts = teams(), N = s.news;
+  el.innerHTML = `<div class="grid2"><section class="stack">
+      <div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">${s.phase === 'lobby' ? 'Waiting to start' : s.phase === 'running' ? 'Breakout running' : s.phase === 'paused' ? 'Paused' : "Time's up"}</h2><span class="timer big-timer">${mmss(leftNow())}</span></div>
+        <div class="row">${s.phase === 'lobby' ? `<button class="btn primary" data-act="start" ${ts.length ? '' : 'disabled'}>▶ Start the breakout (${s.minutes} min)</button>` : s.phase === 'running' ? '<button class="btn" data-act="pause">⏸ Pause</button>' : s.phase === 'paused' ? '<button class="btn primary" data-act="start">▶ Resume</button>' : ''}
+          <button class="btn small" data-act="plus5">+5 min</button>${s.phase === 'lobby' ? '<button class="btn small" data-act="minus5">−5 min</button>' : ''}</div>
+        <p class="muted" style="margin:0">${ts.length} team${ts.length === 1 ? '' : 's'} joined. ${ts.filter(t => t.ready).length ? `<b>✋ Ready for inspection: ${ts.filter(t => t.ready).map(t => esc(t.name)).join(', ')}</b>` : ''}</p></div>
+      <div class="panel stack"><div class="row" style="justify-content:space-between"><h2 style="margin:0">🔐 Passcodes</h2><button class="btn small" data-act="codes">${T.showCodes ? '🙈 Hide' : '👁 Show'}</button></div>
+        <p class="muted" style="margin:0">Never shown on the projector. Show a team its code after you have checked every worksheet. Each code opens the next level.</p>
+        ${T.showCodes ? `<div class="bk-codes">${LV.map(L => `<label><span>${L.icon} After ${L.boss ? 'the Boss' : L.n === NLV ? 'the finale' : 'Level ' + L.n}${L.n === NLV ? ' (licence)' : ''}</span><input type="text" data-code="${L.n}" value="${esc(s.codes[L.n])}" maxlength="12" autocomplete="off"></label>`).join('')}</div><div class="row"><button class="btn small" data-act="printcodes">🖨 Print a passcode card</button><button class="btn small ghost" data-act="newcodes">New random codes</button></div>` : ''}</div>
+      <div class="panel stack"><h2 style="margin:0">Teams</h2>${ts.length ? ts.map(t => { const st = statusOf(t); return `<div class="bk-team ${st[2]}" style="--c:${t.color}"><div class="row" style="justify-content:space-between"><b>${t.icon} ${esc(t.name)}</b><span class="chip">${t.done ? '🏅 Done' : 'Level ' + t.level}</span></div>
+          <small class="muted">${(t.members || []).map(esc).join(', ') || 'Members not entered yet'}</small><div>${st[0]} ${esc(st[1])} · 💰 ${k(t.fees)} ${t.badges.map(b => BADGES[b][0]).join('')}</div>
+          ${t.done ? '' : `<div class="row"><button class="btn small" data-act="unlock" data-tid="${t.pid}">Open the next level by hand</button>${Date.now() < (t.lockUntil || 0) ? `<button class="btn small" data-act="unlockcode" data-tid="${t.pid}">Clear the lock</button>` : ''}</div>`}</div>`; }).join('') : '<p class="muted" style="margin:0">No teams yet. Each team opens the home page on its device, types the room code and its team name.</p>'}</div>
+      <div class="panel stack"><h2 style="margin:0">🗞️ Breaking news</h2><p class="muted" style="margin:0">Every team gets 60 seconds to answer. Right answers earn ${FEES.news}k; the fastest right team earns ${FEES.newsFirst}k more.</p>
+        ${N && N.open ? `<div class="note"><b>${N.icon} ${esc(N.title)}</b> · ${Object.keys(N.answers).length} of ${ts.length} answered <button class="btn small" data-act="newsclose">Close now</button></div>` : ''}
+        ${N && !N.open ? `<div class="good">Last: ${N.icon} ${esc(N.title)} · right answer: <b>${esc(N.opts[N.ans])}</b> · ${Object.values(N.answers).filter(a => a.ok).length} teams right</div>` : ''}
+        ${NEWS.map(n => `<div class="row" style="justify-content:space-between"><span>${n.icon} ${esc(n.title)}</span><button class="btn small" data-act="news" data-id="${n.id}" ${(N && N.open) || s.phase !== 'running' ? 'disabled' : ''}>${s.newsUsed.includes(n.id) ? 'Send again' : 'Send'}</button></div>`).join('')}</div>
+      <div class="panel stack"><h2 style="margin:0">Join</h2><div class="row" style="align-items:flex-start"><div class="qr" id="qrS"></div><div style="flex:1;min-width:160px"><div class="muted">Room code</div><div class="code-big">${esc(s.room)}</div><p class="muted" style="font-size:.85rem;margin:.3em 0 0;word-break:break-all">${esc(joinUrl())}</p></div></div>
+        <p class="muted" style="margin:0">On each team's device: open the home page, type the room code, and type the team name as the nickname.</p>${s.transport === 'local' ? '<button class="btn small" data-act="test">Open a test team tab</button>' : ''}</div>
+    </section><section class="stack">
+      <div class="panel stack"><h2 style="margin:0">🗺️ The race</h2>${raceHtml(false)}${healthHtml()}</div>
+      <div class="panel stack"><h2 style="margin:0">🏆 Consultancy fees</h2>${leaderHtml()}<div class="row"><button class="btn small primary" data-act="podium" ${ts.length ? '' : 'disabled'}>🏆 Podium</button><button class="btn small" data-act="licences" ${ts.some(t => t.done) ? '' : 'disabled'}>🖨 Print licences</button><button class="btn small" data-act="csv" ${s.log.length ? '' : 'disabled'}>Download the log (CSV)</button></div></div>
+      <details class="panel"><summary>How fees and badges work</summary><div class="stack" style="margin-top:8px"><p style="margin:0">Short answer right first time ${FEES.short1}k (later ${FEES.short}k) · hint −${FEES.hint}k (free after 2 wrong tries) · passcode ${FEES.unlock}k, plus ${FEES.rank.join('k / ')}k for the 1st / 2nd / 3rd team to open that level · Bonus Vault ${FEES.vault}k · breaking news ${FEES.news}k.</p><div>${Object.values(BADGES).map(b => `<div>${b[0]} <b>${esc(b[1])}</b>: ${esc(b[2])}</div>`).join('')}</div></div></details>
+      <details class="panel"><summary>Settings</summary><div class="stack" style="margin-top:8px"><p class="muted" style="margin:0">Room ${esc(s.room)} · ${s.transport === 'local' ? 'test mode' : 'online'} · ${s.minutes} minutes</p><button class="btn small" data-act="newroom">Close room and start again</button></div></details>
+    </section></div>`;
+  el.onclick = tClick;
+  $$('[data-code]', el).forEach(inp => { inp.onchange = () => { const v = inp.value.toUpperCase().replace(/\s+/g, '').slice(0, 12); if (!v) return toast('A passcode cannot be empty.'); T.s.codes[inp.dataset.code] = v; inp.value = v; tSave(); toast('Passcode saved.'); }; });
+  makeQR($('#qrS'), joinUrl(), 110); timerT(); if (T.projector) projDynamic();
+}
+function tClick(e) {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const a = b.dataset.act, s = T.s;
+  if (a === 'start') startClock();
+  else if (a === 'pause') pauseClock();
+  else if (a === 'plus5') addTime(5);
+  else if (a === 'minus5') { s.minutes = Math.max(10, s.minutes - 5); tSave(); renderBody(); tBroadcast(true); }
+  else if (a === 'codes') { T.showCodes = !T.showCodes; renderBody(); }
+  else if (a === 'newcodes') { if (confirm('Make new random passcodes? Print the card again afterwards.')) { s.codes = newCodes(); tSave(); renderBody(); } }
+  else if (a === 'printcodes') printCodes();
+  else if (a === 'unlock') { const t = s.teams[b.dataset.tid]; if (t && confirm(`Open the next level for ${t.name} without a passcode?`)) unlock(t, true); }
+  else if (a === 'unlockcode') { const t = s.teams[b.dataset.tid]; if (t) { t.lockUntil = 0; t.wrong = 0; tSave(); renderBody(); you(t.pid); } }
+  else if (a === 'news') sendNews(b.dataset.id);
+  else if (a === 'newsclose') closeNews();
+  else if (a === 'podium') showPodium();
+  else if (a === 'licences') printLicences();
+  else if (a === 'csv') downloadLog();
+  else if (a === 'test') window.open(joinUrl(), '_blank');
+  else if (a === 'newroom') { if (confirm('Close this room? Its progress will be cleared from this computer.')) { T.tr && T.tr.close(); store.del(TKEY); location.href = '?mode=teacher'; } }
+}
+function showPodium() {
+  const R = ranked(); if (!R.length) return;
+  FX.podium({ title: 'Top consultancy firms', sub: 'Levels finished first, then consultancy fees', rows: R.map(t => ({ nick: t.name, av: t.icon, value: (t.done ? '🏅 ' : 'Level ' + t.level + ' · ') + '💰 ' + k(t.fees) })) });
+}
+function printCodes() {
+  $('#printArea').innerHTML = `<section class="psheet"><h2>Passcodes · room ${esc(T.s.room)}</h2><p>Keep this card private. Show a team its code after checking every worksheet.</p><table class="bk-ptable"><tr><th>After</th><th>Passcode</th></tr>${LV.map(L => `<tr><td>${L.icon} ${L.boss ? 'Level 4 (Boss)' : L.n === NLV ? 'Finale (licence)' : 'Level ' + L.n}: ${esc(L.title)}</td><td class="bk-pcode">${esc(T.s.codes[L.n])}</td></tr>`).join('')}</table></section>`;
+  setTimeout(() => window.print(), 50);
+}
+function printLicences() {
+  const ts = teams().filter(t => t.done); if (!ts.length) return;
+  const d = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  $('#printArea').innerHTML = ts.map(t => `<section class="psheet bk-licence"><div class="bk-lic-in"><div class="bk-lic-top">🍫 SAIGON ARTISAN CHOCOLATE CO.</div><h1>HCMC Market Rescuer Licence</h1><p>This licence is awarded to the consultancy firm</p><h2>${t.icon} ${esc(t.name)}</h2><p class="bk-lic-names">${(t.members || []).map(esc).join(' · ')}</p>
+    <p>for fixing Minh's market: product and factor markets, demand, supply, equilibrium and the storm (IGCSE Economics 2.1–2.5).</p><p class="bk-lic-badges">${t.badges.map(b => `${BADGES[b][0]} ${esc(BADGES[b][1])}`).join(' · ')}</p><p>Consultancy fees earned: <b>${k(t.fees)}</b> · ${d}</p><div class="bk-lic-sign"><span>Minh, Director</span><span>Teacher</span></div></div></section>`).join('');
+  setTimeout(() => window.print(), 50);
+}
+function downloadLog() {
+  const lines = [['time', 'team', 'event', 'fee_k'].join(',')].concat(T.s.log.map(x => [new Date(x.at).toLocaleTimeString('en-GB'), JSON.stringify(x.team), JSON.stringify(x.ev), x.fee].join(',')));
+  const unl = teams().map(t => [JSON.stringify(t.name), JSON.stringify((t.members || []).join('; ')), ...LV.map(L => t.unlocked[L.n] ? new Date(t.unlocked[L.n]).toLocaleTimeString('en-GB') : ''), t.fees].join(','));
+  const csv = lines.join('\n') + '\n\nteam,members,' + LV.map(L => 'level' + L.n + '_passed').join(',') + ',fees_k\n' + unl.join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `breakout-${T.s.room}.csv`; a.click();
+}
+function makeQR(el, text, size) { if (!el) return; el.innerHTML = ''; if (window.QRCode) { try { new QRCode(el, { text, width: size, height: size, correctLevel: QRCode.CorrectLevel.M }); return; } catch { } } el.classList.add('hidden'); }
+/* ---- projector ---- */
+function renderProj(fresh) {
+  const el = $('#proj'); if (!el || !T.projector) return;
+  el.classList.remove('hidden');
+  if (fresh || !$('#pStage')) {
+    el.innerHTML = `<div class="bk-proj"><div class="bk-ptop"><div class="bk-ptitle">🍫 Saigon Chocolate Crisis<small>Market Rescue!<span class="vi" lang="vi"> · Giải cứu thị trường</span></small></div><div class="bk-pclock"><span class="timer" id="pTimer"></span></div><div class="bk-proom">Room <b>${esc(T.s.room)}</b></div></div>
+      <div class="bk-pmain"><div id="pStage" class="bk-pstage"></div><aside class="bk-pside"><div class="panel"><h3 style="margin:0 0 6px">🏆 Fees</h3><div id="pLead"></div></div><div class="panel" id="pHealth"></div><button class="btn" id="closeProj">Back to the console</button></aside></div></div>`;
+    $('#closeProj').onclick = () => { T.projector = false; el.classList.add('hidden'); };
+  }
+  projDynamic(); timerT();
+}
+function projDynamic() {
+  const st = $('#pStage'); if (!st || !T.projector) return;
+  const s = T.s, N = s.news, ready = teams().filter(t => t.ready);
+  if (s.phase === 'lobby') st.innerHTML = `<div class="lobby-stage"><h1>Join on your team's device</h1><p class="lead">Open the home page, type the room code, and type your <b>team name</b> as the nickname.</p><div class="code-big" style="font-size:4rem">${esc(s.room)}</div><div class="qr" id="qrP"></div><div class="bk-joined">${teams().map(t => `<span style="--c:${t.color}">${t.icon} ${esc(t.name)}</span>`).join('') || '<small class="muted">Waiting for teams…</small>'}</div></div>`;
+  else if (N && N.open) st.innerHTML = `<div class="bk-pnews"><div class="bk-pnews-icon">${N.icon}</div><div class="bk-pnews-k">BREAKING NEWS · TIN NÓNG · <span id="pNewsLeft"></span></div><h1>${esc(N.title)}</h1>${viSpan(N.vi)}<h2>${esc(N.q)}</h2><p class="lead">Answer on your team's device!</p><div class="bk-joined">${teams().map(t => `<span style="--c:${t.color}" class="${N.answers[t.pid] ? 'in' : ''}">${t.icon} ${esc(t.name)} ${N.answers[t.pid] ? '✓' : '…'}</span>`).join('')}</div></div>`;
+  else st.innerHTML = `${ready.length ? `<div class="bk-ready">✋ Ready for inspection: ${ready.map(t => `<b style="color:${t.color}">${t.icon} ${esc(t.name)}</b>`).join(' · ')}</div>` : ''}${N && !N.open && Date.now() - N.endsAt < 30000 ? `<div class="good" style="font-size:1.2rem">🗞️ ${esc(N.title)} → <b>${esc(N.opts[N.ans])}</b> ✓ ${Object.entries(N.answers).filter(([, a]) => a.ok).map(([p]) => esc((T.s.teams[p] || {}).name || '')).join(', ') || 'No team right'}</div>` : ''}${s.phase === 'ended' ? '<h1 style="margin:0">⏰ Time is up! Pens down.</h1>' : ''}${raceHtml(true)}`;
+  if (s.phase === 'lobby') makeQR($('#qrP'), joinUrl(), 200);
+  const pl = $('#pLead'); if (pl) pl.innerHTML = leaderHtml(6) || '<small class="muted">Fees appear here.</small>';
+  const ph = $('#pHealth'); if (ph) ph.innerHTML = healthHtml();
+  timerT();
+}
+
+/* =====================================================================
+   TEAM DEVICE
+   ===================================================================== */
+const S = { pid: null, nick: '', room: '', tr: null, pub: null, me: null, lastMsg: 0, sound: true, written: {}, draft: {}, shown: {}, vaultI: 0 };
+const SK = () => APP + ':team:' + S.room;
+function sSave() { sstore.set(SK(), { pid: S.pid, nick: S.nick, sound: S.sound, written: S.written, members: S.members }); }
+const sSend = m => S.tr && S.tr.send({ ...m, pid: S.pid, from: S.pid });
+const sfx = n => { if (S.sound) Sound.play(n); };
+const ERR = { 'not-started': 'Wait for your teacher to start the breakout.', 'wrong-code': 'Wrong passcode. Check your worksheet with your teacher first.', locked: "🚨 Minh's security alarm! 3 wrong codes: wait 30 seconds.", shorts: 'Finish the short answers first.', stale: 'Your level has changed. Look at the screen again.' };
+function studentBoot() {
+  FX.install({ gain: .6, gate: () => S.sound });
+  const room = (PARAMS.get('room') || '').toUpperCase(), sv = room ? sstore.get(APP + ':team:' + room) : null, pnick = (PARAMS.get('nick') || '').trim().slice(0, 18);
+  if (sv && sv.pid) { S.room = room; Object.assign(S, { pid: sv.pid, nick: sv.nick, sound: sv.sound !== false, written: sv.written || {}, members: sv.members || [] }); return connect(); }
+  if (room.length === 4 && pnick) { S.room = room; S.nick = pnick; S.pid = 'p-' + rid(10); sSave(); const u = new URL(location.href); u.searchParams.delete('nick'); history.replaceState(null, '', u); return connect(); }
+  location.replace('index.html' + (room ? '?room=' + room + (PARAMS.get('t') ? '&t=' + PARAMS.get('t') : '') : ''));
+}
+async function connect() {
+  const kind = PARAMS.get('t') === 'local' || !ONLINE_READY ? 'local' : 'supabase';
+  S.tr = makeTransport(kind, S.room, { pid: S.pid });
+  document.body.innerHTML = shell(`<header class="topbar"><span class="brand" id="hTeam">🍫 ${esc(S.nick)}</span><span class="chip" id="hLevel"></span><span class="chip" id="hFees"></span><span class="spacer"></span><span class="timer" id="hTimer"></span>
+    <button class="btn small ghost" id="sSnd" style="color:#fbf3ea;border-color:rgba(255,255,255,.3)">${S.sound ? '🔊' : '🔇'}</button><span class="chip" id="hConn"><span class="dot wait"></span>…</span></header>
+    <main class="wrap bk-dev" id="sMain"><div class="panel">Looking for room <b>${esc(S.room)}</b>…</div></main>`);
+  $('#sSnd').onclick = e => { S.sound = !S.sound; e.target.textContent = S.sound ? '🔊' : '🔇'; if (S.sound) { Sound.ensure(); Sound.play('chime'); } sSave(); };
+  try { await S.tr.connect(onMsg, () => { }); } catch (e) { $('#sMain').innerHTML = `<div class="bad">${esc(e.message)}</div>`; return; }
+  const hello = () => sSend({ type: 'hello', nick: S.nick, members: S.members || [] });
+  hello();
+  setInterval(() => { const q = Date.now() - S.lastMsg > 7000; if (q) hello(); const c = $('#hConn'); if (c) c.innerHTML = q ? '<span class="dot bad"></span>Looking for teacher' : '<span class="dot ok"></span>Connected'; }, 3000);
+  setInterval(tick, 1000);
+  document.addEventListener('input', e => { const t = e.target; if (t && t.dataset && t.dataset.draft) S.draft[t.dataset.draft] = t.value; });
+}
+function onMsg(m) {
+  if (!m || m.from !== 'teacher' || (m.to && m.to !== S.pid)) return;
+  S.lastMsg = Date.now();
+  if (m.type === 'state') {
+    FX.setVi(m.vi !== false, 'student');
+    const prev = S.pub; S.pub = m; S.leftAt = { left: m.left, at: Date.now() };
+    if (m.news && (!prev || !prev.news || prev.news.id !== m.news.id || !prev.news) && !(S.me && S.me.newsAns && S.me.newsAns[m.news.id] != null)) { if (!S.shown['n' + m.news.id + m.left]) { S.shown['n' + m.news.id + m.left] = 1; FX.news({ icon: m.news.icon, kicker: 'BREAKING NEWS · TIN NÓNG', title: m.news.title, vi: m.news.vi, detail: m.news.q, theme: m.news.theme, ms: 2800, sound: S.sound }); } }
+    if (prev && prev.phase === 'lobby' && m.phase === 'running') sfx('sting');
+    if (prev && prev.phase === 'running' && m.phase === 'ended') { sfx('fanfare'); FX.news({ icon: '⏰', kicker: "TIME'S UP · HẾT GIỜ", title: 'Pens down!', theme: 'round', ms: 3000, sound: false }); }
+    render();
+  } else if (m.type === 'you') {
+    const prev = S.me; S.me = m.you;
+    if (prev && m.you.level > prev.level) { sfx('levelup'); confetti(90); FX.news({ icon: LV[m.you.level - 1].icon, kicker: 'FILE UNLOCKED · MỞ KHÓA', title: `Level ${m.you.level}: ${LV[m.you.level - 1].title}`, vi: LV[m.you.level - 1].vi, theme: 'round', ms: 2600, sound: false }); S.draft = {}; }
+    if (prev && !prev.done && m.you.done) { sfx('fanfare'); confetti(160); }
+    if (prev && m.you.fees > prev.fees) FX.float('+' + k(m.you.fees - prev.fees), '#hFees');
+    if (prev) (m.you.badges || []).filter(b => !(prev.badges || []).includes(b)).forEach(b => FX.badge(BADGES[b][0], BADGES[b][1], BADGES[b][2], S.sound ? 'badge' : false));
+    if (S.members == null || (!S.members.length && (m.you.members || []).length)) { S.members = m.you.members; sSave(); }
+    render();
+  } else if (m.type === 'ack' && !m.ok) { toast(ERR[m.error] || m.error, 3500); sfx('bonk'); FX.shake('#sMain'); }
+}
+function tick() {
+  const el = $('#hTimer'); if (el && S.pub && S.leftAt) { const l = S.pub.phase === 'running' ? Math.max(0, S.leftAt.left - Math.floor((Date.now() - S.leftAt.at) / 1000)) : S.pub.left; el.textContent = mmss(l); FX.timer(el, S.pub.phase === 'running' ? l : null, S.sound); }
+  $$('[data-left]').forEach(x => { const v = Math.max(0, +x.dataset.left - 1); x.dataset.left = v; x.textContent = v + 's'; if (v === 0 && x.dataset.rerender) render(); });
+}
+function render() {
+  const main = $('#sMain'); if (!main || !S.pub) return;
+  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#sMain') && ae.matches('input')) { ae.onblur = () => setTimeout(render, 250); return; }
+  const p = S.pub, me = S.me;
+  if (!me) { main.innerHTML = '<div class="panel">Joining…</div>'; return; }
+  $('#hTeam').textContent = `${me.icon} ${me.name}`; $('#hTeam').style.color = '#fff';
+  $('#hLevel').textContent = me.done ? '🏅 Licensed' : `Level ${me.level} of ${NLV}`; $('#hFees').textContent = `💰 ${k(me.fees)}`;
+  const news = p.news && !(me.newsAns && me.newsAns[p.news.id] != null) ? newsHtml(p.news) : '';
+  if (p.phase === 'lobby' || !(me.members || []).length) { main.innerHTML = news + setupHtml(); main.onclick = devClick; return; }
+  main.innerHTML = news + (p.phase === 'ended' ? '<div class="note" style="margin-bottom:12px">⏰ <b>Time is up.</b> Finish the level you are on if your teacher allows it.</div>' : '') + (me.done ? doneHtml() : levelHtml(LV[me.level - 1]));
+  main.onclick = devClick;
+}
+function setupHtml() {
+  const me = S.me, mem = (S.members && S.members.length ? S.members : me.members || []);
+  return `<div class="panel stack"><h1 style="margin:0">${me.icon} ${esc(me.name)}</h1><p style="margin:0">Your consultancy firm will rescue Minh's chocolate business. Type the first name of every member (3 to 6). Roles change every level, so everyone does every job.</p>
+    <div class="bk-mem">${Array.from({ length: 6 }, (_, i) => `<input type="text" maxlength="16" placeholder="Member ${i + 1}" data-mem="${i}" data-draft="mem${i}" value="${esc(S.draft['mem' + i] ?? mem[i] ?? '')}">`).join('')}</div>
+    <button class="btn primary" data-a="members">Save our team</button>
+    ${(me.members || []).length ? `<div class="good">Saved: ${me.members.map(esc).join(', ')}. ${S.pub.phase === 'lobby' ? 'Wait for your teacher to start.' : ''}</div>` : ''}
+    <div class="bk-roles">${ROLES.map(r => `<div><b>${r[0]} ${esc(r[1])}</b><small>${esc(r[2])}</small></div>`).join('')}</div></div>`;
+}
+function rolesHtml(n) { return `<div class="bk-rolerow">${rolesFor(S.me.members, n).map(x => `<span>${x.role[0]} <b>${esc(x.name)}</b> <small>${esc(x.role[1])}</small></span>`).join('')}</div>`; }
+function sourceHtml(src) { return src ? `<div class="table-wrap"><table class="bk-src"><caption>${esc(src.title)}</caption><tr>${src.head.map(h => `<th>${esc(h)}</th>`).join('')}</tr>${src.rows.map(r => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th>${esc(c)}</th>`).join('')}</tr>`).join('')}</table></div>` : ''; }
+function levelHtml(L) {
+  const me = S.me, done = shortsDone(me.shorts, L.n), rec = (me.shorts || {})[L.n] || {}, hints = (me.hints || {})[L.n] || {};
+  const head = `<div class="bk-lhead"><span class="bk-licon">${L.icon}</span><div><div class="bk-lk">LEVEL ${L.n} OF ${NLV} · SYLLABUS ${L.syl}${L.boss ? ' · BOSS' : ''}</div><h1 style="margin:0">${esc(L.title)}${viSpan(L.vi)}</h1></div></div>${rolesHtml(L.n)}`;
+  const file = `<div class="panel stack"><h2 style="margin:0">📁 Minh's file</h2><p style="margin:0">${esc(L.story)}${viBlock(L.storyVi)}</p>${sourceHtml(L.source)}</div>`;
+  const shorts = `<div class="panel stack"><h2 style="margin:0">🔎 Short answers <small class="muted">${L.shorts.filter(q => rec[q.id] && rec[q.id].ok).length} of ${L.shorts.length}</small></h2><p class="muted" style="margin:0">The Lead Economist types. Agree as a team first.</p>
+    ${L.shorts.map(q => { const r = rec[q.id] || {}, ok = !!r.ok, h = hints[q.id];
+      return `<div class="bk-q ${ok ? 'ok' : r.tries ? 'tried' : ''}" id="q-${q.id}"><div class="bk-qq">${ok ? '✅' : r.tries ? '❌' : '❔'} ${esc(q.q)}${viSpan(q.vi)}</div>
+        ${ok ? `<div class="bk-qa">${q.num ? esc(q.ans + ' ' + q.unit) : esc(q.opts[q.ans])}</div>` : q.num ? `<div class="row"><input type="number" inputmode="decimal" data-num="${q.id}" data-draft="n${L.n}${q.id}" value="${esc(S.draft['n' + L.n + q.id] ?? '')}" style="max-width:150px"> <span>${esc(q.unit)}</span><button class="btn small primary" data-a="checknum" data-q="${q.id}">Check</button></div>`
+          : `<div class="bk-opts">${q.opts.map((o, i) => `<button class="bk-opt" data-a="opt" data-q="${q.id}" data-i="${i}">${esc(o)}${q.optsVi ? `<small class="vi" lang="vi">${esc(q.optsVi[i])}</small>` : ''}</button>`).join('')}</div>`}
+        ${!ok && h ? `<div class="bk-hint">💡 ${esc(q.hint)}</div>` : !ok ? `<button class="btn small ghost" data-a="hint" data-q="${q.id}">💡 Hint ${r.tries >= 2 ? '(free)' : `(−${FEES.hint}k)`}</button>` : ''}</div>`; }).join('')}</div>`;
+  if (!done) return head + file + shorts;
+  const W = (S.written[L.n] ||= []), all = (me.members || []).every(n2 => W.includes(n2));
+  const sheet = `<div class="panel stack bk-sheet"><h2 style="margin:0">✍️ Worksheet: Level ${L.n}</h2><p style="margin:0"><b>Everyone writes their own answers</b> on the worksheet. Your teacher checks every sheet.</p>
+    <ol class="bk-sq">${L.sheet.map(x => `<li><b>${esc(x[0])}</b> ${esc(x[1])} <b>[${x[2]}]</b></li>`).join('')}</ol>
+    <div><b>Tick when each member has finished:</b><div class="bk-ticks">${(me.members || []).map(n2 => `<button class="bk-tick ${W.includes(n2) ? 'on' : ''}" data-a="written" data-n="${esc(n2)}">${W.includes(n2) ? '✅' : '⬜'} ${esc(n2)}</button>`).join('')}</div></div>
+    ${me.ready ? '' : `<button class="btn primary block" data-a="ready" ${all ? '' : 'disabled'}>✋ Ready for inspection</button>${all ? '' : '<small class="muted">Tick every member first.</small>'}`}</div>`;
+  const lock = me.lockLeft > 0 ? `<div class="bad">🚨 Minh's security alarm! Wait <span data-left="${me.lockLeft}" data-rerender="1">${me.lockLeft}s</span>.</div>` : '';
+  const code = me.ready ? `<div class="panel stack bk-code"><h2 style="margin:0">🔐 Passcode</h2><p style="margin:0">Your teacher is coming to check every worksheet. When your work is OK, your teacher shows you the passcode.</p>${lock}
+    <div class="row"><input type="text" class="code-input" maxlength="12" autocomplete="off" autocapitalize="characters" data-draft="code${L.n}" id="codeIn" value="${esc(S.draft['code' + L.n] ?? '')}" style="max-width:260px" ${me.lockLeft > 0 ? 'disabled' : ''}><button class="btn primary" data-a="code" ${me.lockLeft > 0 ? 'disabled' : ''}>Unlock</button></div></div>${vaultHtml()}` : '';
+  return head + `<details class="panel" ${S.openFile ? 'open' : ''}><summary>📁 Minh's file and short answers (done ✅)</summary><div class="stack" style="margin-top:10px"><p style="margin:0">${esc(L.story)}</p>${sourceHtml(L.source)}</div></details>` + sheet + code;
+}
+function vaultHtml() {
+  const me = S.me, left = VAULT.filter(q => (me.vault || {})[q.id] == null), right = Object.values(me.vault || {}).filter(Boolean).length;
+  if (!left.length) return `<div class="panel"><h2 style="margin:0">🔐 Bonus Vault</h2><p style="margin:0">Vault empty! ${right} of ${VAULT.length} right.</p></div>`;
+  const q = left[0];
+  return `<div class="panel stack bk-vault"><h2 style="margin:0">💎 Bonus Vault <small class="muted">while you wait · +${FEES.vault}k each · ${right} right so far</small></h2><div class="bk-qq">${esc(q.q)}</div><div class="bk-opts">${q.opts.map((o, i) => `<button class="bk-opt" data-a="vault" data-q="${q.id}" data-i="${i}">${esc(o)}</button>`).join('')}</div><small class="muted">One try per question.</small></div>`;
+}
+function newsHtml(n) { return `<div class="bk-news"><div class="bk-news-k">🗞️ BREAKING NEWS · <span data-left="${n.left}">${n.left}s</span></div><h2 style="margin:0">${n.icon} ${esc(n.title)}${viSpan(n.vi)}</h2><div class="bk-qq">${esc(n.q)}</div><div class="bk-opts">${n.opts.map((o, i) => `<button class="bk-opt" data-a="news" data-id="${n.id}" data-i="${i}">${esc(o)}</button>`).join('')}</div><small>+${FEES.news}k if right, +${FEES.newsFirst}k more for the fastest team. One try.</small></div>`; }
+function doneHtml() {
+  const me = S.me;
+  return `<div class="bk-lic"><div class="bk-lic-top">🍫 SAIGON ARTISAN CHOCOLATE CO.</div><h1>HCMC Market Rescuer Licence</h1><h2>${me.icon} ${esc(me.name)}</h2><p>${(me.members || []).map(esc).join(' · ')}</p><p>You fixed Minh's market! ${me.place ? `You finished <b>${['1st', '2nd', '3rd', '4th', '5th'][me.place - 1] || me.place + 'th'}</b>.` : ''}</p><p>${(me.badges || []).map(b => `<span class="chip">${BADGES[b][0]} ${esc(BADGES[b][1])}</span>`).join(' ')}</p><p><b>💰 ${k(me.fees)}</b> in consultancy fees</p></div>${vaultHtml()}`;
+}
+function devClick(e) {
+  const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+  const a = b.dataset.a, me = S.me, L = me && LV[me.level - 1];
+  if (a === 'members') { const ms = $$('[data-mem]').map(x => x.value.replace(/\s+/g, ' ').trim()).filter(Boolean); if (ms.length < 2) return toast('Type at least 2 names.'); S.members = ms; sSave(); sSend({ type: 'members', members: ms }); sfx('pop'); Object.keys(S.draft).filter(x => x.startsWith('mem')).forEach(x => delete S.draft[x]); return; }
+  if (a === 'opt' || a === 'checknum') {
+    const q = L.shorts.find(x => x.id === b.dataset.q); if (!q) return;
+    let ok;
+    if (a === 'opt') ok = +b.dataset.i === q.ans;
+    else { const raw = String(S.draft['n' + L.n + q.id] ?? ($(`[data-num="${q.id}"]`) || {}).value ?? '').replace(/,/g, '').replace(/k$/i, '').trim(); if (raw === '') return toast('Type a number.'); ok = Math.abs(Number(raw) - q.ans) < 1e-6; }
+    sSend({ type: 'short', n: L.n, id: q.id, ok }); sfx(ok ? 'coin' : 'bonk');
+    if (!ok) { FX.shake('#q-' + q.id); toast('Not quite. Talk it through, or use a hint.'); } else FX.pulse('#q-' + q.id);
+    return;
+  }
+  if (a === 'hint') { sSend({ type: 'hint', n: L.n, id: b.dataset.q }); return; }
+  if (a === 'written') { const W = (S.written[L.n] ||= []), n2 = b.dataset.n, i = W.indexOf(n2); if (i < 0) W.push(n2); else W.splice(i, 1); sSave(); sfx('pop'); return render(); }
+  if (a === 'ready') { sSend({ type: 'ready', n: L.n }); sfx('chime'); return; }
+  if (a === 'code') { const v = (($('#codeIn') || {}).value || '').trim(); if (!v) return toast('Type the passcode your teacher shows you.'); sSend({ type: 'code', n: L.n, code: v }); return; }
+  if (a === 'vault') { const q = VAULT.find(x => x.id === b.dataset.q); const ok = +b.dataset.i === q.ans; sSend({ type: 'vault', id: q.id, ans: +b.dataset.i }); sfx(ok ? 'coin' : 'bonk'); toast(ok ? `✓ Right! +${FEES.vault}k` : `✗ The answer was: ${q.opts[q.ans]}`); return; }
+  if (a === 'news') { sSend({ type: 'news', id: b.dataset.id, ans: +b.dataset.i }); sfx('pop'); $$('[data-a=news]').forEach(x => { x.disabled = true; x.classList.toggle('sel', x === b); }); return; }
+}
+
+(function boot() {
+  const mode = PARAMS.get('mode') || (PARAMS.get('room') ? 'student' : 'home');
+  if (mode === 'teacher') teacherBoot(); else if (mode === 'student') studentBoot(); else location.replace('index.html' + (PARAMS.get('t') ? '?t=' + PARAMS.get('t') : ''));
+})();
+</script>
+</body>
+</html>

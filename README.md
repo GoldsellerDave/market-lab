@@ -269,6 +269,38 @@ For candy only, round 3 is the sugar harvest instead. In fast mode a shop's ask 
 
 ---
 
+# Review: Saigon Chocolate Crisis breakout
+
+File: `breakout.html` (built from `src/breakout/` by `build.sh`). Five teams, one device each, rescue Minh's chocolate business in about 40 minutes. There are four levels and a finale, covering syllabus 2.1–2.5. Use it after Level 2. Print one worksheet per student; the worksheet and answer key are in a separate document.
+
+**Each level:**
+1. The team device shows Minh's file: a story and a data table.
+2. The Lead Economist enters the short answers, which the device checks at once.
+3. Every student writes the worksheet. Members tick their names when done, then the team taps **Ready for inspection**, and its lane lights up on the projector.
+4. You check every sheet against the OK-to-pass checklist, then show the team the passcode. The code opens the next level.
+5. After 3 wrong codes, the device locks for 30 seconds. You can clear the lock, or open a level by hand, from the Teams panel.
+
+| Level | Topic | Syllabus |
+|---|---|---|
+| 1 | Minh's markets: product and factor markets, market supply, what, how and for whom | 2.1 |
+| 2 | Demand decoder: movement or shift, substitutes and complements | 2.2 |
+| 3 | Supply audit: costs, technology, a tax per unit | 2.3 |
+| 4 (Boss) | Equilibrium, shortage and surplus from a table | 2.4 |
+| Finale | The storm: Halloween and a drought in the same week | 2.5 |
+
+**Passcodes.** Each room gets five random codes. They are on the console under **Passcodes → Show** and never appear on the projector. You can change them, and **Print a passcode card**.
+
+**Gamification:**
+- A race map on the projector, Minh's market health meter, and a countdown (30–60 minutes, with +5 minutes and pause).
+- **Consultancy fees:** 2k for each short answer right first time, 10k per passcode, plus 5k, 3k or 1k for the first three teams to open each level. A hint costs 2k (free after 2 wrong tries).
+- The **Bonus Vault**: quick questions while a team waits for you.
+- **Breaking news:** you send a 60-second question to every team.
+- Badges: ⚡ First to unlock, 🎯 Sharp shooters, 🧠 No hints, 🗞️ News hounds, 🔐 Vault cracker, 🏅 Licensed.
+- Roles rotate each level: Lead Economist, Data Scribe, Diagram Specialist and Spokesperson.
+- At the end: a podium, printable **HCMC Market Rescuer Licences** with team members' names, and a CSV log of when each team passed each level.
+
+**Joining.** On each team's device, open the home page, type the room code and type the team name as the nickname. The team then enters its members' first names.
+
 # Optional extra: the blended market (real goods)
 
 File: `blended.html`. Real chocolate and candy in the room. **Buyers** have only a buyer number and play money; they keep what they buy, so they buy because they want it. **Five shops** (A–E) sell from tables, haggle, and record each sale on a laptop till. Only you and the five shops use devices.
