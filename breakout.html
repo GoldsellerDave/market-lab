@@ -479,7 +479,10 @@ table.prizelist { width: 100%; border-collapse: collapse; } table.prizelist td, 
 .bk-track i { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: color-mix(in srgb, var(--c) 28%, transparent); transition: width 1.6s ease; }
 .bk-van { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; transition: left 1.6s cubic-bezier(.25, .9, .3, 1); filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
 .bk-race.big .bk-van { font-size: 2.8rem; }
-.bk-lane.ready .bk-track { box-shadow: 0 0 0 4px var(--foil-2); animation: bkpulse 1.2s ease-in-out infinite; }
+.bk-lane.ready .bk-track { box-shadow: 0 0 0 4px var(--foil-2); }
+.bk-lane.ready .bk-lname small::before { content: ''; }
+.bk-lane.up .bk-track { animation: bkup 1.6s ease-out 1; }
+@keyframes bkup { 0% { box-shadow: 0 0 0 0 rgba(34,128,90,.0); } 25% { box-shadow: 0 0 0 10px rgba(34,128,90,.45); } 100% { box-shadow: 0 0 0 0 rgba(34,128,90,0); } }
 .bk-lane.locked .bk-track { border-style: dashed; }
 @keyframes bkpulse { 50% { box-shadow: 0 0 0 9px rgba(242, 207, 107, .35); } }
 .bk-health { margin-top: 6px; }
@@ -508,7 +511,7 @@ table.prizelist { width: 100%; border-collapse: collapse; } table.prizelist td, 
 @media (max-width: 900px) { .bk-pmain { grid-template-columns: 1fr; } }
 .bk-pstage { display: flex; flex-direction: column; gap: 14px; }
 .bk-pside { display: flex; flex-direction: column; gap: 12px; }
-.bk-ready { font-size: clamp(1.2rem, 2.4vw, 1.8rem); font-weight: 800; padding: 12px 16px; border-radius: 14px; background: var(--warn-soft); border: 3px solid var(--foil); animation: bkpulse 1.2s ease-in-out infinite; }
+.bk-ready { font-size: clamp(1.2rem, 2.4vw, 1.8rem); font-weight: 800; padding: 12px 16px; border-radius: 14px; background: var(--warn-soft); border: 3px solid var(--foil); }
 .bk-joined { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .bk-joined span { border: 3px solid var(--c); border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 1.2rem; background: var(--panel); }
 .bk-joined span.in { background: var(--mint-soft); }
@@ -576,6 +579,65 @@ table.prizelist { width: 100%; border-collapse: collapse; } table.prizelist td, 
   .bk-lic-sign span { border-top: 1px solid #000; padding-top: 4px; min-width: 40%; }
 }
 .bk-viblock { display: block; margin-top: 4px; font-size: .9em; color: var(--muted); }
+
+/* tap-to-explain words */
+.term { appearance: none; border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-decoration: underline dotted var(--buyer) 2px; text-underline-offset: 3px; }
+.term.demo { cursor: default; }
+.term:hover { color: var(--buyer); }
+.sheet .vi-gloss { margin: 0; font-size: 1.1rem; }
+/* case file and scene tiles */
+.bk-file { position: relative; padding-top: 30px; }
+.bk-filetab { position: absolute; top: -1px; left: 16px; background: var(--foil); color: #23170f; font-weight: 800; font-size: .78rem; letter-spacing: .08em; padding: 3px 12px; border-radius: 0 0 10px 10px; }
+.bk-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.bk-tiles.n2 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.bk-tile { border-radius: 16px; overflow: hidden; border: 2px solid var(--line); background: var(--panel); display: flex; flex-direction: column; animation: bktile .5s ease both; }
+@keyframes bktile { from { opacity: 0; transform: translateY(10px) scale(.97); } }
+.sc { position: relative; height: 120px; overflow: hidden; }
+.sc-big { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); font-size: 3.6rem; line-height: 1; filter: drop-shadow(0 4px 4px rgba(0,0,0,.25)); }
+.sc-num { position: absolute; top: 8px; left: 8px; width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-weight: 800; display: grid; place-items: center; font-size: .9rem; z-index: 2; }
+.sc-num:empty { display: none; }
+.sc-lab { position: absolute; right: 8px; top: 8px; background: #fff; color: #23170f; font-weight: 800; border-radius: 8px; padding: 2px 8px; box-shadow: 0 2px 6px rgba(0,0,0,.25); transform: rotate(-4deg); z-index: 2; }
+.sc-fx { position: absolute; font-size: 1.5rem; line-height: 1; }
+.sc-fx.f0 { left: 12%; top: 18%; } .sc-fx.f1 { right: 14%; top: 36%; } .sc-fx.f2 { left: 22%; bottom: 14%; } .sc-fx.f3 { right: 26%; bottom: 40%; } .sc-fx.f4 { left: 6%; bottom: 10%; }
+.sc-cap { padding: 8px 10px; font-weight: 700; line-height: 1.3; }
+.sc-cap .bk-viblock { font-weight: 400; }
+.sc-farm .sc { background: linear-gradient(#bfe7ff 0 55%, #7cc06b 55%); }
+.sc-factory .sc { background: linear-gradient(#dfe4ea 0 60%, #9aa3ad 60%); }
+.sc-shop .sc { background: repeating-linear-gradient(90deg, #c0392b 0 18px, #fff 18px 36px) top / 100% 22px no-repeat, linear-gradient(#fff3e0, #f6d7b0); }
+.sc-tag .sc { background: radial-gradient(circle at 50% 60%, #fff6d6, #f2cf6b); }
+.sc-phone .sc { background: linear-gradient(135deg, #1b1b2f, #4a1d5c); }
+.sc-phone .sc-lab { background: #ff3b6b; color: #fff; }
+.sc-rival .sc { background: linear-gradient(135deg, #ffe0ec, #ffb3cf); }
+.sc-gift .sc { background: linear-gradient(135deg, #e3f2ff, #b7d8ff); }
+.sc-drought .sc { background: linear-gradient(#ffcf70 0 55%, #c9894a 55%), #c9894a; }
+.sc-drought .sc::after { content: ''; position: absolute; inset: 55% 0 0; background: repeating-linear-gradient(120deg, transparent 0 22px, rgba(80,40,10,.35) 22px 24px); }
+.sc-robot .sc { background: linear-gradient(#d9f0ff 0 70%, #7f8c99 70%); }
+.sc-tax .sc { background: repeating-linear-gradient(0deg, #fffdf6 0 16px, #e7e1cf 16px 17px); }
+.sc-queue .sc { background: linear-gradient(#fde7c8 0 70%, #c9b39a 70%); }
+.sc-queue .sc-big { left: 14%; transform: none; }
+.sc-queue .sc-fx { bottom: 10px; top: auto; font-size: 1.7rem; }
+.sc-queue .sc-fx.f0 { left: 42%; } .sc-queue .sc-fx.f1 { left: 54%; right: auto; } .sc-queue .sc-fx.f2 { left: 66%; } .sc-queue .sc-fx.f3 { left: 78%; right: auto; } .sc-queue .sc-fx.f4 { left: 90%; }
+.sc-warehouse .sc { background: linear-gradient(#e6e1dc 0 70%, #a39a91 70%); }
+.sc-halloween .sc { background: radial-gradient(circle at 80% 22%, #ffe9a8 0 14px, transparent 15px), linear-gradient(#2b1a4d 0 70%, #4a2f2a 70%); }
+.sc-storm .sc { background: linear-gradient(#56606e 0 65%, #6c8a4f 65%); }
+@media (prefers-reduced-motion: no-preference) {
+  .sc-big { animation: scbob 3s ease-in-out infinite; }
+  .sc-phone .sc-fx, .sc-halloween .sc-fx { animation: scfloat 2.6s ease-in infinite; }
+  .sc-phone .sc-fx.f1, .sc-halloween .sc-fx.f1 { animation-delay: .7s; } .sc-phone .sc-fx.f2, .sc-halloween .sc-fx.f2 { animation-delay: 1.3s; } .sc-phone .sc-fx.f3, .sc-halloween .sc-fx.f3 { animation-delay: 1.9s; }
+  .sc-storm .sc-fx, .sc-warehouse .sc-fx.f1, .sc-warehouse .sc-fx.f3 { animation: scdrop 1.4s linear infinite; }
+  .sc-storm .sc-fx.f1 { animation-delay: .5s; } .sc-storm .sc-fx.f3 { animation-delay: .9s; }
+  .sc-factory .sc-fx.f2 { animation: scfloat 3s ease-out infinite; }
+  .sc-queue .sc-fx { animation: scstep 1.6s ease-in-out infinite; } .sc-queue .sc-fx.f1 { animation-delay: .3s; } .sc-queue .sc-fx.f2 { animation-delay: .6s; } .sc-queue .sc-fx.f3 { animation-delay: .9s; }
+  .sc-robot .sc-fx.f0, .sc-robot .sc-fx.f1 { animation: scbelt 2.4s linear infinite; }
+  .sc-lab { animation: scswing 2.4s ease-in-out infinite; }
+}
+@keyframes scbob { 50% { transform: translateX(-50%) translateY(-5px); } }
+.sc-queue .sc-big { animation: none; }
+@keyframes scfloat { from { transform: translateY(20px); opacity: 0; } 30% { opacity: 1; } to { transform: translateY(-50px); opacity: 0; } }
+@keyframes scdrop { from { transform: translateY(-30px); opacity: 0; } 20% { opacity: 1; } to { transform: translateY(60px); opacity: 0; } }
+@keyframes scbelt { from { transform: translateX(-40px); } to { transform: translateX(160px); } }
+@keyframes scswing { 50% { transform: rotate(3deg); } }
+@keyframes scstep { 50% { transform: translateY(-4px); } }
 </style>
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -1654,6 +1716,66 @@ const BADGES = {
 };
 const TEAM_LOOK = [['🦊', '#c0392b'], ['🐯', '#16768a'], ['🐼', '#7b4fbf'], ['🐸', '#b86b00'], ['🦉', '#2a7f4f'], ['🐬', '#2f74c0'], ['🐝', '#9a5b00'], ['🦄', '#b02a3f']];
 const FEES = { short1: 2, short: 1, hint: 2, unlock: 10, rank: [5, 3, 1], vault: 2, news: 3, newsFirst: 2 };
+/* Scenes for each level's file: one tile per event, drawn with layered emoji and CSS (theme = background) */
+const TILES = {
+  1: [{ theme: 'farm', big: '🌱', fx: ['🌳', '🌳', '☀️'], cap: 'Rents land in Bến Tre to grow cocoa', vi: 'Thuê đất ở Bến Tre' },
+      { theme: 'factory', big: '👷', fx: ['🏭', '⚙️', '💨'], cap: 'Hires two technicians for the factory', vi: 'Thuê hai kỹ thuật viên' },
+      { theme: 'shop', big: '🏪', fx: ['🍫', '🍫', '🛍️'], cap: 'Sells chocolate bars to shops in District 1', vi: 'Bán sô-cô-la cho cửa hàng' }],
+  2: [{ theme: 'tag', big: '🏷️', label: '−20%', fx: ['✨', '✨'], cap: 'Minh cuts the price of a bar by 20%', vi: 'Giảm giá 20%' },
+      { theme: 'phone', big: '📱', fx: ['❤️', '❤️', '🔥', '❤️'], label: '#darkchoc', cap: 'A TikTok video says dark chocolate is healthy', vi: 'Video TikTok lan truyền' },
+      { theme: 'rival', big: '🍬', label: '↑ price', fx: ['💸'], cap: 'A rival candy bar costs more', vi: 'Kẹo đối thủ đắt hơn' },
+      { theme: 'gift', big: '🎁', label: '× 2 price', fx: ['🎀'], cap: 'Gift boxes cost twice as much', vi: 'Hộp quà đắt gấp đôi' }],
+  3: [{ theme: 'drought', big: '🌵', fx: ['☀️', '🥵', '🫘'], label: 'beans × 2', cap: 'A drought doubles the price of cocoa beans', vi: 'Hạn hán: giá ca cao tăng gấp đôi' },
+      { theme: 'robot', big: '🤖', fx: ['🍫', '🍫', '⚡'], cap: 'A robot tempers chocolate faster, with fewer workers', vi: 'Robot làm sô-cô-la nhanh hơn' },
+      { theme: 'tax', big: '🧾', label: '+2k tax', fx: ['🏛️'], cap: 'A sugar tax of 2k on every bar', vi: 'Thuế đường 2k mỗi thanh' }],
+  4: [{ theme: 'queue', big: '🏪', fx: ['🧍', '🧍', '🧍', '🧍', '🧍'], label: '10k', cap: 'Friday at 10k: 100-person queues, empty shelves', vi: 'Giá 10k: xếp hàng dài, kệ trống' },
+      { theme: 'warehouse', big: '🏚️', fx: ['🍫', '💧', '🍫', '💧'], label: '30k', cap: 'Last month at 30k: a warehouse of melting stock', vi: 'Giá 30k: kho đầy hàng tồn' }],
+  5: [{ theme: 'halloween', big: '🎃', fx: ['👻', '🦇', '🍬', '🦇'], cap: 'Halloween: every child wants chocolate', vi: 'Halloween: trẻ em nào cũng muốn sô-cô-la' },
+      { theme: 'storm', big: '⛈️', fx: ['💧', '💧', '🌱', '💧'], cap: 'The cocoa drought gets worse', vi: 'Hạn hán ca cao trầm trọng hơn' }]
+};
+/* Tap-to-explain words (EAL support): [pattern, definition, Vietnamese] */
+const GLOSS = [
+  ['product market', 'Where goods and services are bought and sold, such as chocolate bars.', 'thị trường hàng hóa'],
+  ['factor markets?', 'Where factors of production (land, labour, capital, enterprise) are bought, sold or hired.', 'thị trường yếu tố sản xuất'],
+  ['factors? of production', 'The resources used to make goods: land, labour, capital and enterprise.', 'yếu tố sản xuất'],
+  ['market supply', 'The total amount all sellers are willing and able to sell at each price.', 'cung thị trường'],
+  ['price mechanism', 'Prices going up and down to decide what is produced, how, and for whom.', 'cơ chế giá'],
+  ['quantity demanded', 'How much buyers want to buy at one price.', 'lượng cầu'],
+  ['quantity supplied', 'How much sellers want to sell at one price.', 'lượng cung'],
+  ['extension', 'A movement along a curve: more is demanded or supplied because the good’s own price changed.', 'sự mở rộng (dọc đường cong)'],
+  ['contraction', 'A movement along a curve: less is demanded or supplied because the good’s own price changed.', 'sự thu hẹp (dọc đường cong)'],
+  ['shifts?', 'The whole curve moves left or right because of something other than the good’s own price.', 'dịch chuyển'],
+  ['substitutes?', 'A good people can use instead of another one, such as tea instead of coffee.', 'hàng thay thế'],
+  ['complements?', 'A good used together with another one, such as a phone and its charger.', 'hàng bổ sung'],
+  ['equilibrium', 'The price where quantity demanded equals quantity supplied.', 'cân bằng'],
+  ['shortage', 'Quantity demanded is more than quantity supplied: not enough to go round.', 'thiếu hụt'],
+  ['surplus', 'Quantity supplied is more than quantity demanded: unsold stock.', 'dư thừa'],
+  ['demand', 'The willingness and ability to buy a good at each price.', 'cầu'],
+  ['supply', 'The willingness and ability to sell a good at each price.', 'cung'],
+  ['market', 'Where buyers and sellers meet to exchange goods and services.', 'thị trường'],
+  ['technicians?', 'Skilled workers who look after machines.', 'kỹ thuật viên'],
+  ['labour', 'People’s work, used to produce goods and services.', 'lao động'],
+  ['rents?', 'Pays money to use something, like land, for a time.', 'thuê'],
+  ['drought', 'A long time with no rain, so crops fail.', 'hạn hán'],
+  ['harvest', 'Picking the crops when they are ready.', 'thu hoạch'],
+  ['cocoa beans?', 'The seeds of the cocoa tree, used to make chocolate.', 'hạt ca cao'],
+  ['tempers', 'Heats and cools chocolate so it is shiny and snaps.', 'tôi sô-cô-la (làm nóng rồi làm nguội)'],
+  ['viral', 'Shared very quickly by many people online.', 'lan truyền'],
+  ['rival', 'A competing business or product.', 'đối thủ'],
+  ['tax', 'Money paid to the government. A tax on each bar adds to the cost of selling it.', 'thuế'],
+  ['subsidy', 'Money the government gives to producers, which lowers their costs.', 'trợ cấp'],
+  ['wages', 'Money paid to workers.', 'tiền lương'],
+  ['income', 'Money people earn.', 'thu nhập'],
+  ['population', 'The number of people living in a place.', 'dân số'],
+  ['warehouse', 'A big building where goods are stored.', 'nhà kho'],
+  ['queues?', 'Lines of people waiting.', 'hàng người xếp hàng'],
+  ['stock', 'Goods a business has made but not sold yet.', 'hàng tồn kho'],
+  ['costs of production', 'What a business pays to make its goods: materials, wages, energy.', 'chi phí sản xuất'],
+  ['profit(?:able)?', 'Money a business makes after paying its costs.', 'lợi nhuận'],
+  ['non-price factor', 'Anything other than the good’s own price that changes demand or supply.', 'yếu tố phi giá'],
+  ['consultancy', 'A firm that gives expert advice to businesses.', 'công ty tư vấn'],
+  ['inspection', 'A check: your teacher looks at everyone’s work.', 'kiểm tra']
+];
 
 /* =====================================================================
    Saigon Chocolate Crisis: Market Rescue! (breakout)
@@ -1666,11 +1788,29 @@ const k = n => (Math.round(n * 10) / 10) + 'k';
 const mmss = s => s == null ? '' : Math.floor(Math.max(0, s) / 60) + ':' + String(Math.max(0, s) % 60).padStart(2, '0');
 const viSpan = v => v ? ` <span class="vi" lang="vi">${esc(v)}</span>` : '';
 const viBlock = v => v ? `<span class="vi bk-viblock" lang="vi">${esc(v)}</span>` : '';
-const shell = inner => inner + `<div id="toast" class="toast hidden"></div><canvas id="fx" class="fx" aria-hidden="true"></canvas><div id="printArea" class="print-only"></div>`;
+const shell = inner => inner + `<div id="sheet" class="sheet hidden"></div><div id="toast" class="toast hidden"></div><canvas id="fx" class="fx" aria-hidden="true"></canvas><div id="printArea" class="print-only"></div>`;
 const rolesFor = (members, n) => (members || []).map((name, i) => ({ name, role: ROLES[(i + n - 1) % ROLES.length] }));
 const shortsDone = (shorts, n) => { const L = LV[n - 1]; return !!L && L.shorts.every(q => shorts && shorts[n] && shorts[n][q.id] && shorts[n][q.id].ok); };
 const STOPS = LV.map(L => ({ icon: L.icon, label: L.boss ? 'Boss' : L.n === NLV ? 'Storm' : 'Level ' + L.n })).concat([{ icon: '🏅', label: 'Licence' }]);
 
+
+/* ---- tap-to-explain words and scene tiles ---- */
+const GLOSS_RX = new RegExp('\\b(' + GLOSS.map(g => g[0]).join('|') + ')\\b', 'gi');
+const glossOf = w => { const lw = w.toLowerCase(); return GLOSS.find(g => new RegExp('^(?:' + g[0] + ')$', 'i').test(lw)); };
+/** Escape text and make known economics words tappable (each word once per block) */
+function gl(text) {
+  const seen = new Set();
+  return esc(text).replace(GLOSS_RX, w => { const g = glossOf(w); if (!g || seen.has(g[0])) return w; seen.add(g[0]); return `<button type="button" class="term" data-gl="${GLOSS.indexOf(g)}">${w}</button>`; });
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest && e.target.closest('.term'), sh = $('#sheet');
+  if (t && sh) { const g = GLOSS[+t.dataset.gl]; if (!g) return; e.stopPropagation(); sh.innerHTML = `<div class="row" style="justify-content:space-between"><h3 style="margin:0">📖 ${esc(t.textContent)}</h3><button class="btn small ghost" data-close-sheet>Close</button></div><p style="margin:.4em 0">${esc(g[1])}</p><p class="vi-gloss" lang="vi">🇻🇳 <b>${esc(g[2])}</b></p>`; sh.classList.remove('hidden'); if (typeof sfx === 'function') sfx('pop'); return; }
+  if (sh && !sh.classList.contains('hidden') && (!sh.contains(e.target) || (e.target.closest && e.target.closest('[data-close-sheet]')))) sh.classList.add('hidden');
+}, true);
+function tilesHtml(n) {
+  const T0 = TILES[n] || []; if (!T0.length) return '';
+  return `<div class="bk-tiles n${T0.length}">${T0.map((x, i) => `<div class="bk-tile sc-${x.theme}" style="animation-delay:${i * .12}s"><div class="sc"><span class="sc-num">${T0.length > 1 ? i + 1 : ''}</span>${x.fx.map((f, j) => `<span class="sc-fx f${j}">${f}</span>`).join('')}<span class="sc-big">${x.big}</span>${x.label ? `<span class="sc-lab">${esc(x.label)}</span>` : ''}</div><div class="sc-cap">${gl(x.cap)}${viBlock(x.vi)}</div></div>`).join('')}</div>`;
+}
 /* =====================================================================
    TEACHER CONSOLE
    ===================================================================== */
@@ -1743,15 +1883,15 @@ function tOnMsg(m) {
       s.order.push(m.pid); Sound.play('pop'); toast(`${t.icon} ${t.name} joined`);
     }
     if (Array.isArray(m.members) && m.members.length && !(t.members || []).length) t.members = m.members.map(x => String(x).slice(0, 16)).filter(Boolean).slice(0, 6);
-    tSave(); renderBody(); you(m.pid); tBroadcast(true); return;
+    tSave(); renderSoon(); you(m.pid); tBroadcast(true); return;
   }
   const t = s.teams[m.pid]; if (!t) return;
-  if (m.type === 'members') { t.members = (m.members || []).map(x => String(x).replace(/\s+/g, ' ').trim().slice(0, 16)).filter(Boolean).slice(0, 6); tSave(); renderBody(); you(m.pid); return; }
+  if (m.type === 'members') { t.members = (m.members || []).map(x => String(x).replace(/\s+/g, ' ').trim().slice(0, 16)).filter(Boolean).slice(0, 6); tSave(); renderSoon(); you(m.pid); return; }
   if (m.type === 'news') {
     const N = s.news; if (!N || !N.open || N.id !== m.id || N.answers[m.pid]) return;
     const ok = +m.ans === N.ans; N.answers[m.pid] = { ans: +m.ans, ok, at: Date.now() };
     if (ok) { addFee(t, FEES.news, 'news'); if (!Object.entries(N.answers).some(([p, a]) => a.ok && p !== m.pid)) addFee(t, FEES.newsFirst, 'news first'); t.newsRight = (t.newsRight || 0) + 1; if (t.newsRight >= 2) award(t, 'news'); }
-    (t.newsAns ||= {})[N.id] = ok; Sound.play(ok ? 'coin' : 'bonk'); tSave(); renderBody(); you(m.pid); tBroadcast(); return;
+    (t.newsAns ||= {})[N.id] = ok; Sound.play(ok ? 'coin' : 'bonk'); tSave(); renderSoon(); you(m.pid); tBroadcast(); return;
   }
   if (s.phase === 'lobby') return fail(m.pid, 'not-started');
   const L = LV[t.level - 1];
@@ -1761,19 +1901,19 @@ function tOnMsg(m) {
     const rec = ((t.shorts[L.n] ||= {})[q.id] ||= { ok: false, tries: 0 }); if (rec.ok) return;
     rec.tries++; if (m.ok) { rec.ok = true; addFee(t, rec.tries === 1 ? FEES.short1 : FEES.short, 'short ' + L.n + q.id); Sound.play('pop'); }
     if (shortsDone(t.shorts, L.n) && L.shorts.every(x => t.shorts[L.n][x.id].tries === 1)) award(t, 'sharp');
-    tSave(); renderBody(); you(m.pid); tBroadcast(); return;
+    tSave(); renderSoon(); you(m.pid); tBroadcast(); return;
   }
   if (m.type === 'hint') {
     if (!L || +m.n !== t.level) return; const q = L.shorts.find(x => x.id === m.id); if (!q) return;
     const h = (t.hints[L.n] ||= {}); if (h[q.id]) return;
     const rec = (t.shorts[L.n] || {})[q.id], free = rec && rec.tries >= 2; h[q.id] = free ? 'free' : 'paid';
     if (!free) { addFee(t, -FEES.hint, 'hint'); t.paidHint = true; }
-    tSave(); renderBody(); you(m.pid); return;
+    tSave(); renderSoon(); you(m.pid); return;
   }
   if (m.type === 'ready') {
     if (!L || +m.n !== t.level || !shortsDone(t.shorts, L.n)) return fail(m.pid, 'shorts');
     if (!t.ready) { t.ready = true; t.readyAt = Date.now(); Sound.play('chime'); }
-    tSave(); renderBody(); you(m.pid); tBroadcast(true); if (T.projector) projDynamic(); return;
+    tSave(); renderSoon(); you(m.pid); tBroadcast(true); if (T.projector) projDynamic(); return;
   }
   if (m.type === 'code') {
     if (t.done) return;
@@ -1783,7 +1923,7 @@ function tOnMsg(m) {
     const code = String(m.code || '').toUpperCase().replace(/\s+/g, '');
     if (code !== String(s.codes[L.n] || '').toUpperCase().replace(/\s+/g, '')) {
       t.wrong = (t.wrong || 0) + 1; if (t.wrong % 3 === 0) t.lockUntil = Date.now() + 30000;
-      tSave(); renderBody(); you(m.pid); Sound.play('bonk'); return fail(m.pid, t.wrong % 3 === 0 ? 'locked' : 'wrong-code');
+      tSave(); renderSoon(); you(m.pid); Sound.play('bonk'); return fail(m.pid, t.wrong % 3 === 0 ? 'locked' : 'wrong-code');
     }
     unlock(t); return;
   }
@@ -1791,7 +1931,7 @@ function tOnMsg(m) {
     const q = VAULT.find(x => x.id === m.id); if (!q || t.vault[q.id] != null) return;
     const ok = +m.ans === q.ans; t.vault[q.id] = ok; if (ok) addFee(t, FEES.vault, 'vault');
     if (Object.values(t.vault).filter(Boolean).length >= 5) award(t, 'vault');
-    tSave(); renderBody(); you(m.pid); tBroadcast(); return;
+    tSave(); renderSoon(); you(m.pid); tBroadcast(); return;
   }
 }
 /** Passcode accepted: open the next level (or the licence after the finale) */
@@ -1837,12 +1977,28 @@ function renderT() {
   connBadge(); renderBody();
 }
 function statusOf(t) { return t.done ? ['🏅', 'Licensed', 'done'] : t.ready ? ['✋', 'Ready for inspection', 'ready'] : Date.now() < (t.lockUntil || 0) ? ['🔒', 'Locked (wrong codes)', 'locked'] : shortsDone(t.shorts, t.level) ? ['✍️', 'Writing the worksheet', 'writing'] : ['🔎', 'Solving the file', 'working']; }
-function raceHtml(big) {
-  const ts = teams(); if (!ts.length) return `<p class="muted" style="margin:0">Teams appear here when they join.</p>`;
-  const W = STOPS.length - 1;
-  return `<div class="bk-race ${big ? 'big' : ''}"><div class="bk-stops">${STOPS.map((x, i) => `<span style="left:${100 * i / W}%"><b>${x.icon}</b><small>${esc(x.label)}</small></span>`).join('')}</div>
-    ${ts.map(t => { const st = statusOf(t), pos = t.done ? 1 : Math.min(1, (t.level - 1 + (t.ready ? .55 : shortsDone(t.shorts, t.level) ? .35 : .12)) / W);
-      return `<div class="bk-lane ${st[2]}" style="--c:${t.color}"><div class="bk-lname">${t.icon} <b>${esc(t.name)}</b> <small>${st[0]} ${esc(st[1])} · 💰 ${k(t.fees)}</small></div><div class="bk-track"><i style="width:${100 * pos}%"></i><span class="bk-van" style="left:${100 * pos}%">${t.icon}</span></div></div>`; }).join('')}</div>`;
+/* The race is updated in place (not rebuilt), so vans glide forward and nothing restarts or flickers */
+function raceSync(root, big) {
+  if (!root) return;
+  const ts = teams(), W = STOPS.length - 1;
+  root.className = 'bk-race' + (big ? ' big' : '');
+  if (!ts.length) { root.innerHTML = '<p class="muted" style="margin:0">Teams appear here when they join.</p>'; return; }
+  if (!root.querySelector('.bk-stops')) root.innerHTML = `<div class="bk-stops">${STOPS.map((x, i) => `<span style="left:${100 * i / W}%"><b>${x.icon}</b><small>${esc(x.label)}</small></span>`).join('')}</div>`;
+  const keep = new Set();
+  ts.forEach(t => {
+    keep.add(t.pid);
+    let lane = root.querySelector(`.bk-lane[data-tid="${t.pid}"]`);
+    if (!lane) { lane = document.createElement('div'); lane.dataset.tid = t.pid; lane.innerHTML = `<div class="bk-lname"></div><div class="bk-track"><i></i><span class="bk-van"></span></div>`; root.appendChild(lane); }
+    const st = statusOf(t), pos = t.done ? 1 : Math.min(1, (t.level - 1 + (t.ready ? .55 : shortsDone(t.shorts, t.level) ? .35 : .12)) / W);
+    lane.className = `bk-lane ${st[2]}`; lane.style.setProperty('--c', t.color);
+    const nm = `${t.icon} <b>${esc(t.name)}</b> <small>${st[0]} ${esc(st[1])} · 💰 ${k(t.fees)}</small>`; const ln = lane.querySelector('.bk-lname'); if (ln.innerHTML !== nm) ln.innerHTML = nm;
+    lane.querySelector('.bk-track i').style.width = (100 * pos) + '%';
+    const van = lane.querySelector('.bk-van'); van.style.left = (100 * pos) + '%'; if (van.textContent !== t.icon) van.textContent = t.icon;
+    const lv = String(t.done ? 'done' : t.level);
+    if (lane.dataset.level && lane.dataset.level !== lv) { lane.classList.remove('up'); void lane.offsetWidth; lane.classList.add('up'); clearTimeout(lane._t); lane._t = setTimeout(() => lane.classList.remove('up'), 1700); }
+    lane.dataset.level = lv;
+  });
+  root.querySelectorAll('.bk-lane').forEach(l => { if (!keep.has(l.dataset.tid)) l.remove(); });
 }
 function healthHtml() {
   const ts = teams(), got = ts.reduce((a, t) => a + (t.done ? NLV : t.level - 1), 0), all = Math.max(1, ts.length * NLV), f = got / all;
@@ -1850,8 +2006,11 @@ function healthHtml() {
   return `<div class="bk-health"><div><b>Minh's market health</b> <small class="muted">${Math.round(100 * f)}% fixed</small></div><div class="bk-hbar"><i style="width:${Math.round(100 * f)}%"></i></div><div class="bk-scene">${face} 🏪 ${'🧍'.repeat(queue)}${queue ? '' : ' ✨'}</div></div>`;
 }
 function leaderHtml(n) { const R = ranked(); return R.length ? `<ol class="bk-lead">${R.slice(0, n || 8).map((t, i) => `<li><span>${['🥇', '🥈', '🥉'][i] || i + 1}</span> ${t.icon} <b>${esc(t.name)}</b><small>${t.done ? '🏅' : 'L' + t.level}</small><b class="fee">💰 ${k(t.fees)}</b></li>`).join('')}</ol>` : ''; }
+function renderSoon() { if (T.rq) return; T.rq = setTimeout(() => { T.rq = null; renderBody(); }, 150); }
 function renderBody() {
+  clearTimeout(T.rq); T.rq = null;
   const el = $('#tbody'); if (!el || !T.s) return;
+  if (T.raceT && T.raceT.parentNode) T.raceT.remove();
   const ae = document.activeElement; if (ae && ae.closest && ae.closest('#tbody') && ae.matches('input')) { ae.onblur = () => setTimeout(renderBody, 0); return; }
   const s = T.s, ts = teams(), N = s.news;
   el.innerHTML = `<div class="grid2"><section class="stack">
@@ -1872,14 +2031,16 @@ function renderBody() {
       <div class="panel stack"><h2 style="margin:0">Join</h2><div class="row" style="align-items:flex-start"><div class="qr" id="qrS"></div><div style="flex:1;min-width:160px"><div class="muted">Room code</div><div class="code-big">${esc(s.room)}</div><p class="muted" style="font-size:.85rem;margin:.3em 0 0;word-break:break-all">${esc(joinUrl())}</p></div></div>
         <p class="muted" style="margin:0">On each team's device: open the home page, type the room code, and type the team name as the nickname.</p>${s.transport === 'local' ? '<button class="btn small" data-act="test">Open a test team tab</button>' : ''}</div>
     </section><section class="stack">
-      <div class="panel stack"><h2 style="margin:0">🗺️ The race</h2>${raceHtml(false)}${healthHtml()}</div>
+      <div class="panel stack"><h2 style="margin:0">🗺️ The race</h2><div id="raceSlot"></div>${healthHtml()}</div>
       <div class="panel stack"><h2 style="margin:0">🏆 Consultancy fees</h2>${leaderHtml()}<div class="row"><button class="btn small primary" data-act="podium" ${ts.length ? '' : 'disabled'}>🏆 Podium</button><button class="btn small" data-act="licences" ${ts.some(t => t.done) ? '' : 'disabled'}>🖨 Print licences</button><button class="btn small" data-act="csv" ${s.log.length ? '' : 'disabled'}>Download the log (CSV)</button></div></div>
       <details class="panel"><summary>How fees and badges work</summary><div class="stack" style="margin-top:8px"><p style="margin:0">Short answer right first time ${FEES.short1}k (later ${FEES.short}k) · hint −${FEES.hint}k (free after 2 wrong tries) · passcode ${FEES.unlock}k, plus ${FEES.rank.join('k / ')}k for the 1st / 2nd / 3rd team to open that level · Bonus Vault ${FEES.vault}k · breaking news ${FEES.news}k.</p><div>${Object.values(BADGES).map(b => `<div>${b[0]} <b>${esc(b[1])}</b>: ${esc(b[2])}</div>`).join('')}</div></div></details>
       <details class="panel"><summary>Settings</summary><div class="stack" style="margin-top:8px"><p class="muted" style="margin:0">Room ${esc(s.room)} · ${s.transport === 'local' ? 'test mode' : 'online'} · ${s.minutes} minutes</p><button class="btn small" data-act="newroom">Close room and start again</button></div></details>
     </section></div>`;
+  { const old = T.raceT, slot = $('#raceSlot'); if (old) { slot.replaceWith(old); } else { slot.id = 'raceT'; T.raceT = slot; } raceSync(T.raceT, false); }
   el.onclick = tClick;
   $$('[data-code]', el).forEach(inp => { inp.onchange = () => { const v = inp.value.toUpperCase().replace(/\s+/g, '').slice(0, 12); if (!v) return toast('A passcode cannot be empty.'); T.s.codes[inp.dataset.code] = v; inp.value = v; tSave(); toast('Passcode saved.'); }; });
-  makeQR($('#qrS'), joinUrl(), 110); timerT(); if (T.projector) projDynamic();
+  if (!T.qrImg) { makeQR($('#qrS'), joinUrl(), 110); const q = $('#qrS'); T.qrImg = q && q.firstChild ? q.innerHTML : ''; } else { const q = $('#qrS'); if (q) q.innerHTML = T.qrImg; }
+  timerT(); if (T.projector) projDynamic();
 }
 function tClick(e) {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
@@ -1937,9 +2098,11 @@ function renderProj(fresh) {
 function projDynamic() {
   const st = $('#pStage'); if (!st || !T.projector) return;
   const s = T.s, N = s.news, ready = teams().filter(t => t.ready);
+  if (T.raceP && T.raceP.parentNode) T.raceP.remove();
   if (s.phase === 'lobby') st.innerHTML = `<div class="lobby-stage"><h1>Join on your team's device</h1><p class="lead">Open the home page, type the room code, and type your <b>team name</b> as the nickname.</p><div class="code-big" style="font-size:4rem">${esc(s.room)}</div><div class="qr" id="qrP"></div><div class="bk-joined">${teams().map(t => `<span style="--c:${t.color}">${t.icon} ${esc(t.name)}</span>`).join('') || '<small class="muted">Waiting for teams…</small>'}</div></div>`;
   else if (N && N.open) st.innerHTML = `<div class="bk-pnews"><div class="bk-pnews-icon">${N.icon}</div><div class="bk-pnews-k">BREAKING NEWS · TIN NÓNG · <span id="pNewsLeft"></span></div><h1>${esc(N.title)}</h1>${viSpan(N.vi)}<h2>${esc(N.q)}</h2><p class="lead">Answer on your team's device!</p><div class="bk-joined">${teams().map(t => `<span style="--c:${t.color}" class="${N.answers[t.pid] ? 'in' : ''}">${t.icon} ${esc(t.name)} ${N.answers[t.pid] ? '✓' : '…'}</span>`).join('')}</div></div>`;
-  else st.innerHTML = `${ready.length ? `<div class="bk-ready">✋ Ready for inspection: ${ready.map(t => `<b style="color:${t.color}">${t.icon} ${esc(t.name)}</b>`).join(' · ')}</div>` : ''}${N && !N.open && Date.now() - N.endsAt < 30000 ? `<div class="good" style="font-size:1.2rem">🗞️ ${esc(N.title)} → <b>${esc(N.opts[N.ans])}</b> ✓ ${Object.entries(N.answers).filter(([, a]) => a.ok).map(([p]) => esc((T.s.teams[p] || {}).name || '')).join(', ') || 'No team right'}</div>` : ''}${s.phase === 'ended' ? '<h1 style="margin:0">⏰ Time is up! Pens down.</h1>' : ''}${raceHtml(true)}`;
+  else st.innerHTML = `${ready.length ? `<div class="bk-ready">✋ Ready for inspection: ${ready.map(t => `<b style="color:${t.color}">${t.icon} ${esc(t.name)}</b>`).join(' · ')}</div>` : ''}${N && !N.open && Date.now() - N.endsAt < 30000 ? `<div class="good" style="font-size:1.2rem">🗞️ ${esc(N.title)} → <b>${esc(N.opts[N.ans])}</b> ✓ ${Object.entries(N.answers).filter(([, a]) => a.ok).map(([p]) => esc((T.s.teams[p] || {}).name || '')).join(', ') || 'No team right'}</div>` : ''}${s.phase === 'ended' ? '<h1 style="margin:0">⏰ Time is up! Pens down.</h1>' : ''}<div id="racePSlot"></div>`;
+  { const slot = $('#racePSlot'); if (slot) { if (T.raceP) slot.replaceWith(T.raceP); else { slot.id = 'raceP'; T.raceP = slot; } raceSync(T.raceP, true); } }
   if (s.phase === 'lobby') makeQR($('#qrP'), joinUrl(), 200);
   const pl = $('#pLead'); if (pl) pl.innerHTML = leaderHtml(6) || '<small class="muted">Fees appear here.</small>';
   const ph = $('#pHealth'); if (ph) ph.innerHTML = healthHtml();
@@ -2025,31 +2188,31 @@ function sourceHtml(src) { return src ? `<div class="table-wrap"><table class="b
 function levelHtml(L) {
   const me = S.me, done = shortsDone(me.shorts, L.n), rec = (me.shorts || {})[L.n] || {}, hints = (me.hints || {})[L.n] || {};
   const head = `<div class="bk-lhead"><span class="bk-licon">${L.icon}</span><div><div class="bk-lk">LEVEL ${L.n} OF ${NLV} · SYLLABUS ${L.syl}${L.boss ? ' · BOSS' : ''}</div><h1 style="margin:0">${esc(L.title)}${viSpan(L.vi)}</h1></div></div>${rolesHtml(L.n)}`;
-  const file = `<div class="panel stack"><h2 style="margin:0">📁 Minh's file</h2><p style="margin:0">${esc(L.story)}${viBlock(L.storyVi)}</p>${sourceHtml(L.source)}</div>`;
+  const file = `<div class="panel stack bk-file"><div class="bk-filetab">📁 CASE FILE ${L.n} · HỒ SƠ</div>${tilesHtml(L.n)}<p style="margin:0">${gl(L.story)}${viBlock(L.storyVi)}</p>${sourceHtml(L.source)}<small class="muted">💡 Tap an <span class="term demo">underlined word</span> to see what it means.</small></div>`;
   const shorts = `<div class="panel stack"><h2 style="margin:0">🔎 Short answers <small class="muted">${L.shorts.filter(q => rec[q.id] && rec[q.id].ok).length} of ${L.shorts.length}</small></h2><p class="muted" style="margin:0">The Lead Economist types. Agree as a team first.</p>
     ${L.shorts.map(q => { const r = rec[q.id] || {}, ok = !!r.ok, h = hints[q.id];
-      return `<div class="bk-q ${ok ? 'ok' : r.tries ? 'tried' : ''}" id="q-${q.id}"><div class="bk-qq">${ok ? '✅' : r.tries ? '❌' : '❔'} ${esc(q.q)}${viSpan(q.vi)}</div>
+      return `<div class="bk-q ${ok ? 'ok' : r.tries ? 'tried' : ''}" id="q-${q.id}"><div class="bk-qq">${ok ? '✅' : r.tries ? '❌' : '❔'} ${gl(q.q)}${viSpan(q.vi)}</div>
         ${ok ? `<div class="bk-qa">${q.num ? esc(q.ans + ' ' + q.unit) : esc(q.opts[q.ans])}</div>` : q.num ? `<div class="row"><input type="number" inputmode="decimal" data-num="${q.id}" data-draft="n${L.n}${q.id}" value="${esc(S.draft['n' + L.n + q.id] ?? '')}" style="max-width:150px"> <span>${esc(q.unit)}</span><button class="btn small primary" data-a="checknum" data-q="${q.id}">Check</button></div>`
           : `<div class="bk-opts">${q.opts.map((o, i) => `<button class="bk-opt" data-a="opt" data-q="${q.id}" data-i="${i}">${esc(o)}${q.optsVi ? `<small class="vi" lang="vi">${esc(q.optsVi[i])}</small>` : ''}</button>`).join('')}</div>`}
         ${!ok && h ? `<div class="bk-hint">💡 ${esc(q.hint)}</div>` : !ok ? `<button class="btn small ghost" data-a="hint" data-q="${q.id}">💡 Hint ${r.tries >= 2 ? '(free)' : `(−${FEES.hint}k)`}</button>` : ''}</div>`; }).join('')}</div>`;
   if (!done) return head + file + shorts;
   const W = (S.written[L.n] ||= []), all = (me.members || []).every(n2 => W.includes(n2));
   const sheet = `<div class="panel stack bk-sheet"><h2 style="margin:0">✍️ Worksheet: Level ${L.n}</h2><p style="margin:0"><b>Everyone writes their own answers</b> on the worksheet. Your teacher checks every sheet.</p>
-    <ol class="bk-sq">${L.sheet.map(x => `<li><b>${esc(x[0])}</b> ${esc(x[1])} <b>[${x[2]}]</b></li>`).join('')}</ol>
+    <ol class="bk-sq">${L.sheet.map(x => `<li><b>${esc(x[0])}</b> ${gl(x[1])} <b>[${x[2]}]</b></li>`).join('')}</ol>
     <div><b>Tick when each member has finished:</b><div class="bk-ticks">${(me.members || []).map(n2 => `<button class="bk-tick ${W.includes(n2) ? 'on' : ''}" data-a="written" data-n="${esc(n2)}">${W.includes(n2) ? '✅' : '⬜'} ${esc(n2)}</button>`).join('')}</div></div>
     ${me.ready ? '' : `<button class="btn primary block" data-a="ready" ${all ? '' : 'disabled'}>✋ Ready for inspection</button>${all ? '' : '<small class="muted">Tick every member first.</small>'}`}</div>`;
   const lock = me.lockLeft > 0 ? `<div class="bad">🚨 Minh's security alarm! Wait <span data-left="${me.lockLeft}" data-rerender="1">${me.lockLeft}s</span>.</div>` : '';
   const code = me.ready ? `<div class="panel stack bk-code"><h2 style="margin:0">🔐 Passcode</h2><p style="margin:0">Your teacher is coming to check every worksheet. When your work is OK, your teacher shows you the passcode.</p>${lock}
     <div class="row"><input type="text" class="code-input" maxlength="12" autocomplete="off" autocapitalize="characters" data-draft="code${L.n}" id="codeIn" value="${esc(S.draft['code' + L.n] ?? '')}" style="max-width:260px" ${me.lockLeft > 0 ? 'disabled' : ''}><button class="btn primary" data-a="code" ${me.lockLeft > 0 ? 'disabled' : ''}>Unlock</button></div></div>${vaultHtml()}` : '';
-  return head + `<details class="panel" ${S.openFile ? 'open' : ''}><summary>📁 Minh's file and short answers (done ✅)</summary><div class="stack" style="margin-top:10px"><p style="margin:0">${esc(L.story)}</p>${sourceHtml(L.source)}</div></details>` + sheet + code;
+  return head + `<details class="panel" ${S.openFile ? 'open' : ''}><summary>📁 Minh's file and short answers (done ✅)</summary><div class="stack" style="margin-top:10px">${tilesHtml(L.n)}<p style="margin:0">${gl(L.story)}</p>${sourceHtml(L.source)}</div></details>` + sheet + code;
 }
 function vaultHtml() {
   const me = S.me, left = VAULT.filter(q => (me.vault || {})[q.id] == null), right = Object.values(me.vault || {}).filter(Boolean).length;
   if (!left.length) return `<div class="panel"><h2 style="margin:0">🔐 Bonus Vault</h2><p style="margin:0">Vault empty! ${right} of ${VAULT.length} right.</p></div>`;
   const q = left[0];
-  return `<div class="panel stack bk-vault"><h2 style="margin:0">💎 Bonus Vault <small class="muted">while you wait · +${FEES.vault}k each · ${right} right so far</small></h2><div class="bk-qq">${esc(q.q)}</div><div class="bk-opts">${q.opts.map((o, i) => `<button class="bk-opt" data-a="vault" data-q="${q.id}" data-i="${i}">${esc(o)}</button>`).join('')}</div><small class="muted">One try per question.</small></div>`;
+  return `<div class="panel stack bk-vault"><h2 style="margin:0">💎 Bonus Vault <small class="muted">while you wait · +${FEES.vault}k each · ${right} right so far</small></h2><div class="bk-qq">${gl(q.q)}</div><div class="bk-opts">${q.opts.map((o, i) => `<button class="bk-opt" data-a="vault" data-q="${q.id}" data-i="${i}">${esc(o)}</button>`).join('')}</div><small class="muted">One try per question.</small></div>`;
 }
-function newsHtml(n) { return `<div class="bk-news"><div class="bk-news-k">🗞️ BREAKING NEWS · <span data-left="${n.left}">${n.left}s</span></div><h2 style="margin:0">${n.icon} ${esc(n.title)}${viSpan(n.vi)}</h2><div class="bk-qq">${esc(n.q)}</div><div class="bk-opts">${n.opts.map((o, i) => `<button class="bk-opt" data-a="news" data-id="${n.id}" data-i="${i}">${esc(o)}</button>`).join('')}</div><small>+${FEES.news}k if right, +${FEES.newsFirst}k more for the fastest team. One try.</small></div>`; }
+function newsHtml(n) { return `<div class="bk-news"><div class="bk-news-k">🗞️ BREAKING NEWS · <span data-left="${n.left}">${n.left}s</span></div><h2 style="margin:0">${n.icon} ${esc(n.title)}${viSpan(n.vi)}</h2><div class="bk-qq">${gl(n.q)}</div><div class="bk-opts">${n.opts.map((o, i) => `<button class="bk-opt" data-a="news" data-id="${n.id}" data-i="${i}">${esc(o)}</button>`).join('')}</div><small>+${FEES.news}k if right, +${FEES.newsFirst}k more for the fastest team. One try.</small></div>`; }
 function doneHtml() {
   const me = S.me;
   return `<div class="bk-lic"><div class="bk-lic-top">🍫 SAIGON ARTISAN CHOCOLATE CO.</div><h1>HCMC Market Rescuer Licence</h1><h2>${me.icon} ${esc(me.name)}</h2><p>${(me.members || []).map(esc).join(' · ')}</p><p>You fixed Minh's market! ${me.place ? `You finished <b>${['1st', '2nd', '3rd', '4th', '5th'][me.place - 1] || me.place + 'th'}</b>.` : ''}</p><p>${(me.badges || []).map(b => `<span class="chip">${BADGES[b][0]} ${esc(BADGES[b][1])}</span>`).join(' ')}</p><p><b>💰 ${k(me.fees)}</b> in consultancy fees</p></div>${vaultHtml()}`;
