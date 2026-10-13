@@ -680,6 +680,20 @@ svg.dsa text { font-family: var(--font-body); }
 .dsa-stepno { display: inline-block; min-width: 2.2em; padding: 0 6px; margin-right: 4px; border-radius: 999px; background: var(--cocoa); color: #fff; font-size: .8rem; text-align: center; }
 .dsa-slider { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
 .dsa-slider input { width: 100%; accent-color: var(--cocoa); }
+
+/* more than 5 teams: compact lanes so every team fits on the projector (more than 8: tighter still) */
+.bk-race.many { gap: 8px; }
+.bk-race.many .bk-lname { margin-bottom: 2px; }
+.bk-race.big.many { gap: 8px; padding-top: 62px; }
+.bk-race.big.many .bk-lname { font-size: 1.05rem; }
+.bk-race.big.many .bk-track { height: 34px; }
+.bk-race.big.many .bk-van { font-size: 1.9rem; }
+.bk-race.big.crowd { gap: 5px; }
+.bk-race.big.crowd .bk-lname { font-size: .95rem; }
+.bk-race.big.crowd .bk-track { height: 26px; border-width: 2px; }
+.bk-race.big.crowd .bk-van { font-size: 1.5rem; }
+.bk-lead.compact { gap: 3px; }
+.bk-lead.compact li { padding: 3px 8px; font-size: .92rem; }
 </style>
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -2178,7 +2192,7 @@ function statusOf(t) { return t.done ? ['🏅', 'Licensed', 'done'] : t.ready ? 
 function raceSync(root, big) {
   if (!root) return;
   const ts = teams(), W = STOPS.length - 1;
-  root.className = 'bk-race' + (big ? ' big' : '');
+  root.className = 'bk-race' + (big ? ' big' : '') + (ts.length > 8 ? ' many crowd' : ts.length > 5 ? ' many' : '');
   if (!ts.length) { root.innerHTML = '<p class="muted" style="margin:0">Teams appear here when they join.</p>'; return; }
   if (!root.querySelector('.bk-stops')) root.innerHTML = `<div class="bk-stops">${STOPS.map((x, i) => `<span style="left:${100 * i / W}%"><b>${x.icon}</b><small>${esc(x.label)}</small></span>`).join('')}</div>`;
   const keep = new Set();
@@ -2206,7 +2220,7 @@ function healthHtml() {
   const face = f >= 1 ? '😄' : f > .6 ? '🙂' : f > .3 ? '😐' : '😩', queue = Math.round((1 - f) * 10);
   return `<div class="bk-health"><div><b>Minh's market health</b> <small class="muted">${Math.round(100 * f)}% fixed</small></div><div class="bk-hbar"><i style="width:${Math.round(100 * f)}%"></i></div><div class="bk-scene">${face} 🏪 ${'🧍'.repeat(queue)}${queue ? '' : ' ✨'}</div></div>`;
 }
-function leaderHtml(n) { const R = ranked(); return R.length ? `<ol class="bk-lead">${R.slice(0, n || 8).map((t, i) => `<li><span>${['🥇', '🥈', '🥉'][i] || i + 1}</span> ${t.icon} <b>${esc(t.name)}</b><small>${t.done ? '🏅' : 'L' + t.level}</small><b class="fee">💰 ${k(t.fees)}</b></li>`).join('')}</ol>` : ''; }
+function leaderHtml(n, compact) { const R = ranked(); return R.length ? `<ol class="bk-lead${compact ? ' compact' : ''}">${R.slice(0, n || 8).map((t, i) => `<li><span>${['🥇', '🥈', '🥉'][i] || i + 1}</span> ${t.icon} <b>${esc(t.name)}</b><small>${t.done ? '🏅' : 'L' + t.level}</small><b class="fee">💰 ${k(t.fees)}</b></li>`).join('')}</ol>` : ''; }
 function renderSoon() { if (T.rq) return; T.rq = setTimeout(() => { T.rq = null; renderBody(); }, 150); }
 function renderBody() {
   clearTimeout(T.rq); T.rq = null;
@@ -2305,7 +2319,7 @@ function projDynamic() {
   else st.innerHTML = `${ready.length ? `<div class="bk-ready">✋ Ready for inspection: ${ready.map(t => `<b style="color:${t.color}">${t.icon} ${esc(t.name)}</b>`).join(' · ')}</div>` : ''}${N && !N.open && Date.now() - N.endsAt < 30000 ? `<div class="good" style="font-size:1.2rem">🗞️ ${esc(N.title)} → <b>${esc(N.opts[N.ans])}</b> ✓ ${Object.entries(N.answers).filter(([, a]) => a.ok).map(([p]) => esc((T.s.teams[p] || {}).name || '')).join(', ') || 'No team right'}</div>` : ''}${s.phase === 'ended' ? '<h1 style="margin:0">⏰ Time is up! Pens down.</h1>' : ''}<div id="racePSlot"></div>`;
   { const slot = $('#racePSlot'); if (slot) { if (T.raceP) slot.replaceWith(T.raceP); else { slot.id = 'raceP'; T.raceP = slot; } raceSync(T.raceP, true); } }
   if (s.phase === 'lobby') makeQR($('#qrP'), joinUrl(), 200);
-  const pl = $('#pLead'); if (pl) pl.innerHTML = leaderHtml(6) || '<small class="muted">Fees appear here.</small>';
+  const pl = $('#pLead'); if (pl) pl.innerHTML = leaderHtml(teams().length > 6 ? 12 : 6, teams().length > 6) || '<small class="muted">Fees appear here.</small>';
   const ph = $('#pHealth'); if (ph) ph.innerHTML = healthHtml();
   timerT();
 }
