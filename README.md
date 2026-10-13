@@ -275,8 +275,8 @@ File: `breakout.html` (built from `src/breakout/` by `build.sh`). Five teams, on
 
 **Each level:**
 1. The team device shows Minh's file: a story and a data table.
-2. The Lead Economist enters the short answers, which the device checks at once.
-3. Every student writes the worksheet. Members tick their names when done, then the team taps **Ready for inspection**, and its lane lights up on the projector.
+2. The Lead Economist enters the short answers (at most 4 per level), which the device checks at once.
+3. Every student writes the worksheet. Each worksheet question has a two-step hint on the device: step 1, "what to do" (free), and step 2, "get started", a sentence frame or diagram checklist (−1k). The console's Teams panel shows which hints each team used on its current level, so you know when you check the sheets. From Level 2 on, a **See it move** demand and supply animation appears once the short answers are solved (so it never gives them away): movement versus shift (Level 2), the drought and an extension in supply (Level 3), a shortage or surplus moving to equilibrium, with a price slider on the real Source 2 data (Level 4), and two shifts at once (finale). Members tick their names when done, then the team taps **Ready for inspection**, and its lane lights up on the projector.
 4. You check every sheet against the OK-to-pass checklist, then show the team the passcode. The code opens the next level.
 5. After 3 wrong codes, the device locks for 30 seconds. You can clear the lock, or open a level by hand, from the Teams panel.
 
@@ -292,7 +292,7 @@ File: `breakout.html` (built from `src/breakout/` by `build.sh`). Five teams, on
 
 **Gamification:**
 - A race map on the projector, Minh's market health meter, and a countdown (30–60 minutes, with +5 minutes and pause).
-- **Consultancy fees:** 2k for each short answer right first time, 10k per passcode, plus 5k, 3k or 1k for the first three teams to open each level. A hint costs 2k (free after 2 wrong tries).
+- **Consultancy fees:** 2k for each short answer right first time, 10k per passcode, plus 5k, 3k or 1k for the first three teams to open each level. A short-answer hint costs 2k (free after 2 wrong tries); a worksheet hint is free for step 1 and 1k for step 2. Paying for any hint loses the 🧠 No hints badge.
 - The **Bonus Vault**: quick questions while a team waits for you.
 - **Breaking news:** you send a 60-second question to every team.
 - Badges: ⚡ First to unlock, 🎯 Sharp shooters, 🧠 No hints, 🗞️ News hounds, 🔐 Vault cracker, 🏅 Licensed.

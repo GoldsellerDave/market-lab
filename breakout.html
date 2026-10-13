@@ -638,6 +638,48 @@ table.prizelist { width: 100%; border-collapse: collapse; } table.prizelist td, 
 @keyframes scbelt { from { transform: translateX(-40px); } to { transform: translateX(160px); } }
 @keyframes scswing { 50% { transform: rotate(3deg); } }
 @keyframes scstep { 50% { transform: translateY(-4px); } }
+
+/* ---- worksheet (Paper 2) hints ---- */
+.bk-sq li > div:first-child { margin-bottom: 4px; }
+.bk-ph { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; margin: 2px 0 6px; }
+.bk-ph .bk-hint { width: 100%; display: flex; flex-direction: column; gap: 3px; }
+.bk-ph .bk-hint.s2 { background: var(--mint-soft); }
+.bk-hl { display: flex; flex-direction: column; gap: 2px; }
+.bk-hl .bk-chk { padding-left: 2px; }
+.bk-phl { display: block; color: var(--warn); }
+
+/* ---- demand and supply animations ---- */
+.dsa-box { border: 2px solid var(--foil); }
+.dsa-modes { gap: 6px; }
+.dsa-mode { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.dsa-mode small { font-weight: 400; }
+.dsa-mode.on { background: var(--cocoa); color: #fff; border-color: var(--cocoa); }
+.dsa-mode.on small.vi { color: #f2e6da; }
+svg.dsa { width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto; background: var(--panel); border-radius: 10px; }
+svg.dsa text { font-family: var(--font-body); }
+.dsa-ax { fill: none; stroke: var(--ink); stroke-width: 2; }
+.dsa-axl { font-size: 12px; font-weight: 700; fill: var(--ink); }
+.dsa-tick { font-size: 10.5px; fill: var(--muted); }
+.dsa-grid { stroke: var(--line); stroke-width: .7; }
+.dsa-d, .dsa-s { fill: none; stroke-width: 3.2; stroke-linecap: round; }
+.dsa-d { stroke: var(--buyer); } .dsa-s { stroke: var(--seller); }
+.dsa-d.ghost, .dsa-s.ghost { stroke-width: 2; stroke-dasharray: 5 5; opacity: .55; }
+.dsa-lab { font-size: 13px; font-weight: 700; } .dsa-lab.d { fill: var(--buyer); } .dsa-lab.s { fill: var(--seller); }
+.dsa-arr { stroke-width: 2.4; } .dsa-arr.d { stroke: var(--buyer); } .dsa-arr.s { stroke: var(--seller); }
+.dsa-head.d { fill: var(--buyer); } .dsa-head.s { fill: var(--seller); }
+.dsa-guide { fill: none; stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 4; }
+.dsa-pt { fill: var(--ink); } .dsa-pt.e2 { fill: var(--foil); stroke: var(--ink); stroke-width: 1.5; }
+.dsa-pt.d { fill: var(--buyer); } .dsa-pt.s { fill: var(--seller); } .dsa-pt.ghost { opacity: .35; }
+.dsa-gl { font-size: 11.5px; font-weight: 700; fill: var(--ink); }
+.dsa-pline { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 3; opacity: .6; }
+.dsa-gap { stroke-width: 7; stroke-linecap: round; opacity: .85; }
+.dsa-gap.short { stroke: var(--warn); } .dsa-gap.surp { stroke: var(--mint); }
+.dsa-gapl { font-size: 13px; font-weight: 800; } .dsa-gapl.short { fill: var(--warn); } .dsa-gapl.surp { fill: var(--mint); }
+.dsa-ql { font-size: 10.5px; font-weight: 700; } .dsa-ql.d { fill: var(--buyer); } .dsa-ql.s { fill: var(--seller); }
+.dsa-cap { min-height: 3.2em; padding: 8px 10px; border-radius: 10px; background: var(--warn-soft); }
+.dsa-stepno { display: inline-block; min-width: 2.2em; padding: 0 6px; margin-right: 4px; border-radius: 999px; background: var(--cocoa); color: #fff; font-size: .8rem; text-align: center; }
+.dsa-slider { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
+.dsa-slider input { width: 100%; accent-color: var(--cocoa); }
 </style>
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -1634,13 +1676,11 @@ const LV = [
     shorts: [
       { id: 'a', q: 'Minh sells bars to shops in District 1.', vi: 'Minh bán sô-cô-la cho cửa hàng.', opts: MKT, optsVi: MKT_VI, ans: 0, hint: 'Finished goods and services are bought and sold in the product market.' },
       { id: 'b', q: 'Minh hires two factory technicians.', vi: 'Minh thuê hai kỹ thuật viên.', opts: MKT, optsVi: MKT_VI, ans: 1, hint: 'Labour is a factor of production.' },
-      { id: 'c', q: 'Minh rents land in Bến Tre to grow cocoa.', vi: 'Minh thuê đất ở Bến Tre.', opts: MKT, optsVi: MKT_VI, ans: 1, hint: 'Land is a factor of production.' },
       { id: 'd', q: 'Market supply at 15k (Source 1)', vi: 'Cung thị trường ở mức giá 15k', num: true, ans: 10, unit: 'bars', hint: 'Add the five shops across the 15k row.' },
-      { id: 'e', q: '"Should Minh make dark bars or truffles?" answers which question?', vi: 'Câu hỏi này trả lời vấn đề nào?', opts: ['What to produce', 'How to produce', 'For whom to produce'], ans: 0, hint: 'It is about which goods to make.' },
-      { id: 'f', q: '"Robot or workers?" answers which question?', opts: ['What to produce', 'How to produce', 'For whom to produce'], ans: 1, hint: 'It is about the method of production.' },
-      { id: 'g', q: '"Who gets the bars?" answers which question?', opts: ['What to produce', 'How to produce', 'For whom to produce'], ans: 2, hint: 'It is about who the goods go to.' }
+      { id: 'g', q: '"Who gets the bars?" answers which question?', vi: '"Ai nhận được sô-cô-la?" trả lời câu hỏi nào?', opts: ['What to produce', 'How to produce', 'For whom to produce'], ans: 2, hint: 'It is about who the goods go to.' }
     ],
-    sheet: [['(a)', 'Define the term market.', 2], ['(b)', 'Complete the Market supply column, then plot the market supply curve. Label the axes and S.', 3], ['(c)', 'Explain how the price mechanism decides for whom chocolate is produced.', 4]] },
+    sheet: [['(a)', 'Define the term market.', 2], ['(b)', 'Complete the Market supply column, then plot the market supply curve. Label the axes and S.', 3], ['(c)', 'Explain how the price mechanism decides for whom chocolate is produced.', 4]],
+    help: [["Define = say exactly what the word means. Use two ideas: who meets, and what they do.", "Định nghĩa = nói chính xác từ đó nghĩa là gì. Dùng hai ý: ai gặp nhau và họ làm gì.", "A market is any place or way where ___ and ___ meet to ___ goods and services.", "Thị trường là bất kỳ nơi hoặc cách nào mà ___ và ___ gặp nhau để ___ hàng hóa và dịch vụ."], ["Market supply = add the supply of every shop at each price. Then plot one point for each price.", "Cung thị trường = cộng lượng cung của tất cả cửa hàng ở mỗi mức giá. Sau đó vẽ một điểm cho mỗi mức giá.", "☐ Add across each row: 10k, 15k, 20k, 25k\n☐ Price on the vertical axis, quantity on the horizontal axis\n☐ Plot 4 points and join them\n☐ Label the curve S", "☐ Cộng theo từng hàng\n☐ Giá ở trục dọc, lượng ở trục ngang\n☐ Vẽ 4 điểm rồi nối lại\n☐ Ghi tên đường S"], ["Explain = give reasons in steps. Key words: price, willing and able to pay, ration.", "Giải thích = đưa ra lý do theo từng bước. Từ khóa: giá, sẵn sàng và có khả năng chi trả, phân bổ.", "Chocolate goes to the people who are ___ and ___ to pay the price.\nIf many people want chocolate, the price ___.\nThen only people who ___ can buy it.\nSo the price ___ the chocolate between buyers.", "Sô-cô-la đến tay những người ___ và ___ trả giá đó.\nNếu nhiều người muốn mua, giá sẽ ___.\nKhi đó chỉ những người ___ mới mua được.\nVì vậy giá ___ sô-cô-la giữa những người mua."]] },
   { n: 2, icon: '🛍️', title: 'Demand decoder', vi: 'Giải mã cầu', syl: '2.2',
     story: "Four things happen to Minh's dark chocolate this month. (1) Minh cuts the price of a bar by 20%. (2) A TikTok video says dark chocolate is healthy, and it goes viral. (3) The price of a rival candy bar rises. (4) The price of the gift boxes people buy with Minh's chocolate doubles.",
     storyVi: 'Bốn sự kiện: giảm giá 20%, video TikTok lan truyền, giá kẹo đối thủ tăng, giá hộp quà tăng gấp đôi.',
@@ -1650,7 +1690,8 @@ const LV = [
       { id: 'c', q: 'Event 3: a rival candy bar costs more.', vi: 'Kẹo đối thủ đắt hơn', opts: DMOV, optsVi: DMOV_VI, ans: 1, hint: 'The rival bar is a substitute.' },
       { id: 'd', q: 'Event 4: gift boxes cost twice as much.', vi: 'Hộp quà đắt gấp đôi', opts: DMOV, optsVi: DMOV_VI, ans: 2, hint: 'Gift boxes are a complement.' }
     ],
-    sheet: [['(a)', 'Explain the difference between an extension in demand and an increase in demand. Use events 1 and 2.', 4], ['(b)', 'Draw a diagram to show the effect of the TikTok video. Label the axes, both demand curves and the shift.', 3], ['(c)', 'The intern wrote "Demand increased when the price fell." Identify the mistake and rewrite it.', 2]] },
+    sheet: [['(a)', 'Explain the difference between an extension in demand and an increase in demand. Use events 1 and 2.', 4], ['(b)', 'Draw a diagram to show the effect of the TikTok video. Label the axes, both demand curves and the shift.', 3], ['(c)', 'The intern wrote "Demand increased when the price fell." Identify the mistake and rewrite it.', 2]],
+    help: [["Two parts: what happens to the curve, and why. A price change → move ALONG the curve. A non-price change → the curve SHIFTS.", "Hai phần: điều gì xảy ra với đường cầu, và tại sao. Giá thay đổi → di chuyển DỌC đường cầu. Yếu tố khác giá → đường cầu DỊCH CHUYỂN.", "An extension in demand is a movement ___ the demand curve, caused by a ___ in the good's price (event 1).\nAn increase in demand is a ___ of the demand curve to the ___, caused by a ___ factor such as ___ (event 2).", "Cầu mở rộng là sự di chuyển ___ đường cầu, do giá của hàng hóa ___ (sự kiện 1).\nCầu tăng là sự ___ của đường cầu sang ___, do yếu tố ___ như ___ (sự kiện 2)."], ["The video changes tastes. Tastes are a non-price factor, so the whole curve moves. Which way?", "Video làm thay đổi sở thích. Sở thích là yếu tố khác giá, nên cả đường cầu dịch chuyển. Sang hướng nào?", "☐ Axes labelled Price and Quantity\n☐ Draw D1 first\n☐ Draw D2 on the correct side of D1\n☐ An arrow from D1 to D2", "☐ Ghi tên trục Giá và Lượng\n☐ Vẽ D1 trước\n☐ Vẽ D2 đúng phía của D1\n☐ Mũi tên từ D1 sang D2"], ["When the good's own price changes, we do not say 'demand increased'. Which phrase do we use instead?", "Khi giá của chính hàng hóa thay đổi, ta không nói 'cầu tăng'. Ta dùng cụm từ nào?", "The mistake is the word ___.\nA fall in price causes an ___ in demand: a movement ___ the curve.\nCorrect: 'When the price fell, ___.'", "Lỗi sai là từ ___.\nGiá giảm làm cầu ___: một sự di chuyển ___ đường cầu.\nSửa lại: 'Khi giá giảm, ___.'"]] },
   { n: 3, icon: '🏭', title: 'Supply audit', vi: 'Kiểm toán cung', syl: '2.3',
     story: "Three pieces of news reach Minh's factory. (1) A drought in West Africa doubles the price of cocoa beans. (2) Minh installs a high-speed robot that tempers chocolate faster, with fewer workers. (3) The government adds a sugar tax of 2k on every bar sold.",
     storyVi: 'Hạn hán làm giá ca cao tăng gấp đôi; robot mới; thuế đường 2k mỗi thanh.',
@@ -1660,7 +1701,8 @@ const LV = [
       { id: 'c', q: 'News 3: the sugar tax', vi: 'Thuế đường', opts: SMOV, optsVi: SMOV_VI, ans: 0, hint: 'A tax on each bar is like an extra cost.' },
       { id: 'd', q: 'The sugar tax shifts the supply curve up by how much?', vi: 'Thuế làm đường cung dịch lên bao nhiêu?', num: true, ans: 2, unit: 'k', hint: 'The tax is the same on every bar.' }
     ],
-    sheet: [['(a)', 'Identify two causes of a decrease in supply from the news.', 2], ['(b)', 'Draw a diagram to show the effect of the cocoa drought. Label the old and new equilibrium price and quantity, then explain.', 4], ['(c)', 'Explain why a higher price for chocolate leads to an extension in supply.', 4]] },
+    sheet: [['(a)', 'Identify two causes of a decrease in supply from the news.', 2], ['(b)', 'Draw a diagram to show the effect of the cocoa drought. Label the old and new equilibrium price and quantity, then explain.', 4], ['(c)', 'Explain why a higher price for chocolate leads to an extension in supply.', 4]],
+    help: [["Identify = just name them. Look for the news that makes each bar cost more to make or sell.", "Xác định = chỉ cần nêu tên. Tìm tin làm cho mỗi thanh sô-cô-la tốn kém hơn để sản xuất hoặc bán.", "Look at your short answers: which two news items made the supply curve shift left?\n1. ___\n2. ___", "Xem lại câu trả lời ngắn: hai tin nào làm đường cung dịch sang trái?\n1. ___\n2. ___"], ["The drought raises the costs of production. Draw the diagram first, then explain in 2–3 sentences. The animation above can help.", "Hạn hán làm tăng chi phí sản xuất. Vẽ sơ đồ trước, rồi giải thích trong 2–3 câu. Hình động phía trên có thể giúp bạn.", "☐ D, S1 and S2, with S2 on the correct side\n☐ P1, Q1, P2, Q2 with dashed lines\nThe drought raises ___, so supply ___ and S shifts to the ___.\nAt the old price there is a ___, so the price ___ to P2 and the quantity ___ to Q2.", "☐ D, S1 và S2, S2 ở đúng phía\n☐ P1, Q1, P2, Q2 với đường nét đứt\nHạn hán làm tăng ___, nên cung ___ và đường S dịch sang ___.\nỞ mức giá cũ có ___, nên giá ___ đến P2 và lượng ___ đến Q2."], ["Think like Minh: if each bar sells for more, is making bars more or less attractive? Key words: profit, incentive, a movement along the supply curve.", "Hãy nghĩ như Minh: nếu mỗi thanh bán được giá cao hơn, sản xuất có hấp dẫn hơn không? Từ khóa: lợi nhuận, động lực, di chuyển dọc đường cung.", "A higher price means each bar earns more ___.\nThis gives firms an ___ to produce more.\nFirms can also cover the higher ___ of making extra bars.\nSo the quantity supplied ___: a movement ___ the supply curve, called an extension in supply.", "Giá cao hơn nghĩa là mỗi thanh mang lại nhiều ___ hơn.\nĐiều này tạo ___ cho doanh nghiệp sản xuất nhiều hơn.\nDoanh nghiệp cũng trang trải được ___ cao hơn khi làm thêm sô-cô-la.\nVì vậy lượng cung ___: di chuyển ___ đường cung, gọi là cung mở rộng."]] },
   { n: 4, icon: '⚖️', title: 'Boss: equilibrium', vi: 'Trùm cuối: cân bằng', syl: '2.4', boss: true,
     story: "On Friday, Minh's shops sold chocolate at 10k a bar. There were 100-person queues and empty shelves. Last month, at 30k a bar, the warehouse was full of melting stock.",
     storyVi: 'Ở giá 10k có hàng dài người xếp hàng; ở giá 30k kho đầy hàng tồn.',
@@ -1670,7 +1712,8 @@ const LV = [
       { id: 'b', q: 'Shortage at 10k', vi: 'Thiếu hụt ở mức giá 10k', num: true, ans: 600, unit: 'bars', hint: 'Quantity demanded minus quantity supplied.' },
       { id: 'c', q: 'Surplus at 25k', vi: 'Dư thừa ở mức giá 25k', num: true, ans: 300, unit: 'bars', hint: 'Quantity supplied minus quantity demanded.' }
     ],
-    sheet: [['(a)', 'Draw demand and supply from Source 2. Label Pe and Qe, and show the shortage at 10k.', 4], ['(b)', 'Explain how the market removes the shortage at 10k.', 4], ['(c)', 'Calculate the surplus at 30k.', 1]] },
+    sheet: [['(a)', 'Draw demand and supply from Source 2. Label Pe and Qe, and show the shortage at 10k.', 4], ['(b)', 'Explain how the market removes the shortage at 10k.', 4], ['(c)', 'Calculate the surplus at 30k.', 1]],
+    help: [["Plot the 5 demand points and the 5 supply points from Source 2, then join each set. The equilibrium is where the curves cross.", "Vẽ 5 điểm cầu và 5 điểm cung từ Nguồn 2, rồi nối từng bộ điểm. Điểm cân bằng là nơi hai đường cắt nhau.", "☐ Price axis 10k to 30k, quantity axis 0 to 1,000\n☐ D slopes down, S slopes up, both labelled\n☐ Pe and Qe with dashed lines to both axes\n☐ At 10k: a line across, with the gap between S and D labelled 'shortage'", "☐ Trục giá 10k đến 30k, trục lượng 0 đến 1.000\n☐ D dốc xuống, S dốc lên, có ghi tên\n☐ Pe và Qe với đường nét đứt đến hai trục\n☐ Ở 10k: kẻ một đường ngang, ghi 'thiếu hụt' cho khoảng giữa S và D"], ["Explain = steps in order. Use: shortage, buyers compete, price rises, contraction in demand, extension in supply, equilibrium.", "Giải thích = các bước theo thứ tự. Dùng: thiếu hụt, người mua cạnh tranh, giá tăng, cầu thu hẹp, cung mở rộng, cân bằng.", "At 10k, quantity demanded is ___ but quantity supplied is only ___, so there is a shortage.\nBuyers compete for the bars, so the price ___.\nAs the price rises, quantity demanded ___ and quantity supplied ___.\nThis continues until the price reaches ___, where Qd = Qs.", "Ở 10k, lượng cầu là ___ nhưng lượng cung chỉ là ___, nên có thiếu hụt.\nNgười mua cạnh tranh để mua, nên giá ___.\nKhi giá tăng, lượng cầu ___ và lượng cung ___.\nQuá trình tiếp tục cho đến khi giá đạt ___, khi Qd = Qs."], ["Surplus = quantity supplied − quantity demanded. Find the 30k column in Source 2.", "Dư thừa = lượng cung − lượng cầu. Tìm cột 30k trong Nguồn 2.", "At 30k: Qs = ___ and Qd = ___.\nSurplus = ___ − ___ = ___ bars.", "Ở 30k: Qs = ___ và Qd = ___.\nDư thừa = ___ − ___ = ___ thanh."]] },
   { n: 5, icon: '🌪️', title: 'Finale: the storm', vi: 'Chung kết: cơn bão', syl: '2.5',
     story: "Breaking news: in the same week, Halloween arrives and the cocoa drought gets worse. Every child in District 1 wants chocolate, and Minh's cocoa beans cost even more.",
     storyVi: 'Halloween đến và hạn hán ca cao trầm trọng hơn trong cùng một tuần.',
@@ -1680,7 +1723,8 @@ const LV = [
       { id: 'c', q: 'The equilibrium price…', vi: 'Giá cân bằng…', opts: ['rises', 'falls', "can't tell"], optsVi: ['tăng', 'giảm', 'không xác định'], ans: 0, hint: 'Both shifts push the price the same way.' },
       { id: 'd', q: 'The equilibrium quantity…', vi: 'Sản lượng cân bằng…', opts: ['rises', 'falls', "can't tell"], optsVi: ['tăng', 'giảm', 'không xác định'], ans: 2, hint: 'Demand pushes quantity up, supply pushes it down: it depends which shift is bigger.' }
     ],
-    sheet: [['(a)', 'Analyse the effect of Halloween and the cocoa drought on the equilibrium price of Minh\'s chocolate. You may use a diagram.', 4]] }
+    sheet: [['(a)', 'Analyse the effect of Halloween and the cocoa drought on the equilibrium price of Minh\'s chocolate. You may use a diagram.', 4]],
+    help: [["Analyse = a chain of reasons. Take each event on its own: which curve, which way, and what happens to the price? Then put them together.", "Phân tích = một chuỗi lý do. Xét từng sự kiện: đường nào, dịch hướng nào, giá thay đổi thế nào? Sau đó kết hợp lại.", "Halloween increases ___, so the ___ curve shifts to the ___.\nThe drought raises ___, so the ___ curve shifts to the ___.\nBoth changes cause a ___ at the old price, so the equilibrium price ___.\nExtra: the effect on quantity depends on ___.", "Halloween làm tăng ___, nên đường ___ dịch sang ___.\nHạn hán làm tăng ___, nên đường ___ dịch sang ___.\nCả hai tạo ra ___ ở mức giá cũ, nên giá cân bằng ___.\nThêm: tác động lên lượng phụ thuộc vào ___."]] }
 ];
 const NLV = LV.length;
 /* Bonus Vault: quick questions for teams waiting for inspection (one try each) */
@@ -1715,7 +1759,7 @@ const BADGES = {
   licence: ['🏅', 'Licensed', 'Earned the HCMC Market Rescuer Licence']
 };
 const TEAM_LOOK = [['🦊', '#c0392b'], ['🐯', '#16768a'], ['🐼', '#7b4fbf'], ['🐸', '#b86b00'], ['🦉', '#2a7f4f'], ['🐬', '#2f74c0'], ['🐝', '#9a5b00'], ['🦄', '#b02a3f']];
-const FEES = { short1: 2, short: 1, hint: 2, unlock: 10, rank: [5, 3, 1], vault: 2, news: 3, newsFirst: 2 };
+const FEES = { short1: 2, short: 1, hint: 2, phint: 1, unlock: 10, rank: [5, 3, 1], vault: 2, news: 3, newsFirst: 2 };
 /* Scenes for each level's file: one tile per event, drawn with layered emoji and CSS (theme = background) */
 const TILES = {
   1: [{ theme: 'farm', big: '🌱', fx: ['🌳', '🌳', '☀️'], cap: 'Rents land in Bến Tre to grow cocoa', vi: 'Thuê đất ở Bến Tre' },
@@ -1776,6 +1820,155 @@ const GLOSS = [
   ['consultancy', 'A firm that gives expert advice to businesses.', 'công ty tư vấn'],
   ['inspection', 'A check: your teacher looks at everyone’s work.', 'kiểm tra']
 ];
+
+/* =====================================================================
+   Demand and supply animations for the team devices (Levels 2 to 5).
+   Each level has one or more "modes" (e.g. a shift, or a movement along a curve).
+   A mode is a list of steps; each step sets a target state and a caption, and the curves glide between steps.
+   Curves are straight lines in data units: qD(P) = aD - bD*P + sD, qS(P) = aS + bS*P + sS.
+   Shown only after the team has solved the short answers, so nothing gives the short answers away.
+   ===================================================================== */
+const DSA_CFG = {
+  2: { title: 'Movement or shift?', vi: 'Di chuyển hay dịch chuyển?', D: [10, 1], S: null, q: 10, p: 10,
+    modes: [
+      { id: 'move', label: 'Event 1: price cut', vi: 'Sự kiện 1: giảm giá', steps: [
+        { st: { dot: { c: 'D', p: 7 }, trail: null }, en: 'At the old price P1, people buy Q1.', vi: 'Ở mức giá cũ P1, người mua mua Q1.' },
+        { st: { dot: { c: 'D', p: 4.5 }, trail: { c: 'D', p: 7 } }, en: 'The price falls → move DOWN along the same demand curve. This is an extension in demand.', vi: 'Giá giảm → di chuyển XUỐNG dọc theo cùng một đường cầu. Đây là cầu mở rộng.' }] },
+      { id: 'shift', label: 'Event 2: TikTok video', vi: 'Sự kiện 2: video TikTok', steps: [
+        { st: { sD: 0 }, en: 'Before the video: demand curve D1.', vi: 'Trước video: đường cầu D1.' },
+        { st: { sD: 3 }, en: 'Tastes change → people want more at EVERY price. The whole curve shifts right to D2: an increase in demand.', vi: 'Sở thích thay đổi → người mua muốn mua nhiều hơn ở MỌI mức giá. Cả đường cầu dịch sang phải thành D2: cầu tăng.' }] }] },
+  3: { title: 'The cocoa drought', vi: 'Hạn hán ca cao', D: [10, 1], S: [0, 1], q: 10, p: 10,
+    modes: [
+      { id: 'drought', label: 'Drought: supply shifts', vi: 'Hạn hán: cung dịch chuyển', steps: [
+        { st: { sS: 0, e1: true }, en: 'Before the drought: equilibrium at P1 and Q1.', vi: 'Trước hạn hán: cân bằng tại P1 và Q1.' },
+        { st: { sS: -2.5 }, en: 'The drought raises costs → supply decreases. S shifts left to S2.', vi: 'Hạn hán làm tăng chi phí → cung giảm. Đường S dịch sang trái thành S2.' },
+        { st: { gap: 5 }, en: 'At the old price P1, quantity demanded is more than quantity supplied: a shortage.', vi: 'Ở mức giá cũ P1, lượng cầu lớn hơn lượng cung: thiếu hụt.' },
+        { st: { gap: null, e2: true }, en: 'Buyers compete, so the price rises to P2. New equilibrium: price higher, quantity lower.', vi: 'Người mua cạnh tranh nên giá tăng lên P2. Cân bằng mới: giá cao hơn, lượng thấp hơn.' }] },
+      { id: 'extend', label: 'Higher price: move along S', vi: 'Giá cao hơn: di chuyển dọc S', hideD: true, steps: [
+        { st: { dot: { c: 'S', p: 3.5 }, trail: null }, en: 'At a low price, firms supply a small quantity.', vi: 'Ở mức giá thấp, doanh nghiệp cung một lượng nhỏ.' },
+        { st: { dot: { c: 'S', p: 7 }, trail: { c: 'S', p: 3.5 } }, en: 'A higher price means more profit per bar → firms supply more. Move UP along the same curve: an extension in supply.', vi: 'Giá cao hơn nghĩa là lợi nhuận mỗi thanh nhiều hơn → doanh nghiệp cung nhiều hơn. Di chuyển LÊN dọc cùng một đường: cung mở rộng.' }] }] },
+  4: { title: 'Shortage, surplus and equilibrium', vi: 'Thiếu hụt, dư thừa và cân bằng', D: [1300, 40], S: [100, 20], q: 1000, p: 35, real: true,
+    ticksP: [10, 15, 20, 25, 30], ticksQ: [0, 200, 400, 600, 800, 1000], slider: [10, 30],
+    modes: [
+      { id: 'short', label: 'From a shortage (10k)', vi: 'Từ thiếu hụt (10k)', steps: [
+        { st: { gap: 10 }, en: 'At 10k, buyers want 900 bars but shops supply only 300: a shortage.', vi: 'Ở 10k, người mua muốn 900 thanh nhưng chỉ có 300: thiếu hụt.' },
+        { st: { gap: 20 }, ms: 2400, en: 'Buyers compete for the bars → the price rises. Quantity demanded contracts, quantity supplied extends.', vi: 'Người mua cạnh tranh → giá tăng. Lượng cầu thu hẹp, lượng cung mở rộng.' },
+        { st: { gap: null, e1: true }, en: 'At 20k, Qd = Qs = 500. Equilibrium: no shortage and no surplus.', vi: 'Ở 20k, Qd = Qs = 500. Cân bằng: không thiếu hụt, không dư thừa.' }] },
+      { id: 'surp', label: 'From a surplus (30k)', vi: 'Từ dư thừa (30k)', steps: [
+        { st: { gap: 30 }, en: 'At a high price, shops supply more than buyers want: a surplus. Stock piles up in the warehouse.', vi: 'Ở mức giá cao, lượng cung nhiều hơn lượng cầu: dư thừa. Hàng tồn chất đầy kho.' },
+        { st: { gap: 20 }, ms: 2400, en: 'Sellers cut prices to sell their stock → the price falls. Quantity demanded extends, quantity supplied contracts.', vi: 'Người bán giảm giá để bán hết hàng → giá giảm. Lượng cầu mở rộng, lượng cung thu hẹp.' },
+        { st: { gap: null, e1: true }, en: 'The price falls until 20k, where Qd = Qs. Equilibrium.', vi: 'Giá giảm đến 20k, khi Qd = Qs. Cân bằng.' }] }] },
+  5: { title: 'Two shifts at once', vi: 'Hai đường cùng dịch chuyển', D: [10, 1], S: [0, 1], q: 10, p: 10,
+    modes: [
+      { id: 'dbig', label: 'Bigger demand shift', vi: 'Cầu dịch nhiều hơn', steps: [
+        { st: { sD: 0, sS: 0, e1: true }, en: 'Before: equilibrium at P1 and Q1.', vi: 'Trước: cân bằng tại P1 và Q1.' },
+        { st: { sD: 3 }, en: 'Halloween: more buyers want chocolate at every price. D shifts right to D2.', vi: 'Halloween: nhiều người muốn mua hơn ở mọi mức giá. D dịch sang phải thành D2.' },
+        { st: { sS: -1.5 }, en: 'The drought raises costs. S shifts left to S2.', vi: 'Hạn hán làm tăng chi phí. S dịch sang trái thành S2.' },
+        { st: { e2: true }, en: 'The price rises for sure. Here the demand shift is bigger, so the quantity RISES.', vi: 'Giá chắc chắn tăng. Ở đây cầu dịch nhiều hơn, nên lượng TĂNG.' }] },
+      { id: 'sbig', label: 'Bigger supply shift', vi: 'Cung dịch nhiều hơn', steps: [
+        { st: { sD: 0, sS: 0, e1: true }, en: 'Before: equilibrium at P1 and Q1.', vi: 'Trước: cân bằng tại P1 và Q1.' },
+        { st: { sD: 1.5 }, en: 'Halloween: D shifts right to D2, but only a little.', vi: 'Halloween: D dịch sang phải thành D2, nhưng chỉ một chút.' },
+        { st: { sS: -3 }, en: 'A very bad drought: S shifts a long way left to S2.', vi: 'Hạn hán rất nặng: S dịch xa sang trái thành S2.' },
+        { st: { e2: true }, en: 'The price still rises. But here the supply shift is bigger, so the quantity FALLS. That is why we "can\'t tell" the quantity.', vi: 'Giá vẫn tăng. Nhưng ở đây cung dịch nhiều hơn, nên lượng GIẢM. Vì vậy ta "không xác định" được lượng.' }] }] }
+};
+const DSA = (() => {
+  const W = 400, H = 280, L = 52, R = 18, T = 16, B = 40, PW = W - L - R, PH = H - T - B;
+  const base = () => ({ sD: 0, sS: 0, gap: null, dot: null, trail: null, e1: false, e2: false });
+  function mount(el, n) {
+    const cfg = DSA_CFG[n]; if (!el || !cfg) return;
+    const A = el._dsa = { cfg, mode: 0, step: -1, st: base(), timer: null, raf: null, playing: false };
+    el.querySelectorAll('[data-dsa-mode]').forEach(b => b.onclick = () => { setMode(el, +b.dataset.dsaMode); play(el); });
+    el.querySelector('[data-dsa=play]').onclick = () => play(el);
+    el.querySelector('[data-dsa=next]').onclick = () => { stop(A); next(el); };
+    const sl = el.querySelector('[data-dsa=slider]');
+    if (sl) sl.oninput = () => { stop(A); A.st.gap = +sl.value; A.st.e1 = false; draw(el); caption(el, sliderCap(cfg, +sl.value)); };
+    setMode(el, 0); go(el, 0, true);
+  }
+  function setMode(el, i) {
+    const A = el._dsa; stop(A); A.mode = i; A.step = -1; A.st = base();
+    el.querySelectorAll('[data-dsa-mode]').forEach(b => b.classList.toggle('on', +b.dataset.dsaMode === i));
+    go(el, 0, true);
+  }
+  function stop(A) { clearTimeout(A.timer); cancelAnimationFrame(A.raf); A.playing = false; }
+  function play(el) { const A = el._dsa; stop(A); A.st = base(); A.step = -1; A.playing = true; go(el, 0, true); A.timer = setTimeout(() => auto(el), 1500); }
+  function auto(el) { const A = el._dsa; if (!A.playing) return; const M = A.cfg.modes[A.mode]; if (A.step >= M.steps.length - 1) { A.playing = false; return; } next(el, () => { A.timer = setTimeout(() => auto(el), 2200); }); }
+  function next(el, done) { const A = el._dsa, M = A.cfg.modes[A.mode]; if (A.step >= M.steps.length - 1) { A.st = base(); A.step = -1; go(el, 0, true); done && done(); return; } go(el, A.step + 1, false, done); }
+  function go(el, i, instant, done) {
+    const A = el._dsa, M = A.cfg.modes[A.mode], S = M.steps[i]; A.step = i;
+    const from = { ...A.st }, to = { ...A.st, ...S.st };
+    if (to.dot && from.dot && to.dot.c !== from.dot.c) from.dot = null;
+    caption(el, [S.en, S.vi], i, M.steps.length);
+    const sl = el.querySelector('[data-dsa=slider]'); if (sl && to.gap != null) sl.value = to.gap;
+    if (instant || REDUCED_DSA()) { A.st = to; draw(el); done && done(); return; }
+    const ms = S.ms || 1100, t0 = performance.now();
+    const lerp = (a, b, f) => a == null || b == null ? b : a + (b - a) * f;
+    const frame = now => {
+      const f = Math.min(1, (now - t0) / ms), e = f < .5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+      A.st = { ...to, sD: lerp(from.sD, to.sD, e), sS: lerp(from.sS, to.sS, e), gap: from.gap != null && to.gap != null ? lerp(from.gap, to.gap, e) : to.gap,
+        dot: to.dot ? { c: to.dot.c, p: from.dot ? lerp(from.dot.p, to.dot.p, e) : to.dot.p } : null, e2: f >= 1 ? to.e2 : from.e2 };
+      if (A.st.gap != null && sl) sl.value = A.st.gap;
+      draw(el); if (f < 1) A.raf = requestAnimationFrame(frame); else { A.st = to; draw(el); done && done(); }
+    };
+    A.raf = requestAnimationFrame(frame);
+  }
+  const REDUCED_DSA = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } };
+  function caption(el, c, i, n) { const box = el.querySelector('.dsa-cap'); if (!box) return; box.innerHTML = `${n ? `<b class="dsa-stepno">${i + 1}/${n}</b> ` : ''}${esc(c[0])}${c[1] ? `<span class="vi bk-viblock" lang="vi">${esc(c[1])}</span>` : ''}`; }
+  function sliderCap(cfg, p) {
+    const qd = qD(cfg, p, 0), qs = qS(cfg, p, 0), d = Math.round(qd - qs);
+    return d > 0 ? [`At ${p}k: Qd = ${Math.round(qd)}, Qs = ${Math.round(qs)}. Quantity demanded is bigger: a shortage.`, `Ở ${p}k: lượng cầu lớn hơn lượng cung: thiếu hụt.`]
+      : d < 0 ? [`At ${p}k: Qd = ${Math.round(qd)}, Qs = ${Math.round(qs)}. Quantity supplied is bigger: a surplus.`, `Ở ${p}k: lượng cung lớn hơn lượng cầu: dư thừa.`]
+      : [`At ${p}k: Qd = Qs = ${Math.round(qd)}. Equilibrium!`, `Ở ${p}k: Qd = Qs. Cân bằng!`];
+  }
+  const qD = (c, p, s) => c.D[0] - c.D[1] * p + s, qS = (c, p, s) => c.S[0] + c.S[1] * p + s;
+  const eq = (c, sD, sS) => { const p = (c.D[0] + sD - c.S[0] - sS) / (c.D[1] + c.S[1]); return { p, q: qD(c, p, sD) }; };
+  function draw(el) {
+    const A = el._dsa, c = A.cfg, M = c.modes[A.mode], s = A.st, svg = el.querySelector('svg.dsa'); if (!svg) return;
+    const X = q => L + PW * q / c.q, Y = p => T + PH - PH * p / c.p, f = v => v.toFixed(1);
+    const showD = !!c.D && !M.hideD, showS = !!c.S && !M.hideS;
+    const pts = (fn, sh) => { const a = []; for (let i = 0; i <= 80; i++) { const p = c.p * i / 80, q = fn(c, p, sh); if (q >= 0 && q <= c.q && p > c.p * .04 && p < c.p * .97) a.push([X(q), Y(p)]); } return a; };
+    const line = (fn, sh) => pts(fn, sh).map(v => `${f(v[0])},${f(v[1])}`).join(' ');
+    const label = (fn, sh, txt, cls, end) => { const a = pts(fn, sh); if (!a.length) return ''; const v = end === 'top' ? a[a.length - 1] : a[0]; return `<text class="dsa-lab ${cls}" x="${f(Math.min(v[0] + 6, W - 22))}" y="${f(v[1] + (end === 'top' ? 10 : -6))}">${txt}</text>`; };
+    let o = `<path class="dsa-ax" d="M${L},${T - 4} V${T + PH} H${L + PW + 6}"/><text class="dsa-axl" x="${L - 8}" y="${T + 2}" text-anchor="end">Price</text><text class="dsa-axl" x="${L + PW}" y="${T + PH + 32}" text-anchor="end">Quantity</text>`;
+    if (c.ticksP) o += c.ticksP.map(p => `<text class="dsa-tick" x="${L - 6}" y="${f(Y(p) + 4)}" text-anchor="end">${p}k</text><line class="dsa-grid" x1="${L}" x2="${L + PW}" y1="${f(Y(p))}" y2="${f(Y(p))}"/>`).join('');
+    if (c.ticksQ) o += c.ticksQ.map(q => `<text class="dsa-tick" x="${f(X(q))}" y="${T + PH + 15}" text-anchor="middle">${q}</text>`).join('');
+    const dShift = Math.abs(s.sD) > .01, sShift = Math.abs(s.sS) > .01;
+    if (showD && dShift) o += `<polyline class="dsa-d ghost" points="${line(qD, 0)}"/>` + label(qD, 0, 'D1', 'd', 'bot');
+    if (showS && sShift) o += `<polyline class="dsa-s ghost" points="${line(qS, 0)}"/>` + label(qS, 0, 'S1', 's', 'top');
+    if (showD) o += `<polyline class="dsa-d" points="${line(qD, s.sD)}"/>` + label(qD, s.sD, dShift ? 'D2' : 'D', 'd', 'bot');
+    if (showS) o += `<polyline class="dsa-s" points="${line(qS, s.sS)}"/>` + label(qS, s.sS, sShift ? 'S2' : 'S', 's', 'top');
+    const arrow = (x1, x2, y, cls) => Math.abs(x2 - x1) > 6 ? `<line class="dsa-arr ${cls}" x1="${f(x1)}" x2="${f(x2 - Math.sign(x2 - x1) * 4)}" y1="${f(y)}" y2="${f(y)}" marker-end="url(#dsaHead${cls})"/>` : '';
+    if (showD && dShift) { const p = c.p * .55; o += arrow(X(qD(c, p, 0)), X(qD(c, p, s.sD)), Y(p), 'd'); }
+    if (showS && sShift) { const p = c.p * .78; o += arrow(X(qS(c, p, 0)), X(qS(c, p, s.sS)), Y(p), 's'); }
+    const guides = (q, p, lp, lq, cls) => `<path class="dsa-guide ${cls}" d="M${L},${f(Y(p))} H${f(X(q))} V${T + PH}"/><circle class="dsa-pt ${cls}" cx="${f(X(q))}" cy="${f(Y(p))}" r="5"/><text class="dsa-gl" x="${L - 6}" y="${f(Y(p) + 4)}" text-anchor="end">${lp}</text><text class="dsa-gl" x="${f(X(q))}" y="${T + PH + (c.ticksQ ? 28 : 15)}" text-anchor="middle">${lq}</text>`;
+    if (s.e1 && showD && showS) { const e = c.real ? eq(c, s.sD, s.sS) : eq(c, 0, 0); o += guides(e.q, e.p, c.real ? Math.round(e.p) + 'k' : 'P1', c.real ? Math.round(e.q) : 'Q1', 'e1'); }
+    if (s.e2 && showD && showS) { const e = eq(c, s.sD, s.sS); o += guides(e.q, e.p, 'P2', 'Q2', 'e2'); }
+    if (s.gap != null && showD && showS) {
+      const p = s.gap, a = qD(c, p, s.sD), b = qS(c, p, s.sS), y = Y(p), d = a - b, kind = Math.abs(d) < c.q * .01 ? 'eq' : d > 0 ? 'short' : 'surp';
+      o += `<line class="dsa-pline" x1="${L}" x2="${L + PW}" y1="${f(y)}" y2="${f(y)}"/>`;
+      if (c.real) o += `<text class="dsa-gl" x="${L - 6}" y="${f(y + 4)}" text-anchor="end" style="font-weight:700">${Math.round(p)}k</text>`;
+      else o += `<text class="dsa-gl" x="${L - 6}" y="${f(y + 4)}" text-anchor="end">P1</text>`;
+      if (kind !== 'eq') { const x1 = X(Math.min(a, b)), x2 = X(Math.max(a, b)); o += `<line class="dsa-gap ${kind}" x1="${f(x1)}" x2="${f(x2)}" y1="${f(y)}" y2="${f(y)}"/><text class="dsa-gapl ${kind}" x="${f((x1 + x2) / 2)}" y="${f(y - 9)}" text-anchor="middle">${kind === 'short' ? 'Shortage' : 'Surplus'}</text>`; }
+      o += `<circle class="dsa-pt d" cx="${f(X(a))}" cy="${f(y)}" r="4.5"/><circle class="dsa-pt s" cx="${f(X(b))}" cy="${f(y)}" r="4.5"/>`;
+      if (c.real) o += `<text class="dsa-ql d" x="${f(X(a))}" y="${f(y + 18)}" text-anchor="middle">Qd ${Math.round(a)}</text><text class="dsa-ql s" x="${f(X(b))}" y="${f(y + 18)}" text-anchor="middle">Qs ${Math.round(b)}</text>`;
+    }
+    if (s.dot) {
+      const fn = s.dot.c === 'D' ? qD : qS, sh = s.dot.c === 'D' ? s.sD : s.sS, cls = s.dot.c === 'D' ? 'd' : 's';
+      if (s.trail) { const q0 = fn(c, s.trail.p, sh); o += `<circle class="dsa-pt ghost ${cls}" cx="${f(X(q0))}" cy="${f(Y(s.trail.p))}" r="5"/>` + `<path class="dsa-guide" d="M${L},${f(Y(s.trail.p))} H${f(X(q0))} V${T + PH}"/><text class="dsa-gl" x="${L - 6}" y="${f(Y(s.trail.p) + 4)}" text-anchor="end">P1</text><text class="dsa-gl" x="${f(X(q0))}" y="${T + PH + 15}" text-anchor="middle">Q1</text>`; }
+      const q = fn(c, s.dot.p, sh); o += guides(q, s.dot.p, s.trail ? 'P2' : 'P1', s.trail ? 'Q2' : 'Q1', 'dot ' + cls);
+    }
+    svg.innerHTML = `<defs>${['d', 's'].map(k => `<marker id="dsaHead${k}" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="dsa-head ${k}"/></marker>`).join('')}</defs>` + o;
+  }
+  function html(n) {
+    const c = DSA_CFG[n]; if (!c) return '';
+    return `<div class="panel stack dsa-box" data-dsa-level="${n}"><h2 style="margin:0">🎬 See it move: ${esc(c.title)}${viSpan(c.vi)}</h2>
+      <div class="row dsa-modes">${c.modes.map((m, i) => `<button class="btn small dsa-mode" data-dsa-mode="${i}">${esc(m.label)}${m.vi ? `<small class="vi" lang="vi">${esc(m.vi)}</small>` : ''}</button>`).join('')}</div>
+      <svg class="dsa" viewBox="0 0 ${W} ${H}" role="img" aria-label="Demand and supply diagram"></svg>
+      ${c.slider ? `<label class="dsa-slider"><span>Try a price · Thử một mức giá</span><input type="range" min="${c.slider[0]}" max="${c.slider[1]}" step="1" value="${c.slider[0]}" data-dsa="slider"></label>` : ''}
+      <div class="dsa-cap" aria-live="polite"></div>
+      <div class="row"><button class="btn small primary" data-dsa="play">▶ Play</button><button class="btn small" data-dsa="next">Next step ›</button></div></div>`;
+  }
+  return { html, mount };
+})();
 
 /* =====================================================================
    Saigon Chocolate Crisis: Market Rescue! (breakout)
@@ -1861,7 +2054,7 @@ function tBroadcast(now) {
 }
 function youFor(pid) {
   const t = T.s.teams[pid]; if (!t) return null;
-  return { tid: pid, name: t.name, icon: t.icon, color: t.color, members: t.members || [], level: t.level, ready: !!t.ready, done: !!t.done, fees: t.fees, badges: t.badges, shorts: t.shorts, hints: t.hints,
+  return { tid: pid, name: t.name, icon: t.icon, color: t.color, members: t.members || [], level: t.level, ready: !!t.ready, done: !!t.done, fees: t.fees, badges: t.badges, shorts: t.shorts, hints: t.hints, phints: t.phints || {},
     lockLeft: Math.max(0, Math.round(((t.lockUntil || 0) - Date.now()) / 1000)), vault: t.vault, newsAns: t.newsAns, place: placeOf(pid), doneAt: t.doneAt, unlocked: t.unlocked };
 }
 const you = pid => { const y = youFor(pid); if (y) tSend({ type: 'you', to: pid, you: y }); };
@@ -1879,7 +2072,7 @@ function tOnMsg(m) {
     let t = s.teams[m.pid];
     if (!t) {
       const i = s.order.length, look = TEAM_LOOK[i % TEAM_LOOK.length];
-      t = s.teams[m.pid] = { pid: m.pid, name: String(m.nick || 'Team ' + (i + 1)).slice(0, 18), icon: look[0], color: look[1], members: [], level: 1, ready: false, done: false, fees: 0, badges: [], shorts: {}, hints: {}, vault: {}, newsAns: {}, unlocked: {}, wrong: 0, lockUntil: 0, joinedAt: Date.now() };
+      t = s.teams[m.pid] = { pid: m.pid, name: String(m.nick || 'Team ' + (i + 1)).slice(0, 18), icon: look[0], color: look[1], members: [], level: 1, ready: false, done: false, fees: 0, badges: [], shorts: {}, hints: {}, phints: {}, vault: {}, newsAns: {}, unlocked: {}, wrong: 0, lockUntil: 0, joinedAt: Date.now() };
       s.order.push(m.pid); Sound.play('pop'); toast(`${t.icon} ${t.name} joined`);
     }
     if (Array.isArray(m.members) && m.members.length && !(t.members || []).length) t.members = m.members.map(x => String(x).slice(0, 16)).filter(Boolean).slice(0, 6);
@@ -1908,6 +2101,12 @@ function tOnMsg(m) {
     const h = (t.hints[L.n] ||= {}); if (h[q.id]) return;
     const rec = (t.shorts[L.n] || {})[q.id], free = rec && rec.tries >= 2; h[q.id] = free ? 'free' : 'paid';
     if (!free) { addFee(t, -FEES.hint, 'hint'); t.paidHint = true; }
+    tSave(); renderSoon(); you(m.pid); return;
+  }
+  if (m.type === 'phint') {   // worksheet hint: step 1 free, step 2 costs FEES.phint
+    if (!L || +m.n !== t.level || !shortsDone(t.shorts, L.n)) return; const i = +m.i, step = +m.step; if (!L.help || !L.help[i] || (step !== 1 && step !== 2)) return;
+    const h = ((t.phints ||= {})[L.n] ||= {}), have = h[i] || 0; if (step <= have || step > have + 1) return;
+    h[i] = step; if (step === 2) { addFee(t, -FEES.phint, 'worksheet hint ' + L.n + L.sheet[i][0]); t.paidHint = true; } else T.s.log.push({ at: Date.now(), team: t.name, ev: 'worksheet hint step 1 ' + L.n + L.sheet[i][0], fee: 0 });
     tSave(); renderSoon(); you(m.pid); return;
   }
   if (m.type === 'ready') {
@@ -2000,6 +2199,10 @@ function raceSync(root, big) {
   });
   root.querySelectorAll('.bk-lane').forEach(l => { if (!keep.has(l.dataset.tid)) l.remove(); });
 }
+function phintLine(t) {
+  const L = LV[t.level - 1], h = (t.phints || {})[t.level] || {}; if (t.done || !L || !Object.keys(h).length) return '';
+  return `<small class="bk-phl">💡 Worksheet hints this level: ${Object.entries(h).map(([i, st]) => `<b>${esc(L.sheet[i][0])}</b> ${st >= 2 ? 'steps 1+2' : 'step 1'}`).join(' · ')}</small>`;
+}
 function healthHtml() {
   const ts = teams(), got = ts.reduce((a, t) => a + (t.done ? NLV : t.level - 1), 0), all = Math.max(1, ts.length * NLV), f = got / all;
   const face = f >= 1 ? '😄' : f > .6 ? '🙂' : f > .3 ? '😐' : '😩', queue = Math.round((1 - f) * 10);
@@ -2022,7 +2225,7 @@ function renderBody() {
         <p class="muted" style="margin:0">Never shown on the projector. Show a team its code after you have checked every worksheet. Each code opens the next level.</p>
         ${T.showCodes ? `<div class="bk-codes">${LV.map(L => `<label><span>${L.icon} After ${L.boss ? 'the Boss' : L.n === NLV ? 'the finale' : 'Level ' + L.n}${L.n === NLV ? ' (licence)' : ''}</span><input type="text" data-code="${L.n}" value="${esc(s.codes[L.n])}" maxlength="12" autocomplete="off"></label>`).join('')}</div><div class="row"><button class="btn small" data-act="printcodes">🖨 Print a passcode card</button><button class="btn small ghost" data-act="newcodes">Back to the usual codes</button></div>` : ''}</div>
       <div class="panel stack"><h2 style="margin:0">Teams</h2>${ts.length ? ts.map(t => { const st = statusOf(t); return `<div class="bk-team ${st[2]}" style="--c:${t.color}"><div class="row" style="justify-content:space-between"><b>${t.icon} ${esc(t.name)}</b><span class="chip">${t.done ? '🏅 Done' : 'Level ' + t.level}</span></div>
-          <small class="muted">${(t.members || []).map(esc).join(', ') || 'Members not entered yet'}</small><div>${st[0]} ${esc(st[1])} · 💰 ${k(t.fees)} ${t.badges.map(b => BADGES[b][0]).join('')}</div>
+          <small class="muted">${(t.members || []).map(esc).join(', ') || 'Members not entered yet'}</small><div>${st[0]} ${esc(st[1])} · 💰 ${k(t.fees)} ${t.badges.map(b => BADGES[b][0]).join('')}</div>${phintLine(t)}
           ${t.done ? '' : `<div class="row"><button class="btn small" data-act="unlock" data-tid="${t.pid}">Open the next level by hand</button>${Date.now() < (t.lockUntil || 0) ? `<button class="btn small" data-act="unlockcode" data-tid="${t.pid}">Clear the lock</button>` : ''}</div>`}</div>`; }).join('') : '<p class="muted" style="margin:0">No teams yet. Each team opens the home page on its device, types the room code and its team name.</p>'}</div>
       <div class="panel stack"><h2 style="margin:0">🗞️ Breaking news</h2><p class="muted" style="margin:0">Every team gets 60 seconds to answer. Right answers earn ${FEES.news}k; the fastest right team earns ${FEES.newsFirst}k more.</p>
         ${N && N.open ? `<div class="note"><b>${N.icon} ${esc(N.title)}</b> · ${Object.keys(N.answers).length} of ${ts.length} answered <button class="btn small" data-act="newsclose">Close now</button></div>` : ''}
@@ -2033,7 +2236,7 @@ function renderBody() {
     </section><section class="stack">
       <div class="panel stack"><h2 style="margin:0">🗺️ The race</h2><div id="raceSlot"></div>${healthHtml()}</div>
       <div class="panel stack"><h2 style="margin:0">🏆 Consultancy fees</h2>${leaderHtml()}<div class="row"><button class="btn small primary" data-act="podium" ${ts.length ? '' : 'disabled'}>🏆 Podium</button><button class="btn small" data-act="licences" ${ts.some(t => t.done) ? '' : 'disabled'}>🖨 Print licences</button><button class="btn small" data-act="csv" ${s.log.length ? '' : 'disabled'}>Download the log (CSV)</button></div></div>
-      <details class="panel"><summary>How fees and badges work</summary><div class="stack" style="margin-top:8px"><p style="margin:0">Short answer right first time ${FEES.short1}k (later ${FEES.short}k) · hint −${FEES.hint}k (free after 2 wrong tries) · passcode ${FEES.unlock}k, plus ${FEES.rank.join('k / ')}k for the 1st / 2nd / 3rd team to open that level · Bonus Vault ${FEES.vault}k · breaking news ${FEES.news}k.</p><div>${Object.values(BADGES).map(b => `<div>${b[0]} <b>${esc(b[1])}</b>: ${esc(b[2])}</div>`).join('')}</div></div></details>
+      <details class="panel"><summary>How fees and badges work</summary><div class="stack" style="margin-top:8px"><p style="margin:0">Short answer right first time ${FEES.short1}k (later ${FEES.short}k) · hint −${FEES.hint}k (free after 2 wrong tries) · worksheet hint: step 1 free, step 2 −${FEES.phint}k · passcode ${FEES.unlock}k, plus ${FEES.rank.join('k / ')}k for the 1st / 2nd / 3rd team to open that level · Bonus Vault ${FEES.vault}k · breaking news ${FEES.news}k.</p><div>${Object.values(BADGES).map(b => `<div>${b[0]} <b>${esc(b[1])}</b>: ${esc(b[2])}</div>`).join('')}</div></div></details>
       <details class="panel"><summary>Settings</summary><div class="stack" style="margin-top:8px"><p class="muted" style="margin:0">Room ${esc(s.room)} · ${s.transport === 'local' ? 'test mode' : 'online'} · ${s.minutes} minutes</p><button class="btn small" data-act="newroom">Close room and start again</button></div></details>
     </section></div>`;
   { const old = T.raceT, slot = $('#raceSlot'); if (old) { slot.replaceWith(old); } else { slot.id = 'raceT'; T.raceT = slot; } raceSync(T.raceT, false); }
@@ -2168,22 +2371,23 @@ function tick() {
 function setPart(el, html) {
   if (!el) return;
   const key = html.replace(/ data-left="\d+"( data-rerender="1")?>\d+s</g, '><');
-  if (el._key === key) return; el._key = key; el.innerHTML = html;
+  if (el._key === key) return false; el._key = key; el.innerHTML = html; return true;
 }
 function render() {
   const main = $('#sMain'); if (!main || !S.pub) return;
-  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#sMain') && ae.matches('input')) { ae.onblur = () => setTimeout(render, 250); return; }
+  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#sMain') && ae.matches('input:not([type=range])')) { ae.onblur = () => setTimeout(render, 250); return; }
   const p = S.pub, me = S.me;
   if (!me) { main.innerHTML = '<div class="panel">Joining…</div>'; return; }
   $('#hTeam').textContent = `${me.icon} ${me.name}`; $('#hTeam').style.color = '#fff';
   $('#hLevel').textContent = me.done ? '🏅 Licensed' : `Level ${me.level} of ${NLV}`; $('#hFees').textContent = `💰 ${k(me.fees)}`;
-  if (!$('#sDyn')) { main.innerHTML = '<div id="sNews"></div><div id="sHead"></div><div id="sFile"></div><div id="sDyn"></div>'; main.onclick = devClick; }
+  if (!$('#sDyn')) { main.innerHTML = '<div id="sNews"></div><div id="sHead"></div><div id="sFile"></div><div id="sAnim"></div><div id="sDyn"></div>'; main.onclick = devClick; }
   setPart($('#sNews'), p.news && !(me.newsAns && me.newsAns[p.news.id] != null) ? newsHtml(p.news) : '');
-  if (p.phase === 'lobby' || !(me.members || []).length) { setPart($('#sHead'), setupHtml()); setPart($('#sFile'), ''); setPart($('#sDyn'), ''); return; }
+  if (p.phase === 'lobby' || !(me.members || []).length) { setPart($('#sHead'), setupHtml()); setPart($('#sFile'), ''); setPart($('#sAnim'), ''); setPart($('#sDyn'), ''); return; }
   const ended = p.phase === 'ended' ? '<div class="note">⏰ <b>Time is up.</b> Finish the level you are on if your teacher allows it.</div>' : '';
-  if (me.done) { setPart($('#sHead'), ended + doneHtml()); setPart($('#sFile'), ''); setPart($('#sDyn'), ''); return; }
+  if (me.done) { setPart($('#sHead'), ended + doneHtml()); setPart($('#sFile'), ''); setPart($('#sAnim'), ''); setPart($('#sDyn'), ''); return; }
   const parts = levelParts(LV[me.level - 1]);
   setPart($('#sHead'), ended + parts[0]); setPart($('#sFile'), parts[1]); setPart($('#sDyn'), parts[2]);
+  const an = $('#sAnim'), ah = shortsDone(me.shorts, me.level) ? DSA.html(me.level) : ''; if (setPart(an, ah) && ah) DSA.mount(an.firstElementChild, me.level);
 }
 document.addEventListener('toggle', e => { if (e.target && e.target.matches && e.target.matches('#sFile details')) S.openFile = e.target.open; }, true);
 function setupHtml() {
@@ -2209,13 +2413,24 @@ function levelParts(L) {
   if (!done) return [head, file, shorts];
   const W = (S.written[L.n] ||= []), all = (me.members || []).every(n2 => W.includes(n2));
   const sheet = `<div class="panel stack bk-sheet"><h2 style="margin:0">✍️ Worksheet: Level ${L.n}</h2><p style="margin:0"><b>Everyone writes their own answers</b> on the worksheet. Your teacher checks every sheet.</p>
-    <ol class="bk-sq">${L.sheet.map(x => `<li><b>${esc(x[0])}</b> ${gl(x[1])} <b>[${x[2]}]</b></li>`).join('')}</ol>
+    <ol class="bk-sq">${L.sheet.map((x, i) => `<li><div><b>${esc(x[0])}</b> ${gl(x[1])} <b>[${x[2]}]</b></div>${phintHtml(L, i)}</li>`).join('')}</ol>
     <div><b>Tick when each member has finished:</b><div class="bk-ticks">${(me.members || []).map(n2 => `<button class="bk-tick ${W.includes(n2) ? 'on' : ''}" data-a="written" data-n="${esc(n2)}">${W.includes(n2) ? '✅' : '⬜'} ${esc(n2)}</button>`).join('')}</div></div>
     ${me.ready ? '' : `<button class="btn primary block" data-a="ready" ${all ? '' : 'disabled'}>✋ Ready for inspection</button>${all ? '' : '<small class="muted">Tick every member first.</small>'}`}</div>`;
   const lock = me.lockLeft > 0 ? `<div class="bad">🚨 Minh's security alarm! Wait <span data-left="${me.lockLeft}" data-rerender="1">${me.lockLeft}s</span>.</div>` : '';
   const code = me.ready ? `<div class="panel stack bk-code"><h2 style="margin:0">🔐 Passcode</h2><p style="margin:0">Your teacher is coming to check every worksheet. When your work is OK, your teacher shows you the passcode.</p>${lock}
     <div class="row"><input type="text" class="code-input" maxlength="12" autocomplete="off" autocapitalize="characters" data-draft="code${L.n}" id="codeIn" value="${esc(S.draft['code' + L.n] ?? '')}" style="max-width:260px" ${me.lockLeft > 0 ? 'disabled' : ''}><button class="btn primary" data-a="code" ${me.lockLeft > 0 ? 'disabled' : ''}>Unlock</button></div></div>${vaultHtml()}` : '';
   return [head, `<details class="panel" ${S.openFile ? 'open' : ''}><summary>📁 Minh's file and short answers (done ✅)</summary><div class="stack" style="margin-top:10px">${tilesHtml(L.n)}<p style="margin:0">${gl(L.story)}</p>${sourceHtml(L.source)}</div></details>`, sheet + code];
+}
+/* Worksheet (Paper 2) hints: step 1 "what to do" is free, step 2 "get started" costs FEES.phint */
+function hintLines(en, vi) {
+  const li = t => t.split('\n').map(x => x.startsWith('☐') ? `<div class="bk-chk">${esc(x)}</div>` : `<div>${esc(x)}</div>`).join('');
+  return `<div class="bk-hl">${li(en)}</div>${vi ? `<div class="vi bk-viblock bk-hl" lang="vi">${li(vi)}</div>` : ''}`;
+}
+function phintHtml(L, i) {
+  const H = L.help && L.help[i]; if (!H) return '';
+  const st = (((S.me.phints || {})[L.n]) || {})[i] || 0;
+  return `<div class="bk-ph">${st >= 1 ? `<div class="bk-hint"><b>💡 Step 1: what to do</b>${hintLines(H[0], H[1])}</div>` : ''}${st >= 2 ? `<div class="bk-hint s2"><b>🧩 Step 2: get started</b>${hintLines(H[2], H[3])}</div>` : ''}
+    ${st === 0 ? `<button class="btn small ghost" data-a="phint" data-i="${i}" data-step="1">💡 Hint: what to do (free)</button>` : st === 1 ? `<button class="btn small ghost" data-a="phint" data-i="${i}" data-step="2">🧩 Hint: get started (−${FEES.phint}k)</button>` : ''}</div>`;
 }
 function vaultHtml() {
   const me = S.me, left = VAULT.filter(q => (me.vault || {})[q.id] == null), right = Object.values(me.vault || {}).filter(Boolean).length;
@@ -2242,6 +2457,7 @@ function devClick(e) {
     return;
   }
   if (a === 'hint') { sSend({ type: 'hint', n: L.n, id: b.dataset.q }); return; }
+  if (a === 'phint') { sSend({ type: 'phint', n: L.n, i: +b.dataset.i, step: +b.dataset.step }); sfx('pop'); b.disabled = true; return; }
   if (a === 'written') { const W = (S.written[L.n] ||= []), n2 = b.dataset.n, i = W.indexOf(n2); if (i < 0) W.push(n2); else W.splice(i, 1); sSave(); sfx('pop'); return render(); }
   if (a === 'ready') { sSend({ type: 'ready', n: L.n }); sfx('chime'); return; }
   if (a === 'code') { const v = (($('#codeIn') || {}).value || '').trim(); if (!v) return toast('Type the passcode your teacher shows you.'); sSend({ type: 'code', n: L.n, code: v }); return; }
