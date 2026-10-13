@@ -349,6 +349,10 @@ table.helper td, table.helper th { text-align: left; }
 
 .home-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 18px; align-items: start; }
 @media (max-width: 900px) { .home-grid { grid-template-columns: 1fr; } }
+/* opened from a join link or QR code: students see only the join card */
+body.student-only #teacherSide { display: none; }
+body.student-only .home-grid { grid-template-columns: minmax(0, 1fr); max-width: 560px; margin: 0 auto; width: 100%; }
+.teacher-link { text-align: center; font-size: .85rem; }
 .level { border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; display: flex; flex-direction: column; gap: 8px; background: var(--panel); }
 .level .tag { font-family: var(--font-display); font-weight: 800; color: var(--foil); letter-spacing: .05em; }
 .ok-t { color: var(--mint); font-weight: 700; } .bad-t { color: var(--seller); font-weight: 700; }
@@ -690,7 +694,8 @@ body.vi-sub .fx-news-strip .vi, body.vi-sub .fx-bc-strip .vi, body.vi-sub .fx-cr
       <button class="btn primary block" id="join">Join</button>
       <div id="joinMsg"></div><div id="modeNote"></div>
     </section>
-    <section class="stack">
+    <p class="teacher-link muted hidden" id="teacherLink"><a href="index.html">Teacher? Open the full home page</a></p>
+    <section class="stack" id="teacherSide">
       <div class="panel stack">
         <h2 style="margin:0">For teachers</h2>
         <p style="margin:0">Three levels, in this order. Choose the same good (trà sữa, bánh mì or chocolate) in both. Open the lesson on the computer connected to the projector.</p>
@@ -1308,7 +1313,7 @@ async function testMarking() {
   if (local) $('#modeNote').innerHTML = `<p class="note" style="margin:0">Test mode: this only finds rooms opened in another tab of this browser.${ONLINE_READY ? '' : ' To let students join from their own devices, add the Supabase details to config.js.'}</p>`;
   $('#join').onclick = join; $('#nn').onkeydown = e => { if (e.key === 'Enter') join(); }; $('#rc').onkeydown = e => { if (e.key === 'Enter') $('#nn').focus(); };
   (room ? $('#nn') : $('#rc')).focus();
-  if (room) $('#studentCard').scrollIntoView();
+  if (room) { document.body.classList.add('student-only'); $('#teacherLink').classList.remove('hidden'); const tl = $('#teacherLink a'); if (local) tl.href = 'index.html?t=local'; }
   $('#cfg').innerHTML = `<div class="kv"><span>config.js</span><b>${window.MARKET_CONFIG ? '✓ loaded' : '✗ not found (test mode only)'}</b><span>Online joining</span><b>${ONLINE_READY ? '✓ Supabase details present' : '✗ add supabaseUrl and supabaseAnonKey'}</b><span>AI marking</span><b>${CONFIG.markerUrl || ONLINE_READY ? 'uses ' + esc(CONFIG.markerUrl || 'your Supabase "mark" function') : '✗ needs Supabase (keyword estimate is used instead)'}</b></div>`;
   $('#btnConn').onclick = testConnection; $('#btnMark').onclick = testMarking;
   $('#avPick').innerHTML = FX.avatarPicker(FX.myAvatar());
