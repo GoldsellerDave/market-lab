@@ -9,6 +9,8 @@ Two classroom market lessons for Cambridge IGCSE Economics 0455, in one web app.
 | `level1.html` | Lesson 2, Level 1: the trading floor |
 | `level2.html` | Lessons 3–4, Level 2: the online market with shocks, price locks and real prizes |
 | `blended.html` | Optional extra lesson: the blended market with real goods and laptop tills |
+| `breakout.html` | Review: the Saigon Chocolate Crisis breakout |
+| `roleplay.html` | Role-play stations: a group activity with swappable content packs (CPD, ESL, Economics) |
 | `config.js` | **The only file you edit**: Supabase details for online joining and AI marking |
 | `supabase/functions/mark/index.ts` | The AI marking function (runs on Supabase, holds the Claude API key) |
 
@@ -365,3 +367,57 @@ Open `level0.html?mode=teacher`, choose the good (trà sữa, bánh mì or choco
 **Keyboard shortcuts** for laptops: Y/N to answer, 1/2 in the card quiz, arrows plus Enter to bargain, A to accept, W to walk away.
 
 **Tip:** in "Where do they meet?", show three different prices so students can earn the Gap spotter badge.
+
+# Role-play stations
+
+File: `roleplay.html` (built from `src/roleplay/` by `build.sh`). Teams of 3–6 each act out one station (a questioning technique, a market event, or anything a pack defines). The room watches, votes on what it saw, then hears the team's observer and debriefer. Phones need no accounts; a first name is optional and only shows on the team's role list.
+
+Open it from the home page (**Open role-play stations**) or at `roleplay.html?mode=teacher`. Phones scan the QR code (or type the room code on the home page).
+
+## How a session runs
+
+1. **Lobby.** Phones pick a team and agree a team size. Each person claims a role. The projector shows the QR code and each team's seats filling up; a team turns green when every role is claimed.
+2. **Prep.** A countdown for the planned prep minutes. Phones show the briefing (the move, why it works, sub-par vs good) and each person's role card.
+3. **Rounds.** For each team: **spin** (picks a team still waiting), **on stage** (role-play timer), **vote** (everyone else votes on their phone; the active team cannot vote; the bar chart stays hidden), **reveal** (bars, then the right answer turns green), **observer** (their checklist on the projector) and **debrief** (the "why it works" points).
+4. **Takeaway.** The decision sequence, the "sharpest eyes" table (correct votes by team) and the commitment prompt. Every phone can then browse all the stations.
+
+Controls: **Next** (or →), **Pause** (or space), **+15 s**, **Back**, and **Auto-advance** (moves on when each timer ends; the vote also closes early when everyone has voted). Press **H** to hide the control bar. The ⚙ drawer puts a chosen team on stage, opens or closes the vote, skips a team, puts a done team back in the queue, edits the phase times, re-fits the remaining rounds to the planned end, shows the secret team map, clears a team's roles, or resets.
+
+## Roles and team sizes
+
+Each pack lists its roles and which roles one person holds at each team size. The questioning pack: 6 = Teacher, Student A, B, C, Observer, Debriefer; 5 drops Student C; 4 has one person as Observer + Debriefer; 3 has Student A + Observer and Student B + Debriefer (their card flips to the second role when the vote opens). Secret student cards are shown only on the phone of the person who claimed them.
+
+Team-to-station mapping is shuffled when the room opens (Team 1 is never station 1 in order), and the ballot always lists every station in the same order.
+
+## Timing planner
+
+On the setup screen set the session length, an optional start time, the minutes before the app (intro slides), the prep minutes and the wrap-up minutes. The planner shows the time left for rounds, the time per team, and whether the round phases fit (with a 10-second changeover a round). **Fit rounds to the time** scales the role-play, vote, observer and debrief times to fit; **Save as my defaults** keeps your times for that pack on this computer. During the session the top bar shows the projected end and how far ahead or behind you are.
+
+The 30-minute CPD plan: 10:30 start, 6 min of slides, 5 min prep, 6 rounds of 2:30 (60 s role-play, 15 s vote, 10 s reveal, 30 s observer, 20 s debrief, 5 s spin), 3 min wrap-up: 1 minute spare.
+
+## If the Wi-Fi drops
+
+All the pack content is inside the page, and each phone keeps its team, role and cards. If a phone loses the connection, the cards still work; votes need the connection, so take a show of hands instead. A phone or the console can reload mid-session and carry on (the console offers **Resume room**). Print the backup cards from the setup screen (**Print backup cards**) or from `roleplay.html?mode=cards&pack=questioning`.
+
+## Content packs
+
+Two packs are built in: **Questioning for everyone** (CPD Session 4: wait time, cold calling, no opt out, Right is Right, follow-up questions with the Socratic bank, ABC) and **Market shocks: act it out** (0455 demand and supply: four shifts, a shortage and a surplus). Wait time is from the finished printed card; the other questioning content is a draft for the presenters to review.
+
+To make a pack for another class: on the setup screen choose a pack, **Download this pack (JSON)**, edit the text, then **Load a pack file**. The pack is checked when it loads and is kept on that computer; phones receive it from the console. To build a pack into the app for everyone, add a file to `src/roleplay/packs/` that calls `RP_PACKS.push({...})` and run `build.sh`.
+
+| Field | What it holds |
+|---|---|
+| `id`, `title`, `subtitle`, `icon` | Names. `id` uses lower-case letters, numbers and hyphens |
+| `theme` | `dark`, `primary`, `accent`, `soft` colours, and `head` and `body` Google Fonts loaded by the page |
+| `words` | What to call a station (`technique`), the lead role (`Teacher`) and the scene (`role-play`) |
+| `objectives`, `overview`, `anchor`, `caveat`, `commit` | The lobby objectives, the takeaway sequence title, the quote, the evidence caveat and the commitment prompt |
+| `vote` | `question` (use `{team}` and `{station}`) and the `hint` audiences see while watching |
+| `timing` | Default `session`, `start`, `before`, `prep`, `after` minutes and `phases` seconds |
+| `roles` | Each role: `id`, `name`, `icon`, `badge` and `kind`: `lead`, `secret` (hidden card), `actor`, `observer` (checklist and tools) or `debriefer` (talking points) |
+| `seats` | For each team size, a list of people, each a list of role ids. A second role is played after the scene |
+| `roleBriefs` | Optional one-line instructions by role kind or id; `{sec}` becomes that phase's seconds |
+| `stations` | Each: `id`, `vote` (ballot label), `title`, `icon`, `moment`, `move`, `prep`, `topic`, `try`, `avoid`, `science` (`h`, `p`), `subpar` and `good` (`label`, `text`), `evidence`, optional `bank`, and `cards` by role id |
+| `cards` | Lead: `steps`. Secret or actor: `name`, `does`, `until`, `response` (the response is shown to the observer). Observer: `watch` and optional `tools` (`stopwatch` with `laps`, or `tally` with `items`). Debriefer: `points` |
+
+Tests: `tests/e2e_roleplay.py` runs 6 teams of 6, 5, 4, 3, 6 and 4 phones through a whole session, including reloads.
+
