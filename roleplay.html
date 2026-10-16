@@ -722,7 +722,7 @@ body.rp-phone { background: var(--rp-soft); }
   .rp-tick { padding: 1.5mm; } .rp-say, .rp-move, .rp-do, .rp-sci > div, .rp-vs > div, .rp-prep, .rp-topic, .rp-bank { padding: 2mm 3mm; }
   .rp-hero h2 { font-size: 16pt; }
   .rp-cardgrid { align-items: start; }
-  .rp-say ul, .rp-brief-line, .rp-prep p, .rp-say b, .rp-tick, .rp-prompts p, .rp-secrets p { font-size: 9.5pt !important; }
+  .rp-say ul, .rp-brief-line, .rp-prep p, .rp-say b, .rp-tick, .rp-prompts p, .rp-secrets p, .rp-bank span { font-size: 9.5pt !important; }
   .rp-card { break-inside: avoid; border: 1px dashed #999 !important; border-top: 6px solid var(--rp-primary) !important; }
   .rp-cols, .rp-vs { grid-template-columns: 1fr 1fr !important; }
   .rp-tick span { border-color: #333; }
@@ -911,10 +911,11 @@ function confetti(n = 70) {
 const RP_PACKS = [];
 /* Content pack: Questioning for everyone (CPD Session 4).
    A pack is plain data, so it can be exported as JSON, edited and loaded back from the console.
-   Wait time is final (from the printed card); the other five are drafts for Charmaine and David to review. */
+   v2: the six techniques agreed after the evidence review (Think-Pair-Share replaces Right is Right),
+   general (non-subject) examples, a different secret character for every student role. */
 RP_PACKS.push({
   id: 'questioning',
-  version: 1,
+  version: 2,
   title: 'Questioning for everyone',
   subtitle: 'Training Day · Session 4 · Library',
   icon: '❓',
@@ -946,21 +947,22 @@ RP_PACKS.push({
     4: [['teacher'], ['a'], ['b'], ['observer', 'debriefer']],
     3: [['teacher'], ['a', 'observer'], ['b', 'debriefer']]
   },
-  secretNote: 'Play it naturally. Only your secret behaviour is different. Don’t tell the teacher!',
+  secretNote: 'Play it big and have fun. Only your secret behaviour is different. Don’t tell the teacher!',
   stations: [
     {
-      id: 'wait', vote: 'Wait time', title: 'Wait time', icon: '⏳', moment: 'After asking a question', evidence: 'Direct',
+      id: 'wait', vote: 'Wait time', title: 'Wait time questioning technique', icon: '⏳', moment: 'After asking a question',
       move: 'Ask the whole class with no name. Pause 3–5 seconds, counting silently on your fingers and scanning the room. Name one student. After they answer, pause about 3 seconds before you respond.',
-      prep: 'Write one question that needs thinking, not recall. Recall: “What is photosynthesis?” Thinking: “Why would a plant kept in a dark cupboard die, even if it is watered?”',
+      prep: 'Write one question that needs thinking, not recall. Recall: “What is a plant’s food called?” Thinking: “Why would a plant kept in a dark cupboard die, even if it is watered?”',
       topic: 'Why would a plant kept in a dark cupboard die, even if it is watered?',
       try: ['“Take a moment.”', '“Think first, no hands yet.”', '“Keep going…”', '“Tell me more.”'],
       avoid: ['Naming first (“Linh, why…?”)', 'Repeating or rephrasing during the pause', 'Answering your own question', '“Good!” the instant they finish'],
       science: [
-        { h: 'Retrieval takes time', p: 'Working memory needs a few seconds to pull an answer from long-term memory and put it into words, and longer in a second language.' },
-        { h: 'Rowe (1986); Tobin (1987)', p: 'Teachers typically wait under 1 second. At about 3 seconds or more, answers become several times longer and “I don’t know” falls.' }
+        { h: 'Thinking takes time', p: 'Working memory needs a few seconds to find an answer and put it into words, and longer in a second language.' },
+        { h: 'Rowe (1986); Tobin (1987)', p: 'Teachers typically wait under 1 second. At about 3 seconds or more, answers become longer, more students volunteer, and “I don’t know” falls.' },
+        { h: 'Second-language classes', p: 'One study found teachers in second-language classes waited even less: about 0.7 seconds after an answer (Shrum, 1985).' }
       ],
-      subpar: { label: 'Rapid-fire rescue', text: '“Huy, what is opportunity cost?” [Huy starts after 1 second; the teacher interrupts] “Yes, good, the next best alternative.”' },
-      good: { label: 'Protected thinking time', text: '“What is opportunity cost?” [silent count to 4 on fingers] “…Huy.” [Huy answers] [silent 3 seconds] [Huy adds an example without being asked]' },
+      subpar: { label: 'Rapid-fire rescue', text: '“Huy, why do we have day and night?” [Huy starts after 1 second; the teacher interrupts] “Yes, good, the Earth spins.”' },
+      good: { label: 'Protected thinking time', text: '“Why do we have day and night?” [silent count to 4 on fingers, scanning the room] “…Huy.” [Huy answers] [silent 3 seconds] [Huy adds: “…so one side always faces away from the Sun.”]' },
       cards: {
         teacher: { steps: ['Ask the whole class. No name yet.', 'Pause 3–5 seconds: count on your fingers, scan the room.', 'Name one student.', 'After the answer, pause about 3 seconds before you respond.'] },
         a: { name: 'The Blurter', does: 'Call out an answer before anyone is named.', until: 'Stop if the teacher holds the silence.', response: '“Hold that thought, everyone needs thinking time.” Finish the pause, then name someone else.' },
@@ -970,131 +972,134 @@ RP_PACKS.push({
           watch: ['Pause 1: question → name (target 3+ seconds)', 'The name came after the pause', 'Pause 2: answer → teacher response (target 3+ seconds)', 'No repeating, rephrasing or filling the silence', 'Didn’t rescue or finish the student’s answer'],
           tools: [{ type: 'stopwatch', laps: ['Pause 1: question → name', 'Pause 2: answer → response'] }]
         },
-        debriefer: { points: ['Retrieval takes time: working memory needs a few seconds to find an answer and put it into words, longer in a second language.', 'Teachers usually wait under 1 second. At 3 seconds or more, answers get several times longer and “I don’t know” falls (Rowe, 1986).', 'Two pauses: after the question (before the name), and after the answer (before you respond).'] }
+        debriefer: { points: ['Thinking takes time: working memory needs a few seconds to find an answer and put it into words, longer in a second language.', 'Teachers usually wait under 1 second. At 3 seconds or more, answers get longer and “I don’t know” falls (Rowe, 1986).', 'Two pauses: after the question (before the name), and after the answer (before you respond).'] }
       }
     },
     {
-      id: 'cold', vote: 'Cold calling', title: 'Cold calling', icon: '🎯', moment: 'Choosing who answers', evidence: 'Direct',
-      move: 'Ask the question, pause, then name a student, whether or not their hand is up. Make it routine and warm, never a “gotcha”. For anxious classes: 30 seconds of pair talk first, then “What did your partner say?” (Think-Pair-Share), or warn a student in advance.',
-      prep: 'Choose one question for the whole class, and decide how you will warn or support a nervous student.',
-      topic: 'Why do supermarkets put sweets next to the checkout?',
-      try: ['“Everyone think… [pause] …Lan.”', '“What did your partner say?”', '“I’m coming to you next, Minh.”'],
+      id: 'tps', vote: 'Think-Pair-Share', title: 'Think-Pair-Share questioning technique', icon: '👥', moment: 'The question is hard, or the class is quiet',
+      move: 'Pose the question. Give 10 seconds of silent thinking: no talking yet. Set clear pair turns with a time limit: “Partner A, 20 seconds to explain to Partner B. Then swap.” Finish by cold calling: “What did your partner say?”',
+      prep: 'Choose an open question everyone can say something about, and decide who is Partner A and Partner B.',
+      topic: 'What makes a good friend?',
+      try: ['“10 seconds: think on your own first.”', '“Partner A, 20 seconds. Go… Swap.”', '“Lan, what did your partner say?”'],
+      avoid: ['“Talk to your partner” with no thinking time first', 'No turns or time limit, so one partner does all the talking', 'Asking “Who wants to share?” at the end'],
+      science: [
+        { h: 'Peer discussion (Smith et al., 2009)', p: 'After discussing a question in pairs, students did better on a new question about the same idea, even when nobody in the pair knew the answer at first.' },
+        { h: 'Structure matters', p: 'Talk helps learning when it is structured: everyone thinks first, both partners talk, and there is a clear task and time limit (EEF Teaching and Learning Toolkit: collaborative learning).' }
+      ],
+      subpar: { label: 'Chat with your neighbour', text: '“Talk to your partner about it.” [No thinking time and no turns: one partner talks, the other nods, and the talk drifts.] “OK, who wants to share?” [The same keen hand goes up.]' },
+      good: { label: 'Think, then pair, then share', text: '“What makes a good friend? 10 seconds, think on your own.” [silence] “Partner A, 20 seconds to explain to Partner B. Go… Swap.” [both talk] “Lan, what did your partner say?”' },
+      cards: {
+        teacher: { steps: ['Pose the question.', '“10 seconds: think on your own.” No talking.', 'Pair turns: “Partner A, 20 seconds. Then swap.”', 'Cold call: “What did your partner say?”'] },
+        a: { name: 'The Chatterbox', does: 'Start talking to your partner during the silent thinking time, then talk the whole time.', until: 'Wait and take turns only if the teacher sets silent time and clear turns.', response: '“Thinking on your own first.” Then strict turns: “Partner A, 20 seconds. Swap.”' },
+        b: { name: 'The Nodder', does: 'In pair talk, say nothing. Just nod and smile.', until: 'Speak if the teacher gives you a turn. Be ready to share your partner’s idea.', response: 'Give both partners a turn, then cold call the quiet one: “What did your partner say?”' },
+        c: { name: 'The Weekend Planner', does: 'In pair talk, drift off topic: talk about your weekend plans.', until: 'Get back on task if there is a short time limit or the teacher listens in.', response: 'Short, timed turns, walk over and listen in, then cold call to share.' },
+        observer: {
+          watch: ['Silent thinking time before any talk', 'Clear partner turns and a time limit', 'Both partners spoke', 'Ended by cold calling someone to share their partner’s idea'],
+          tools: [{ type: 'stopwatch', laps: ['Silent thinking', 'Partner A turn', 'Partner B turn'] }]
+        },
+        debriefer: { points: ['Think first: everyone has an answer before anyone talks.', 'After pair discussion, students did better on a new question about the same idea, even when nobody knew the answer at first (Smith et al., 2009).', 'Structure makes it work: turns, a time limit, then “What did your partner say?”'] }
+      }
+    },
+    {
+      id: 'cold', vote: 'Cold calling', title: 'Cold calling questioning technique', icon: '🎯', moment: 'Choosing who answers',
+      move: 'Ask the question, pause, then name a student, whether or not their hand is up. Make it routine and warm, never a “gotcha”. Warn a nervous student in advance: “Minh, I’m coming to you next.”',
+      prep: 'Choose one question for the whole class, and plan who you will ask, so the questions spread around the room.',
+      topic: 'Why do we feel colder on a windy day?',
+      try: ['“Everyone think… [pause] …Lan.”', '“I’m coming to you next, Minh.”', '“Take your best guess; it’s fine to be wrong.”'],
       avoid: ['Naming before the question', 'Picking the same keen hands', 'Using it to catch out someone not listening', 'A sharp or impatient tone'],
       science: [
-        { h: 'Everyone retrieves', p: 'If anyone might be asked, everyone has to think of an answer: retrieval practice for the whole class (Willingham: “memory is the residue of thought”).' },
-        { h: 'Dallimore et al. (2013)', p: 'With frequent cold calling, voluntary participation and comfort rose over time. A later study (2022) found a “gotcha” style raised anxiety, so keep it warm.' }
+        { h: 'Everyone has to think', p: 'If anyone might be asked, everyone has to prepare an answer. Answering out loud helps memory most, so ask lots of different students.' },
+        { h: 'Dallimore et al. (2013, 2019)', p: 'In university classes with frequent cold calling, voluntary participation and comfort rose over the year, and the gender gap in participation closed.' },
+        { h: 'Tone matters (Morek et al., 2022)', p: 'In middle-school lessons, a warm, conversational cold call built belonging. A demanding “you must answer” style raised anxiety.' }
       ],
-      subpar: { label: 'The hands-up loop', text: '“Hands up, who knows why prices rise? …Yes, Minh.” [Minh again; the rest of the class has switched off]' },
-      good: { label: 'The warm cold call', text: '“Why do prices rise when demand increases? Everyone think.” [pause] “…Lan.” Or: “30 seconds with your partner.” [pair talk] “Lan, what did your partner say?”' },
+      subpar: { label: 'The hands-up loop', text: '“Hands up, who knows why ice floats? …Yes, Minh.” [Minh again; the rest of the class has switched off]' },
+      good: { label: 'The warm cold call', text: '“Why does ice float? Everyone think.” [pause, scanning the room] “…Lan.” [Lan answers] “Thanks, Lan. Huy, what would you add?”' },
       cards: {
-        teacher: { steps: ['Ask the question to everyone.', 'Pause and scan the whole room.', 'Name a student, hand up or not.', 'Thank them, and spread questions around.', 'Nervous student? Pair talk first, or: “I’m coming to you next.”'] },
-        a: { name: 'The Avoider', does: 'Look down and avoid eye contact.', until: 'Answer if the teacher names you warmly and gives you a moment.', response: 'Name them calmly after the pause, give a moment, and thank them for the answer.' },
-        b: { name: 'The Eager Hand', does: 'Put your hand up every time. Sometimes call “Me!”', until: 'Stop if the teacher calmly picks other people.', response: '“Thanks, keep your hand down for now; I’ll choose.” Spread questions across the room.' },
-        c: { name: 'The Freezer', does: 'Freeze if you are named with no warning.', until: 'Answer well if you had pair talk first, or were told “I’m coming to you next”.', response: 'Switch to pair talk, then: “What did your partner say?” Or warn them: “I’ll come back to you.”' },
+        teacher: { steps: ['Ask the question to everyone.', 'Pause and scan the whole room.', 'Name a student, hand up or not.', 'Thank them, and spread questions around.', 'Nervous student? Warn them: “I’m coming to you next.”'] },
+        a: { name: 'The Eager Hand', does: 'Put your hand up every time. Wave it. Sometimes call “Me! Me!”', until: 'Stop if the teacher calmly picks other people.', response: '“Thanks, keep your hand down for now; I’ll choose.” Spread questions across the room.' },
+        b: { name: 'The Invisible Student', does: 'Look down, hide behind your phone or a book, avoid eye contact.', until: 'Answer if the teacher names you warmly and gives you a moment.', response: 'Name them calmly after the pause, give a moment, and thank them for the answer.' },
+        c: { name: 'The Helper', does: 'When someone else is named, whisper the answer to them, or answer for them.', until: 'Stop if the teacher says kindly: “I asked Lan; give her a moment.”', response: '“Thanks, I asked Lan. Lan, take your time.”' },
         observer: {
           watch: ['Question asked before any name', 'Pause before naming', 'Named someone without a hand up', 'Warm, encouraging tone', 'Questions spread across students'],
           tools: [{ type: 'tally', title: 'Who was asked?', items: ['Student A', 'Student B', 'Student C'] }]
         },
-        debriefer: { points: ['Question first, then the name: everyone thinks, because anyone might be asked.', 'Done warmly, cold calling raised voluntary participation and comfort over time (Dallimore et al., 2013). A “gotcha” style raises anxiety.', 'For anxious classes: pair talk first, then “What did your partner say?”'] }
+        debriefer: { points: ['Question first, then the name: anyone might be asked, so everyone has to think.', 'In university classes, frequent cold calling raised voluntary participation and comfort, and closed the gender gap (Dallimore et al., 2013, 2019).', 'Keep it warm: a “gotcha” style raises anxiety (Morek et al., 2022).'] }
       }
     },
     {
-      id: 'optout', vote: 'No opt out', title: 'No opt out', icon: '🔁', moment: 'Student says “I don’t know”', evidence: 'Indirect',
+      id: 'optout', vote: 'No opt out', title: 'No opt out questioning technique', icon: '🔁', moment: 'Student says “I don’t know”',
       move: 'When a student can’t answer, get the answer from another student, give a cue, or give the answer yourself. Then return to the original student and have them give or use the correct answer. The exchange always ends with them succeeding.',
       prep: 'Choose a question with a clear right answer, and plan one cue you could give.',
       topic: 'What is the main job of the heart?',
       try: ['“That’s OK. Huy, can you help? …Thanks. Now Linh, tell me: why…?”', '“Here’s a clue…”', '“Say it in your own words.”'],
       avoid: ['“OK, anyone else?” and moving on', 'Sarcasm or pressure', 'Leaving the student without a route to success'],
       science: [
-        { h: 'Teacher expectations (Good, 1981)', p: 'Teachers call on lower attainers less, wait less for them, and don’t stay with them after a wrong answer. No opt out deliberately reverses this.' },
-        { h: 'End with success', p: 'The student finishes by retrieving the right answer themselves, so the last thing they do is think, not opt out.' }
+        { h: 'Try, then get it right', p: 'Trying to answer, then getting the right answer, helps memory more than just being told (Kornell, Hays & Bjork, 2009). No opt out ends with the student saying it themselves.' },
+        { h: 'Teacher expectations (Good, 1981)', p: 'Teachers call on lower attainers less, wait less for them, and don’t stay with them after a wrong answer. No opt out deliberately reverses this.' }
       ],
-      subpar: { label: 'Off the hook', text: '“Linh, what is scarcity?” “I don’t know.” “OK, anyone else? …Yes, Minh, good.” [Linh is never asked again]' },
-      good: { label: 'Back to Linh', text: '“Linh, what is scarcity?” “I don’t know.” “That’s OK. Minh, can you help?” [Minh answers] “Thanks. Linh, in your own words, what is scarcity?” [Linh answers]' },
+      subpar: { label: 'Off the hook', text: '“Linh, what is a noun?” “I don’t know.” “OK, anyone else? …Yes, Minh, good.” [Linh is never asked again]' },
+      good: { label: 'Back to Linh', text: '“Linh, what is a noun?” “I don’t know.” “That’s OK. Minh, can you help?” [Minh answers] “Thanks. Linh, in your own words, what is a noun?” [Linh answers]' },
       cards: {
         teacher: { steps: ['Ask a question and name a student.', 'Can’t answer? A classmate helps, give a cue, or give the answer.', 'Go back to the same student: “Now you tell me…”', 'Finish only when that student gives the right answer.'] },
-        a: { name: '“I don’t know”', does: 'Say “I don’t know” straight away.', until: 'Answer correctly when the teacher comes back to you.', response: 'Get the answer from another student or give a cue, then return: “Now you tell me…”' },
-        b: { name: 'The Shrugger', does: 'Shrug and say nothing.', until: 'Answer if the teacher gives a simpler cue or a choice of two.', response: 'Narrow it: “Is it A or B?” Then: “Why that one?”' },
-        c: { name: '“I wasn’t listening”', does: 'Say you didn’t hear the question.', until: 'Answer when the question is repeated calmly.', response: 'Repeat the question once, calmly, then wait. No lecture.' },
+        a: { name: '“I don’t know”', does: 'Whenever you are asked, say “I don’t know” straight away, and look relieved.', until: 'Answer correctly when the teacher comes back to you.', response: 'Get the answer from another student or give a cue, then return: “Now you tell me…”' },
+        b: { name: 'The Rescuer', does: 'When someone can’t answer, jump in with the answer, then ask the teacher a new question to move things on.', until: 'Wait if the teacher thanks you and goes back to the first student.', response: '“Thanks, Huy. Hold that question. Now, Linh: in your own words…?”' },
+        c: { name: '“I wasn’t listening”', does: 'Look out of the window. When named: “Sorry, what was the question?”', until: 'Answer when the question is repeated calmly.', response: 'Repeat the question once, calmly, then wait. No lecture.' },
         observer: {
-          watch: ['Teacher returned to the original student', 'Student ended by giving the correct answer', 'Supportive tone, no pressure', 'Used a route: classmate helps, cue, or teacher gives the answer']
+          watch: ['Teacher returned to the original student', 'Student ended by giving the correct answer', 'A classmate’s answer didn’t end the exchange', 'Supportive tone, no pressure']
         },
-        debriefer: { points: ['“Memory is the residue of thought” (Willingham): a student who opts out does no thinking, so learns nothing.', 'Teachers tend to ask some students less and leave them sooner (Good, 1981). No opt out keeps expectations high for everyone.', 'Always end with the student giving the right answer.'] }
+        debriefer: { points: ['“Memory is the residue of thought” (Willingham): a student who opts out does no thinking.', 'Trying, then getting the answer, then saying it yourself helps memory more than just being told (Kornell et al., 2009).', 'Teachers tend to ask some students less and leave them sooner (Good, 1981). No opt out keeps expectations high for everyone.'] }
       }
     },
     {
-      id: 'right', vote: 'Right is Right', title: 'Right is Right', icon: '✅', moment: 'Student gives a partial answer', evidence: 'Indirect',
-      move: 'Don’t accept a partly correct answer with “Good”, and don’t finish it for the student (“rounding up”). Signal that they are nearly there, then prompt them to complete it or make it precise.',
-      prep: 'Choose a question with a precise answer and a key word you will hold out for.',
-      topic: 'Why do leaves need light?',
-      try: ['“You’re nearly there. What’s the key word?”', '“Which part did I ask about?”', '“Say it again, better.”'],
-      avoid: ['“Yes, sort of, good.”', 'Finishing the answer yourself (“So what Linh means is…”)', 'Moving on before the answer is complete'],
-      science: [
-        { h: 'Feedback after retrieval', p: 'Retrieval is strongest with feedback that lets learners correct their errors (Roediger & Butler, 2011).' },
-        { h: 'The same standard for all', p: 'Teachers tend to praise lower attainers for incomplete answers (Good, 1981). “Rounding up” means the teacher, not the student, does the thinking.' }
-      ],
-      subpar: { label: 'Rounding up', text: '“Why do leaves need light?” “To make… energy stuff.” “Yes, good, so what Linh means is chlorophyll absorbs light for photosynthesis.”' },
-      good: { label: 'Holding out for precise', text: '“Why do leaves need light?” “To make… energy stuff.” “You’re nearly there. What’s the scientific word for how plants make food?” “Photosynthesis.” “Say the whole answer again.”' },
-      cards: {
-        teacher: { steps: ['Ask a question with a precise answer.', 'Partly right? Don’t say “Good”, and don’t finish it.', 'Signal “nearly there”, then prompt.', 'Accept only a complete, precise answer.'] },
-        a: { name: 'Half an answer', does: 'Give the first half of a correct answer, then stop.', until: 'Complete it if the teacher asks for more.', response: '“That’s the first part. What else?”' },
-        b: { name: 'Vague words', does: 'Use everyday words instead of the key word (“the thing that makes energy”).', until: 'Use the key word if the teacher asks for it.', response: '“What’s the scientific word for that?” Then: “Say the whole answer using it.”' },
-        c: { name: 'Wrong question', does: 'Answer a related but different question.', until: 'Answer the right question if the teacher points it out.', response: '“That’s true, but I asked about… Try again.”' },
-        observer: {
-          watch: ['Did not accept the partial answer with “good”', 'Did not finish the answer for the student', 'Used a prompt rather than giving the answer', 'Student finished with a complete, precise answer']
-        },
-        debriefer: { points: ['Retrieval works best with feedback that lets students correct their own errors (Roediger & Butler, 2011).', '“Rounding up” means the teacher does the thinking, and lower attainers get praised for less (Good, 1981).', 'Signal “nearly there”, prompt, and let the student finish the answer.'] }
-      }
-    },
-    {
-      id: 'follow', vote: 'Follow-up questions', title: 'Follow-up questions', icon: '🔎', moment: 'Student gives a correct answer', evidence: 'Direct',
-      move: 'Treat a correct answer as the start, not the end. Probe the same student with at least two follow-ups of different types from the Socratic question bank.',
+      id: 'follow', vote: 'Follow-up questions', title: 'Follow-up questioning technique', icon: '🔎', moment: 'Student gives a correct answer',
+      move: 'Treat a correct answer as the start, not the end. Ask the same student at least two follow-up questions of different types from the question bank.',
       prep: 'Choose an opening question, and pick two question types from the bank to follow up with.',
-      topic: 'Why do we sweat when we are hot?',
+      topic: 'What happens to ice when you leave it in the sun?',
       bank: [['Clarify', '“What do you mean by…?”'], ['Evidence', '“How do you know?”'], ['Assumptions', '“What are you assuming?”'], ['Viewpoints', '“What would someone who disagrees say?”'], ['Consequences', '“If that’s true, what follows?”']],
       try: ['“How do you know?”', '“Why?”', '“What if…?”', '“Can you give an example?”'],
       avoid: ['“Correct!” and straight to the next question', 'Asking a follow-up and then answering it yourself'],
       science: [
-        { h: 'Elaborative interrogation', p: 'Answering “why” and “how” links new knowledge to what students already know (Dunlosky et al., 2013: moderate utility).' },
-        { h: 'After the teaching', p: 'It works best when students already have some knowledge to build on.' }
+        { h: 'Elaborative interrogation', p: 'Answering “why” and “how” links new knowledge to what students already know (Dunlosky et al., 2013).' },
+        { h: 'Self-explanation (Bisra et al., 2018)', p: 'Prompting students to explain their thinking improved learning across 64 studies. “How do you know?” is a self-explanation prompt.' }
       ],
-      subpar: { label: 'Correct, next!', text: '“What happens to price when supply falls?” “It goes up.” “Correct! Next question…”' },
-      good: { label: 'Stretch the answer', text: '“What happens to price when supply falls?” “It goes up.” “How do you know?” [reason] “What if demand fell at the same time?” [the student reasons it through]' },
+      subpar: { label: 'Correct, next!', text: '“What happens to ice in the sun?” “It melts.” “Correct! Next question…”' },
+      good: { label: 'Stretch the answer', text: '“What happens to ice in the sun?” “It melts.” “How do you know?” [reason] “What if we wrapped it in a towel?” [the student reasons it through]' },
       cards: {
         teacher: { steps: ['Ask your opening question.', 'Correct answer? Don’t say “Good” and move on.', 'Ask the same student at least two follow-ups.', 'Use two different types from the bank.'] },
-        a: { name: 'Correct but shallow', does: 'Give a one-line correct answer.', until: 'Explain more only if the teacher asks “Why?” or for an example.', response: '“Why?” then “Can you give an example?”' },
-        b: { name: 'Confident but unsupported', does: 'State an answer firmly, with no reason.', until: 'Give a reason only if the teacher asks how you know.', response: '“How do you know?” then “What would someone who disagrees say?”' },
-        c: { name: 'Memorised definition', does: 'Recite a textbook definition, word for word.', until: 'Explain it simply only if the teacher asks for your own words.', response: '“Say it in your own words.” then “If that’s true, what follows?”' },
+        a: { name: 'The Two-Word Wonder', does: 'Give a correct answer in two words, then stop and smile.', until: 'Explain more only if the teacher asks “Why?” or for an example.', response: '“Why?” then “Can you give an example?”' },
+        b: { name: 'The Storyteller', does: 'Answer with a long, loosely related story: “That reminds me of my holiday…”', until: 'Get back to the point if the teacher asks a focused follow-up.', response: '“Interesting. So how does that connect to…?” Bring them back with a focused question; don’t lecture.' },
+        c: { name: 'The Textbook', does: 'Recite a definition word for word, like a robot reading a textbook.', until: 'Explain simply if asked to say it in your own words or give an example.', response: '“Say it in your own words.” then “If that’s true, what follows?”' },
         observer: {
           watch: ['Didn’t say “Good” and move on', 'Asked at least 2 follow-up questions', 'Used at least 2 different question types', 'Student extended or justified their answer'],
           tools: [{ type: 'tally', title: 'Question types used', items: ['Clarify', 'Evidence', 'Assumptions', 'Viewpoints', 'Consequences'] }]
         },
-        debriefer: { points: ['Answering “why” and “how” links new knowledge to what students already know (Dunlosky et al., 2013).', 'A correct answer only shows recall. A follow-up shows whether the student understands.', 'It works best after the teaching, when students have something to build on.'] }
+        debriefer: { points: ['Answering “why” and “how” links new knowledge to what students already know (Dunlosky et al., 2013).', 'Asking students to explain their thinking improved learning across 64 studies (Bisra et al., 2018).', 'A correct answer only shows recall. A follow-up shows whether the student understands.'] }
       }
     },
     {
-      id: 'abc', vote: 'ABC: Agree, Build, Challenge', title: 'ABC: Agree, Build, Challenge', icon: '🏀', moment: 'Open it to the class', evidence: 'Weakest',
-      move: 'After one student answers, don’t judge it yourself. Bounce it to another student, who must agree and say why, build on it, or challenge it. Aim for three or more students per question: basketball, not ping-pong.',
+      id: 'abc', vote: 'ABC: Agree, Build, Challenge', title: 'ABC (Agree, Build, Challenge) questioning technique', icon: '🏀', moment: 'Open it to the class',
+      move: 'After one student answers, don’t judge it yourself. Keep a neutral face and bounce it to another student, who must agree and say why, build on it, or challenge it. Aim for three or more students per question: basketball, not ping-pong.',
       prep: 'Choose an open question that people can disagree about.',
-      topic: 'Should students have homework every day?',
+      topic: 'Should students wear school uniforms?',
       try: ['“Huy, do you agree, want to build, or challenge? Why?”', '“Who can add to that?”', '“Does anyone see it differently?”'],
       avoid: ['Saying “Good” after every answer (ping-pong)', 'Accepting “I agree” with no reason', 'Going back to the teacher after each answer'],
       science: [
-        { h: 'Dialogic teaching', p: 'An EEF trial in 76 primary schools found about 2 months’ extra progress in English and science (modest effects).' },
-        { h: 'Everyone listens', p: '“Accountable Talk”: if anyone may be asked to build on an answer, everyone has to listen to it.' }
+        { h: 'Everyone listens', p: 'If anyone may be asked to agree, build or challenge, everyone has to listen to each answer (“Accountable Talk”).' },
+        { h: '“Because…” every time', p: 'Asking for a reason makes students explain their thinking, which improves learning (Bisra et al., 2018).' },
+        { h: 'Dialogic teaching', p: 'An EEF trial in 76 primary schools found about 2 months’ extra progress in English and science.' }
       ],
-      subpar: { label: 'Ping-pong', text: 'T: “Is tourism good for Vietnam?” S1: “Yes, it brings money.” T: “Good. Next question…”' },
-      good: { label: 'Basketball', text: 'T: “Is tourism good for Vietnam?” S1: “Yes, it brings money.” T: “Huy, agree, build or challenge?” S2: “Build: it creates jobs.” T: “Lan?” S3: “Challenge: it can damage the environment.”' },
+      subpar: { label: 'Ping-pong', text: 'T: “Should school start later in the morning?” S1: “Yes, we’d be less tired.” T: “Good. Next question…”' },
+      good: { label: 'Basketball', text: 'T: “Should school start later in the morning?” S1: “Yes, we’d be less tired.” T: “Huy, agree, build or challenge?” S2: “Build: and we’d concentrate better.” T: “Lan?” S3: “Challenge: parents need to get to work.”' },
       cards: {
-        teacher: { steps: ['Ask an open question and take one answer.', 'Don’t judge it. Bounce it to another student.', '“Agree, build or challenge? Why?”', 'Aim for 3+ students before you speak again.'] },
-        a: { name: 'Empty agree', does: 'Say “I agree” and nothing else.', until: 'Give a reason if the teacher asks “Agree because…?”', response: '“Agree because…?” Then wait for the reason.' },
-        b: { name: 'The Repeater', does: 'Repeat the first answer in different words.', until: 'Add a new idea if the teacher asks you to build on it.', response: '“That’s the same idea. Can you build on it with something new?”' },
-        c: { name: 'The Challenger', does: 'Disagree with the last answer, and give a reason.', until: 'Keep going if the teacher welcomes it.', response: 'Welcome it: “Interesting. Who agrees with the challenge, and why?”' },
+        teacher: { steps: ['Ask an open question and take one answer.', 'Keep a neutral face. Don’t judge it: bounce it.', '“Agree, build or challenge? Why?”', 'Aim for 3+ students before you speak again.'] },
+        a: { name: 'The Copycat', does: 'Say “I agree” and nothing else. Look pleased with yourself.', until: 'Give a reason if the teacher asks “Agree because…?”', response: '“Agree because…?” Then wait for the reason.' },
+        b: { name: '“Is that right?”', does: 'After you answer, look straight at the teacher and ask “Is that right?”', until: 'Carry on if the teacher stays neutral and bounces it to someone else.', response: 'Keep a neutral face: “What do others think? Lan, agree, build or challenge?”' },
+        c: { name: 'The Challenger', does: 'Disagree with the last answer, with a reason. Be dramatic about it.', until: 'Keep going if the teacher welcomes it.', response: 'Welcome it: “Interesting. Who agrees with the challenge, and why?”' },
         observer: {
-          watch: ['Teacher didn’t evaluate after each answer', 'Three or more students responded to one question', 'Students gave reasons, not just “I agree”', 'Teacher talk kept short'],
+          watch: ['Teacher didn’t judge each answer', 'Three or more students responded to one question', 'Students gave reasons, not just “I agree”', 'Teacher talk kept short'],
           tools: [{ type: 'tally', title: 'Students who responded', items: ['Responses'] }]
         },
-        debriefer: { points: ['If anyone may be asked to build, everyone has to listen.', 'Dialogic teaching: about 2 months’ extra progress in an EEF trial (76 primary schools, modest effects). The weakest evidence of the six.', 'Basketball, not ping-pong: the answer goes student to student, not back to the teacher.'] }
+        debriefer: { points: ['If anyone may be asked to build, everyone has to listen.', 'Insist on “because…”: giving a reason makes students explain their thinking (Bisra et al., 2018).', 'Basketball, not ping-pong: the answer goes student to student, not back to the teacher.'] }
       }
     }
   ]
@@ -1946,7 +1951,7 @@ function render() {
   const main = $('#sMain'); if (!main) return;
   if (!S.P) { main.innerHTML = `<div class="panel">Loading the cards for room <b>${esc(S.room)}</b>…</div>`; return; }
   const p = S.pub, st = myStation();
-  $('#hTeam').innerHTML = S.team ? `<b>Team ${S.team}</b>${st ? ` <span class="rp-hst">${st.icon || ''} ${esc(st.title)}</span>` : ''}` : `${esc(S.P.icon || '🎭')} ${esc(S.P.title)}`;
+  $('#hTeam').innerHTML = S.team ? `<b>Team ${S.team}</b>${st ? ` <span class="rp-hst">${st.icon || ''} ${esc(st.vote || st.title)}</span>` : ''}` : `${esc(S.P.icon || '🎭')} ${esc(S.P.title)}`;
   setPart($('#pBanner'), bannerHtml());
   let html;
   if (!S.team) html = entryHtml();
