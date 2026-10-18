@@ -1953,16 +1953,22 @@ function render() {
   const p = S.pub, st = myStation();
   $('#hTeam').innerHTML = S.team ? `<b>Team ${S.team}</b>${st ? ` <span class="rp-hst">${st.icon || ''} ${esc(st.vote || st.title)}</span>` : ''}` : `${esc(S.P.icon || '🎭')} ${esc(S.P.title)}`;
   setPart($('#pBanner'), bannerHtml());
-  let html;
-  if (!S.team) html = entryHtml();
-  else if (p && p.phase === 'finish' && S.tab === 'take') html = takeawayHtml();
-  else if (p && p.phase === 'vote' && p.active !== S.team && S.votes[p.round] == null) html = ballotHtml();
-  else if (p && p.active && p.active !== S.team && ['stage', 'vote'].includes(p.phase)) html = standbyHtml();
-  else if (p && p.active && p.active !== S.team && ['reveal', 'observer', 'debrief'].includes(p.phase) && p.result) html = resultHtml();
-  else html = hubHtml();
-  if (setPart(main, html)) restoreTools();
+  const html = mainHtml();
+  const open = $$('details', main).map(d => d.open ? (d.querySelector('summary') || {}).textContent : null).filter(Boolean);
+  if (setPart(main, html)) { $$('details', main).forEach(d => { if (open.includes((d.querySelector('summary') || {}).textContent)) d.open = true; }); restoreTools(); }
   connChip();
 }
+function mainHtml() {
+  const p = S.pub;
+  if (!S.team) return entryHtml();
+  if (p && p.phase === 'finish' && S.tab === 'take') return takeawayHtml();
+  if (p && p.phase === 'vote' && p.active !== S.team && S.votes[p.round] == null) return ballotHtml();
+  if (p && p.active && p.active !== S.team && ['stage', 'vote'].includes(p.phase)) return standbyHtml();
+  if (p && p.active && p.active !== S.team && ['reveal', 'observer', 'debrief'].includes(p.phase) && p.result) return resultHtml();
+  return hubHtml();
+}
+/** After an in-place change (a tick or a tally), record what the screen now shows, so the next redraw leaves it alone */
+const settle = () => { const m = $('#sMain'); if (m) m._html = mainHtml(); };
 function bannerHtml() {
   const p = S.pub, W = words(S.P); if (!p || !S.team) return '';
   const mine = p.active === S.team, R = myRoles().map(id => roleOf(S.P, id)), has = k => R.some(r => r.kind === k);
@@ -2006,9 +2012,10 @@ function roleTabHtml(st) {
   const kinds = R.map(id => roleOf(P, id).kind), post = k => k === 'observer' || k === 'debriefer';
   if (R.length > 1 && !post(kinds[0]) && post(kinds[1])) { if (sceneDone()) now = R.slice(1); else { now = [R[0]]; later = R.slice(1); } }
   else if (R.length > 1 && S.pub && S.pub.phase === 'debrief' && S.pub.active === S.team) now = R.slice().reverse();
-  const ticks = S.ticks[st.id] || {};
+  const ticks = S.ticks[st.id] || {}, flipped = R.length > 1 && sceneDone() && !post(kinds[0]), fk = st.id + ':' + S.seat + ':' + ((S.pub && S.pub.round) || 0);
+  const flipNow = flipped && S.flipShown !== fk; if (flipped) S.flipShown = fk; // the flip animation plays once, not on every redraw
   return `<div class="stack">${R.length > 1 && sceneDone() && !post(kinds[0]) ? `<div class="rp-flip">🔄 Card flipped: you are now the ${esc(roleOf(P, R[1]).name)}</div>` : ''}
-    ${now.map(id => `<div class="rp-flipin">${roleCardHtml(P, st, id, { plan: { phases: (S.pub && S.pub.phases) || planFor(P).phases }, ticks })}</div>`).join('')}
+    ${now.map(id => `<div class="${flipNow ? 'rp-flipin' : ''}">${roleCardHtml(P, st, id, { plan: { phases: (S.pub && S.pub.phases) || planFor(P).phases }, ticks })}</div>`).join('')}
     ${later.length ? `<details class="rp-later"><summary>After the ${esc(words(P).scene)}: ${later.map(id => esc(roleOf(P, id).name)).join(' + ')}</summary>${later.map(id => roleCardHtml(P, st, id, { plan: { phases: (S.pub && S.pub.phases) || planFor(P).phases }, ticks })).join('')}</details>` : ''}
     <details class="rp-team-d"><summary>Your team’s roles · size ${size}</summary>${sizePills}${seatList}<button class="btn small ghost" data-a="unclaim">Give up my role</button></details></div>`;
 }
@@ -2054,9 +2061,9 @@ function devClick(e) {
   if (a === 'vote') { const p = S.pub; if (!p || p.phase !== 'vote') return; S.votes[p.round] = +b.dataset.i; sSave(); sSend({ type: 'vote', round: p.round, opt: +b.dataset.i }); sfx('cash'); buzz(40); return render(); }
   const st = myStation(); if (!st) return;
   const tk = (S.ticks[st.id] ||= {});
-  if (a === 'tick') { const k = b.dataset.k, i = +b.dataset.i, L = (tk[k] ||= []); const j = L.indexOf(i); if (j < 0) L.push(i); else L.splice(j, 1); sSave(); sfx('step'); return render(); }
-  if (a === 'tally') { const t = (tk['t' + b.dataset.t] ||= {}); t[b.dataset.i] = (t[b.dataset.i] || 0) + 1; sSave(); sfx('blip'); return render(); }
-  if (a === 'tally-reset') { delete tk['t' + b.dataset.t]; sSave(); return render(); }
+  if (a === 'tick') { const k = b.dataset.k, i = +b.dataset.i, L = (tk[k] ||= []); const j = L.indexOf(i); if (j < 0) L.push(i); else L.splice(j, 1); sSave(); sfx('step'); b.classList.toggle('on', j < 0); $('span', b).textContent = j < 0 ? '✓' : ''; settle(); sendTicks(st); return; }
+  if (a === 'tally') { const t = (tk['t' + b.dataset.t] ||= {}); t[b.dataset.i] = (t[b.dataset.i] || 0) + 1; sSave(); sfx('blip'); $('b', b).textContent = t[b.dataset.i]; settle(); return; }
+  if (a === 'tally-reset') { delete tk['t' + b.dataset.t]; sSave(); $$(`[data-a="tally"][data-t="${b.dataset.t}"] b`).forEach(x => { x.textContent = '0'; }); settle(); return; }
   if (a === 'sw') {
     const ti = b.dataset.t, w = (S.sw[ti] ||= { run: false, t0: 0, stopped: 0, laps: [] }), op = b.dataset.op;
     if (op === 'go') { if (w.run) { w.run = false; w.stopped = Date.now() - w.t0; } else { w.run = true; w.t0 = Date.now() - (w.stopped || 0); } }
@@ -2066,6 +2073,7 @@ function devClick(e) {
   }
 }
 
+const sendTicks = st => {}; // filled in when self-appraisal scores go to the console
 /* ---- every card, to browse or print (no room needed) ---- */
 function cardsBoot() {
   document.documentElement.dataset.theme = 'light';
