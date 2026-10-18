@@ -379,7 +379,9 @@ Open it from the home page (**Open role-play stations**) or at `roleplay.html?mo
 1. **Lobby.** Phones pick a team and agree a team size. Each person claims a role. The projector shows the QR code and each team's seats filling up; a team turns green when every role is claimed.
 2. **Prep.** A countdown for the planned prep minutes. Phones show the briefing (the move, why it works, sub-par vs good) and each person's role card.
 3. **Rounds.** For each team: **spin** (picks a team still waiting), **on stage** (role-play timer), **vote** (everyone else votes on their phone; the active team cannot vote; the bar chart stays hidden), **reveal** (bars, then the right answer turns green), **observer** (their checklist on the projector) and **debrief** (the "why it works" points).
-4. **Takeaway.** The decision sequence, the "sharpest eyes" table (correct votes by team) and the commitment prompt. Every phone can then browse all the stations.
+4. **Takeaway.** The decision sequence, two awards and the commitment prompt. **Best performance**: the highest average room rating out of 5. **Sharpest eyes**: the highest share of a team's guesses that were right (a share, not a total, because team sizes differ); ties go to more right answers.
+
+**Ratings.** If the pack has a `rating` list, each audience phone rates the team on stage 1–5 on every item straight after voting (1 not yet, 3 partly, 5 clearly; ratings are optional, the vote is not). The team's own observer rates the team on the same items during the vote. The observer screen shows the room's average per item with the team's self-rating marked on each bar. With auto-advance, the vote closes early once everyone has voted and finished rating. Every phone can then browse all the stations.
 
 Controls: **Next** (or →), **Pause** (or space), **+15 s**, **Back**, and **Auto-advance** (moves on when each timer ends; the vote also closes early when everyone has voted). Press **H** to hide the control bar. The ⚙ drawer puts a chosen team on stage, opens or closes the vote, skips a team, puts a done team back in the queue, edits the phase times, re-fits the remaining rounds to the planned end, shows the secret team map, clears a team's roles, or resets.
 
@@ -393,7 +395,7 @@ Team-to-station mapping is shuffled when the room opens (Team 1 is never station
 
 On the setup screen set the session length, an optional start time, the minutes before the app (intro slides), the prep minutes and the wrap-up minutes. The planner shows the time left for rounds, the time per team, and whether the round phases fit (with a 10-second changeover a round). **Fit rounds to the time** scales the role-play, vote, observer and debrief times to fit; **Save as my defaults** keeps your times for that pack on this computer. During the session the top bar shows the projected end and how far ahead or behind you are.
 
-The 30-minute CPD plan: 10:30 start, 6 min of slides, 5 min prep, 6 rounds of 2:30 (60 s role-play, 15 s vote, 10 s reveal, 30 s observer, 20 s debrief, 5 s spin), 3 min wrap-up: 1 minute spare.
+The 30-minute CPD plan: 10:30 start, 6 min of slides, 5 min prep, 6 rounds of 2:30 (5 s spin, 60 s role-play, 25 s vote and rating, 10 s reveal, 25 s observer, 15 s debrief), 3 min wrap-up: 1 minute spare. If you saved your own timing defaults earlier, press **Pack defaults** once to pick up these times.
 
 ## If the Wi-Fi drops
 
@@ -412,6 +414,7 @@ To make a pack for another class: on the setup screen choose a pack, **Download 
 | `words` | What to call a station (`technique`), the lead role (`Teacher`) and the scene (`role-play`) |
 | `objectives`, `overview`, `anchor`, `caveat`, `commit` | The lobby objectives, the takeaway sequence title, the quote, the evidence caveat and the commitment prompt |
 | `vote` | `question` (use `{team}` and `{station}`) and the `hint` audiences see while watching |
+| `rating` | Optional: `items` (the 1–5 rating questions) and `labels` for 1, 3 and 5 |
 | `timing` | Default `session`, `start`, `before`, `prep`, `after` minutes and `phases` seconds |
 | `roles` | Each role: `id`, `name`, `icon`, `badge` and `kind`: `lead`, `secret` (hidden card), `actor`, `observer` (checklist and tools) or `debriefer` (talking points) |
 | `seats` | For each team size, a list of people, each a list of role ids. A second role is played after the scene |
