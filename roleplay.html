@@ -877,7 +877,7 @@ function makeTransport(kind, room, opt = {}) {
     }
   }
   function send(m) {
-    if (teacher && m.type === 'state' && !m.to) { const old = q.find(it => !it.to && it.m.type === 'state'); if (old) { old.m = m; return; } }
+    if (teacher && m.type === 'state' && !m.to) { const old = q.find(it => !it.to && it.m.type === 'state'); if (old) { q.splice(q.indexOf(old), 1); q.push({ m, to: null }); pump(); return; } }
     q.push({ m, to: teacher ? m.to || null : null }); pump();
   }
   return {
@@ -1618,7 +1618,7 @@ function scores() {
 function pubState() {
   const s = T.s, r = curResult();
   return { type: 'state', page: PAGE, level: 'roleplay', phase: s.phase, left: secLeft(), paused: !!s.paused, packId: s.packId, packHash: s.packHash, title: T.P.title, nTeams: s.nTeams,
-    teams: teamNums().map(n => ({ n, size: s.teams[n].size, claims: s.teams[n].claims, done: s.done.includes(n) })), active: s.active, round: s.round,
+    teams: teamNums().map(n => ({ n, size: s.teams[n].size, claims: s.teams[n].claims, done: s.done.includes(n) })), active: s.active, round: s.round, vkey: s.vkey || null,
     voted: Object.keys(s.votes).length, elig: eligible(), result: r && ['reveal', 'observer', 'debrief'].includes(s.phase) ? { team: r.team, station: r.station, counts: r.counts, n: r.n, rate: rateSummary(r) } : null,
     final: s.phase === 'finish' ? scores() : null, phases: s.plan.phases };
 }
@@ -1667,17 +1667,17 @@ function tOnMsg(m) {
   if (m.type === 'claim') { if (!p.team) return fail(pid, 'pick-team'); const err = claimSeat(pid, p.team, m.seat); if (err) return fail(pid, err); tSave(); renderSoon(); tBroadcast(true); return; }
   if (m.type === 'unclaim') { dropClaims(pid); tSave(); renderSoon(); tBroadcast(true); return; }
   if (m.type === 'vote') {
-    if (s.phase !== 'vote' || +m.round !== s.round) return fail(pid, 'vote-closed');
+    if (s.phase !== 'vote' || +m.round !== s.round || (m.vkey && m.vkey !== s.vkey)) return fail(pid, 'vote-closed');
     if (!p.team) return fail(pid, 'pick-team');
     if (p.team === s.active) return fail(pid, 'own-team');
     const opt = +m.opt; if (!(opt >= 0 && opt < T.P.stations.length)) return;
     if (s.votes[pid] == null) { s.votes[pid] = opt; s.voteTeam = s.voteTeam || {}; s.voteTeam[pid] = p.team; Sound.play('blip'); }
-    tSend({ type: 'voted', to: pid, round: s.round, opt: s.votes[pid] });
+    tSend({ type: 'voted', to: pid, round: s.round, vkey: s.vkey, opt: s.votes[pid] });
     tSave(); renderSoon(); tBroadcast();
     maybeClose(); return;
   }
   if (m.type === 'rate') {   // the room rates the team on stage (1-5 for each item), during the vote only
-    const R = RATE(); if (!R || s.phase !== 'vote' || +m.round !== s.round || !p.team || p.team === s.active) return;
+    const R = RATE(); if (!R || s.phase !== 'vote' || +m.round !== s.round || (m.vkey && m.vkey !== s.vkey) || !p.team || p.team === s.active) return;
     const a = cleanRates(m.r, R.items.length); if (!a) return; (s.rates ||= {})[pid] = a; tSave(); maybeClose(); return;
   }
   if (m.type === 'selfrate') {   // the team's own observer rates the team on the same scale
@@ -1701,7 +1701,7 @@ function setPhase(ph, secs) {
 function closeVote() {
   const s = T.s, P = T.P, counts = P.stations.map(() => 0);
   Object.values(s.votes).forEach(o => { counts[o]++; });
-  const r = { round: s.round, team: s.active, station: s.map[s.active - 1], counts, n: Object.keys(s.votes).length, votes: Object.assign({}, s.votes), teamOf: Object.assign({}, s.voteTeam || {}), rates: Object.assign({}, s.rates || {}), self: s.selfRate || null };
+  const r = { round: s.round, team: s.active, station: s.map[s.active - 1], counts, n: Object.keys(s.votes).length, votes: Object.assign({}, s.votes), vkey: s.vkey, teamOf: Object.assign({}, s.voteTeam || {}), rates: Object.assign({}, s.rates || {}), self: s.selfRate || null };
   s.results = s.results.filter(x => x.round !== s.round).concat([r]);
 }
 const curResult = () => T.s.results.find(x => x.round === T.s.round && x.team === T.s.active) || null;
@@ -1719,7 +1719,7 @@ function next() {
     case 'lobby': s.plannedEnd = plannedEndNow(true); Sound.play('chime'); return setPhase('prep', phaseSecs('prep'));
     case 'prep': case 'ready': return startRound();
     case 'spin': Sound.play('sting'); return setPhase('stage', phaseSecs('stage'));
-    case 'stage': Sound.play('chime'); return setPhase('vote', phaseSecs('vote'));
+    case 'stage': Sound.play('chime'); s.vkey = s.round + '.' + rid(4); return setPhase('vote', phaseSecs('vote'));
     case 'vote': closeVote(); Sound.play('fanfare'); return setPhase('reveal', phaseSecs('reveal'));
     case 'reveal': return setPhase('observer', phaseSecs('observer'));
     case 'observer': return setPhase('debrief', phaseSecs('debrief'));
@@ -1732,7 +1732,7 @@ function back() {
     case 'prep': return setPhase('lobby', null);
     case 'spin': case 'stage': s.active = null; s.round = Math.max(0, s.round - 1); return setPhase(s.done.length ? 'ready' : 'prep', s.done.length ? null : phaseSecs('prep'));
     case 'vote': s.votes = {}; s.voteTeam = {}; s.rates = {}; return setPhase('stage', phaseSecs('stage'));
-    case 'reveal': { const r = curResult(); s.results = s.results.filter(x => x !== r); s.votes = r ? r.votes : {}; s.voteTeam = r ? r.teamOf : {}; s.rates = r ? r.rates || {} : {}; s.selfRate = r ? r.self : s.selfRate; return setPhase('vote', phaseSecs('vote')); }
+    case 'reveal': { const r = curResult(); s.results = s.results.filter(x => x !== r); s.votes = r ? r.votes : {}; s.voteTeam = r ? r.teamOf : {}; s.rates = r ? r.rates || {} : {}; s.selfRate = r ? r.self : s.selfRate; if (r && r.vkey) s.vkey = r.vkey; return setPhase('vote', phaseSecs('vote')); }
     case 'observer': return setPhase('reveal', phaseSecs('reveal'));
     case 'debrief': return setPhase('observer', phaseSecs('observer'));
     case 'finish': { const last = s.done.pop(); if (last) { s.active = last; s.round = (s.results.find(x => x.team === last) || {}).round || s.round; return setPhase('debrief', phaseSecs('debrief')); } return setPhase('ready', null); }
@@ -1923,7 +1923,7 @@ function ctlClick(e) {
   if (c === 'add') return addSec(15);
   if (c === 'closeDrawer') { T.drawer = false; return renderDrawer(); }
   if (c === 'goTeam') { const n = +$('#dTeam').value; if (s.active && ROUND.includes(s.phase) && !confirm(`Team ${s.active} is in a round. Stop it and put Team ${n} on stage?`)) return; if (s.active) { s.round = Math.max(0, s.round); } T.drawer = false; renderDrawer(); return startRound(n, true); }
-  if (c === 'openVote') { s.votes = {}; s.voteTeam = {}; s.rates = {}; return setPhase('vote', phaseSecs('vote')); }
+  if (c === 'openVote') { s.votes = {}; s.voteTeam = {}; s.rates = {}; s.vkey = s.round + '.' + rid(4); return setPhase('vote', phaseSecs('vote')); }
   if (c === 'closeVote') return next();
   if (c === 'skip') { if (!confirm(`Skip Team ${s.active}? It is marked done with no vote.`)) return; s.done.push(s.active); s.results = s.results.filter(x => x.round !== s.round); s.active = null; return queue().length ? setPhase('ready', null) : finish(); }
   if (c === 'requeue') { const n = +$('#dDone').value; s.done = s.done.filter(x => x !== n); s.results = s.results.filter(x => x.team !== n); tSave(); renderDrawer(); if (s.phase === 'finish') setPhase('ready', null); else renderAll(); return; }
@@ -1940,7 +1940,8 @@ function ctlClick(e) {
 const S = { pid: null, nick: '', room: '', tr: null, pub: null, team: null, seat: null, station: null, packId: null, packHash: null, P: null, votes: {}, rates: {}, selfRates: {}, ticks: {}, tab: 'brief', lastMsg: 0, claimAt: 0, sound: true, sw: {}, asked: 0, commit: '' };
 const SK = () => APP + ':me:' + S.room;
 function sSave() { sstore.set(SK(), { pid: S.pid, nick: S.nick, team: S.team, seat: S.seat, station: S.station, packId: S.packId, packHash: S.packHash, votes: S.votes, rates: S.rates, selfRates: S.selfRates, ticks: S.ticks, tab: S.tab, sound: S.sound, commit: S.commit }); }
-const sSend = m => S.tr && S.tr.send({ ...m, pid: S.pid, from: S.pid });
+const sSend = m => { if (S.mute) return; S.tr && S.tr.send({ ...m, pid: S.pid, from: S.pid }); }; // S.mute: the tests use it to cut a phone off
+const vk = p => (p && (p.vkey || p.round)) || 0; // one key per vote: a reopened vote starts fresh
 const sfx = n => { if (S.sound) Sound.play(n); };
 const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch { } };
 const online = () => Date.now() - S.lastMsg < 9000;
@@ -1976,12 +1977,12 @@ async function connect() {
   try { await S.tr.connect(onMsg, () => { }); } catch (e) { toast(e.message, 6000); }
   const hello = () => sSend({ type: 'hello', nick: S.nick, team: S.team, seat: S.seat });
   hello(); let n = 0;
-  setInterval(() => { n++; if (!online() || n % 5 === 0) hello(); connChip(); }, 3000);
+  setInterval(() => { n++; if (!online() || n % 5 === 0 || (S.team && !S.station)) hello(); connChip(); }, 3000); // ask again while the team's cards are missing
   setInterval(tick, 250);
 }
 function connChip() { const c = $('#hConn'); if (c) c.innerHTML = online() ? '<span class="dot ok"></span>' : `<span class="dot bad"></span>${S.P && S.team ? 'Offline: your cards still work' : 'Looking for the room'}`; }
 function onMsg(m) {
-  if (!m || m.from !== 'teacher' || (m.to && m.to !== S.pid)) return;
+  if (!m || S.mute || m.from !== 'teacher' || (m.to && m.to !== S.pid)) return;
   S.lastMsg = Date.now();
   if (m.type === 'state') {
     const prev = S.pub; S.pub = m; S.leftAt = { left: m.left, at: Date.now() };
@@ -1992,7 +1993,7 @@ function onMsg(m) {
       const mine = m.active === S.team;
       if (m.phase === 'stage' && prev.phase !== 'stage' && mine) { sfx('sting'); buzz([200, 100, 200]); }
       if (m.phase === 'vote' && prev.phase !== 'vote' && !mine) { sfx('chime'); buzz(120); }
-      if (m.phase === 'reveal' && prev.phase !== 'reveal' && !mine && m.result) { const ok = S.votes[m.round] === m.result.station; sfx(ok ? 'cash' : 'wrong'); if (ok) confetti(50); }
+      if (m.phase === 'reveal' && prev.phase !== 'reveal' && !mine && m.result) { const ok = S.votes[vk(m)] === m.result.station; sfx(ok ? 'cash' : 'wrong'); if (ok) confetti(50); }
       if (m.phase === 'finish' && prev.phase !== 'finish') { sfx('fanfare'); S.tab = 'take'; }
     }
     render();
@@ -2003,7 +2004,7 @@ function onMsg(m) {
     store.set(PACKKEY(m.pack.id), { hash: m.hash, pack: m.pack });
     if (m.pack.id === S.packId) { S.P = packFor(S.packId, S.packHash); if (S.P) applyTheme(S.P); render(); }
   } else if (m.type === 'voted') {
-    S.votes[m.round] = m.opt; sSave(); render();
+    S.votes[m.vkey || m.round] = m.opt; sSave(); render();
   } else if (m.type === 'ack' && !m.ok) {
     if (m.error === 'lost-seat' || m.error === 'taken') { S.seat = null; sSave(); }
     toast(ERR[m.error] || m.error, 3500); sfx('wrong'); render();
@@ -2045,7 +2046,7 @@ function mainHtml() {
   const p = S.pub;
   if (!S.team) return entryHtml();
   if (p && p.phase === 'finish' && S.tab === 'take') return takeawayHtml();
-  if (p && p.phase === 'vote' && p.active !== S.team && S.votes[p.round] == null) return ballotHtml();
+  if (p && p.phase === 'vote' && p.active !== S.team && S.votes[vk(p)] == null) return ballotHtml();
   if (p && p.active && p.active !== S.team && ['stage', 'vote'].includes(p.phase)) return standbyHtml();
   if (p && p.active && p.active !== S.team && ['reveal', 'observer', 'debrief'].includes(p.phase) && p.result) return resultHtml();
   return hubHtml();
@@ -2109,19 +2110,19 @@ function ballotHtml() {
     ${P.stations.map((st, i) => `<button class="rp-opt" data-a="vote" data-i="${i}"><span>${st.icon || ''}</span>${esc(st.vote)}</button>`).join('')}</div>`;
 }
 function standbyHtml() {
-  const p = S.pub, v = S.votes[p.round], P = S.P;
+  const p = S.pub, v = S.votes[vk(p)], P = S.P;
   if (p.phase === 'vote' && P.rating) return `<div class="stack"><div class="rp-res ok">✓ Vote recorded: ${esc((P.stations[v] || {}).vote || '')}</div>${rateHtml('rate', `Now rate Team ${p.active}’s performance`)}</div>`;
   if (p.phase === 'vote') return `<div class="rp-standby"><div class="rp-big">✓</div><h2>Vote recorded!</h2><p>You chose <b>${esc((P.stations[v] || {}).vote || '')}</b>.</p><p class="muted">${p.voted} votes so far.</p></div>`;
   return `<div class="rp-standby"><div class="rp-big">👀</div><h2>Watch Team ${p.active} closely</h2><p>Voting opens in a moment…</p><p class="muted">${esc((P.vote || {}).hint || '')}</p></div>`;
 }
 /** 1-5 rating rows: 'rate' (the room rates the team on stage) or 'selfrate' (the team's observer rates their own team) */
 function rateHtml(kind, title) {
-  const R = S.P.rating, rd = S.pub.round, cur = (kind === 'rate' ? S.rates : S.selfRates)[rd] || [], L = R.labels || ['Not yet', 'Partly', 'Clearly'], done = R.items.every((_, i) => cur[i] != null);
+  const R = S.P.rating, rd = kind === 'rate' ? vk(S.pub) : S.pub.round, cur = (kind === 'rate' ? S.rates : S.selfRates)[rd] || [], L = R.labels || ['Not yet', 'Partly', 'Clearly'], done = R.items.every((_, i) => cur[i] != null);
   return `<div class="rp-rate" data-rate="${kind}"><h2>${esc(title)}</h2>${R.items.map((it, i) => `<div class="rp-rrow"><span>${esc(it)}</span><div class="rp-scale">${[1, 2, 3, 4, 5].map(v => `<button type="button" class="${cur[i] === v ? 'on' : ''}" data-a="rate" data-k="${kind}" data-i="${i}" data-v="${v}">${v}</button>`).join('')}</div><div class="rp-ends"><span>1 ${esc(L[0])}</span><span>3 ${esc(L[1])}</span><span>5 ${esc(L[2])}</span></div></div>`).join('')}
     <p class="rp-done${done ? '' : ' hidden'}">✓ Thanks! Your ratings are in.</p></div>`;
 }
 function resultHtml() {
-  const p = S.pub, P = S.P, r = p.result, st = P.stations[r.station], v = S.votes[p.round], ok = v === r.station;
+  const p = S.pub, P = S.P, r = p.result, st = P.stations[r.station], v = S.votes[vk(p)], ok = v === r.station;
   return `<div class="stack"><div class="rp-res ${v == null ? '' : ok ? 'ok' : 'no'}">${v == null ? 'You didn’t vote this time.' : ok ? '✓ You spotted it!' : `✗ You chose ${esc((P.stations[v] || {}).vote || '')}`}</div>
     <div class="rp-hero"><span class="rp-ico">${st.icon || '🎭'}</span><div><small>Team ${p.active} · ${esc(st.moment || '')}</small><h2>${esc(st.title)}</h2></div></div>
     <div class="rp-move"><b>The move</b><p>${esc(st.move || '')}</p></div>${scienceHtml(P, st)}</div>`;
@@ -2150,10 +2151,10 @@ function devClick(e) {
   if (a === 'size') { S.lastSize = +b.dataset.n; sSend({ type: 'size', n: +b.dataset.n }); sfx('step'); return; }
   if (a === 'claim') { S.seat = +b.dataset.i; S.claimAt = Date.now(); sSave(); sSend({ type: 'claim', seat: S.seat }); sfx('chime'); buzz(60); return render(); }
   if (a === 'unclaim') { S.seat = null; S.claimAt = Date.now(); sSave(); sSend({ type: 'unclaim' }); return render(); }
-  if (a === 'vote') { const p = S.pub; if (!p || p.phase !== 'vote') return; S.votes[p.round] = +b.dataset.i; sSave(); sSend({ type: 'vote', round: p.round, opt: +b.dataset.i }); sfx('cash'); buzz(40); return render(); }
+  if (a === 'vote') { const p = S.pub; if (!p || p.phase !== 'vote') return; S.votes[vk(p)] = +b.dataset.i; sSave(); sSend({ type: 'vote', round: p.round, vkey: p.vkey, opt: +b.dataset.i }); sfx('cash'); buzz(40); return render(); }
   if (a === 'rate') {
-    const p = S.pub; if (!p) return; const kind = b.dataset.k, store2 = kind === 'rate' ? S.rates : S.selfRates, arr = (store2[p.round] ||= S.P.rating.items.map(() => null));
-    arr[+b.dataset.i] = +b.dataset.v; sSave(); sSend({ type: kind, round: p.round, r: arr }); sfx('step');
+    const p = S.pub; if (!p) return; const kind = b.dataset.k, store2 = kind === 'rate' ? S.rates : S.selfRates, arr = (store2[kind === 'rate' ? vk(p) : p.round] ||= S.P.rating.items.map(() => null));
+    arr[+b.dataset.i] = +b.dataset.v; sSave(); sSend({ type: kind, round: p.round, vkey: p.vkey, r: arr }); sfx('step');
     $$(`[data-a="rate"][data-k="${kind}"][data-i="${b.dataset.i}"]`).forEach(x => x.classList.toggle('on', x === b));
     const d = $(`[data-rate="${kind}"] .rp-done`); if (d) d.classList.toggle('hidden', !arr.every(v => v != null)); settle(); return;
   }

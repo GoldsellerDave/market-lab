@@ -424,5 +424,5 @@ To make a pack for another class: on the setup screen choose a pack, **Download 
 | `stations` | Each: `id`, `vote` (ballot label), `title`, `icon`, `moment`, `move`, `prep`, `topic`, `try`, `avoid`, `science` (`h`, `p`), `subpar` and `good` (`label`, `text`), `evidence`, optional `bank`, and `cards` by role id |
 | `cards` | Lead: `steps`. Secret or actor: `name`, `does`, `until`, `response` (the response is shown to the observer). Observer: `watch` and optional `tools` (`stopwatch` with `laps`, or `tally` with `items`). Debriefer: `points` |
 
-Tests: `tests/e2e_roleplay.py` runs 6 teams of 6, 5, 4, 3, 6 and 4 phones through a whole session, including reloads.
+Tests: `tests/e2e_roleplay.py` runs 6 teams of 6, 5, 4, 3, 6 and 4 phones through a whole session, including reloads. `tests/e2e_rp36.py` is the stress test: 36 phones plus a late joiner, every vote and rating checked against the console, with dropped connections, a console reload mid-vote, Back from vote and reveal, pause, and a role-claim race. `tests/e2e_rppack.py` loads a custom pack file.
 
