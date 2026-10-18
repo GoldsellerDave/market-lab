@@ -718,6 +718,31 @@ body.rp-phone { background: var(--rp-soft); }
 .rp-res.ok { background: var(--rp-good-soft); color: var(--rp-good); } .rp-res.no { background: var(--rp-bad-soft); color: var(--rp-bad); }
 .rp-tk { background: #fff; border-radius: 14px; padding: 10px 12px; } .rp-tk summary { cursor: pointer; font-size: 1.1rem; } .rp-tk summary small { color: var(--muted); } .rp-tk[open] summary { margin-bottom: 10px; }
 
+/* takeaway handout (2 A4 pages) */
+.rp-takehome { display: flex; flex-direction: column; gap: 4px; font-size: clamp(16px, 1.4vw, 24px); background: var(--rp-dark); color: #fff; } .rp-takehome b { color: var(--rp-accent); } .rp-takehome span b { color: #fff; }
+body.rp-handout { background: #e6eaea; }
+.rp-ho { max-width: 210mm; margin: 0 auto; padding: 12px 0 40px; }
+.rp-ho-page { background: #fff; padding: 11mm 12mm; margin: 0 auto 12px; display: flex; flex-direction: column; gap: 4mm; font-size: 9.6pt; line-height: 1.35; box-shadow: var(--shadow); }
+.rp-ho-top { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid var(--rp-primary); padding-bottom: 2mm; }
+.rp-ho-top h1 { margin: 0; font-size: 20pt; } .rp-ho-top small { color: var(--rp-primary); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: 8pt; }
+.rp-ho-top p { margin: 0; font-family: var(--font-display); font-weight: 700; color: var(--rp-primary); font-size: 11pt; }
+.rp-ho-seq { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 2mm; counter-reset: q; }
+.rp-ho-seq li { counter-increment: q; background: var(--rp-soft); border-radius: 2mm; padding: 1.5mm 2mm; display: flex; flex-direction: column; border-top: 2.5px solid var(--rp-primary); }
+.rp-ho-seq small { font-size: 7pt; color: var(--muted); } .rp-ho-seq small::before { content: counter(q) ". "; font-weight: 700; color: var(--rp-primary); } .rp-ho-seq b { font-size: 8.4pt; }
+.rp-ho-st { border: 1px solid var(--line); border-left: 4px solid var(--rp-primary); border-radius: 2mm; padding: 3mm 4mm; break-inside: avoid; }
+.rp-ho-h { display: flex; gap: 3mm; align-items: center; margin-bottom: 2mm; }
+.rp-ho-h h2 { margin: 0; font-size: 13pt; } .rp-ho-h small { color: var(--rp-primary); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 7.5pt; }
+.rp-ho-h .rp-ico { font-size: 14pt; border-radius: 2mm; }
+.rp-ho-n { font-family: var(--font-display); font-weight: 800; font-size: 16pt; color: var(--rp-primary); }
+.rp-ho-cols { display: grid; grid-template-columns: 1fr 1.25fr; gap: 5mm; }
+.rp-ho-k { display: block; font-family: var(--font-display); color: var(--rp-primary); font-size: 8.5pt; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1mm; }
+.rp-ho-cols ol { margin: 0; padding-left: 4.5mm; } .rp-ho-cols li { margin: .5mm 0; }
+.rp-ho-cols p { margin: 0 0 1.5mm; }
+.rp-ho-bank { display: flex; flex-direction: column; margin-top: 1.5mm; font-size: 8.4pt; background: var(--rp-soft); border-radius: 1.5mm; padding: 1.5mm 2mm; } .rp-ho-bank i { font-style: normal; font-weight: 700; }
+.rp-ho-anchor { margin: 0; background: var(--rp-accent); border-radius: 2mm; padding: 3mm 4mm; font-size: 9pt; }
+.rp-ho-cav { margin: 0; font-size: 8pt; color: var(--muted); }
+@media print { body.rp-handout { background: #fff; } .no-print { display: none !important; } .rp-ho { padding: 0; max-width: none; } .rp-ho-page { box-shadow: none; margin: 0; padding: 0; break-after: page; min-height: auto; } .rp-ho-page:last-child { break-after: auto; } }
+@media screen and (max-width: 760px) { .rp-ho-cols { grid-template-columns: 1fr; } .rp-ho-seq { grid-template-columns: repeat(2, 1fr); } .rp-ho-page { padding: 16px; } }
 /* all cards / print */
 .rp-allcards { max-width: 1100px; }
 .rp-station { background: #fff; border-radius: 20px; padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
@@ -952,7 +977,7 @@ RP_PACKS.push({
   caveat: 'Much of this evidence is older or from universities, and none of the techniques has been trialled by name. Treat them as strongly supported principles, not proof.',
   vote: { question: 'Which technique did {team} show?', hint: 'Watch what the teacher does with each answer.' },
   rating: { items: ['Every student was involved, not just one or two', 'The tricky students were handled well', 'Warm, encouraging tone', 'Students had to explain their thinking, not just give short answers'], labels: ['Not yet', 'Partly', 'Clearly'] },
-  commit: { prompt: 'When I ___, I will ___.', example: 'When a student says “I don’t know”, I will come back to them.' },
+  handout: 'roleplay-questioning-handout.pdf',
   timing: { session: 30, start: '10:30', before: 6, after: 3, prep: 5, phases: { spin: 5, stage: 60, vote: 25, reveal: 10, observer: 25, debrief: 15 } },
   roles: [
     { id: 'teacher', name: 'Teacher', icon: '🧑‍🏫', kind: 'lead', badge: 'Actor' },
@@ -1806,7 +1831,7 @@ function stageHtml() {
         ${RATE() ? `<div class="panel rp-award"><h2>🏆 Best performance</h2><small class="muted">The room’s average rating out of 5</small><ol class="rp-lead">${byPerf.map((t, i) => `<li class="${i === 0 && t.avg != null ? 'win' : ''}"><span>${medal(i)}</span><b>Team ${t.team}</b><small>self ${f1(t.self)}</small><b>${t.avg == null ? '–' : t.avg.toFixed(2)}</b></li>`).join('')}</ol></div>` : ''}
         <div class="panel rp-award"><h2>👀 Sharpest eyes</h2><small class="muted">Share of the team’s guesses that were right</small><ol class="rp-lead">${R.map((t, i) => `<li class="${i === 0 && t.total ? 'win' : ''}"><span>${medal(i)}</span><b>Team ${t.team}</b><small>${t.right}/${t.total}</small><b>${t.total ? Math.round(t.right / t.total * 100) + '%' : '–'}</b></li>`).join('')}</ol></div></div>
       ${P.commit ? `<div class="panel rp-commit"><h2>Your commitment</h2><p class="rp-commit-p">${esc(P.commit.prompt)}</p>${P.commit.example ? `<p class="muted">e.g. ${esc(P.commit.example)}</p>` : ''}</div>` : ''}
-      <p class="muted">Everything stays on your phone: tap <b>Takeaway</b> to browse all ${P.stations.length} ${esc(W.stations)}.</p></div></div>`; }
+      <div class="panel rp-takehome"><b>📄 Take the ${P.stations.length} ${esc(W.stations)} with you</b><span>On your phone: <b>Takeaway → Download (PDF)</b></span></div></div></div>`; }
   const r = curResult(), st = r ? P.stations[r.station] : stationOfTeam(s.active), pct = r && r.n ? Math.round((r.counts[r.station] || 0) / r.n * 100) : 0;
   const banner = `<div class="rp-answer"><span>Team ${s.active} showed</span><b>${st.icon || ''} ${esc(st.title)}</b>${r ? `<small>${r.n ? pct + '% of the room spotted it' : 'No votes'}</small>` : ''}</div>`;
   if (ph === 'reveal') return `<div class="rp-reveal"><div class="rp-kicker">The votes</div>${r ? barsHtml(r) : ''}${banner}</div>`;
@@ -2106,11 +2131,11 @@ function takeawayHtml() {
   return `<div class="stack"><nav class="rp-tabs"><button class="on" data-a="tab" data-t="take">Takeaway</button><button data-a="tab" data-t="role">My team’s cards</button></nav>
     ${me && me.total ? `<div class="rp-res ok">Team ${S.team} spotted ${me.right} of ${me.total} (${Math.round(me.right / me.total * 100)}%)</div>` : ''}
     ${f && f.perf ? (q => q && q.avg != null ? `<div class="rp-res ok">The room rated Team ${S.team}’s performance ${(Math.round(q.avg * 10) / 10).toFixed(1)} out of 5${q.self != null ? ` (you gave yourselves ${(Math.round(q.self * 10) / 10).toFixed(1)})` : ''}</div>` : '')(f.perf.find(t => t.team === S.team)) : ''}
-    ${P.commit ? `<div class="panel stack"><b>${esc(P.commit.prompt)}</b><textarea id="commitIn" rows="2" placeholder="${esc(P.commit.example || '')}">${esc(S.commit)}</textarea><small class="muted">Stays on this phone only.</small></div>` : ''}
-    ${overviewHtml(P)}
+    <a class="btn primary big rp-wide" href="${esc(handoutUrl(P))}" ${P.handout ? 'download' : 'target="_blank" rel="noopener"'}>⬇ Download the ${P.stations.length} ${esc(words(P).stations)} (PDF)</a>
+    <h3 style="margin:.4em 0 0">${esc((P.overview || {}).title || 'All ' + words(P).stations)}</h3>
     ${P.stations.map(st => `<details class="rp-tk"><summary>${st.icon || ''} <b>${esc(st.title)}</b> <small>${esc(st.moment || '')}</small></summary>${briefingHtml(P, st)}</details>`).join('')}
     ${P.anchor ? `<blockquote class="rp-anchor">${esc(P.anchor.quote)}<cite>${esc(P.anchor.who)}</cite><p>${esc(P.anchor.line || '')}</p></blockquote>` : ''}
-    <a class="btn rp-wide" href="${PAGE}?mode=cards&pack=${encodeURIComponent(P.id)}" target="_blank" rel="noopener">Open every card (to keep)</a></div>`;
+  </div>`;
 }
 /* ---- observer tools: ticks, tallies, stopwatch ---- */
 function restoreTools() {
@@ -2146,6 +2171,28 @@ function devClick(e) {
   }
 }
 
+const handoutUrl = P => P.handout || `${PAGE}?mode=handout&pack=${encodeURIComponent(P.id)}`;
+/* ---- the takeaway handout: every station's move, steps and science on 2 A4 pages ---- */
+function handoutBoot() {
+  document.documentElement.dataset.theme = 'light';
+  const P = packById(PARAMS.get('pack') || '') || packFor(PARAMS.get('pack') || '') || RP_PACKS[0]; applyTheme(P);
+  const W = words(P), half = Math.ceil(P.stations.length / 2);
+  const block = (st, i) => `<section class="rp-ho-st"><div class="rp-ho-h"><span class="rp-ho-n">${i + 1}</span><span class="rp-ico">${st.icon || ''}</span><div><small>${esc(st.moment || '')}</small><h2>${esc(st.title)}</h2></div></div>
+    <div class="rp-ho-cols"><div><b class="rp-ho-k">Steps</b><ol>${li(((st.cards || {})[(P.roles.find(r => r.kind === 'lead') || {}).id] || {}).steps || [st.move])}</ol>
+      ${st.bank ? `<div class="rp-ho-bank">${st.bank.map(([t, q]) => `<span><i>${esc(t)}</i> ${esc(q)}</span>`).join('')}</div>` : ''}</div>
+      <div><b class="rp-ho-k">The science</b>${(st.science || []).map(x => `<p><b>${esc(x.h)}.</b> ${esc(x.p)}</p>`).join('')}</div></div></section>`;
+  document.body.classList.add('rp-handout');
+  document.body.innerHTML = shell(`<header class="topbar no-print"><span class="brand">${esc(P.icon || '')} ${esc(P.title)}</span><span class="spacer"></span><button class="btn small ghost rp-topbtn" id="pr">🖨 Print or save as PDF</button></header>
+    <main id="printArea" class="rp-ho">
+      <div class="rp-ho-page"><header class="rp-ho-top"><div><small>${esc(P.subtitle || '')}</small><h1>${esc(P.title)}</h1></div>${P.overview ? `<p>${esc(P.overview.title)}</p>` : ''}</header>
+        <ol class="rp-ho-seq">${P.stations.map(st => `<li><small>${esc(st.moment || '')}</small><b>${st.icon || ''} ${esc(st.vote || st.title)}</b></li>`).join('')}</ol>
+        ${P.stations.slice(0, half).map((st, i) => block(st, i)).join('')}</div>
+      <div class="rp-ho-page">${P.stations.slice(half).map((st, i) => block(st, i + half)).join('')}
+        ${P.anchor ? `<blockquote class="rp-ho-anchor"><b>${esc(P.anchor.quote)}</b> ${esc(P.anchor.who)}. ${esc(P.anchor.line || '')}</blockquote>` : ''}
+        ${P.caveat ? `<p class="rp-ho-cav">${esc(P.caveat)}</p>` : ''}</div>
+    </main>`);
+  $('#pr').onclick = () => window.print();
+}
 /* ---- every card, to browse or print (no room needed) ---- */
 function cardsBoot() {
   document.documentElement.dataset.theme = 'light';
@@ -2159,7 +2206,7 @@ function cardsBoot() {
 }
 (function boot() {
   const mode = PARAMS.get('mode') || (PARAMS.get('room') ? 'student' : 'home');
-  if (mode === 'teacher') teacherBoot(); else if (mode === 'student') studentBoot(); else if (mode === 'cards') cardsBoot();
+  if (mode === 'teacher') teacherBoot(); else if (mode === 'student') studentBoot(); else if (mode === 'cards') cardsBoot(); else if (mode === 'handout') handoutBoot();
   else location.replace('index.html' + (PARAMS.get('t') ? '?t=' + PARAMS.get('t') : ''));
 })();
 

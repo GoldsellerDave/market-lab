@@ -405,6 +405,8 @@ All the pack content is inside the page, and each phone keeps its team, role and
 
 Two packs are built in: **Questioning for everyone** (CPD Session 4: wait time, cold calling, no opt out, Right is Right, follow-up questions with the Socratic bank, ABC) and **Market shocks: act it out** (0455 demand and supply: four shifts, a shortage and a surplus). Wait time is from the finished printed card; the other questioning content is a draft for the presenters to review.
 
+**Takeaway handout.** At the end, each phone's Takeaway screen has **Download (PDF)**: a 2-page A4 handout with every technique's steps and science (`roleplay-questioning-handout.pdf`). A pack names its file in `handout`; without one, the button opens a printable page (`roleplay.html?mode=handout&pack=…`). After editing a pack, rebuild the PDF with `python3 src/make_handout.py <pack-id>`.
+
 To make a pack for another class: on the setup screen choose a pack, **Download this pack (JSON)**, edit the text, then **Load a pack file**. The pack is checked when it loads and is kept on that computer; phones receive it from the console. To build a pack into the app for everyone, add a file to `src/roleplay/packs/` that calls `RP_PACKS.push({...})` and run `build.sh`.
 
 | Field | What it holds |
@@ -412,7 +414,7 @@ To make a pack for another class: on the setup screen choose a pack, **Download 
 | `id`, `title`, `subtitle`, `icon` | Names. `id` uses lower-case letters, numbers and hyphens |
 | `theme` | `dark`, `primary`, `accent`, `soft` colours, and `head` and `body` Google Fonts loaded by the page |
 | `words` | What to call a station (`technique`), the lead role (`Teacher`) and the scene (`role-play`) |
-| `objectives`, `overview`, `anchor`, `caveat`, `commit` | The lobby objectives, the takeaway sequence title, the quote, the evidence caveat and the commitment prompt |
+| `objectives`, `overview`, `anchor`, `caveat`, `handout` | The lobby objectives, the takeaway sequence title, the quote, the evidence caveat and the handout PDF file |
 | `vote` | `question` (use `{team}` and `{station}`) and the `hint` audiences see while watching |
 | `rating` | Optional: `items` (the 1–5 rating questions) and `labels` for 1, 3 and 5 |
 | `timing` | Default `session`, `start`, `before`, `prep`, `after` minutes and `phases` seconds |
