@@ -88,3 +88,5 @@ button.unit{font-weight:400;background:var(--panel);color:var(--ink);border-colo
 table.board td{padding:6px 8px}table.board td.num{text-align:right;font-weight:700}table.board tr.me{background:var(--foil-soft)}table.board tr.me td{font-weight:700}
 ol.worked li{margin:.25em 0}
 .flag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.78rem;font-weight:700;background:var(--bad-soft);color:var(--bad)}
+.dg-mvline{stroke:var(--foil);stroke-width:3;fill:none}.dg-mvdot{fill:var(--foil);stroke:var(--panel);stroke-width:2}
+.dg-mvlab{fill:var(--ink);font:700 13px var(--font-body)}.dg-arrowhead{fill:var(--foil)}

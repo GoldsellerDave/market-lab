@@ -18,12 +18,12 @@ export function createDiagram(host, opts = {}) {
       <polyline class="dg-old dg-d" data-k="d0"/><polyline class="dg-old dg-s" data-k="s0"/>
       <polyline class="dg-d" data-k="d"/><polyline class="dg-s" data-k="s"/>
     </g>
-    <g class="dg-guides" data-k="g"></g>
+    <g class="dg-guides" data-k="g"></g><g class="dg-move" data-k="mv"></g>
     <text class="dg-lab dg-dl" data-k="dl"></text><text class="dg-lab dg-sl" data-k="sl"></text>
     <text class="dg-lab dg-dl dg-faint" data-k="dl0"></text><text class="dg-lab dg-sl dg-faint" data-k="sl0"></text>
   </svg>`;
   const svg = host.querySelector('svg'), q = k => svg.querySelector(`[data-k="${k}"]`);
-  let cur = { kD: 0, kS: 0 }, raf = null;
+  let cur = { kD: 0, kS: 0 }, raf = null, mvOn = false;
   function draw(kD, kS) {
     const moved = { D: Math.abs(kD) > 0.001, S: Math.abs(kS) > 0.001 };
     q('d0').setAttribute('points', pts(lineD(0))); q('s0').setAttribute('points', pts(lineS(0)));
@@ -35,9 +35,10 @@ export function createDiagram(host, opts = {}) {
     const e0 = equilibrium(0, 0), e1 = equilibrium(kD, kS), any = moved.D || moved.S, g = q('g');
     const guide = (e, cls, p, qq) => `<polyline class="dg-guide ${cls}" points="${px(0)},${py(e.y)} ${px(e.x)},${py(e.y)} ${px(e.x)},${py(0)}"/><circle class="dg-eq ${cls}" cx="${px(e.x)}" cy="${py(e.y)}" r="5"/>
       <text class="dg-tick ${cls}" x="${X0 - 6}" y="${py(e.y) + 5}" text-anchor="end">${p}</text><text class="dg-tick ${cls}" x="${px(e.x)}" y="${Y0 + 18}" text-anchor="middle">${qq}</text>`;
-    g.innerHTML = guide(e0, any ? 'dg-faint' : '', any ? 'P1' : 'P', any ? 'Q1' : 'Q') + (any && opts.showNew !== false ? guide(e1, 'dg-new', 'P2', 'Q2') : '');
+    g.innerHTML = guide(e0, any ? 'dg-faint' : '', any || mvOn ? 'P1' : 'P', any || mvOn ? 'Q1' : 'Q') + (any && opts.showNew !== false ? guide(e1, 'dg-new', 'P2', 'Q2') : '');
   }
-  function set(target, animate = true) {
+  function set(target, animate = true, keepMove = false) {
+    if (!keepMove) { clearTimeout(alongTimer); q('mv').innerHTML = ''; mvOn = false; }
     const from = { ...cur }, to = { kD: (target.D || 0) * STEP, kS: (target.S || 0) * STEP };
     cancelAnimationFrame(raf);
     if (!animate || matchMedia('(prefers-reduced-motion: reduce)').matches) { cur = to; draw(to.kD, to.kS); return; }
@@ -46,7 +47,28 @@ export function createDiagram(host, opts = {}) {
       cur = { kD: from.kD + (to.kD - from.kD) * e, kS: from.kS + (to.kS - from.kS) * e }; draw(cur.kD, cur.kS); if (t < 1) raf = requestAnimationFrame(step); };
     raf = requestAnimationFrame(step);
   }
+  // A movement along the demand curve: the point slides from E1 to where the price is higher (sDir -1) or lower (+1).
+  // Then, if showCause, supply shifts to explain why the price changed; the demand curve never moves.
+  let alongTimer;
+  function along(sDir = -1, onPhase = () => {}, showCause = true) {
+    set({}, false); mvOn = true; draw(0, 0);
+    const e0 = equilibrium(0, 0), e1 = equilibrium(0, sDir * STEP), mv = q('mv');
+    const paint = t => {
+      const x = e0.x + (e1.x - e0.x) * t, y = 0.9 - 0.8 * x;
+      mv.innerHTML = `<line class="dg-mvline" x1="${px(e0.x)}" y1="${py(e0.y)}" x2="${px(x)}" y2="${py(y)}" marker-end="url(#dgarr)"/>
+        <circle class="dg-mvdot" cx="${px(x)}" cy="${py(y)}" r="7"/>
+        ${t > 0.98 ? `<text class="dg-mvlab" x="${px(x) + 12}" y="${py(y) - 10}">${sDir < 0 ? 'Contraction' : 'Extension'} of demand</text>
+          <polyline class="dg-guide dg-new" points="${px(0)},${py(y)} ${px(x)},${py(y)} ${px(x)},${py(0)}"/>
+          <text class="dg-tick" x="${X0 - 6}" y="${py(y) + 5}" text-anchor="end">P2</text><text class="dg-tick" x="${px(x)}" y="${Y0 + 18}" text-anchor="middle">Q2</text>` : ''}`;
+    };
+    onPhase(1);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { paint(1); if (showCause) { set({ S: sDir }, false, true); onPhase(2); } return; }
+    const t0 = performance.now(), dur = 1100;
+    const step = now => { const t = Math.min(1, (now - t0) / dur); paint(1 - Math.pow(1 - t, 3)); if (t < 1) raf = requestAnimationFrame(step);
+      else if (showCause) alongTimer = setTimeout(() => { set({ S: sDir }, true, true); onPhase(2); }, 1400); };
+    raf = requestAnimationFrame(step);
+  }
   draw(0, 0);
   if (opts.start) set(opts.start, false);
-  return { set, reset: () => set({}, true) };
+  return { set, along, reset: () => set({}, true) };
 }

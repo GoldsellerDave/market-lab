@@ -170,8 +170,13 @@ function learn() {
       const dg = createDiagram($('#dg'));
       $$('.choice[data-k]').forEach(b => (b.onclick = () => {
         $$('.choice').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
-        const d = DEMO_SHIFT[c.kind][+b.dataset.k]; dg.set(d);
-        $('#eff').innerHTML = c.kind === 'move' && +b.dataset.k === 0 ? 'No curve shifts: we move along the demand curve.' : c.kind === 'two' ? esc(c.rows[+b.dataset.k][1]) + '.' : effect(d);
+        const d = DEMO_SHIFT[c.kind][+b.dataset.k];
+        if (c.kind === 'move' && +b.dataset.k === 0) return dg.along(-1, ph => {
+          $('#eff').innerHTML = ph === 1 ? 'The price rises, so buyers move <b>up along</b> the demand curve: a <b>contraction of demand</b>. Quantity demanded falls. The demand curve does not move.'
+            : 'Why did the price rise? Something on the <b>supply</b> side, e.g. milk costs rose: supply shifted left. The demand curve stayed where it was.';
+        });
+        dg.set(d);
+        $('#eff').innerHTML = c.kind === 'two' ? esc(c.rows[+b.dataset.k][1]) + '.' : effect(d);
       }));
     }
     $('#prev').onclick = () => { i--; show(); };
@@ -258,7 +263,7 @@ function shift(run = newRun('shift', 6)) {
     <div class="play-grid"><div class="dgwrap" id="dg"></div><div><div id="step"></div><div id="fb" aria-live="polite"></div></div></div></div>`);
   const dg = createDiagram($('#dg'), { showNew: true });
   const reveal = () => {
-    rec.revealed = true; rec.ok = false; dg.set(it.dir); $('#fb').innerHTML = '';
+    rec.revealed = true; rec.ok = false; if (it.curve === 'none') dg.along(-1, () => {}, false); else dg.set(it.dir); $('#fb').innerHTML = '';
     $('#step').innerHTML = `<div class="fb tip"><b>Here is the answer. Read it, then try the next case.</b>${answerSteps(it)}</div>${trapBox(rec.trap)}
       <button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next case' : 'See my results'}</button>`;
     $('#nx').onclick = () => afterItem(run, rec, () => shift(run)); $('#nx').focus();
@@ -299,6 +304,7 @@ function shift(run = newRun('shift', 6)) {
       $('#chk').onclick = () => {
         if (!E.checkShift(it, 3, choice[3])) return wrong(3);
         rec.ok = true;
+        if (it.curve === 'none') dg.along(-1, () => {}, false);
         el.innerHTML = `<div class="fb ok"><b>${rec.first_try ? 'Right first time! ⭐' : 'Solved.'}</b>${esc(it.why)}</div><button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next case' : 'See my results'}</button>`;
         $('#fb').innerHTML = '';
         $('#nx').onclick = () => afterItem(run, rec, () => shift(run));

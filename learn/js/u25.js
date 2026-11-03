@@ -21,7 +21,7 @@ export const LEARN = [
     text: 'Every price change starts with a shift of demand or supply. Tap a change to see what happens to price (P) and quantity (Q).' },
   { id: 'move', title: 'Shift or movement?', kind: 'move',
     text: 'If the good’s own price changes, we move along the curve (an extension or a contraction). If anything else changes, the whole curve shifts.',
-    rows: [['Bubble tea price rises', 'Movement along the demand curve: quantity demanded falls'], ['Incomes rise', 'Demand curve shifts right'], ['Milk costs rise', 'Supply curve shifts left']] },
+    rows: [['Bubble tea price rises', 'Movement up along the demand curve: a contraction of demand (quantity demanded falls)'], ['Incomes rise', 'Demand curve shifts right'], ['Milk costs rise', 'Supply curve shifts left']] },
   { id: 'causes', title: 'What shifts each curve?', kind: 'causes',
     demand: ['Income', 'Tastes and fashion, advertising', 'Price of a substitute (tea vs coffee)', 'Price of a complement (petrol and motorbikes)', 'Population'],
     supply: ['Costs of production (wages, materials)', 'Technology', 'Weather and natural disasters', 'Taxes (left) and subsidies (right)', 'Number of firms'] },
