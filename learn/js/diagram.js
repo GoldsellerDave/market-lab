@@ -1,0 +1,52 @@
+// An animated demand and supply diagram (SVG). Curves shift horizontally; the new equilibrium is marked.
+import { equilibrium } from './engine.js';
+
+const X0 = 56, X1 = 336, Y0 = 268, Y1 = 22;
+const px = x => X0 + (X1 - X0) * x, py = y => Y0 - (Y0 - Y1) * y;
+const lineD = k => [[0.12 + k, 0.9 - 0.8 * 0.12], [0.88 + k, 0.9 - 0.8 * 0.88]];
+const lineS = k => [[0.12 + k, 0.1 + 0.8 * 0.12], [0.88 + k, 0.1 + 0.8 * 0.88]];
+const pts = l => l.map(([x, y]) => `${px(x).toFixed(1)},${py(y).toFixed(1)}`).join(' ');
+const STEP = 0.2;
+
+export function createDiagram(host, opts = {}) {
+  host.innerHTML = `<svg class="dg" viewBox="0 0 360 300" role="img" aria-label="${opts.label || 'Demand and supply diagram'}">
+    <defs><clipPath id="dgclip${host.id || ''}"><rect x="${X0}" y="${Y1 - 6}" width="${X1 - X0 + 6}" height="${Y0 - Y1 + 6}"/></clipPath>
+      <marker id="dgarr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"/></marker></defs>
+    <g class="dg-axes"><line x1="${X0}" y1="${Y1 - 8}" x2="${X0}" y2="${Y0}"/><line x1="${X0}" y1="${Y0}" x2="${X1 + 10}" y2="${Y0}"/>
+      <text x="${X0 - 8}" y="${Y1 - 10}" text-anchor="end">Price</text><text x="${X1 + 10}" y="${Y0 + 26}" text-anchor="end">Quantity</text></g>
+    <g clip-path="url(#dgclip${host.id || ''})">
+      <polyline class="dg-old dg-d" data-k="d0"/><polyline class="dg-old dg-s" data-k="s0"/>
+      <polyline class="dg-d" data-k="d"/><polyline class="dg-s" data-k="s"/>
+    </g>
+    <g class="dg-guides" data-k="g"></g>
+    <text class="dg-lab dg-dl" data-k="dl"></text><text class="dg-lab dg-sl" data-k="sl"></text>
+    <text class="dg-lab dg-dl dg-faint" data-k="dl0"></text><text class="dg-lab dg-sl dg-faint" data-k="sl0"></text>
+  </svg>`;
+  const svg = host.querySelector('svg'), q = k => svg.querySelector(`[data-k="${k}"]`);
+  let cur = { kD: 0, kS: 0 }, raf = null;
+  function draw(kD, kS) {
+    const moved = { D: Math.abs(kD) > 0.001, S: Math.abs(kS) > 0.001 };
+    q('d0').setAttribute('points', pts(lineD(0))); q('s0').setAttribute('points', pts(lineS(0)));
+    q('d0').style.display = moved.D ? '' : 'none'; q('s0').style.display = moved.S ? '' : 'none';
+    q('d').setAttribute('points', pts(lineD(kD))); q('s').setAttribute('points', pts(lineS(kS)));
+    const lab = (el, l, txt) => { const [x, y] = l[1]; el.setAttribute('x', Math.min(px(x) + 4, X1 + 8)); el.setAttribute('y', py(y) + (el.classList.contains('dg-dl') ? 0 : 4)); el.textContent = txt; };
+    lab(q('dl'), lineD(kD), moved.D ? 'D2' : 'D'); lab(q('sl'), lineS(kS), moved.S ? 'S2' : 'S');
+    lab(q('dl0'), lineD(0), moved.D ? 'D1' : ''); lab(q('sl0'), lineS(0), moved.S ? 'S1' : '');
+    const e0 = equilibrium(0, 0), e1 = equilibrium(kD, kS), any = moved.D || moved.S, g = q('g');
+    const guide = (e, cls, p, qq) => `<polyline class="dg-guide ${cls}" points="${px(0)},${py(e.y)} ${px(e.x)},${py(e.y)} ${px(e.x)},${py(0)}"/><circle class="dg-eq ${cls}" cx="${px(e.x)}" cy="${py(e.y)}" r="5"/>
+      <text class="dg-tick ${cls}" x="${X0 - 6}" y="${py(e.y) + 5}" text-anchor="end">${p}</text><text class="dg-tick ${cls}" x="${px(e.x)}" y="${Y0 + 18}" text-anchor="middle">${qq}</text>`;
+    g.innerHTML = guide(e0, any ? 'dg-faint' : '', any ? 'P1' : 'P', any ? 'Q1' : 'Q') + (any && opts.showNew !== false ? guide(e1, 'dg-new', 'P2', 'Q2') : '');
+  }
+  function set(target, animate = true) {
+    const from = { ...cur }, to = { kD: (target.D || 0) * STEP, kS: (target.S || 0) * STEP };
+    cancelAnimationFrame(raf);
+    if (!animate || matchMedia('(prefers-reduced-motion: reduce)').matches) { cur = to; draw(to.kD, to.kS); return; }
+    const t0 = performance.now(), dur = 750;
+    const step = now => { const t = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - t, 3);
+      cur = { kD: from.kD + (to.kD - from.kD) * e, kS: from.kS + (to.kS - from.kS) * e }; draw(cur.kD, cur.kS); if (t < 1) raf = requestAnimationFrame(step); };
+    raf = requestAnimationFrame(step);
+  }
+  draw(0, 0);
+  if (opts.start) set(opts.start, false);
+  return { set, reset: () => set({}, true) };
+}
