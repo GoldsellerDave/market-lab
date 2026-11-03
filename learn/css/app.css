@@ -92,7 +92,7 @@ ol.worked li{margin:.25em 0}
 .dg-mvlab{fill:var(--ink);font:700 13px var(--font-body)}.dg-arrowhead{fill:var(--foil)}
 /* price line (2.4) */
 .dg-pl{stroke:var(--ink);stroke-width:1.6;stroke-dasharray:2 3}
-.dg-gap{stroke-width:7;stroke-linecap:round;opacity:.55}.dg-gap.shortage{stroke:var(--d)}.dg-gap.surplus{stroke:var(--s)}
+.dg-gap{stroke-width:7;stroke-linecap:round;opacity:.55}.dg-gap.shortage{stroke:var(--d)}.dg-gap.surplus{stroke:var(--s)}.dg-gap.hidden{stroke:var(--warn)}
 .dg-qline{stroke:var(--muted);stroke-dasharray:3 4;stroke-width:1.2}
 .dg-gaplab{font:800 14px var(--font-body)}.dg-gaplab.shortage{fill:var(--d)}.dg-gaplab.surplus{fill:var(--s)}
 .dg-ddot{fill:var(--d);stroke:var(--panel);stroke-width:2}.dg-sdot{fill:var(--s);stroke:var(--panel);stroke-width:2}

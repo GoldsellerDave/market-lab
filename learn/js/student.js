@@ -388,7 +388,7 @@ function eqm(run = newRun('eqm', 6)) {
   view(`${runHead(run, 'Question')}<div class="card"><div class="small muted">Market: <b>${esc(it.good)}</b> · prices in ${esc(it.priceUnit)}</div><p class="event">${esc(it.title)}</p>
     <div class="${it.y != null ? 'play-grid' : ''}">${it.y != null ? '<div class="dgwrap" id="dg"></div>' : ''}<div>${it.table ? schedTable(it) : ''}
     <ul class="done-steps" id="done"></ul><div id="step"></div><div id="fb" aria-live="polite"></div></div></div></div>`);
-  let dg = null; if (it.y != null) { dg = createDiagram($('#dg')); dg.priceLine(it.y, 'P'); }
+  let dg = null; if (it.y != null) { dg = createDiagram($('#dg')); dg.priceLine(it.y, 'P', true); }   // the gap is named once the student has answered
   let si = 0, tries = 0;
   const nextBtn = () => `<button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next question' : 'See my results'}</button>`;
   const bindNext = () => { $('#nx').onclick = () => afterItem(run, rec, () => eqm(run)); $('#nx').focus(); };
@@ -406,6 +406,7 @@ function eqm(run = newRun('eqm', 6)) {
   const right = () => {
     const st = it.steps[si];
     $('#done').insertAdjacentHTML('beforeend', `<li>✔ ${esc(st.q)} <b>${esc(stepAnswer(st))}</b></li>`);
+    if (dg && (st.answer === 'shortage' || st.answer === 'surplus')) dg.priceLine(it.y, 'P');
     if (dg && (st.answer === 'up' || st.answer === 'down')) slidePrice(dg, it.y, 0.5);
     si++; tries = 0; $('#fb').innerHTML = '';
     if (si < it.steps.length) return render();
@@ -496,7 +497,7 @@ function data() {
       $$('.seg', card).forEach(sg => $$('button', sg).forEach(b => (b.onclick = () => {
         $$('button', sg).forEach(x => x.classList.remove('sel')); b.classList.add('sel');
         if (q.type === 'diagram') { pick[sg.dataset.curve] = +b.dataset.v; dg.set(pick); }
-        else { pick[sg.dataset.k] = b.dataset.v; if (sg.dataset.k === 'p') dg.priceLine(pyOf(+b.dataset.v), b.dataset.v); }
+        else { pick[sg.dataset.k] = b.dataset.v; if (sg.dataset.k === 'p') dg.priceLine(pyOf(+b.dataset.v), b.dataset.v, true); }   // gap named only after Check
       })));
     }
     const lock = msg => { fb.innerHTML = msg; chk.remove(); $('#' + id + 'h')?.remove(); card.querySelectorAll('input,textarea,.seg button').forEach(x => (x.disabled = true));

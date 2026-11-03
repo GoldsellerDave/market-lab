@@ -72,7 +72,9 @@ export function createDiagram(host, opts = {}) {
   if (opts.start) set(opts.start, false);
   // A price line at height y (0 to 1, equilibrium 0.5): marks Qd on the demand curve, Qs on the supply curve,
   // and the shortage or surplus between them. y = null removes it. label: the text at the price axis.
-  function priceLine(y, label = 'P') {
+  // hideGap: for questions that ask what the gap is. The gap is drawn in a neutral colour with no label,
+  // so the diagram does not give the answer away; call again without hideGap after Check to name it.
+  function priceLine(y, label = 'P', hideGap = false) {
     const g = q('pl');
     if (y == null) { g.innerHTML = ''; if (plOn) { plOn = false; draw(cur.kD, cur.kS); } return null; }
     if (!plOn) { plOn = true; draw(cur.kD, cur.kS); }
@@ -80,10 +82,10 @@ export function createDiagram(host, opts = {}) {
     const lo = Math.min(xd, xs), hi = Math.max(xd, xs), by = py(y) - (kind === 'surplus' ? -16 : 16);
     g.innerHTML = `<line class="dg-pl" x1="${px(0)}" y1="${py(y)}" x2="${px(1.02)}" y2="${py(y)}"/>
       <text class="dg-tick dg-pltick" x="${X0 - 6}" y="${py(y) + 5}" text-anchor="end">${label}</text>
-      ${kind === 'eq' ? '' : `<line class="dg-gap ${kind}" x1="${px(lo)}" y1="${py(y)}" x2="${px(hi)}" y2="${py(y)}"/>
+      ${kind === 'eq' ? '' : `<line class="dg-gap ${hideGap ? 'hidden' : kind}" x1="${px(lo)}" y1="${py(y)}" x2="${px(hi)}" y2="${py(y)}"/>
         <line class="dg-qline" x1="${px(xd)}" y1="${py(y)}" x2="${px(xd)}" y2="${py(0)}"/><line class="dg-qline" x1="${px(xs)}" y1="${py(y)}" x2="${px(xs)}" y2="${py(0)}"/>
         <text class="dg-tick dg-d-t" x="${px(xd)}" y="${Y0 + 32}" text-anchor="middle">Qd</text><text class="dg-tick dg-s-t" x="${px(xs)}" y="${Y0 + 32}" text-anchor="middle">Qs</text>
-        <text class="dg-gaplab ${kind}" x="${px((lo + hi) / 2)}" y="${by}" text-anchor="middle">${kind === 'shortage' ? 'Shortage' : 'Surplus'}</text>`}
+        ${hideGap ? '' : `<text class="dg-gaplab ${kind}" x="${px((lo + hi) / 2)}" y="${by}" text-anchor="middle">${kind === 'shortage' ? 'Shortage' : 'Surplus'}</text>`}`}
       <circle class="dg-ddot" cx="${px(xd)}" cy="${py(y)}" r="6"/><circle class="dg-sdot" cx="${px(xs)}" cy="${py(y)}" r="6"/>`;
     return kind;
   }
