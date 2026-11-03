@@ -1,5 +1,6 @@
 // Every database call goes through rpc(): Supabase ec_* functions, or a demo store in this browser
 // (demo mode: ?demo=1, or no Supabase settings in ../config.js). Demo logins: demo-01 / 1234, teacher / demo.
+import { xpTotals } from './engine.js';
 const CFG = window.MARKET_CONFIG || {};
 const PARAMS = new URLSearchParams(location.search);
 export const DEMO = PARAMS.has('demo') || !String(CFG.supabaseUrl || '').trim();
@@ -47,7 +48,7 @@ function db() {
   let d; try { d = JSON.parse(localStorage.getItem(DKEY)); } catch { }
   if (!d) {
     d = { users: [{ id: 't1', username: 'teacher', role: 'teacher', secret: 'demo', display_name: 'Demo Teacher', full_name: 'Demo Teacher', is_admin: true }],
-      classes: [{ code: 'demo', name: 'Demo class', teacher_id: 't1', open_units: ['2.5'] }], tokens: {}, attempts: [], seq: 1 };
+      classes: [{ code: 'demo', name: 'Demo class', teacher_id: 't1', open_units: ['2.5'], board: true }], tokens: {}, attempts: [], seq: 1 };
     ['An', 'Tony', 'Mia'].forEach((n, i) => d.users.push({ id: 's' + (i + 1), username: 'demo-0' + (i + 1), role: 'student', class_code: 'demo', secret: '1234', display_name: n, full_name: 'Demo ' + n }));
   }
   return d;
@@ -88,6 +89,12 @@ function demo(fn, a) {
     case 'ec_t_new_pins': { teacher(); const c = cls(a.p_code); out = d.users.filter(u => u.class_code === c.code && u.role === 'student').map(u => { u.secret = pin(); return { username: u.username, full_name: u.full_name, display_name: u.display_name, pin: u.secret }; }); break; }
     case 'ec_t_rename': { teacher(); const u = d.users.find(x => x.id === a.p_user); if (u && a.p_display.trim()) u.display_name = a.p_display.trim(); out = null; break; }
     case 'ec_t_remove_student': { teacher(); d.users = d.users.filter(x => x.id !== a.p_user); d.attempts = d.attempts.filter(x => x.user_id !== a.p_user); out = null; break; }
+    case 'ec_board': { const u = me(), c = d.classes.find(x => x.code === u.class_code) || {}, on = c.board !== false;
+      const rows = d.users.filter(x => x.role === 'student' && x.class_code === u.class_code && (on || x.id === u.id))
+        .map(x => ({ name: x.display_name, ...(({ total, week }) => ({ xp: total, week }))(xpTotals(d.attempts.filter(t => t.user_id === x.id))), me: x.id === u.id }))
+        .sort((a, b) => b.week - a.week || b.xp - a.xp || a.name.localeCompare(b.name));
+      out = { on, rows }; break; }
+    case 'ec_t_set_board': teacher(); cls(a.p_code).board = a.p_on !== false; out = null; break;
     default: throw new Error('unknown ' + fn);
   }
   save(d);

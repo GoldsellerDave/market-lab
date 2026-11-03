@@ -12,6 +12,7 @@ const vi = () => pref.get('vi', false);
 const w = (en, key) => (vi() && VI[key] ? `${en} <span class="vi">(${VI[key]})</span>` : en);
 const levelBadge = l => `<span class="badge lvl${l}">${E.LEVELS[l]}</span>`;
 const trapBox = id => (TRAPS[id] ? `<div class="fb tip"><b>Watch out: ${esc(TRAPS[id].label)}</b>${esc(TRAPS[id].tip)}</div>` : '');
+const xpLine = xp => `<p class="xp-gain">${xp ? `+${xp} XP ⭐` : 'No XP this time: you have done this activity 5 times today. Come back tomorrow!'}</p>`;
 const go = h => { if (location.hash === h) route(); else location.hash = h; };
 
 // ---------- saving (queued, so a Wi-Fi drop never loses a run) ----------
@@ -105,13 +106,28 @@ function home() {
       return `<button class="unit ${can ? 'open' : 'locked'}" ${can ? `data-u="${u.id}"` : 'disabled aria-disabled="true"'}>
         <span class="num">${u.id}</span><span class="grow"><span class="t">${esc(u.title)}</span><br><span class="s">${esc(u.sub)}</span></span>${tag}</button>`;
     }).join('')}</div>
-    <div class="card" style="margin-top:18px"><h3>Settings</h3>
+    <div class="card" id="xp" style="margin-top:18px"><h3>⭐ XP</h3><p class="muted small">Loading…</p></div>
+    <div class="card"><h3>Settings</h3>
       <div class="row"><span class="grow">Vietnamese help words <span class="vi">(từ vựng tiếng Việt)</span></span><button class="ghost small" id="vi">${vi() ? 'On' : 'Off'}</button></div>
       <div class="row" style="margin-top:8px"><span class="grow">My PIN</span><button class="ghost small" id="pin">Change PIN</button></div>
       <p class="small muted" style="margin-top:10px">Signed in as ${esc(me.username)}</p></div>`);
   $$('.unit[data-u]').forEach(b => (b.onclick = () => go('#/u/' + b.dataset.u)));
   $('#vi').onclick = () => { pref.set('vi', !vi()); home(); };
   $('#pin').onclick = () => changePin(false);
+  board();
+}
+async function board() {
+  let b;
+  try { b = await rpc('ec_board', { p_token: token.get() }); }
+  catch { const x = E.xpTotals(history); b = { on: false, rows: [{ name: me.display_name, xp: x.total, week: x.week, me: true }], offline: true }; }
+  const el = $('#xp'); if (!el) return;
+  const mine = b.rows.find(r => r.me) || { xp: 0, week: 0 }, rank = b.rows.findIndex(r => r.me) + 1;
+  const row = (r, k) => `<tr class="${r.me ? 'me' : ''}"><td>${k < 3 && r.week > 0 ? ['🥇', '🥈', '🥉'][k] : k + 1}</td><td>${esc(r.name)}${r.me ? ' (you)' : ''}</td><td class="num">${r.week}</td></tr>`;
+  const shown = b.rows.filter(r => r.week > 0 || r.me), top = shown.slice(0, 10), myPos = shown.findIndex(r => r.me) + 1;
+  el.innerHTML = `<h3>⭐ XP</h3><div class="row"><span class="stat"><b>${mine.week}</b>this week</span><span class="stat"><b>${mine.xp}</b>total</span>${b.on && rank ? `<span class="stat"><b>#${rank}</b>in class this week</span>` : ''}</div>
+    ${b.on ? `<h3 style="margin-top:12px">Class leaderboard · this week</h3><table class="t board">${top.map(row).join('')}
+      ${myPos > 10 ? `<tr><td colspan="3" class="muted center">…</td></tr>${row(shown[myPos - 1], myPos - 1)}` : ''}</table>` : ''}
+    <p class="small muted" style="margin-top:8px">Earn XP: 10 for each answer right first time, 2 for each question you finish, 20 for the Learn cards. The leaderboard starts again every Monday.${b.offline ? ' (Offline: showing XP saved on this device.)' : ''}</p>`;
 }
 
 // ---------- unit 2.5 page ----------
@@ -161,8 +177,10 @@ function learn() {
     $('#prev').onclick = () => { i--; show(); };
     $('#next').onclick = async () => {
       if (i < LEARN.length - 1) { i++; return show(); }
-      await saveAttempt({ unit: UNIT, activity: 'learn', level_start: 0, level_end: 0, score: LEARN.length, max_score: LEARN.length, seconds: Math.round((Date.now() - t0) / 1000), answers: LEARN.map(x => ({ id: 'learn-' + x.id, ok: true })) });
-      view(`<div class="card center"><h1>Cards done ✔</h1><p>Now test yourself.</p><div class="row" style="justify-content:center"><button id="n">Shift detective →</button><button class="ghost" id="b">Back to 2.5</button></div></div>`);
+      const la = { unit: UNIT, activity: 'learn', level_start: 0, level_end: 0, score: LEARN.length, max_score: LEARN.length, seconds: Math.round((Date.now() - t0) / 1000), answers: LEARN.map(x => ({ id: 'learn-' + x.id, ok: true })) };
+      const xp = E.xpForNew(history, la);
+      await saveAttempt(la);
+      view(`<div class="card center"><h1>Cards done ✔</h1>${xp ? xpLine(xp) : ''}<p>Now test yourself.</p><div class="row" style="justify-content:center"><button id="n">Shift detective →</button><button class="ghost" id="b">Back to 2.5</button></div></div>`);
       $('#n').onclick = () => go('#/u/' + UNIT + '/shift'); $('#b').onclick = () => go('#/u/' + UNIT);
     };
   };
@@ -179,20 +197,40 @@ function afterItem(run, rec, next) {
   const prev = run.lad.level; run.lad = E.ladder(run.lad, rec.first_try);
   if (run.lad.level > prev) toast('⬆ Level up: ' + E.LEVELS[run.lad.level]);
   run.i++;
-  if (run.lad.rescue && run.i < run.n) return rescue(rec.trap, next);
+  if (run.lad.rescue) run.rescues = (run.rescues || 0) + 1;
+  if (run.lad.rescue && run.i < run.n) return rescue(run, rec.trap, prev === 0, next);
   next();
 }
-function rescue(trap, next) {
+// The four steps of a shift case, filled in with the answers (for worked examples and revealed answers)
+const CURVE_NAME = { D: 'Demand', S: 'Supply', both: 'Both curves', none: 'Neither: a movement along a curve' };
+const ARROW = { up: '↑ rises', down: '↓ falls', same: 'no change', depends: 'it depends' };
+const dirText = it => ['D', 'S'].filter(c => it.dir[c]).map(c => `${CURVE_NAME[c]} shifts <b>${it.dir[c] > 0 ? 'right (increase)' : 'left (decrease)'}</b>`).join('; ');
+const answerSteps = it => `<ol class="worked">
+  <li>Which curve shifts? <b>${CURVE_NAME[it.curve]}</b>. <span class="muted">${esc(it.hint)}</span></li>
+  ${it.curve === 'none' ? '' : `<li>Which way? ${dirText(it)}.</li>`}
+  <li>What happens? ${it.out.map(o => `${esc(o.label)} <b>${ARROW[o.ans]}</b>`).join(', ')}.</li></ol><p style="margin:.4em 0 0">${esc(it.why)}</p>`;
+function rescue(run, trap, atCore, next) {
+  let ex = null;
+  if (atCore) {
+    ex = E.pickItem(SHIFTS.filter(x => x.level === 0), 0, run.used, run.seen) || SHIFTS.find(x => x.level === 0);
+    if (run.activity === 'shift') run.used.add(ex.id);
+  }
   view(`<div class="card"><h2>Strategy card 🧭</h2><p>Two tricky ones in a row. Use this before the next question.</p>${trapBox(trap || 'pq-link')}
-    <ol>${LEARN.find(c => c.kind === 'method').steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol><button id="ok" style="width:100%">Got it: next question</button></div>`);
+    <ol>${LEARN.find(c => c.kind === 'method').steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>
+    ${ex ? `<div class="card"><h2>Worked example 📝</h2><div class="small muted">Market: <b>${esc(ex.market)}</b></div><p class="event">${esc(ex.event)}</p>
+      <div class="play-grid"><div class="dgwrap" id="wdg"></div><div>${answerSteps(ex)}</div></div></div>` : ''}
+    <button id="ok" style="width:100%">Got it: next question</button>`);
+  if (ex) { const dg = createDiagram($('#wdg')); setTimeout(() => dg.set(ex.dir), 700); }
   $('#ok').onclick = next;
 }
 async function finish(run, title, again) {
   wide(false);
   const traps = [...new Set(run.answers.map(a => a.trap).filter(Boolean))];
-  const a = { unit: UNIT, activity: run.activity, level_start: run.levelStart, level_end: run.lad.level, score: run.score, max_score: run.n, seconds: Math.round((Date.now() - run.t0) / 1000), answers: run.answers };
+  const a = { unit: UNIT, activity: run.activity, level_start: run.levelStart, level_end: run.lad.level, score: run.score, max_score: run.n, seconds: Math.round((Date.now() - run.t0) / 1000),
+    answers: [...run.answers, { id: 'meta', rescues: run.rescues || 0 }] };
+  const xp = E.xpForNew(history, a);
   view(`<div class="card center"><h1>${esc(title)} done</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${run.score} / ${run.n}</p>
-    <p class="muted">right first time · finished at ${levelBadge(run.lad.level)}</p><p class="small" id="saved">Saving…</p></div>
+    <p class="muted">right first time · finished at ${levelBadge(run.lad.level)}</p>${xpLine(xp)}<p class="small" id="saved">Saving…</p></div>
     ${traps.length ? `<div class="card"><h3>Things to watch</h3>${traps.map(trapBox).join('')}</div>` : '<div class="card center">No mistakes: excellent! ⭐</div>'}
     <div class="row"><button class="grow" id="again">Try again</button><button class="ghost grow" id="back">Back to 2.5</button></div>`);
   $('#again').onclick = again; $('#back').onclick = () => go('#/u/' + UNIT);
@@ -215,11 +253,18 @@ function shift(run = newRun('shift', 6)) {
   const rec = { id: it.id, level: it.level, first_try: true, trap: null, ok: false, wrong: [] };
   let step = 1;
   const curves = it.curve === 'both' ? ['D', 'S'] : it.curve === 'none' ? [] : [it.curve];
-  const choice = { 2: {}, 3: [] };
+  const choice = { 2: {}, 3: [] }, tries = {};
   view(`${runHead(run, 'Case')}<div class="card"><div class="small muted">Market: <b>${esc(it.market)}</b></div><p class="event">${esc(it.event)}</p>
     <div class="play-grid"><div class="dgwrap" id="dg"></div><div><div id="step"></div><div id="fb" aria-live="polite"></div></div></div></div>`);
   const dg = createDiagram($('#dg'), { showNew: true });
+  const reveal = () => {
+    rec.revealed = true; rec.ok = false; dg.set(it.dir); $('#fb').innerHTML = '';
+    $('#step').innerHTML = `<div class="fb tip"><b>Here is the answer. Read it, then try the next case.</b>${answerSteps(it)}</div>${trapBox(rec.trap)}
+      <button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next case' : 'See my results'}</button>`;
+    $('#nx').onclick = () => afterItem(run, rec, () => shift(run)); $('#nx').focus();
+  };
   const wrong = s => { rec.first_try = false; rec.wrong.push(s); rec.trap ||= E.shiftTrap(it, s, s === 1 ? choice[1] : choice[s]);
+    tries[s] = (tries[s] || 0) + 1; if (tries[s] >= 2) return reveal();
     $('#fb').innerHTML = `<div class="fb no"><b>Not yet. Try again.</b>Hint: ${esc(it.hint)}</div>${trapBox(E.shiftTrap(it, s, s === 1 ? choice[1] : choice[s]))}`; };
   const render = () => {
     $('#fb').innerHTML = '';
@@ -299,9 +344,10 @@ function data() {
   const done = async () => {
     const score = Object.values(res).reduce((s, r) => s + r.score, 0);
     const answers = DATA.questions.map(q => ({ id: DATA.id + '-' + q.id, level: 1, first_try: res[q.id].first, ok: res[q.id].score === q.marks, trap: res[q.id].trap || null, score: res[q.id].score, marks: q.marks, text: res[q.id].text }));
-    qs.insertAdjacentHTML('beforeend', `<div class="card center"><h2>Total: ${score} / ${maxScore}</h2><p class="small" id="saved">Saving…</p><div class="row" style="justify-content:center"><button id="again">Try again</button><button class="ghost" id="back">Back to 2.5</button></div></div>`);
+    const da = { unit: UNIT, activity: 'data', level_start: 1, level_end: 1, score, max_score: maxScore, seconds: Math.round((Date.now() - t0) / 1000), answers };
+    qs.insertAdjacentHTML('beforeend', `<div class="card center"><h2>Total: ${score} / ${maxScore}</h2>${xpLine(E.xpForNew(history, da))}<p class="small" id="saved">Saving…</p><div class="row" style="justify-content:center"><button id="again">Try again</button><button class="ghost" id="back">Back to 2.5</button></div></div>`);
     $('#again').onclick = () => data(); $('#back').onclick = () => go('#/u/' + UNIT);
-    const ok = await saveAttempt({ unit: UNIT, activity: 'data', level_start: 1, level_end: 1, score, max_score: maxScore, seconds: Math.round((Date.now() - t0) / 1000), answers });
+    const ok = await saveAttempt(da);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
   };
   const ask = k => {

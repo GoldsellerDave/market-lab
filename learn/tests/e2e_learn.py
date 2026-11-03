@@ -70,7 +70,7 @@ def run_student(p, size):
         solve_shift(p, wrong_first=(i == 0))
         if i == 0: pass
     p.wait_for_selector('text=Shift detective done'); p.wait_for_selector('#saved:has-text("Saved")')
-    ok('5 / 6' in p.inner_text('main'), 'shift score 5/6'); shot(p, size, '6-shift-result'); no_overflow(p, size + ' shift result')
+    ok('5 / 6' in p.inner_text('main'), 'shift score 5/6'); ok('+' in p.inner_text('.xp-gain') and 'XP' in p.inner_text('.xp-gain'), 'XP shown after shift run'); shot(p, size, '6-shift-result'); no_overflow(p, size + ' shift result')
     p.click('#back')
     # MCQ: two wrong first (rescue card), rest right
     p.click('[data-a="mcq"]')
@@ -87,7 +87,11 @@ def run_student(p, size):
         if i < 2: ok(p.locator('.fb.tip').count() == 1, f'mcq {i+1}: trap tip on wrong answer')
         no_overflow(p, f'{size} mcq {i+1}')
         p.click('#nx')
-        if p.locator('#ok').count(): ok(i == 1, 'rescue card after two misses'); p.click('#ok')
+        if p.locator('#ok').count():
+            ok(i == 1, 'rescue card after two misses')
+            ok(p.locator('text=Worked example').count() == 1, 'worked example at Core')
+            p.wait_for_timeout(900); shot(p, size, '7b-worked-example'); no_overflow(p, size + ' worked example')
+            p.click('#ok')
     p.wait_for_selector('text=Paper 1 practice done'); p.wait_for_selector('#saved:has-text("Saved")')
     ok('8 / 10' in p.inner_text('main'), 'mcq score 8/10')
     p.click('#back')
@@ -112,14 +116,38 @@ def run_student(p, size):
     ok(p.locator('.act .meter').count() == 4, 'all four activities show progress')
     ok(p.locator('text=most common mistake').count() == 1, 'top mistake card')
     shot(p, size, '11-unit-progress')
+    # XP and leaderboard on the home page
+    p.click('text=All units'); p.wait_for_selector('table.board')
+    ok('An (you)' in p.inner_text('table.board'), 'leaderboard shows me'); ok('this week' in p.inner_text('#xp'), 'XP card')
+    p.locator('#xp').scroll_into_view_if_needed(); shot(p, size, '12-xp-board'); no_overflow(p, size + ' xp board')
     # reload keeps the session; sign out works
     p.reload(); p.wait_for_selector('.units, .acts'); ok(p.locator('#out').is_visible(), 'session survives reload')
     p.click('#out'); p.wait_for_selector('#f'); ok(not p.locator('#out').is_visible(), 'signed out: no sign-out button')
 
+def run_struggler(p, size):
+    # demo-02 gets every case wrong twice: answers are revealed, worked example appears, flagged for the teacher
+    p.goto(BASE + '/learn/?demo=1'); p.wait_for_selector('#f')
+    p.fill('#u', 'demo-02'); p.fill('#p', '1234'); p.click('#f button'); p.wait_for_selector('.units')
+    p.goto(BASE + '/learn/?demo=1#/u/2.5/shift')
+    for i in range(6):
+        p.wait_for_selector('.event')
+        it = SHIFT_BY_EVENT[p.locator('.event').inner_text().strip()]
+        wrongs = [c for c in ['D', 'S', 'both', 'none'] if c != it['curve']][:2]
+        for c in wrongs: p.click(f'[data-c="{c}"]')
+        ok(p.locator('text=Here is the answer').count() == 1, f'case {i+1}: answer revealed after two wrong tries')
+        if i == 0: p.wait_for_timeout(900); shot(p, size, '5b-revealed'); no_overflow(p, size + ' revealed')
+        p.click('#nx')
+        if p.locator('#ok').count():
+            ok(p.locator('text=Worked example').count() == 1, 'worked example for a struggling Core student'); p.click('#ok')
+    p.wait_for_selector('text=Shift detective done'); p.wait_for_selector('#saved:has-text("Saved")')
+    ok('0 / 6' in p.inner_text('main'), 'struggler score 0/6')
+    p.click('#out'); p.wait_for_selector('#f')
+
 def run_teacher(p, size):
     p.goto(BASE + '/learn/teacher.html?demo=1'); p.wait_for_selector('#f')
     p.fill('#u', 'teacher'); p.fill('#p', 'demo'); p.click('#f button'); p.wait_for_selector('table.grid')
-    ok('An' in p.inner_text('table.grid'), 'teacher sees the student'); shot(p, size, 't1-progress'); no_overflow(p, size + ' teacher progress')
+    ok('An' in p.inner_text('table.grid'), 'teacher sees the student'); ok('XP week' in p.inner_text('table.grid'), 'XP columns')
+    ok('Needs help (1)' in p.inner_text('main') and 'needs help' in p.inner_text('table.grid'), 'struggling student flagged'); shot(p, size, 't1-progress'); no_overflow(p, size + ' teacher progress')
     p.click('[data-tab="traps"]'); p.wait_for_selector('text=Reteach first'); shot(p, size, 't2-traps'); no_overflow(p, size + ' teacher traps')
     p.click('[data-tab="items"]'); p.wait_for_selector('text=hardest first'); shot(p, size, 't3-items'); no_overflow(p, size + ' teacher items')
     p.click('[data-tab="progress"]'); p.locator('tr[data-id]').first.click(); p.wait_for_selector('details.card')
@@ -134,10 +162,12 @@ def run_teacher(p, size):
     p.click('[data-tab="units"]'); p.check('input[value="2.3"]'); p.click('#save'); p.wait_for_timeout(300)
     ok('2.3' in p.inner_text('.card .small.muted'), 'units saved'); shot(p, size, 't6-units')
     ok('Live' in p.inner_text('#live') and 'off' not in p.inner_text('#live'), 'live refresh on by default')
+    p.uncheck('#board'); p.wait_for_timeout(300)
     p.click('#out'); p.wait_for_selector('#f')
     # the student now sees 2.3 as open but "coming soon"
     p.goto(BASE + '/learn/?demo=1'); p.wait_for_selector('#f'); p.fill('#u', 'demo-03'); p.fill('#p', '1234'); p.click('#f button')
     p.wait_for_selector('.units'); ok('Coming soon' in p.inner_text('.units'), 'opened-but-unbuilt unit shows Coming soon')
+    p.wait_for_selector('#xp .stat'); ok(p.locator('table.board').count() == 0, 'leaderboard hidden when the teacher turns it off')
 
 with sync_playwright() as pw:
     b = pw.chromium.launch()
@@ -147,7 +177,7 @@ with sync_playwright() as pw:
         p = ctx.new_page(); errs = []
         p.on('pageerror', lambda e: errs.append(str(e))); p.on('console', lambda m: m.type == 'error' and errs.append(m.text))
         try:
-            run_student(p, size); run_teacher(p, size)
+            run_student(p, size); run_struggler(p, size); run_teacher(p, size)
         except Exception as e:
             fails.append(f'{size}: crashed: {e}'); print('  CRASH', e); p.screenshot(path=f'{SHOTS}/{size}-CRASH.png')
         ok(not [e for e in errs if 'fonts.g' not in e and 'ERR_TUNNEL' not in e], f'{size}: console errors {errs[:3]}')

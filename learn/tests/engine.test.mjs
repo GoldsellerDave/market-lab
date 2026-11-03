@@ -84,3 +84,25 @@ test('summaries, trap counts, start level', () => {
   assert.equal(E.startLevel(at, '2.5', 'mcq'), 2); assert.equal(E.startLevel(at, '2.5', 'shift'), 0);
   assert.ok(E.seenIds(at).has('q-tax'));
 });
+test('XP: points, daily cap of 5 runs (Learn once), weekly window from Monday in Vietnam', () => {
+  assert.equal(E.xpOf({ activity: 'mcq', score: 8, max_score: 10 }), 100);
+  assert.equal(E.xpOf({ activity: 'learn', score: 5, max_score: 5 }), 20);
+  const now = new Date('2026-11-04T05:00:00Z'); // Wed 12:00 Vietnam
+  const day = '2026-11-04T03:00:00Z', lastWeek = '2026-11-01T10:00:00Z'; // Sun 17:00 Vietnam = last week
+  const runs = [...Array(7)].map(() => ({ activity: 'shift', score: 6, max_score: 6, created_at: day }));
+  runs.push({ activity: 'learn', score: 5, max_score: 5, created_at: day }, { activity: 'learn', score: 5, max_score: 5, created_at: day });
+  runs.push({ activity: 'mcq', score: 5, max_score: 10, created_at: lastWeek });
+  const x = E.xpTotals(runs, now);
+  assert.equal(x.week, 5 * 72 + 20); assert.equal(x.total, 5 * 72 + 20 + 70);
+  assert.equal(E.xpForNew(runs, { activity: 'shift', score: 6, max_score: 6 }, now), 0);
+  assert.equal(E.xpForNew(runs, { activity: 'mcq', score: 6, max_score: 10 }, now), 80);
+  assert.equal(E.weekStart(new Date('2026-11-01T16:59:00Z')).toISOString(), '2026-10-25T17:00:00.000Z'); // Sun 23:59 VN → previous Monday
+  assert.equal(E.weekStart(new Date('2026-11-01T17:00:00Z')).toISOString(), '2026-11-01T17:00:00.000Z'); // Mon 00:00 VN
+});
+test('needs help: two strategy cards, or under 40% right first time, in the latest run', () => {
+  const a = (activity, score, max, rescues) => ({ unit: '2.5', activity, score, max_score: max, answers: [{ id: 'meta', rescues }] });
+  assert.equal(E.needsHelp([a('shift', 5, 6, 0)]), null);
+  assert.match(E.needsHelp([a('shift', 3, 6, 2)]), /strategy card 2/);
+  assert.match(E.needsHelp([a('mcq', 3, 10, 1)]), /3\/10/);
+  assert.equal(E.needsHelp([a('mcq', 3, 10, 1), a('mcq', 8, 10, 0)]), null); // latest run is fine
+});

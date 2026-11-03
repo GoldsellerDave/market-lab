@@ -105,3 +105,43 @@ export function parseRoster(text) {
     return { full_name: full, display_name: displayName(full, eng) };
   }).filter(p => p.full_name);
 }
+
+// ---------- XP (same rules as ec_xp_table in the database) ----------
+// Learn 20 XP (once a day); other activities 10 per answer right first time + 2 per question done.
+// Only the first 5 runs of an activity each day earn XP. Weeks start Monday, Vietnam time (UTC+7).
+export const xpOf = a => (a.activity === 'learn' ? 20 : Math.min(a.score, a.max_score) * 10 + a.max_score * 2);
+const vnDay = iso => new Date(new Date(iso).getTime() + 7 * 3600e3).toISOString().slice(0, 10);
+export function weekStart(now = new Date()) {
+  const vn = new Date(now.getTime() + 7 * 3600e3), dow = (vn.getUTCDay() + 6) % 7;
+  return new Date(Date.UTC(vn.getUTCFullYear(), vn.getUTCMonth(), vn.getUTCDate() - dow) - 7 * 3600e3);
+}
+/** {total, week} XP for one student's attempts */
+export function xpTotals(attempts, now = new Date()) {
+  const seen = {}, ws = weekStart(now); let total = 0, week = 0;
+  for (const a of attempts.slice().sort((x, y) => new Date(x.created_at) - new Date(y.created_at))) {
+    const k = a.activity + '|' + vnDay(a.created_at), n = (seen[k] = (seen[k] || 0) + 1);
+    if (n > (a.activity === 'learn' ? 1 : 5)) continue;
+    const xp = xpOf(a); total += xp; if (new Date(a.created_at) >= ws) week += xp;
+  }
+  return { total, week };
+}
+/** XP earned by one new run, given the earlier attempts (respects the daily cap) */
+export function xpForNew(attempts, a, now = new Date()) {
+  const day = vnDay(now.toISOString()), n = attempts.filter(x => x.activity === a.activity && vnDay(x.created_at) === day).length;
+  return n >= (a.activity === 'learn' ? 1 : 5) ? 0 : xpOf(a);
+}
+
+// ---------- needs help ----------
+/** A reason string if the student's latest Shift detective or Paper 1 run shows they are struggling, else null */
+export function needsHelp(attempts, unit = '2.5') {
+  const why = [];
+  for (const act of ['shift', 'mcq']) {
+    const a = attempts.filter(x => x.unit === unit && x.activity === act).pop();
+    if (!a) continue;
+    const meta = (a.answers || []).find(x => x.id === 'meta') || {};
+    const name = act === 'shift' ? 'Shift detective' : 'Paper 1';
+    if ((meta.rescues || 0) >= 2) why.push(`${name}: strategy card ${meta.rescues}×`);
+    else if (a.max_score && a.score / a.max_score < 0.4) why.push(`${name}: ${a.score}/${a.max_score} right first time`);
+  }
+  return why.length ? why.join('; ') : null;
+}

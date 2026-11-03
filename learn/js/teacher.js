@@ -106,15 +106,19 @@ function render(quiet = false) {
 
 const cell = (s, a) => { const x = s[a]; if (!x) return '<td class="muted">–</td>'; return `<td>${pct(x.bestScore, x.max)}% <span class="small muted">×${x.runs}</span>${a === 'shift' || a === 'mcq' ? ' <span class="badge lvl' + x.level + '">' + E.LEVELS[x.level] + '</span>' : ''}</td>`; };
 function progress(body) {
-  body.innerHTML = `<div class="card"><p class="small muted">Best score and number of tries for each activity. The badge shows the level each student reached (Core, Stretch, Challenge). Tap a student for detail.</p>
-    <div class="scroll"><table class="grid"><tr><th>Student</th><th>Last seen</th>${ACTIVITIES[UNIT].map(a => `<th>${esc(a.title)}</th>`).join('')}<th>Main mistake</th></tr>
+  const help = cls.students.map(st => ({ st, why: E.needsHelp(cls.attempts.filter(a => a.user_id === st.id), UNIT) })).filter(x => x.why);
+  body.innerHTML = `${help.length ? `<div class="card" style="border-left:6px solid var(--bad)"><h3>Needs help (${help.length})</h3>
+      ${help.map(x => `<p style="margin:.3em 0"><b class="click-name" data-id="${x.st.id}" style="cursor:pointer;text-decoration:underline">${esc(x.st.display_name)}</b> <span class="small muted">${esc(x.why)}</span></p>`).join('')}
+      <p class="small muted">Based on each student's latest Shift detective and Paper 1 runs: the strategy card twice, or under 40% right first time.</p></div>` : ''}
+    <div class="card"><p class="small muted">Best score and number of tries for each activity. The badge shows the level each student reached (Core, Stretch, Challenge). Tap a student for detail.</p>
+    <div class="scroll"><table class="grid"><tr><th>Student</th><th>Last seen</th>${ACTIVITIES[UNIT].map(a => `<th>${esc(a.title)}</th>`).join('')}<th>XP week</th><th>XP total</th><th>Main mistake</th></tr>
     ${cls.students.map(st => {
-      const mine = cls.attempts.filter(a => a.user_id === st.id), s = E.summarise(mine, UNIT), top = E.topTrap(E.trapCounts(mine, UNIT));
-      return `<tr class="click" data-id="${st.id}"><td><b>${esc(st.display_name)}</b> <span class="small muted">${esc(st.username)}</span>${st.locked ? ' <span class="badge">locked</span>' : ''}<br><span class="small muted">${esc(st.full_name)}</span></td>
+      const mine = cls.attempts.filter(a => a.user_id === st.id), s = E.summarise(mine, UNIT), top = E.topTrap(E.trapCounts(mine, UNIT)), xp = E.xpTotals(mine), nh = E.needsHelp(mine, UNIT);
+      return `<tr class="click" data-id="${st.id}"><td><b>${esc(st.display_name)}</b> <span class="small muted">${esc(st.username)}</span>${st.locked ? ' <span class="badge">locked</span>' : ''}${nh ? ' <span class="flag" title="' + esc(nh) + '">needs help</span>' : ''}<br><span class="small muted">${esc(st.full_name)}</span></td>
         <td class="small">${ago(st.last_seen)}</td>${ACTIVITIES[UNIT].map(a => a.id === 'learn' ? `<td>${s.learn ? '✔' : '<span class="muted">–</span>'}</td>` : cell(s, a.id)).join('')}
-        <td class="small">${top ? esc(TRAPS[top[0]].label) + ' ×' + top[1] : '<span class="muted">–</span>'}</td></tr>`;
+        <td><b>${xp.week}</b></td><td>${xp.total}</td><td class="small">${top ? esc(TRAPS[top[0]].label) + ' ×' + top[1] : '<span class="muted">–</span>'}</td></tr>`;
     }).join('')}</table></div></div>`;
-  $$('tr[data-id]', body).forEach(r => (r.onclick = () => { focus = r.dataset.id; render(); }));
+  $$('tr[data-id], .click-name', body).forEach(r => (r.onclick = () => { focus = r.dataset.id; render(); }));
 }
 function traps(body) {
   const rows = cls.students.map(st => ({ st, c: E.trapCounts(cls.attempts.filter(a => a.user_id === st.id), UNIT) }));
@@ -192,14 +196,18 @@ function manage(body) {
     $('#prev').innerHTML = people.length ? `<p>${people.length} students: ${people.map(p => `<span class="pill">${esc(p.display_name)} <span class="muted">${esc(p.full_name)}</span></span>`).join('')}</p>` : ''; };
   $('#add').onclick = e => busy(e.target, async () => { try { const rows = await rpc('ec_t_add_students', { p_token: T(), p_code: cls.code, p_people: people }); await load(cls.code); render(); pinSheet(rows, 'New students'); } catch (er) { fail(er); } });
 }
+const boardOn = () => (classes.find(x => x.code === cls.code) || {}).board !== false;
 function units(body) {
   const open = new Set(cls.open_units || []);
   body.innerHTML = `<div class="card"><h3>Units students can open</h3>${UNITS.map(u => `<label style="font-weight:400;display:flex;gap:10px;align-items:center"><input type="checkbox" value="${u.id}" ${open.has(u.id) ? 'checked' : ''} style="width:auto">
       <span><b>${u.id}</b> ${esc(u.title)} ${u.ready ? '' : '<span class="badge">activities not built yet</span>'}</span></label>`).join('')}
     <button id="save" style="margin-top:12px">Save units</button></div>
+    <div class="card"><h3>Class leaderboard</h3><label style="font-weight:400;display:flex;gap:10px;align-items:center"><input type="checkbox" id="board" style="width:auto" ${boardOn() ? 'checked' : ''}>
+      <span>Show students the weekly XP leaderboard (top 10 and their own place). When off, each student sees only their own XP.</span></label></div>
     <div class="card"><h3>New class</h3><button class="ghost" id="nc">Create another class</button></div>
     <div class="card"><h3>My account</h3><button class="ghost" id="pw">Change my password</button></div>`;
   $('#save').onclick = e => busy(e.target, async () => { try { const u = $$('input[type=checkbox]:checked', body).map(x => x.value); await rpc('ec_t_set_units', { p_token: T(), p_code: cls.code, p_units: u }); cls.open_units = u; toast('Units saved'); render(); } catch (er) { fail(er); } });
+  $('#board').onchange = async e => { try { await rpc('ec_t_set_board', { p_token: T(), p_code: cls.code, p_on: e.target.checked }); const c = classes.find(x => x.code === cls.code); if (c) c.board = e.target.checked; toast(e.target.checked ? 'Leaderboard on' : 'Leaderboard off'); } catch (er) { e.target.checked = !e.target.checked; fail(er); } };
   $('#nc').onclick = addClassPage; $('#pw').onclick = () => setPassword(false);
 }
 function addClassPage() {
