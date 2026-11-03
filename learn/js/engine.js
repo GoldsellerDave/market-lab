@@ -132,14 +132,14 @@ export function xpForNew(attempts, a, now = new Date()) {
 }
 
 // ---------- needs help ----------
-/** A reason string if the student's latest Shift detective or Paper 1 run shows they are struggling, else null */
+/** A reason string if the student's latest Shift detective, Equilibrium finder or Paper 1 run shows they are struggling, else null */
 export function needsHelp(attempts, unit = '2.5') {
   const why = [];
-  for (const act of ['shift', 'mcq']) {
+  for (const act of ['shift', 'eqm', 'mcq']) {
     const a = attempts.filter(x => x.unit === unit && x.activity === act).pop();
     if (!a) continue;
     const meta = (a.answers || []).find(x => x.id === 'meta') || {};
-    const name = act === 'shift' ? 'Shift detective' : 'Paper 1';
+    const name = { shift: 'Shift detective', eqm: 'Equilibrium finder', mcq: 'Paper 1' }[act];
     if ((meta.rescues || 0) >= 2) why.push(`${name}: strategy card ${meta.rescues}×`);
     else if (a.max_score && a.score / a.max_score < 0.4) why.push(`${name}: ${a.score}/${a.max_score} right first time`);
   }

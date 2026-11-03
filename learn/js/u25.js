@@ -147,13 +147,13 @@ export const DATA = {
     { id: 'b', marks: 1, type: 'short', ao: 'AO1', q: 'Identify ONE cause of the change in the supply of coffee.',
       groups: [{ label: 'drought / weather', k: ['drought', 'dry', 'weather', 'rain', 'water', 'climate', 'hot'] }], need: 1,
       hint: 'Look at the first paragraph of the source.', why: 'The drought in the Central Highlands cut the harvest.' },
-    { id: 'c', marks: 2, type: 'diagram', ao: 'AO2', q: 'Show the changes on the diagram: which curves shift, and which way?', dir: { D: 1, S: -1 },
+    { id: 'c', marks: 2, type: 'diagram', ao: 'AO2', trap: 'two-shifts', q: 'Show the changes on the diagram: which curves shift, and which way?', dir: { D: 1, S: -1 },
       hint: 'There are TWO changes in the source: one for buyers and one for sellers.', why: 'Growing coffee drinking shifts demand right; the drought shifts supply left. Both push the price up.' },
     { id: 'd', marks: 4, type: 'short', ao: 'AO2', q: 'Explain, using the source, why the price of coffee rose.',
-      groups: [{ label: 'supply fell / shifted left', k: ['supply fell', 'supply decrease', 'supply decreased', 'less supply', 'supply shift', 'supply curve shift', 'supply to the left', 'shifts left', 'shift left', 'lower supply', 'supply falls', 'reduce supply', 'reduces supply', 'decrease in supply', 'fall in supply'], ask: 'What happened to supply, and why?' },
-        { label: 'demand rose / shifted right', k: ['demand rose', 'demand increase', 'demand increased', 'more demand', 'demand shift', 'shift right', 'shifts right', 'higher demand', 'demand grew', 'demand rises', 'increase in demand', 'rise in demand'], ask: 'What happened to demand, and why?' },
+      groups: [{ label: 'supply fell / shifted left', k: ['supply fell', 'supply decrease', 'supply decreased', 'less supply', 'supply shift', 'supply curve shift', 'supply to the left', 'shifts left', 'shift left', 'lower supply', 'supply falls', 'reduce supply', 'reduces supply', 'decrease in supply', 'fall in supply'], ask: 'What happened to supply, and why?', trap: 'two-shifts' },
+        { label: 'demand rose / shifted right', k: ['demand rose', 'demand increase', 'demand increased', 'more demand', 'demand shift', 'shift right', 'shifts right', 'higher demand', 'demand grew', 'demand rises', 'increase in demand', 'rise in demand'], ask: 'What happened to demand, and why?', trap: 'two-shifts' },
         { label: 'a cause from the source', k: ['drought', 'harvest', 'china', 'europe', 'drinking', 'weather'], ask: 'Use evidence from the source.' },
-        { label: 'shortage → price rises', k: ['shortage', 'excess demand', 'demand is greater', 'demand greater than supply', 'more than supply', 'not enough'], ask: 'At the old price, was there a shortage or a surplus?' }],
+        { label: 'shortage → price rises', k: ['shortage', 'excess demand', 'demand is greater', 'demand greater than supply', 'more than supply', 'not enough'], ask: 'At the old price, was there a shortage or a surplus?', trap: 'shortage-surplus' }],
       need: 4, hint: 'Use the frame: The drought caused supply to… At the same time demand… At the old price there was a…, so the price…',
       why: 'The drought cut the harvest, so supply decreased (shifted left). Coffee drinking grew in China and Europe, so demand increased (shifted right). At the old price there was a shortage, so the price rose.' }
   ]

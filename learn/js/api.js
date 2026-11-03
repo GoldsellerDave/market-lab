@@ -48,7 +48,7 @@ function db() {
   let d; try { d = JSON.parse(localStorage.getItem(DKEY)); } catch { }
   if (!d) {
     d = { users: [{ id: 't1', username: 'teacher', role: 'teacher', secret: 'demo', display_name: 'Demo Teacher', full_name: 'Demo Teacher', is_admin: true }],
-      classes: [{ code: 'demo', name: 'Demo class', teacher_id: 't1', open_units: ['2.5'], board: true }], tokens: {}, attempts: [], seq: 1 };
+      classes: [{ code: 'demo', name: 'Demo class', teacher_id: 't1', open_units: ['2.4', '2.5'], board: true }], tokens: {}, attempts: [], seq: 1 };
     ['An', 'Tony', 'Mia'].forEach((n, i) => d.users.push({ id: 's' + (i + 1), username: 'demo-0' + (i + 1), role: 'student', class_code: 'demo', secret: '1234', display_name: n, full_name: 'Demo ' + n }));
   }
   return d;

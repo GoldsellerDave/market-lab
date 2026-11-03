@@ -3,14 +3,13 @@ import { rpc, token, DEMO, errText } from './api.js';
 import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js';
 import { UNITS, ACTIVITIES } from './units.js';
 import * as E from './engine.js';
-import { TRAPS, SHIFTS, MCQ, DATA } from './u25.js';
+import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js';
 
 let me = null, classes = [], cls = null, tab = pref.get('t-tab', 'progress'), live = null, focus = null;
-const UNIT = '2.5';
-const ITEM = Object.fromEntries([...SHIFTS.map(s => [s.id, { kind: 'Shift', text: s.event, level: s.level }]), ...MCQ.map(q => [q.id, { kind: 'MCQ', text: q.stem, level: q.level }]),
-  ...DATA.questions.map(q => [DATA.id + '-' + q.id, { kind: 'Data', text: `(${q.id}) ${q.q}`, level: 1 }])]);
-const ACT_NAME = Object.fromEntries(ACTIVITIES[UNIT].map(a => [a.id, a.title]));
-const TRAP_IDS = Object.keys(TRAPS);
+const BUILT = UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);
+let UNIT = BUILT.includes(pref.get('t-unit', '2.5')) ? pref.get('t-unit', '2.5') : BUILT[BUILT.length - 1];
+const actName = (unit, id) => ((ACTIVITIES[unit] || []).find(a => a.id === id) || { title: id }).title;
+const LEVELED = new Set(['shift', 'eqm', 'mcq']);
 
 function header() {
   $('#who').textContent = me ? me.display_name + (DEMO ? ' · demo' : '') : (DEMO ? 'Demo mode' : '');
@@ -93,9 +92,11 @@ function render(quiet = false) {
     <div class="card"><span class="stat"><b>${cls.students.length}</b>students</span><span class="stat"><b>${today}</b>active in last 24 h</span>
       <span class="stat"><b>${at.length}</b>activities saved</span><span class="stat"><b>${new Set(at.map(a => a.user_id)).size}</b>have started</span>
       <span class="small muted stat-units">Open units: ${(cls.open_units || []).join(', ') || 'none'}</span></div>
+    <div class="row noprint" style="margin:0 0 10px"><b class="small">Unit</b><div class="seg" style="flex:1;max-width:520px">${BUILT.map(u => `<button data-unit="${u}" class="${u === UNIT ? 'sel' : ''}">${u} ${esc((UNITS.find(x => x.id === u) || {}).title || '')}</button>`).join('')}</div></div>
     <div class="tabs noprint">${[['progress', 'Progress'], ['traps', 'Misconceptions'], ['items', 'Hardest questions'], ['manage', 'Students & PINs'], ['units', 'Units & settings']]
       .map(([k, t]) => `<button class="small ${tab === k ? 'sel' : ''}" data-tab="${k}">${t}</button>`).join('')}</div><div id="body"></div>`);
   $$('[data-tab]').forEach(b => (b.onclick = () => { tab = b.dataset.tab; focus = null; pref.set('t-tab', tab); render(); }));
+  $$('[data-unit]').forEach(b => (b.onclick = () => { UNIT = b.dataset.unit; pref.set('t-unit', UNIT); render(); }));
   $('#refresh').onclick = e => busy(e.target, async () => { try { await load(cls.code); render(); toast('Updated'); } catch (er) { fail(er); } });
   $('#live').onclick = () => { pref.set('t-live', !live); startLive(); render(); };
   $('#pick')?.addEventListener('change', async e => { try { await load(e.target.value); focus = null; render(); } catch (er) { fail(er); } });
@@ -104,12 +105,12 @@ function render(quiet = false) {
   if (quiet) window.scrollTo(0, y);
 }
 
-const cell = (s, a) => { const x = s[a]; if (!x) return '<td class="muted">–</td>'; return `<td>${pct(x.bestScore, x.max)}% <span class="small muted">×${x.runs}</span>${a === 'shift' || a === 'mcq' ? ' <span class="badge lvl' + x.level + '">' + E.LEVELS[x.level] + '</span>' : ''}</td>`; };
+const cell = (s, a) => { const x = s[a]; if (!x) return '<td class="muted">–</td>'; return `<td>${pct(x.bestScore, x.max)}% <span class="small muted">×${x.runs}</span>${LEVELED.has(a) ? ' <span class="badge lvl' + x.level + '">' + E.LEVELS[x.level] + '</span>' : ''}</td>`; };
 function progress(body) {
   const help = cls.students.map(st => ({ st, why: E.needsHelp(cls.attempts.filter(a => a.user_id === st.id), UNIT) })).filter(x => x.why);
   body.innerHTML = `${help.length ? `<div class="card" style="border-left:6px solid var(--bad)"><h3>Needs help (${help.length})</h3>
       ${help.map(x => `<p style="margin:.3em 0"><b class="click-name" data-id="${x.st.id}" style="cursor:pointer;text-decoration:underline">${esc(x.st.display_name)}</b> <span class="small muted">${esc(x.why)}</span></p>`).join('')}
-      <p class="small muted">Based on each student's latest Shift detective and Paper 1 runs: the strategy card twice, or under 40% right first time.</p></div>` : ''}
+      <p class="small muted">Based on each student's latest run of each adaptive activity in this unit: the strategy card twice, or under 40% right first time.</p></div>` : ''}
     <div class="card"><p class="small muted">Best score and number of tries for each activity. The badge shows the level each student reached (Core, Stretch, Challenge). Tap a student for detail.</p>
     <div class="scroll"><table class="grid"><tr><th>Student</th><th>Last seen</th>${ACTIVITIES[UNIT].map(a => `<th>${esc(a.title)}</th>`).join('')}<th>XP week</th><th>XP total</th><th>Main mistake</th></tr>
     ${cls.students.map(st => {
@@ -122,18 +123,18 @@ function progress(body) {
 }
 function traps(body) {
   const rows = cls.students.map(st => ({ st, c: E.trapCounts(cls.attempts.filter(a => a.user_id === st.id), UNIT) }));
-  const tot = E.trapCounts(cls.attempts, UNIT), ranked = TRAP_IDS.filter(t => tot[t]).sort((a, b) => tot[b] - tot[a]);
+  const tot = E.trapCounts(cls.attempts, UNIT), ranked = unitTraps(UNIT).filter(t => tot[t]).sort((a, b) => tot[b] - tot[a]);
   const h = n => (!n ? 'h0' : n === 1 ? 'h1' : n <= 3 ? 'h2' : 'h3');
   body.innerHTML = `${ranked.length ? `<div class="card"><h3>Reteach first</h3>${ranked.slice(0, 3).map(t => `<div class="fb tip"><b>${esc(TRAPS[t].label)} · ${tot[t]} mistakes by ${rows.filter(r => r.c[t]).length} students</b>${esc(TRAPS[t].tip)}</div>`).join('')}</div>` : ''}
     <div class="card"><p class="small muted">Wrong first tries, by the misconception each wrong answer shows. Darker = more often.</p><div class="scroll"><table class="grid">
-    <tr><th>Student</th>${TRAP_IDS.map(t => `<th class="heat">${esc(TRAPS[t].label)}</th>`).join('')}</tr>
-    ${rows.map(({ st, c }) => `<tr class="click" data-id="${st.id}"><td><b>${esc(st.display_name)}</b></td>${TRAP_IDS.map(t => `<td class="heat ${h(c[t])}">${c[t] || '·'}</td>`).join('')}</tr>`).join('')}
-    <tr><td><b>Class</b></td>${TRAP_IDS.map(t => `<td class="heat"><b>${tot[t] || 0}</b></td>`).join('')}</tr></table></div></div>`;
+    <tr><th>Student</th>${unitTraps(UNIT).map(t => `<th class="heat">${esc(TRAPS[t].label)}</th>`).join('')}</tr>
+    ${rows.map(({ st, c }) => `<tr class="click" data-id="${st.id}"><td><b>${esc(st.display_name)}</b></td>${unitTraps(UNIT).map(t => `<td class="heat ${h(c[t])}">${c[t] || '·'}</td>`).join('')}</tr>`).join('')}
+    <tr><td><b>Class</b></td>${unitTraps(UNIT).map(t => `<td class="heat"><b>${tot[t] || 0}</b></td>`).join('')}</tr></table></div></div>`;
   $$('tr[data-id]', body).forEach(r => (r.onclick = () => { focus = r.dataset.id; render(); }));
 }
 function items(body) {
   const st = {};
-  for (const a of cls.attempts) for (const x of a.answers || []) { if (!ITEM[x.id]) continue; const s = (st[x.id] ||= { n: 0, ok: 0, traps: {} }); s.n++; if (x.first_try) s.ok++; if (x.trap) s.traps[x.trap] = (s.traps[x.trap] || 0) + 1; }
+  for (const a of cls.attempts) for (const x of a.answers || []) { if (!ITEM[x.id] || ITEM[x.id].unit !== UNIT) continue; const s = (st[x.id] ||= { n: 0, ok: 0, traps: {} }); s.n++; if (x.first_try) s.ok++; if (x.trap) s.traps[x.trap] = (s.traps[x.trap] || 0) + 1; }
   const list = Object.entries(st).sort((a, b) => a[1].ok / a[1].n - b[1].ok / b[1].n);
   body.innerHTML = `<div class="card"><p class="small muted">Every question students have met, hardest first (% right first time).</p>${list.length ? `<div class="scroll"><table class="grid">
     <tr><th>Right 1st try</th><th>Seen</th><th>Type</th><th>Question</th><th>Most common trap</th></tr>
@@ -148,7 +149,7 @@ function studentDetail(body, id) {
   body.innerHTML = `<p><button class="ghost small" id="bk">← Back</button></p><div class="card"><h2>${esc(st.display_name)} <span class="muted small">${esc(st.username)} · ${esc(st.full_name)}</span></h2>
     <p class="small">Last seen ${ago(st.last_seen)} · ${mine.length} activities saved</p>
     ${Object.keys(tc).length ? `<div>${Object.entries(tc).sort((a, b) => b[1] - a[1]).map(([t, n]) => `<span class="pill miss">${esc(TRAPS[t]?.label || t)} ×${n}</span>`).join('')}</div>` : ''}</div>
-    ${mine.map(a => `<details class="card"><summary><b>${esc(ACT_NAME[a.activity] || a.activity)}</b> · ${a.score}/${a.max_score} · ${a.activity === 'shift' || a.activity === 'mcq' ? E.LEVELS[a.level_start] + ' → ' + E.LEVELS[a.level_end] + ' · ' : ''}${Math.round(a.seconds / 60)} min · <span class="muted">${new Date(a.created_at).toLocaleString()}</span></summary>
+    ${mine.map(a => `<details class="card"><summary><b>${esc(a.unit + ' ' + actName(a.unit, a.activity))}</b> · ${a.score}/${a.max_score} · ${LEVELED.has(a.activity) ? E.LEVELS[a.level_start] + ' → ' + E.LEVELS[a.level_end] + ' · ' : ''}${Math.round(a.seconds / 60)} min · <span class="muted">${new Date(a.created_at).toLocaleString()}</span></summary>
       <table class="t" style="margin-top:8px">${(a.answers || []).filter(x => ITEM[x.id]).map(x => `<tr><td>${x.first_try ? '✔' : x.ok ? '◐' : '✘'}</td><td style="min-width:220px">${esc(ITEM[x.id].text)}
         ${x.pick ? `<br><span class="small muted">Chose: ${esc(x.pick)}</span>` : ''}${x.text && a.activity === 'data' ? `<br><span class="small muted">${x.text.startsWith('{') ? 'Drew: ' + esc(drew(x.text)) : 'Wrote: ' + esc(x.text)}</span>` : ''}</td>
         <td class="small">${x.score != null ? x.score + '/' + x.marks : ''} ${x.trap ? esc(TRAPS[x.trap]?.label || x.trap) : ''}${x.hinted ? ' (hint)' : ''}</td></tr>`).join('') || '<tr><td>Learning cards viewed.</td></tr>'}</table></details>`).join('') || '<div class="card">No activities yet.</div>'}
