@@ -173,6 +173,7 @@ def run_u24(p, size):
         p.wait_for_selector('.event')
         it = p.evaluate('window.__eqItem')
         if i == 0: shot(p, size, 'u24-5-finder')
+        if it['kind'] == 'eq-dia': ok(p.locator('.dg-gaplab').count() == 0 and p.locator('.dg-gap.hidden').count() == 1, 'finder diagram: the gap is not named before the answer')
         if i == 0:
             st = it['steps'][0]
             if st['type'] == 'choice':
@@ -190,6 +191,7 @@ def run_u24(p, size):
                 else:
                     p.fill('#num', str(st['answer'])); p.click('#chk')
             ok(p.locator('#step .fb.ok').count() == 1, f'finder {i+1} ({it["kind"]}): solved')
+            if it['kind'] == 'eq-dia': ok(p.locator('.dg-gaplab').count() == 1, 'finder diagram: the gap is named after the answer')
             if it['kind'] == 'eq-market' and not any('market' in f for f in SHOT_DONE): SHOT_DONE.add('market'); shot(p, size, 'u24-7-market')
         no_overflow(p, f'{size} finder {i+1}')
         p.click('#nx')
@@ -209,8 +211,13 @@ def run_u24(p, size):
     ok('Rambutan' in p.inner_text('h1'), '2.4 data response title'); shot(p, size, 'u24-8-data'); no_overflow(p, size + ' 2.4 data')
     p.fill('#qai', '40'); p.click('#qac'); ok('1/1' in p.inner_text('#qafb'), 'identify equilibrium 1/1'); p.locator('#qa button:has-text("Next")').click()
     p.fill('#qbi', '300'); p.click('#qbc'); ok('2/2' in p.inner_text('#qbfb'), 'shortage 2/2'); p.locator('#qb button:has-text("Next")').click()
-    p.click('#qc .seg[data-k="p"] button[data-v="60"]'); p.click('#qc .seg[data-k="t"] button[data-v="surplus"]'); p.click('#qcc')
-    ok('2/2' in p.inner_text('#qcfb'), 'price line 2/2'); shot(p, size, 'u24-9-priceline'); p.locator('#qc button:has-text("Next")').click()
+    p.click('#qc .seg[data-k="p"] button[data-v="60"]')
+    ok(p.locator('#qc .dg-gaplab').count() == 0 and p.locator('#qc .dg-gap.surplus').count() == 0 and p.locator('#qc .dg-gap.hidden').count() == 1,
+       'price line: the gap is not named or coloured before Check')
+    shot(p, size, 'u24-9a-priceline-before-check')
+    p.click('#qc .seg[data-k="t"] button[data-v="surplus"]'); p.click('#qcc')
+    ok('2/2' in p.inner_text('#qcfb'), 'price line 2/2')
+    ok(p.locator('#qc .dg-gaplab.surplus').count() == 1, 'price line: the surplus is labelled after Check'); shot(p, size, 'u24-9-priceline'); p.locator('#qc button:has-text("Next")').click()
     p.fill('#qdi', 'At 60 there is a surplus because supply is more than demand. Sellers cut the price. Quantity demanded extends and quantity supplied contracts until equilibrium at 40.')
     p.click('#qdc'); ok('4/4' in p.inner_text('#qdfb'), 'explain 4/4'); p.locator('#qd button:has-text("Finish")').click()
     p.wait_for_selector('#saved:has-text("Saved")'); ok('9 / 9' in p.inner_text('main'), '2.4 data 9/9')
