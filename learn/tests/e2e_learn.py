@@ -48,7 +48,7 @@ def run_student(p, size):
     shot(p, size, '1-signin'); no_overflow(p, size + ' signin')
     p.fill('#u', 'DEMO-01 '); p.fill('#p', '1234'); p.click('#f button')
     p.wait_for_selector('.units'); ok('Hi An' in p.inner_text('h1'), 'greeting')
-    ok(p.locator('.unit.open').count() == 1, 'only 2.5 open'); ok(p.locator('.unit').count() == 6, 'six units listed')
+    ok(p.locator('.unit.open').count() == 1, 'only 2.6 open'); ok(p.locator('.unit').count() == 6, 'six units listed')
     shot(p, size, '2-home'); no_overflow(p, size + ' home')
     p.click('#vi'); ok(p.inner_text('#vi') == 'On', 'Vietnamese words toggle')
     p.click('.unit.open'); p.wait_for_selector('.acts'); shot(p, size, '3-unit'); no_overflow(p, size + ' unit')
@@ -128,7 +128,7 @@ def run_struggler(p, size):
     # demo-02 gets every case wrong twice: answers are revealed, worked example appears, flagged for the teacher
     p.goto(BASE + '/learn/?demo=1'); p.wait_for_selector('#f')
     p.fill('#u', 'demo-02'); p.fill('#p', '1234'); p.click('#f button'); p.wait_for_selector('.units')
-    p.goto(BASE + '/learn/?demo=1#/u/2.5/shift')
+    p.goto(BASE + '/learn/?demo=1#/u/2.6/shift')
     for i in range(6):
         p.wait_for_selector('.event')
         it = SHIFT_BY_EVENT[p.locator('.event').inner_text().strip()]

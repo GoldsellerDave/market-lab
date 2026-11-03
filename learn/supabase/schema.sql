@@ -28,7 +28,7 @@ create table if not exists ec_classes (
   code text primary key,
   name text not null default '',
   teacher_id uuid references ec_users(id) on delete set null,
-  open_units text[] not null default '{2.5}',
+  open_units text[] not null default '{2.6}',
   created_at timestamptz not null default now()
 );
 create table if not exists ec_attempts (

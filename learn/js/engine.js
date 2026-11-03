@@ -133,7 +133,7 @@ export function xpForNew(attempts, a, now = new Date()) {
 
 // ---------- needs help ----------
 /** A reason string if the student's latest Shift detective or Paper 1 run shows they are struggling, else null */
-export function needsHelp(attempts, unit = '2.5') {
+export function needsHelp(attempts, unit = '2.6') {
   const why = [];
   for (const act of ['shift', 'mcq']) {
     const a = attempts.filter(x => x.unit === unit && x.activity === act).pop();

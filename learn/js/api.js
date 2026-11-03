@@ -48,7 +48,7 @@ function db() {
   let d; try { d = JSON.parse(localStorage.getItem(DKEY)); } catch { }
   if (!d) {
     d = { users: [{ id: 't1', username: 'teacher', role: 'teacher', secret: 'demo', display_name: 'Demo Teacher', full_name: 'Demo Teacher', is_admin: true }],
-      classes: [{ code: 'demo', name: 'Demo class', teacher_id: 't1', open_units: ['2.5'], board: true }], tokens: {}, attempts: [], seq: 1 };
+      classes: [{ code: 'demo', name: 'Demo class', teacher_id: 't1', open_units: ['2.6'], board: true }], tokens: {}, attempts: [], seq: 1 };
     ['An', 'Tony', 'Mia'].forEach((n, i) => d.users.push({ id: 's' + (i + 1), username: 'demo-0' + (i + 1), role: 'student', class_code: 'demo', secret: '1234', display_name: n, full_name: 'Demo ' + n }));
   }
   return d;
@@ -79,7 +79,7 @@ function demo(fn, a) {
     case 'ec_history': { const u = me(); out = d.attempts.filter(x => x.user_id === u.id); break; }
     case 'ec_t_classes': { const t = teacher(); out = d.classes.filter(c => c.teacher_id === t.id || t.is_admin).map(c => ({ ...c, students: d.users.filter(u => u.class_code === c.code && u.role === 'student').length })); break; }
     case 'ec_t_add_class': { const t = teacher(), code = String(a.p_code).trim().toLowerCase(); if (!/^[a-z0-9]{2,12}$/.test(code)) throw new Error('bad-class-code'); if (d.classes.some(c => c.code === code)) throw new Error('class-exists');
-      const c = { code, name: a.p_name || '', teacher_id: t.id, open_units: ['2.5'] }; d.classes.push(c); out = addPeople(c, a.p_people || []); break; }
+      const c = { code, name: a.p_name || '', teacher_id: t.id, open_units: ['2.6'] }; d.classes.push(c); out = addPeople(c, a.p_people || []); break; }
     case 'ec_t_add_students': teacher(); out = addPeople(cls(a.p_code), a.p_people || []); break;
     case 'ec_t_class': { teacher(); const c = cls(a.p_code), st = d.users.filter(u => u.class_code === c.code && u.role === 'student');
       out = { code: c.code, name: c.name, open_units: c.open_units, students: st.map(u => ({ id: u.id, username: u.username, full_name: u.full_name, display_name: u.display_name, last_seen: u.last_seen || null, locked: false })),
