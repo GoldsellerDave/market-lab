@@ -6,7 +6,7 @@ import * as E from './engine.js';
 import { TRAPS, SHIFTS, MCQ, DATA } from './u25.js';
 
 let me = null, classes = [], cls = null, tab = pref.get('t-tab', 'progress'), live = null, focus = null;
-const UNIT = '2.6';
+const UNIT = '2.5';
 const ITEM = Object.fromEntries([...SHIFTS.map(s => [s.id, { kind: 'Shift', text: s.event, level: s.level }]), ...MCQ.map(q => [q.id, { kind: 'MCQ', text: q.stem, level: q.level }]),
   ...DATA.questions.map(q => [DATA.id + '-' + q.id, { kind: 'Data', text: `(${q.id}) ${q.q}`, level: 1 }])]);
 const ACT_NAME = Object.fromEntries(ACTIVITIES[UNIT].map(a => [a.id, a.title]));

@@ -1,4 +1,4 @@
-// Student app: sign in, unit map (2.1 to 2.6), and the 2.6 Price changes activities.
+// Student app: sign in, unit map (2.1 to 2.6), and the 2.5 Price changes activities.
 import { rpc, token, DEMO, errText } from './api.js';
 import { $, $$, esc, view, toast, pct, pref, busy } from './ui.js';
 import { UNITS, ACTIVITIES } from './units.js';
@@ -7,7 +7,7 @@ import { TRAPS, VI, LEARN, SHIFTS, MCQ, DATA } from './u25.js';
 import { createDiagram } from './diagram.js';
 
 let me = null, history = [];
-const UNIT = '2.6';
+const UNIT = '2.5';
 const vi = () => pref.get('vi', false);
 const w = (en, key) => (vi() && VI[key] ? `${en} <span class="vi">(${VI[key]})</span>` : en);
 const levelBadge = l => `<span class="badge lvl${l}">${E.LEVELS[l]}</span>`;
@@ -130,10 +130,10 @@ async function board() {
     <p class="small muted" style="margin-top:8px">Earn XP: 10 for each answer right first time, 2 for each question you finish, 20 for the Learn cards. The leaderboard starts again every Monday.${b.offline ? ' (Offline: showing XP saved on this device.)' : ''}</p>`;
 }
 
-// ---------- unit 2.6 page ----------
+// ---------- unit 2.5 page ----------
 function unitPage() {
   const s = E.summarise(history, UNIT), top = E.topTrap(E.trapCounts(history, UNIT));
-  view(`<p><a href="#/">← All units</a></p><h1>2.6 Price changes</h1>
+  view(`<p><a href="#/">← All units</a></p><h1>2.5 Price changes</h1>
     <p class="muted">Work through them in order. Each activity adapts: get two right first time and it gets harder.</p>
     <div class="acts">${ACTIVITIES[UNIT].map(a => {
       const x = s[a.id];
@@ -162,7 +162,7 @@ function learn() {
       <div class="card" style="border-left:8px solid var(--s)"><h3>${w('Supply', 'supply')} shifts</h3><ul>${c.supply.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>`;
     if (c.kind === 'method') body += `<ol>${c.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol><p><b>Sentence frame</b></p><p class="frame">${esc(c.frame)}</p>`;
     const hasDg = ['four', 'move', 'two'].includes(c.kind);
-    view(`<p><a href="#/u/${UNIT}">← 2.6 Price changes</a></p>
+    view(`<p><a href="#/u/${UNIT}">← 2.5 Price changes</a></p>
       <div class="steps">${LEARN.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
       <div class="card"><h2>${i + 1}. ${esc(c.title)}</h2>${hasDg ? `<div class="play-grid"><div><div class="dgwrap" id="dg"></div><p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : body}</div>
       <div class="sticky-foot"><button class="ghost" id="prev" ${i ? '' : 'disabled'}>Back</button><button id="next">${i === LEARN.length - 1 ? 'Finish' : 'Next'}</button></div>`);
@@ -185,7 +185,7 @@ function learn() {
       const la = { unit: UNIT, activity: 'learn', level_start: 0, level_end: 0, score: LEARN.length, max_score: LEARN.length, seconds: Math.round((Date.now() - t0) / 1000), answers: LEARN.map(x => ({ id: 'learn-' + x.id, ok: true })) };
       const xp = E.xpForNew(history, la);
       await saveAttempt(la);
-      view(`<div class="card center"><h1>Cards done ✔</h1>${xp ? xpLine(xp) : ''}<p>Now test yourself.</p><div class="row" style="justify-content:center"><button id="n">Shift detective →</button><button class="ghost" id="b">Back to 2.6</button></div></div>`);
+      view(`<div class="card center"><h1>Cards done ✔</h1>${xp ? xpLine(xp) : ''}<p>Now test yourself.</p><div class="row" style="justify-content:center"><button id="n">Shift detective →</button><button class="ghost" id="b">Back to 2.5</button></div></div>`);
       $('#n').onclick = () => go('#/u/' + UNIT + '/shift'); $('#b').onclick = () => go('#/u/' + UNIT);
     };
   };
@@ -237,12 +237,12 @@ async function finish(run, title, again) {
   view(`<div class="card center"><h1>${esc(title)} done</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${run.score} / ${run.n}</p>
     <p class="muted">right first time · finished at ${levelBadge(run.lad.level)}</p>${xpLine(xp)}<p class="small" id="saved">Saving…</p></div>
     ${traps.length ? `<div class="card"><h3>Things to watch</h3>${traps.map(trapBox).join('')}</div>` : '<div class="card center">No mistakes: excellent! ⭐</div>'}
-    <div class="row"><button class="grow" id="again">Try again</button><button class="ghost grow" id="back">Back to 2.6</button></div>`);
+    <div class="row"><button class="grow" id="again">Try again</button><button class="ghost grow" id="back">Back to 2.5</button></div>`);
   $('#again').onclick = again; $('#back').onclick = () => go('#/u/' + UNIT);
   const ok = await saveAttempt(a);
   const el = $('#saved'); if (el) el.textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
 }
-const runHead = (run, label) => `<p><a href="#/u/${UNIT}">← 2.6 Price changes</a></p>
+const runHead = (run, label) => `<p><a href="#/u/${UNIT}">← 2.5 Price changes</a></p>
   <div class="row"><b class="grow">${label} ${run.i + 1} of ${run.n}</b>${levelBadge(run.lad.level)}</div>
   <div class="steps" style="margin-top:8px">${Array.from({ length: run.n }, (_, k) => `<i class="${k < run.i ? 'done' : k === run.i ? 'on' : ''}"></i>`).join('')}</div>`;
 
@@ -342,7 +342,7 @@ function mcq(run = newRun('mcq', 10)) {
 // ---------- Data response ----------
 function data() {
   const t0 = Date.now(), res = {}, maxScore = DATA.questions.reduce((s, q) => s + q.marks, 0);
-  view(`<p><a href="#/u/${UNIT}">← 2.6 Price changes</a></p><h1>${esc(DATA.title)}</h1>
+  view(`<p><a href="#/u/${UNIT}">← 2.5 Price changes</a></p><h1>${esc(DATA.title)}</h1>
     <div class="card"><h3>Source</h3><div class="src">${DATA.source.map(p => `<p>${esc(p)}</p>`).join('')}
       <table class="t"><tr>${DATA.table.head.map(h => `<th>${esc(h)}</th>`).join('')}</tr>${DATA.table.rows.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div></div>
     <div id="qs"></div>`);
@@ -351,7 +351,7 @@ function data() {
     const score = Object.values(res).reduce((s, r) => s + r.score, 0);
     const answers = DATA.questions.map(q => ({ id: DATA.id + '-' + q.id, level: 1, first_try: res[q.id].first, ok: res[q.id].score === q.marks, trap: res[q.id].trap || null, score: res[q.id].score, marks: q.marks, text: res[q.id].text }));
     const da = { unit: UNIT, activity: 'data', level_start: 1, level_end: 1, score, max_score: maxScore, seconds: Math.round((Date.now() - t0) / 1000), answers };
-    qs.insertAdjacentHTML('beforeend', `<div class="card center"><h2>Total: ${score} / ${maxScore}</h2>${xpLine(E.xpForNew(history, da))}<p class="small" id="saved">Saving…</p><div class="row" style="justify-content:center"><button id="again">Try again</button><button class="ghost" id="back">Back to 2.6</button></div></div>`);
+    qs.insertAdjacentHTML('beforeend', `<div class="card center"><h2>Total: ${score} / ${maxScore}</h2>${xpLine(E.xpForNew(history, da))}<p class="small" id="saved">Saving…</p><div class="row" style="justify-content:center"><button id="again">Try again</button><button class="ghost" id="back">Back to 2.5</button></div></div>`);
     $('#again').onclick = () => data(); $('#back').onclick = () => go('#/u/' + UNIT);
     const ok = await saveAttempt(da);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';

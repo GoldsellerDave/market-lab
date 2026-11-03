@@ -100,7 +100,7 @@ test('XP: points, daily cap of 5 runs (Learn once), weekly window from Monday in
   assert.equal(E.weekStart(new Date('2026-11-01T17:00:00Z')).toISOString(), '2026-11-01T17:00:00.000Z'); // Mon 00:00 VN
 });
 test('needs help: two strategy cards, or under 40% right first time, in the latest run', () => {
-  const a = (activity, score, max, rescues) => ({ unit: '2.6', activity, score, max_score: max, answers: [{ id: 'meta', rescues }] });
+  const a = (activity, score, max, rescues) => ({ unit: '2.5', activity, score, max_score: max, answers: [{ id: 'meta', rescues }] });
   assert.equal(E.needsHelp([a('shift', 5, 6, 0)]), null);
   assert.match(E.needsHelp([a('shift', 3, 6, 2)]), /strategy card 2/);
   assert.match(E.needsHelp([a('mcq', 3, 10, 1)]), /3\/10/);
