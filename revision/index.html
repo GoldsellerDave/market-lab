@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>G9 Economics Revision Hub</title>
+<meta name="description" content="G9 IGCSE Economics mock test revision hub, sections 1.1 to 2.5: revision sessions, a 7-day plan and the study companions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap">
+<style>
+:root{
+  --bg:#f5f7f9; --card:#ffffff; --ink:#1d2731; --muted:#53616e; --line:#dde3e8;
+  --accent:#0f766e; --accent-soft:#e3f2ef; --demand:#1f5fbf; --supply:#c62828;
+  --warn-bg:#fff4e5; --warn:#a85a00; --today:#fff8d6; --today-line:#e0b400;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11171c; --card:#1a2229; --ink:#e7edf2; --muted:#a3b0bb; --line:#2c3842;
+    --accent:#3cbfae; --accent-soft:#16312e; --demand:#7aa7f0; --supply:#f07a7a;
+    --warn-bg:#33270f; --warn:#f0b35c; --today:#2d2a12; --today-line:#c9a400;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11171c; --card:#1a2229; --ink:#e7edf2; --muted:#a3b0bb; --line:#2c3842;
+  --accent:#3cbfae; --accent-soft:#16312e; --demand:#7aa7f0; --supply:#f07a7a;
+  --warn-bg:#33270f; --warn:#f0b35c; --today:#2d2a12; --today-line:#c9a400;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Be Vietnam Pro",system-ui,sans-serif;font-size:17px;line-height:1.55}
+a{color:var(--accent);font-weight:600}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 48px}
+.banner{background:var(--accent);color:#fff;padding:14px 16px;text-align:center}
+.banner b{font-weight:800}
+.banner a{color:#fff;text-decoration:underline}
+.banner .vi{color:#e3f2ef}
+header{padding:28px 0 8px}
+h1{font-size:30px;line-height:1.2;margin:0 0 6px;font-weight:800}
+h2{font-size:23px;margin:36px 0 4px;font-weight:800}
+h3{font-size:19px;margin:0 0 4px}
+.vi{display:block;color:var(--muted);font-size:.88em;font-weight:400;margin-top:2px}
+.count{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;margin-top:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:12px 0}
+.stream{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stream button{font:inherit;font-size:19px;font-weight:800;padding:16px 10px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.stream button small{display:block;font-size:13px;font-weight:400;color:var(--muted);margin-top:2px}
+.stream button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.stream-note{color:var(--muted);font-size:14px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:14px;color:var(--muted);font-weight:700}
+.fmt td:last-child{white-space:nowrap}
+.day{position:relative}
+.day.today{background:var(--today);border-color:var(--today-line);border-width:2px}
+.tag{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);margin-right:6px}
+.day.today .tag.now{background:var(--today-line);color:#1d2731}
+.day h3{margin-top:6px}
+.day ol{margin:8px 0 0;padding-left:22px}
+.day li{margin:6px 0}
+.sess{font-size:15px;color:var(--muted);margin-top:8px}
+.warn{background:var(--warn-bg);border-left:4px solid var(--warn);padding:10px 14px;border-radius:8px;margin:10px 0;font-size:15px}
+.files a{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card);margin:8px 0;text-decoration:none;color:var(--ink)}
+.files a span:last-child{color:var(--muted);font-weight:400;font-size:14px;white-space:nowrap}
+.files a b{color:var(--accent)}
+.steps{padding-left:22px;margin:6px 0}
+.steps li{margin:8px 0}
+.check li{margin:6px 0}
+footer{color:var(--muted);font-size:13px;margin-top:40px}
+.pg{white-space:nowrap}
+@media (max-width:520px){
+  body{font-size:16px}
+  h1{font-size:25px}
+  th,td{padding:9px 5px}
+  .fmt td:last-child{white-space:normal}
+}
+</style>
+</head>
+<body>
+
+<div class="banner" role="note">
+  <b>Revision sessions Monday to Friday, 3:30–4:30, Room C406 with Mr. David</b>
+  <span class="vi">Buổi ôn tập từ thứ Hai đến thứ Sáu, 3:30–4:30, phòng C406 với thầy David · <a href="#sessions">See what each session covers</a></span>
+</div>
+
+<div class="wrap">
+
+<header>
+  <h1>G9 Economics · Mock Test Revision Hub (1.1–2.5)</h1>
+  <span class="vi">Trang ôn tập cho bài kiểm tra thử và bài thi, phần 1.1 đến 2.5</span>
+  <div class="count" id="count">Mock test: Monday 16 November</div>
+  <div class="count" id="count2">Exam: Wednesday 18 November</div>
+</header>
+
+<section aria-labelledby="h-stream">
+  <h2 id="h-stream">1. Choose your stream</h2>
+  <span class="vi">Chọn nhóm của em</span>
+  <div class="stream" role="group" aria-label="Stream">
+    <button type="button" data-stream="B2" aria-pressed="false">B2 stream<small>English study companions</small></button>
+    <button type="button" data-stream="A2" aria-pressed="false">A2 stream<small>A1/A2 English + tiếng Việt</small></button>
+  </div>
+  <p class="stream-note" id="stream-note">Not sure? Ask Mr. David. Choose one and the whole page changes to show your books and page numbers. Your choice is saved on this device.</p>
+</section>
+
+<section aria-labelledby="h-test">
+  <h2 id="h-test">2. The mock test and the exam</h2>
+  <span class="vi">Kiểm tra thử: thứ Hai 16/11 · Thi chính thức: thứ Tư 18/11 · 70 phút</span>
+  <div class="card">
+    <p style="margin-top:0">One paper, <b>70 minutes</b>, covering <b>1.1 to 2.5</b>. It is a diagnostic: it shows you and Mr. David what to focus on before the <b>real exam on Wednesday 18 November</b>, which has the same format and covers the same sections. There are <b>no 8-mark questions</b>.</p>
+    <table class="fmt">
+      <tr><th>Section</th><th>What</th><th>Time</th></tr>
+      <tr><td><b>A</b></td><td>20 multiple-choice questions (20 marks)</td><td>30 min</td></tr>
+      <tr><td><b>B</b></td><td>2 questions, each (a) 2 + (b) 4 + (c) 6 marks (24 marks)</td><td>40 min</td></tr>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="sessions">
+  <h2 id="sessions">3. Revision sessions with Mr. David</h2>
+  <span class="vi">Lịch các buổi ôn tập: 3:30–4:30, phòng C406</span>
+  <div class="card">
+    <table>
+      <tr><th>Day</th><th>Sections covered</th></tr>
+      <tr data-date="2026-11-09"><td><b>Mon 9 Nov</b></td><td>1.1 The basic economic problem · 1.2 Factors of production</td></tr>
+      <tr data-date="2026-11-10"><td><b>Tue 10 Nov</b></td><td>1.3 Opportunity cost · 1.4 Production possibility curves</td></tr>
+      <tr data-date="2026-11-11"><td><b>Wed 11 Nov</b></td><td>2.1 Markets · 2.2 Demand</td></tr>
+      <tr data-date="2026-11-12"><td><b>Thu 12 Nov</b></td><td>2.3 Supply · 2.4 Price determination</td></tr>
+      <tr data-date="2026-11-13"><td><b>Fri 13 Nov</b></td><td>2.5 Price changes · exam technique for 2, 4 and 6-mark questions</td></tr>
+    </table>
+    <p class="sess" style="margin-bottom:0">Bring your study companion and any question you lost marks on. <span class="vi">Mang theo sách ôn tập và những câu em bị mất điểm.</span></p>
+  </div>
+</section>
+
+<section aria-labelledby="h-plan">
+  <h2 id="h-plan">4. Your day-by-day plan</h2>
+  <span class="vi">Kế hoạch tự học từng ngày đến ngày thi</span>
+  <p>Each weekday, study the same sections as that day's session. Today's card is highlighted.</p>
+  <div id="days"></div>
+  <div class="warn" id="skip-d" hidden><b>B2 stream:</b> the 2.1–2.5 book also has 8-mark (d) questions. They are <b>not</b> in this mock, so skip them for now.</div>
+</section>
+
+<section aria-labelledby="h-mark">
+  <h2 id="h-mark">5. How to mark your own work</h2>
+  <span class="vi">Cách tự chấm bài</span>
+  <div class="card">
+    <ol class="steps">
+      <li><b>Finish the whole answer first.</b> Then pick up a different colour pen. <span class="vi">Làm xong cả bài rồi mới chấm, dùng bút khác màu.</span></li>
+      <li><b>Find the mark scheme</b> at the back of your study companion (page numbers are in your plan above). <span class="vi">Tìm bảng chấm điểm ở cuối sách.</span></li>
+      <li><b>Tick each row only if the idea is clearly in your answer.</b> Different words are fine if the meaning is the same. Do not go over the maximum. <span class="vi">Chỉ đánh dấu khi ý đó thật sự có trong bài.</span></li>
+      <li><b>Compare with the model answer.</b> Rewrite the step you missed, and bring that question to the session. <span class="vi">So sánh với bài mẫu, viết lại bước còn thiếu.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section aria-labelledby="h-day">
+  <h2 id="h-day">6. Checklist for the mock and the exam</h2>
+  <span class="vi">Chuẩn bị cho ngày kiểm tra thử và ngày thi</span>
+  <div class="card">
+    <ul class="check">
+      <li>Two pens, a pencil, a ruler and an eraser for diagrams.</li>
+      <li>Read the command word first: State, Define, Explain, Analyse.</li>
+      <li>Diagrams: label both axes, label every curve, and show the old and new price and quantity.</li>
+      <li>Watch the clock: 30 minutes for Section A, about 20 minutes for each Section B question.</li>
+      <li>Never leave an MCQ blank. If you are not sure, rule out the wrong answers and choose.</li>
+      <li>Read your answers again in the last 5 minutes.</li>
+    </ul>
+  </div>
+</section>
+
+<section aria-labelledby="h-files">
+  <h2 id="h-files">7. Downloads</h2>
+  <span class="vi">Tải tài liệu (PDF)</span>
+  <div class="files" id="files"></div>
+</section>
+
+<footer>IGCSE Economics (0455) · G9 · Mr. David. Practice questions and mark schemes were written for these guides in the style of IGCSE papers. They are not official Cambridge material.</footer>
+</div>
+
+<script>
+(function(){
+  var FILES = {
+    c1B2:{name:'Study companion 1.1–1.4 (B2)', file:'pdf/companion-1.1-1.4-B2.pdf', size:'1.0 MB', s:'B2'},
+    c2B2:{name:'Study companion 2.1–2.5 (B2)', file:'pdf/companion-2.1-2.5-B2.pdf', size:'1.6 MB', s:'B2'},
+    c1A2:{name:'Study companion 1.1–1.4 (A1-A2)', file:'pdf/companion-1.1-1.4-A2.pdf', size:'1.1 MB', s:'A2'},
+    c2A2:{name:'Study companion 2.1–2.5 (A1-A2)', file:'pdf/companion-2.1-2.5-A2.pdf', size:'1.6 MB', s:'A2'},
+    diag:{name:'Paper 1 diagnostic test 2.1–2.5', file:'pdf/diagnostic-2.1-2.5.pdf', size:'0.2 MB', s:'both'},
+    key:{name:'Paper 1 diagnostic: answer key', file:'pdf/diagnostic-2.1-2.5-answer-key.pdf', size:'0.3 MB', s:'both'}
+  };
+  // [section pages, mark-scheme pages] per stream
+  var P = {
+    B2:{
+      '1.1':['c1B2','4–9','31–32',4,31], '1.2':['c1B2','10–16','33–34',10,33],
+      '1.3':['c1B2','17–20','35–36',17,35], '1.4':['c1B2','21–28','37–39',21,37],
+      '2.1':['c2B2','4–8','40–43',4,40], '2.2':['c2B2','10–15','45–46',10,45],
+      '2.3':['c2B2','17–22','48–50',17,48], '2.4':['c2B2','24–28','52–54',24,52],
+      '2.5':['c2B2','30–37','56–58',30,56],
+      mcq1:['c1B2','29–30',29], glos1:['c1B2','40',40], tool2:['c2B2','2–3',2]
+    },
+    A2:{
+      '1.1':['c1A2','4–10','38–39',4,38], '1.2':['c1A2','11–18','39–40',11,39],
+      '1.3':['c1A2','19–25','41–42',19,41], '1.4':['c1A2','26–34','42–44',26,42],
+      '2.1':['c2A2','4–9','46–47',4,46], '2.2':['c2A2','10–18','47–49',10,47],
+      '2.3':['c2A2','19–26','49–50',19,49], '2.4':['c2A2','27–33','51–52',27,51],
+      '2.5':['c2A2','34–41','52–54',34,52],
+      mcq1:['c1A2','35–37',35], glos1:['c1A2','45',45], tool2:['c2A2','2–3',2]
+    }
+  };
+  var NAMES = {'1.1':'The basic economic problem','1.2':'Factors of production','1.3':'Opportunity cost','1.4':'Production possibility curves',
+    '2.1':'Markets','2.2':'Demand','2.3':'Supply','2.4':'Price determination','2.5':'Price changes'};
+  var DAYS = [
+    {d:'2026-11-09', t:'Mon 9 Nov', secs:['1.1','1.2']},
+    {d:'2026-11-10', t:'Tue 10 Nov', secs:['1.3','1.4']},
+    {d:'2026-11-11', t:'Wed 11 Nov', secs:['2.1','2.2']},
+    {d:'2026-11-12', t:'Thu 12 Nov', secs:['2.3','2.4']},
+    {d:'2026-11-13', t:'Fri 13 Nov', secs:['2.5']},
+    {d:'2026-11-14', t:'Sat 14 Nov', sat:true},
+    {d:'2026-11-15', t:'Sun 15 Nov', sun:true},
+    {d:'2026-11-16', t:'Mon 16 Nov', mock:true},
+    {d:'2026-11-17', t:'Tue 17 Nov', fix:true},
+    {d:'2026-11-18', t:'Wed 18 Nov', exam:true}
+  ];
+
+  function link(id, page, label){
+    var f = FILES[id];
+    return '<a href="' + f.file + (page ? '#page=' + page : '') + '" target="_blank" rel="noopener">' + label + '</a>';
+  }
+  function book(id){ return FILES[id].name.replace('Study companion ', 'companion '); }
+
+  function todayISO(){
+    try{
+      return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    }catch(e){ return new Date().toISOString().slice(0,10); }
+  }
+
+  function render(stream){
+    var p = P[stream];
+    var today = todayISO();
+    var html = '';
+    DAYS.forEach(function(day){
+      var isToday = day.d === today;
+      html += '<div class="card day' + (isToday ? ' today' : '') + '">';
+      html += '<span class="tag">' + day.t + '</span>' + (isToday ? '<span class="tag now">Today</span>' : '');
+      if (day.secs){
+        html += '<h3>' + day.secs.map(function(s){ return s + ' ' + NAMES[s]; }).join(' · ') + '</h3><ol>';
+        day.secs.forEach(function(s){
+          var r = p[s];
+          html += '<li><b>' + s + ':</b> read and do the tasks, MCQ and Paper 2 question (' + link(r[0], r[3], book(r[0]) + ', <span class="pg">pp. ' + r[1] + '</span>') + ').</li>';
+        });
+        html += '<li><b>Mark it yourself:</b> ' + day.secs.map(function(s){ var r = p[s]; return link(r[0], r[4], s + ' mark scheme, <span class="pg">pp. ' + r[2] + '</span>'); }).join(' · ') + '.</li>';
+        html += '<li><b>3:30 session in C406:</b> bring any question you lost marks on.</li></ol>';
+        if (day.d === '2026-11-13') html += '<p class="sess">Exam technique today: the Paper 2 toolkit at the front of your 2.1–2.5 book (' + link(p.tool2[0], p.tool2[2], 'pp. ' + p.tool2[1]) + ').</p>';
+      } else if (day.sat){
+        html += '<h3>Timed Section A practice (30 minutes)</h3><ol>';
+        html += '<li>Do the ' + link('diag', 1, 'Paper 1 diagnostic test 2.1–2.5') + ' (20 MCQ) in 30 minutes, with no notes.</li>';
+        html += '<li>Then do the 1.1–1.4 multiple-choice questions in your ' + book(p.mcq1[0]) + ' again, without looking at your earlier answers.</li>';
+        html += '<li>Mark them with the ' + link('key', 1, 'diagnostic answer key') + ' and the ' + link(p.mcq1[0], p.mcq1[2], '1.1–1.4 answers, <span class="pg">pp. ' + p.mcq1[1] + '</span>') + '. Use the key\'s weak-area finder to find your <b>two weakest sections</b>.</li>';
+        html += '<li>For each wrong answer, read the "if you chose…" note in the key.</li></ol>';
+      } else if (day.sun){
+        html += '<h3>Timed Section B practice (40 minutes)</h3><ol>';
+        html += '<li>Choose <b>two Paper 2 questions</b> from your two weakest sections. Use the page numbers in the weekday cards above. Answer (a), (b) and (c) of each in <b>40 minutes in total</b>.</li>';
+        html += '<li>Mark them with the companion mark schemes, then compare them with the model answers.</li>';
+        html += '<li>Reread the trap boxes and the glossary (' + link(p.glos1[0], p.glos1[2], '1.1–1.4 glossary, p. ' + p.glos1[1]) + ').</li></ol>';
+      } else if (day.mock){
+        html += '<h3>Mock test day</h3><p style="margin:6px 0 0">Do your best: the mock shows what to fix before Wednesday. Use the checklist below.</p>';
+      } else if (day.fix){
+        html += '<h3>Fix your focus areas</h3><ol><li>Look at the questions you lost marks on in the mock and find their sections.</li><li>Reread those sections in your companion (page numbers in the weekday cards above) and redo their Paper 2 questions.</li><li>Mark them yourself with the mark scheme. Early night!</li></ol>';
+      } else {
+        html += '<h3>Exam day: Wednesday 18 November</h3><p style="margin:6px 0 0">Same format as the mock: 70 minutes, 1.1–2.5. Use the checklist below. Good luck!</p>';
+      }
+      html += '</div>';
+    });
+    document.getElementById('days').innerHTML = html;
+    document.getElementById('skip-d').hidden = stream !== 'B2';
+
+    var fh = '';
+    Object.keys(FILES).forEach(function(k){
+      var f = FILES[k];
+      if (f.s === stream || f.s === 'both')
+        fh += '<a href="' + f.file + '" target="_blank" rel="noopener"><b>' + f.name + '</b><span>PDF · ' + f.size + '</span></a>';
+    });
+    document.getElementById('files').innerHTML = fh;
+
+    document.querySelectorAll('.stream button').forEach(function(b){
+      b.setAttribute('aria-pressed', b.dataset.stream === stream ? 'true' : 'false');
+    });
+    document.getElementById('stream-note').textContent = 'Showing the ' + stream + ' stream. Tap the other button to switch. Your choice is saved on this device.';
+    document.querySelectorAll('#sessions tr[data-date]').forEach(function(tr){
+      tr.style.background = tr.dataset.date === today ? 'var(--today)' : '';
+    });
+  }
+
+  function countdown(){
+    var t = todayISO();
+    var a = Date.UTC(+t.slice(0,4), +t.slice(5,7) - 1, +t.slice(8,10));
+    var n = Math.round((Date.UTC(2026,10,16) - a) / 86400000);
+    var el = document.getElementById('count');
+    if (n > 1) el.textContent = 'Mock test: Monday 16 November · ' + n + ' days to go';
+    else if (n === 1) el.textContent = 'Mock test: tomorrow, Monday 16 November';
+    else if (n === 0) el.textContent = 'Mock test: today. Good luck!';
+    else el.textContent = 'Mock test: Monday 16 November';
+    var m = Math.round((Date.UTC(2026,10,18) - a) / 86400000);
+    var e2 = document.getElementById('count2');
+    if (m > 1) e2.textContent = 'Exam: Wednesday 18 November · ' + m + ' days to go';
+    else if (m === 1) e2.textContent = 'Exam: tomorrow, Wednesday 18 November';
+    else if (m === 0) e2.textContent = 'Exam: today. Good luck!';
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem('g9-revision-stream'); } catch(e){}
+  document.querySelectorAll('.stream button').forEach(function(b){
+    b.addEventListener('click', function(){
+      try { localStorage.setItem('g9-revision-stream', b.dataset.stream); } catch(e){}
+      render(b.dataset.stream);
+    });
+  });
+  countdown();
+  render(saved === 'A2' ? 'A2' : 'B2');
+  if (!saved) document.getElementById('stream-note').textContent = 'Showing the B2 stream. A2 students: tap A2. Not sure? Ask Mr. David. Your choice is saved on this device.';
+})();
+</script>
+</body>
+</html>

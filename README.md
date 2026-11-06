@@ -11,6 +11,7 @@ Two classroom market lessons for Cambridge IGCSE Economics 0455, in one web app.
 | `blended.html` | Optional extra lesson: the blended market with real goods and laptop tills |
 | `breakout.html` | Review: the Saigon Chocolate Crisis breakout |
 | `roleplay.html` | Role-play stations: a group activity with swappable content packs (CPD, ESL, Economics) |
+| `revision/` | G9 mock test revision hub (1.1–2.5): session timetable, 7-day plan and study companion PDFs. Open at `/market-lab/revision/`; no login |
 | `config.js` | **The only file you edit**: Supabase details for online joining and AI marking |
 | `supabase/functions/mark/index.ts` | The AI marking function (runs on Supabase, holds the Claude API key) |
 
