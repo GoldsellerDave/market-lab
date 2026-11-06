@@ -88,8 +88,9 @@ footer{color:var(--muted);font-size:13px;margin-top:40px}
 
 <header>
   <h1>G9 Economics · Mock Test Revision Hub (1.1–2.5)</h1>
-  <span class="vi">Trang ôn tập cho bài kiểm tra thử, phần 1.1 đến 2.5</span>
+  <span class="vi">Trang ôn tập cho bài kiểm tra thử và bài thi, phần 1.1 đến 2.5</span>
   <div class="count" id="count">Mock test: Monday 16 November</div>
+  <div class="count" id="count2">Exam: Wednesday 18 November</div>
 </header>
 
 <section aria-labelledby="h-stream">
@@ -103,10 +104,10 @@ footer{color:var(--muted);font-size:13px;margin-top:40px}
 </section>
 
 <section aria-labelledby="h-test">
-  <h2 id="h-test">2. The mock test</h2>
-  <span class="vi">Bài kiểm tra thử: thứ Hai 16/11, 70 phút</span>
+  <h2 id="h-test">2. The mock test and the exam</h2>
+  <span class="vi">Kiểm tra thử: thứ Hai 16/11 · Thi chính thức: thứ Tư 18/11 · 70 phút</span>
   <div class="card">
-    <p style="margin-top:0">One paper, <b>70 minutes</b>, covering <b>1.1 to 2.5</b>. It is a diagnostic: it shows you and Mr. David what to focus on before the real exam. There are <b>no 8-mark questions</b>.</p>
+    <p style="margin-top:0">One paper, <b>70 minutes</b>, covering <b>1.1 to 2.5</b>. It is a diagnostic: it shows you and Mr. David what to focus on before the <b>real exam on Wednesday 18 November</b>, which has the same format and covers the same sections. There are <b>no 8-mark questions</b>.</p>
     <table class="fmt">
       <tr><th>Section</th><th>What</th><th>Time</th></tr>
       <tr><td><b>A</b></td><td>20 multiple-choice questions (20 marks)</td><td>30 min</td></tr>
@@ -132,8 +133,8 @@ footer{color:var(--muted);font-size:13px;margin-top:40px}
 </section>
 
 <section aria-labelledby="h-plan">
-  <h2 id="h-plan">4. Your 7-day plan</h2>
-  <span class="vi">Kế hoạch tự học 7 ngày</span>
+  <h2 id="h-plan">4. Your day-by-day plan</h2>
+  <span class="vi">Kế hoạch tự học từng ngày đến ngày thi</span>
   <p>Each weekday, study the same sections as that day's session. Today's card is highlighted.</p>
   <div id="days"></div>
   <div class="warn" id="skip-d" hidden><b>B2 stream:</b> the 2.1–2.5 book also has 8-mark (d) questions. They are <b>not</b> in this mock, so skip them for now.</div>
@@ -153,8 +154,8 @@ footer{color:var(--muted);font-size:13px;margin-top:40px}
 </section>
 
 <section aria-labelledby="h-day">
-  <h2 id="h-day">6. Mock test day checklist</h2>
-  <span class="vi">Chuẩn bị cho ngày kiểm tra</span>
+  <h2 id="h-day">6. Checklist for the mock and the exam</h2>
+  <span class="vi">Chuẩn bị cho ngày kiểm tra thử và ngày thi</span>
   <div class="card">
     <ul class="check">
       <li>Two pens, a pencil, a ruler and an eraser for diagrams.</li>
@@ -215,7 +216,9 @@ footer{color:var(--muted);font-size:13px;margin-top:40px}
     {d:'2026-11-13', t:'Fri 13 Nov', secs:['2.5']},
     {d:'2026-11-14', t:'Sat 14 Nov', sat:true},
     {d:'2026-11-15', t:'Sun 15 Nov', sun:true},
-    {d:'2026-11-16', t:'Mon 16 Nov', mock:true}
+    {d:'2026-11-16', t:'Mon 16 Nov', mock:true},
+    {d:'2026-11-17', t:'Tue 17 Nov', fix:true},
+    {d:'2026-11-18', t:'Wed 18 Nov', exam:true}
   ];
 
   function link(id, page, label){
@@ -258,8 +261,12 @@ footer{color:var(--muted);font-size:13px;margin-top:40px}
         html += '<li>Choose <b>two Paper 2 questions</b> from your two weakest sections. Use the page numbers in the weekday cards above. Answer (a), (b) and (c) of each in <b>40 minutes in total</b>.</li>';
         html += '<li>Mark them with the companion mark schemes, then compare them with the model answers.</li>';
         html += '<li>Reread the trap boxes and the glossary (' + link(p.glos1[0], p.glos1[2], '1.1–1.4 glossary, p. ' + p.glos1[1]) + ').</li></ol>';
+      } else if (day.mock){
+        html += '<h3>Mock test day</h3><p style="margin:6px 0 0">Do your best: the mock shows what to fix before Wednesday. Use the checklist below.</p>';
+      } else if (day.fix){
+        html += '<h3>Fix your focus areas</h3><ol><li>Look at the questions you lost marks on in the mock and find their sections.</li><li>Reread those sections in your companion (page numbers in the weekday cards above) and redo their Paper 2 questions.</li><li>Mark them yourself with the mark scheme. Early night!</li></ol>';
       } else {
-        html += '<h3>Mock test day</h3><p style="margin:6px 0 0">Get a good night\'s sleep. Use the checklist below.</p>';
+        html += '<h3>Exam day: Wednesday 18 November</h3><p style="margin:6px 0 0">Same format as the mock: 70 minutes, 1.1–2.5. Use the checklist below. Good luck!</p>';
       }
       html += '</div>';
     });
@@ -292,6 +299,11 @@ footer{color:var(--muted);font-size:13px;margin-top:40px}
     else if (n === 1) el.textContent = 'Mock test: tomorrow, Monday 16 November';
     else if (n === 0) el.textContent = 'Mock test: today. Good luck!';
     else el.textContent = 'Mock test: Monday 16 November';
+    var m = Math.round((Date.UTC(2026,10,18) - a) / 86400000);
+    var e2 = document.getElementById('count2');
+    if (m > 1) e2.textContent = 'Exam: Wednesday 18 November · ' + m + ' days to go';
+    else if (m === 1) e2.textContent = 'Exam: tomorrow, Wednesday 18 November';
+    else if (m === 0) e2.textContent = 'Exam: today. Good luck!';
   }
 
   var saved = null;
