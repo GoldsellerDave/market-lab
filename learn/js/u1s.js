@@ -48,13 +48,13 @@ export const SCENARIOS = [
 
   S('s11-who', '1.1', 'Everyone faces scarcity', 'city', ['👧', '☕', '🌾', '🏛️'],
     'Scarcity affects everyone in Ho Chi Minh City. Lan has limited pocket money. Mr Minh\'s café in District 1 has one coffee machine and three baristas. A barista must choose between two jobs. The city government has enough money for a new metro line or 20 new schools this year, but not both.',
-    'Everyone in Ho Chi Minh City has limited [[resources]], so everyone must make [[choice|choices]]: [[consumer|consumers]], [[producer|producers]], [[worker|workers]] and the [[government]].',
+    'Everyone has limited [[resources]], so everyone must choose.\n👧 Lan is a student: she buys things.\n☕ Mr Minh owns a café: he makes and sells drinks.\n🌾 Mrs Hoa is a farmer: she grows rice.\n🧑‍🍳 A barista works in a café.\n🏛️ The city [[government]] spends the city\'s money.',
     'Sự khan hiếm ảnh hưởng đến mọi người ở TP. Hồ Chí Minh. Lan có ít tiền tiêu vặt. Quán cà phê của ông Minh ở Quận 1 chỉ có một máy pha cà phê và ba nhân viên. Một nhân viên pha chế phải chọn giữa hai công việc. Chính quyền thành phố chỉ đủ tiền xây một tuyến metro mới hoặc 20 trường học mới trong năm nay.',
     [sort('Who is making each choice?', 'Who makes each choice?', ['Consumer', 'Producer', 'Worker', 'Government'],
-      [['Lan chooses bubble tea or a cinema ticket', '👧', 0, 'Lan: bubble tea or cinema?'], ['A family chooses a fridge or a holiday', '👨‍👩‍👧', 0, 'A family: fridge or holiday?'],
-        ['Mr Minh chooses to sell coffee or smoothies', '☕', 1, 'Mr Minh: coffee or smoothies?'], ['Mrs Hoa chooses to grow rice or vegetables', '🌾', 1, 'Mrs Hoa: rice or vegetables?'],
-        ['A barista chooses a job at the café or at a hotel', '🧑‍🍳', 2, 'A barista: café job or hotel job?'],
-        ['The city chooses a metro line or 20 schools', '🏛️', 3, 'The city: metro or schools?']], 'scarcity-def',
+      [['Lan chooses bubble tea or a cinema ticket', '👧', 0, 'Lan (a student): buy bubble tea or a cinema ticket?'], ['A family chooses a fridge or a holiday', '👨‍👩‍👧', 0, 'A family: buy a fridge or a holiday?'],
+        ['Mr Minh chooses to sell coffee or smoothies', '☕', 1, 'Mr Minh (café owner): sell coffee or smoothies?'], ['Mrs Hoa chooses to grow rice or vegetables', '🌾', 1, 'Mrs Hoa (farmer): grow rice or vegetables?'],
+        ['A barista chooses a job at the café or at a hotel', '🧑‍🍳', 2, 'A barista (works in a café): stay at the café or take a hotel job?'],
+        ['The city chooses a metro line or 20 schools', '🏛️', 3, 'The city government: build a metro or schools?']], 'scarcity-def',
       'Consumers buy, producers make, workers choose jobs, the government chooses how to spend public money.'),
     choice('What do all of them have in common?', 'What is the SAME for all of them?',
       [o('Limited resources, so they must make choices', 'Limited [[resources]], so they must choose'), o('They all want to make a profit', 'They all want [[profit]]', 'scarcity-def'),
@@ -83,7 +83,7 @@ export const SCENARIOS = [
     'The city has some land in Thủ Đức and a limited budget. It must answer three questions: WHAT to make, HOW to make it, and FOR WHOM.',
     'TP. Hồ Chí Minh có một khu đất lớn ở Thủ Đức và ngân sách có hạn. Giống như mọi nền kinh tế, thành phố phải trả lời ba câu hỏi: sản xuất cái gì, sản xuất như thế nào và sản xuất cho ai.',
     [sort('Which question does each decision answer?', 'Which question is it?', ['What?', 'How?', 'For whom?'],
-      [['Build a hospital or a park?', '🏥', 0], ['Mr Minh: sell coffee or smoothies?', '☕', 0],
+      [['Build a hospital or a park?', '🏥', 0], ['Mr Minh (café owner): sell coffee or smoothies?', '☕', 0],
         ['Use many workers or big machines?', '🏗️', 1], ['Pick rice by hand or with a harvester?', '🌾', 1],
         ['Free for children, or a fee for everyone?', '🧒', 2], ['Sell the rice in Vietnam or export it to Japan?', '🚢', 2]], 'three-questions',
       'WHAT = which goods and services. HOW = which resources and methods. FOR WHOM = who gets them.')]),
@@ -97,7 +97,7 @@ export const SCENARIOS = [
       [['The plot of ground the café stands on', '🟫', 0, 'The ground under the café'], ['Water from the river', '💧', 0],
         ['Three baristas', '🧑‍🍳', 1], ['A cleaner', '🧹', 1],
         ['A coffee machine', '☕', 2], ['Tables and chairs', '🪑', 2], ['The café building', '🏠', 2],
-        ['Mr Minh\'s idea and his risk', '💡', 3, 'Mr Minh\'s idea and risk']], 'factor-type',
+        ['Mr Minh\'s idea and his risk', '💡', 3, 'Mr Minh\'s idea and risk (he is the owner)']], 'factor-type',
       'Land = gifts of nature. Labour = human work. Capital = man-made goods used to make other goods. Enterprise = organising and taking the risk.'),
     choice('Who is the entrepreneur?', 'Who is the [[entrepreneur]]?',
       [o('Mr Minh, because he organises the other factors and takes the risk', 'Mr Minh: he organises and takes the risk'), o('The barista', 'The barista', 'factor-type'),
@@ -106,7 +106,7 @@ export const SCENARIOS = [
 
   S('s12-money', '1.2', 'Money is not capital', 'cafe', ['💵', '⚙️', '🏦'],
     'Mr Minh borrows 50 million đồng from a bank in District 1. He spends it on a new espresso machine and an oven. The bank charges him 8% a year on the loan.',
-    'Mr Minh borrows 50 million đồng from a bank. He buys a new coffee machine and an oven. He pays the bank 8% extra every year.',
+    'Mr Minh owns a café. He borrows 50 million đồng from a bank. He buys a new coffee machine and an oven. He pays the bank 8% extra every year.',
     'Ông Minh vay ngân hàng 50 triệu đồng. Ông dùng số tiền đó mua một máy pha espresso mới và một cái lò nướng. Ngân hàng tính lãi 8% mỗi năm.',
     [choice('Which of these is capital in economics?', 'Which one is [[capital]]?',
       [o('The espresso machine'), o('The 50 million đồng', 'The 50 million đồng', 'money-capital'), o('The bank', 'The bank', 'money-capital'), o('The coffee beans', 'The coffee beans', 'factor-type')],
@@ -120,13 +120,13 @@ export const SCENARIOS = [
 
   S('s12-rewards', '1.2', 'Who gets paid what?', 'farm', ['🌾', '💰', '🏦', '👩‍🌾'],
     'Mrs Hoa grows rice in Củ Chi. She rents two hectares of land from Mr Tâm. She pays four farm workers each month. She borrowed money from a bank to buy a water pump. At the end of the year, she keeps what is left after paying everyone.',
-    'Mrs Hoa grows rice in Củ Chi. She pays Mr Tâm for his land, pays four workers, and pays the bank for a loan. What is left at the end is hers. Each factor gets a [[reward]].',
+    'Mrs Hoa is a rice farmer in Củ Chi. She pays Mr Tâm for his land, pays four workers, and pays the bank for a loan. What is left at the end is hers. Each factor gets a [[reward]].',
     'Bà Hoa trồng lúa ở Củ Chi. Bà thuê hai héc-ta đất của ông Tâm. Mỗi tháng bà trả lương cho bốn công nhân. Bà vay ngân hàng để mua máy bơm nước. Cuối năm, bà giữ lại phần còn lại sau khi trả cho mọi người.',
     [sort('What reward does each one get?', 'Which reward?', ['Rent', 'Wages', 'Interest', 'Profit'],
       [['Mr Tâm, who owns the land', '🧓', 0, 'Mr Tâm (the land owner)'], ['The owner of the café building', '🏠', 0, 'The café building owner'],
-        ['The four farm workers', '👩‍🌾', 1], ['Mr Minh\'s baristas', '🧑‍🍳', 1],
+        ['The four farm workers', '👩‍🌾', 1], ['Mr Minh\'s baristas', '🧑‍🍳', 1, 'The café workers (baristas)'],
         ['The bank that lent money for the pump', '🏦', 2, 'The bank (the loan)'],
-        ['Mrs Hoa, who takes the risk', '🌾', 3, 'Mrs Hoa (she takes the risk)']], 'reward-match',
+        ['Mrs Hoa, who takes the risk', '🌾', 3, 'Mrs Hoa (farm owner: she takes the risk)']], 'reward-match',
       'Land → rent. Labour → wages. Capital → interest. Enterprise → profit.')]),
 
   S('s12-change', '1.2', 'More or better?', 'city', ['🎓', '🌊', '🤖', '🚌'],
@@ -163,7 +163,7 @@ export const SCENARIOS = [
   // ---------------- 1.3 Opportunity cost ----------------
   S('s13-lan', '1.3', "Lan's choice", 'lan', ['🎬', '📚'],
     'Lan has 120,000 đồng. She can buy a cinema ticket at Landmark 81 (90,000 đồng) or a new book (120,000 đồng). She can only have one. She chooses the book.',
-    'Lan has 120,000 đồng. She can buy a cinema ticket OR a book. She chooses the book.',
+    'Lan is a student. She has 120,000 đồng. She can buy a cinema ticket OR a book. She chooses the book.',
     'Lan có 120.000 đồng. Em có thể mua vé xem phim ở Landmark 81 (90.000 đồng) hoặc một cuốn sách mới (120.000 đồng). Em chỉ được chọn một. Em chọn cuốn sách.',
     [choice('What is the opportunity cost of buying the book?', 'What is the [[opportunity cost]] of the book?',
       [o('The cinema ticket she gave up', 'The cinema ticket (what she gave up)'), o('120,000 đồng', '120,000 đồng', 'oc-def'), o('The book', 'The book', 'oc-def'), o('Nothing: she paid for it', 'Nothing', 'free-good')],
@@ -174,7 +174,7 @@ export const SCENARIOS = [
 
   S('s13-rank', '1.3', 'Next best, not all', 'lan', ['1️⃣', '2️⃣', '3️⃣', '4️⃣'],
     'On Sunday evening Lan has time for one activity. Her list, from best to worst: 1 study for her test, 2 go to Bến Thành night market with friends, 3 play video games, 4 watch TV. She studies.',
-    'Lan can do ONE thing on Sunday evening. Her list: 1 study, 2 night market with friends, 3 video games, 4 TV. She chooses to study.',
+    'Lan is a student. She can do ONE thing on Sunday evening. Her list: 1 study, 2 night market with friends, 3 video games, 4 TV. She chooses to study.',
     'Tối Chủ nhật, Lan chỉ có thời gian cho một việc. Danh sách của em, từ thích nhất đến ít thích nhất: 1 ôn bài kiểm tra, 2 đi chợ đêm Bến Thành với bạn, 3 chơi điện tử, 4 xem tivi. Em chọn ôn bài.',
     [choice('What is the opportunity cost of studying?', 'What is the [[opportunity cost]] of studying?',
       [o('Going to the night market', 'The night market'), o('The night market, video games and TV together', 'All three other things', 'oc-all'),
@@ -186,12 +186,12 @@ export const SCENARIOS = [
 
   S('s13-four', '1.3', 'Four decisions in the city', 'city', ['🌾', '👷', '🏛️'],
     'Opportunity cost affects producers, workers and the government. Mrs Hoa, a factory worker called Anh and the city government each make a choice.',
-    'Producers, [[worker|workers]] and the [[government]] all have an [[opportunity cost]] when they choose.',
+    'Producers, [[worker|workers]] and the [[government]] all have an [[opportunity cost]] when they choose.\n🌾 Mrs Hoa is a rice farmer.\n👷 Anh works in a phone factory.\n🏛️ The city government spends the city\'s money.',
     'Chi phí cơ hội ảnh hưởng đến nhà sản xuất, người lao động và chính phủ. Bà Hoa, anh công nhân tên Anh và chính quyền thành phố đều phải đưa ra lựa chọn.',
-    [choice('Mrs Hoa uses her field in Củ Chi to grow rice instead of dragon fruit. What is the opportunity cost?', 'Mrs Hoa grows rice, not dragon fruit. What is the [[opportunity cost]]?',
+    [choice('Mrs Hoa uses her field in Củ Chi to grow rice instead of dragon fruit. What is the opportunity cost?', 'Mrs Hoa (a farmer) grows rice, not dragon fruit. What is the [[opportunity cost]]?',
       [o('The dragon fruit she could have grown', 'The dragon fruit'), o('The rice', 'The rice', 'oc-def'), o('The money for rice seeds', 'The money for seeds', 'oc-def')],
       'She gives up the dragon fruit that the same field could have grown.'),
-    choice('Anh works overtime on Saturday instead of going to an English class. What is the opportunity cost?', 'Anh works on Saturday, not English class. What is the [[opportunity cost]]?',
+    choice('Anh works overtime on Saturday instead of going to an English class. What is the opportunity cost?', 'Anh (a factory worker) works on Saturday, not at his English class. What is the [[opportunity cost]]?',
       [o('The English class'), o('The extra wages', 'The extra [[wages]]', 'oc-def'), o('All his free time this month', 'All his free time', 'oc-all')],
       'The English class is the next best use of his Saturday.'),
     choice('The city government builds a new hospital instead of a new road. What is the opportunity cost?', 'The city builds a hospital, not a road. What is the [[opportunity cost]]?',
@@ -200,7 +200,7 @@ export const SCENARIOS = [
 
   S('s13-minh', '1.3', 'Should Mr Minh open at night?', 'cafe', ['🌙', '☕', '🎸'],
     'Mr Minh could open his café from 9 pm to midnight. He thinks he would earn 3 million đồng extra profit a week. To do this he would have to stop teaching guitar in the evenings, which pays him 2 million đồng a week.',
-    'Mr Minh can open his café at night and get 3 million đồng more [[profit]] a week. But then he must stop teaching guitar at night, which pays 2 million đồng a week.',
+    'Mr Minh owns a café. He can open it at night and get 3 million đồng more [[profit]] a week. But then he must stop teaching guitar at night, which pays 2 million đồng a week.',
     'Ông Minh có thể mở quán từ 9 giờ tối đến nửa đêm. Ông nghĩ mỗi tuần sẽ có thêm 3 triệu đồng lợi nhuận. Để làm vậy, ông phải nghỉ dạy đàn guitar buổi tối, công việc trả cho ông 2 triệu đồng mỗi tuần.',
     [choice('What is the opportunity cost of opening at night?', 'What is the [[opportunity cost]] of opening at night?',
       [o('The guitar lessons (2 million đồng a week)', 'The guitar lessons (2 million)'), o('The 3 million đồng profit', 'The 3 million profit', 'oc-def'),
@@ -215,7 +215,7 @@ export const SCENARIOS = [
 
   S('s13-free', '1.3', 'A day at Cần Giờ', 'beach', ['🥥', '🥖', '🌬️'],
     'At Cần Giờ beach, Lan breathes the sea air and enjoys the sunshine. Then she buys a coconut for 30,000 đồng instead of a bánh mì.',
-    'At the beach, Lan breathes the sea air. Then she buys a coconut, not a bánh mì.',
+    'Lan (a student) is at the beach. She breathes the sea air. Then she buys a coconut, not a bánh mì.',
     'Ở biển Cần Giờ, Lan hít thở không khí biển và tắm nắng. Sau đó em mua một trái dừa giá 30.000 đồng thay vì một ổ bánh mì.',
     [choice('Which of these has no opportunity cost?', 'Which one has NO [[opportunity cost]]?',
       [o('Breathing the sea air', 'The sea air'), o('The coconut', 'The coconut', 'free-good'), o('The bus ticket to Cần Giờ', 'The bus ticket', 'free-good')],
@@ -296,5 +296,30 @@ export const SCENARIOS = [
       g('more rice can be produced', ['more rice', 'bigger harvest', 'produce more'], 'What can Vietnam now produce?'),
       g('economic growth', ['growth'], 'What is this called?')], need: 2 })
 ];
+// The people in the stories ("Meet the people" card and the Who's who? button)
+export const CAST = {
+  lan: { e: '👧', name: 'Lan', role: 'a student', line: 'Lan is in Grade 9 at a school in District 3. She gets pocket money every week.', vi: 'Lan là học sinh lớp 9 ở Quận 3. Mỗi tuần em được cho tiền tiêu vặt.' },
+  minh: { e: '☕', name: 'Mr Minh', role: 'a café owner', line: 'Mr Minh owns a café in District 1. He makes and sells coffee and other drinks.', vi: 'Ông Minh là chủ một quán cà phê ở Quận 1. Ông pha chế và bán cà phê, đồ uống.' },
+  hoa: { e: '🌾', name: 'Mrs Hoa', role: 'a rice farmer', line: 'Mrs Hoa grows rice on a farm in Củ Chi. She sells the rice.', vi: 'Bà Hoa trồng lúa ở một trang trại tại Củ Chi và bán gạo.' },
+  tam: { e: '🧓', name: 'Mr Tâm', role: 'a land owner', line: 'Mr Tâm owns land in Củ Chi. He rents it to Mrs Hoa.', vi: 'Ông Tâm có đất ở Củ Chi và cho bà Hoa thuê.' },
+  mai: { e: '👩‍🏭', name: 'Chị Mai', role: 'a worker', line: 'Chị Mai was a rice farmer in An Giang. She moves to the city to work in a phone factory.', vi: 'Chị Mai từng trồng lúa ở An Giang. Chị lên thành phố làm việc ở nhà máy điện thoại.' },
+  anh: { e: '👷', name: 'Anh', role: 'a factory worker', line: 'Anh works in a phone factory in Thủ Đức. He earns wages.', vi: 'Anh làm việc ở nhà máy điện thoại tại Thủ Đức và nhận tiền lương.' },
+  city: { e: '🏛️', name: 'The city government', role: 'the government', line: 'The government of Ho Chi Minh City spends the city\'s money on roads, schools, hospitals and the metro.', vi: 'Chính quyền TP. Hồ Chí Minh chi tiền của thành phố cho đường sá, trường học, bệnh viện và metro.' }
+};
+export const SCEN_CAST = { 's11-lan': ['lan'], 's11-needs': ['lan'], 's11-who': ['lan', 'minh', 'hoa', 'city'], 's11-free': ['lan'], 's11-three': ['city', 'minh'],
+  's12-cafe': ['minh'], 's12-money': ['minh'], 's12-rewards': ['hoa', 'tam', 'minh'], 's12-change': ['city'], 's12-move': ['mai'],
+  's13-lan': ['lan'], 's13-rank': ['lan'], 's13-four': ['hoa', 'anh', 'city'], 's13-minh': ['minh'], 's13-free': ['lan'] };
+// A1 sorting tasks start with the first item already answered, with its reason
+export const SORT_EXAMPLE = {
+  's11-needs': 'Rice is food. We must eat to live, so it is a need.',
+  's11-who': 'Lan is a student. She BUYS things, so she is a consumer.',
+  's11-free': 'There is enough sea air for everyone and nobody has to make it, so it is a free good.',
+  's11-three': 'A hospital or a park? This is about WHAT to build.',
+  's12-cafe': 'The ground is a gift of nature, so it is land.',
+  's12-rewards': 'Mr Tâm owns the land. The reward for land is rent.',
+  's12-change': '50,000 more workers means MORE labour: the quantity changes.',
+  's12-move': 'From An Giang to the city is a move to a new PLACE: geographical.',
+  's14-news': 'New technology lets Vietnam make more of both goods, so the PPC shifts out.'
+};
 export const SCEN_BY_UNIT = SCENARIOS.reduce((m, s) => ((m[s.unit] ||= []).push(s), m), {});
 export const scenAct = id => 'sc-' + id;

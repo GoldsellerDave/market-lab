@@ -10,7 +10,7 @@ import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf,
 import { createPPC } from './ppc.js';
 import * as S from './sound.js';
 import * as Cel from './celebrate.js';
-import { SCEN_BY_UNIT, scenAct } from './u1s.js';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js';
 import { scene } from './scenes.js';
 import { SHIFTS } from './u25.js';
 import { genEq, nextEqKind, LEARN_MARKET } from './u24.js';
@@ -1169,26 +1169,50 @@ function scenHero(s, k, n) {
 function scenTiles(u) {
   const list = SCEN_BY_UNIT[u] || [], done = new Set(scenSolved(u).map(s => s.id));
   if (!list.length) return '';
-  return `<h3 style="margin:18px 0 8px">Scenarios: use the ideas <span class="chip mint">${done.size} of ${list.length} solved</span></h3>
+  return `<h3 style="margin:18px 0 8px"><a href="#/u/${u}/scen">Scenario cards</a>: use the ideas <span class="chip mint">${done.size} of ${list.length} solved</span></h3>
     <div class="scen-grid">${list.map((s, k) => `<a class="scen-tile${done.has(s.id) ? ' done' : ''}" href="#/u/${u}/scen/${s.id}" style="${hueVars(u)}">
       <span class="scen-thumb">${scene(s.scene, '')}<span class="scen-tstk">${s.stickers.slice(0, 3).join('')}</span>${done.has(s.id) ? `<span class="scen-tick">${TICK}</span>` : ''}</span>
       <span class="scen-tbody"><b>${k + 1}. ${esc(s.title)}</b><span class="note">${done.has(s.id) ? 'Solved ✔ · play again for more XP' : `${s.steps.length + (s.explain ? 1 : 0)} tasks · earn XP`}</span></span></a>`).join('')}</div>`;
 }
+function castHTML(keys) {
+  const b = band();
+  return `<div class="cast">${keys.map(k => CAST[k]).map(c => `<div class="castrow"><span class="cast-e" aria-hidden="true">${c.e}</span>
+    <span><b>${esc(c.name)}</b> <span class="chip mint">${esc(c.role)}</span><br>${esc(c.line)}${b === 0 && viOn() ? `<span class="vi">${esc(c.vi)}</span>` : ''}</span></div>`).join('')}</div>`;
+}
+const unitCast = u => [...new Set((SCEN_BY_UNIT[u] || []).flatMap(s => SCEN_CAST[s.id] || []))];
+const scenCrumbs = () => `<nav class="crumbs" aria-label="You are here"><a href="#/u/${U}">← ${esc(uName())}</a><span aria-hidden="true">›</span><a href="#/u/${U}/scen">Scenario cards</a></nav>`;
+function scenPrevNext(idx) {
+  const list = SCEN_BY_UNIT[U], pv = list[idx - 1], nx = list[idx + 1];
+  return `<nav class="prevnext" aria-label="Other scenarios">${pv ? `<a class="btn alt" href="#/u/${U}/scen/${pv.id}">← ${esc(pv.title)}</a>` : `<a class="btn alt" href="#/u/${U}/scen">← Scenario cards</a>`}
+    ${nx ? `<a class="btn alt" href="#/u/${U}/scen/${nx.id}">${esc(nx.title)} →</a>` : `<a class="btn alt" href="#/u/${U}/scen">All scenario cards →</a>`}</nav>`;
+}
+function scenGroup() {
+  const list = SCEN_BY_UNIT[U] || [], solved = new Set(scenSolved(U).map(s => s.id)), next = list.find(s => !solved.has(s.id)) || list[0], cast = unitCast(U);
+  view(`<div class="narrow"><nav class="crumbs" aria-label="You are here"><a href="#/u/${U}">← ${esc(uName())}</a></nav>
+    <div class="hero" style="${hueVars(U)}"><p class="eyebrow">Unit ${U}</p><h1>Scenario cards</h1><p class="lede">Short stories in Ho Chi Minh City. Use what you learned to solve them. Each one gives you XP.</p>
+      <div class="row"><a class="btn" href="#/u/${U}/scen/${next.id}">${solved.size ? (solved.size === list.length ? 'Play again' : 'Continue') : 'Start'}: ${esc(next.title)} →</a></div></div>
+    ${cast.length ? `<div class="tcard" style="${hueVars(U)}"><h2 style="margin:0 0 6px">👥 Meet the people</h2><p class="note">You will meet these people in the stories.</p>${castHTML(cast)}</div>`
+      : `<div class="tcard"><h2 style="margin:0 0 6px">🇻🇳 Vietnam: rice or phones?</h2><p class="note">These stories are about the whole country. Vietnam can use its resources to grow rice in the Mekong Delta or to make phones in factories in Thủ Đức.</p></div>`}
+    ${scenTiles(U)}</div>`);
+}
 function scenRun(id) {
   const list = SCEN_BY_UNIT[U] || [];
   if (!list.length) return unitPage();
-  if (!id) { const solved = new Set(scenSolved(U).map(s => s.id)); return go(`#/u/${U}/scen/${(list.find(s => !solved.has(s.id)) || list[0]).id}`); }
+  if (!id) return scenGroup();
   const s = list.find(x => x.id === id); if (!s) return unitPage('learn');
   wide(true); helpCount = 0;
   const b = band(), idx = list.indexOf(s), t0 = Date.now(), answers = [], wasDone = missionDone(), plain = b <= 1;
   const steps = [...s.steps, ...(b === 3 && s.explain ? [{ type: 'explain', ...s.explain }] : [])];
   const T = (exam, simple) => (plain ? rich(simple, b) : autoPill(exam, b));
-  view(`${backLink()}<div class="scen-card" style="${hueVars(U)}">${scenHero(s, idx, list.length)}<div class="scen-body">
+  const firstTime = !history.some(a => a.activity.startsWith('sc-')), cast = SCEN_CAST[s.id] || [];
+  view(`${scenCrumbs()}<div class="scen-card" style="${hueVars(U)}">${scenHero(s, idx, list.length)}<div class="scen-body">
       <div class="row" style="justify-content:space-between"><div class="steps" style="flex:1;margin:0">${steps.map(() => '<i></i>').join('')}</div>${bandChip(b)}</div>
       <div class="scen-story">${T(s.story, s.plain)}</div>
       ${toolsHTML({ vi: s.vi, stem: s.story, plain: s.plain, hint: '' }, false)}
-      <div id="sstep"></div><div id="fb" aria-live="polite"></div></div></div>`);
+      ${cast.length ? `<div><button class="alt small" id="who" aria-expanded="${firstTime}">👥 Who's who?</button></div><div id="castbox" ${firstTime ? '' : 'hidden'}>${castHTML(cast)}</div>` : ''}
+      <div id="sstep"></div><div id="fb" aria-live="polite"></div>${scenPrevNext(idx)}</div></div>`);
   bindTools({ vi: s.vi, stem: s.story, plain: s.plain });
+  $('#who')?.addEventListener('click', e => { const box = $('#castbox'); box.hidden = !box.hidden; e.currentTarget.setAttribute('aria-expanded', String(!box.hidden)); });
   const dots = () => $$('.scen-body .steps i').forEach((d, j) => (d.className = j < k ? 'done' : j === k ? 'on' : ''));
   let k = 0;
   const el = () => $('#sstep'), fb = () => $('#fb');
@@ -1220,12 +1244,14 @@ function scenRun(id) {
       }));
     }
     if (st.type === 'sort') {
-      const items = E.shuffle(st.items.map((it, j) => ({ ...it, j }))), pick = {};
+      const ex = b === 0 && SORT_EXAMPLE[s.id] && st === s.steps.find(x => x.type === 'sort') ? SORT_EXAMPLE[s.id] : null;
+      const all = st.items.map((it, j) => ({ ...it, j })), items = ex ? [all[0], ...E.shuffle(all.slice(1))] : E.shuffle(all), pick = ex ? { 0: all[0].b } : {};
       let tries = 0;
-      el().innerHTML = `${q}<div class="sortlist">${items.map(it => `<div class="sortrow" data-j="${it.j}"><span class="sort-e" aria-hidden="true">${it.e}</span><span class="sort-t">${T(it.t, it.p)}</span>
-          <div class="sort-b n${st.buckets.length}" role="group">${st.buckets.map((bk, bi) => `<button data-b="${bi}">${esc(bk)}</button>`).join('')}</div></div>`).join('')}</div>
+      el().innerHTML = `${q}<div class="sortlist">${items.map(it => { const isEx = ex && it.j === 0;
+          return `<div class="sortrow${isEx ? ' example' : ''}" data-j="${it.j}"><span class="sort-e" aria-hidden="true">${it.e}</span><span class="sort-t">${isEx ? '<span class="ex-tag">Example</span> ' : ''}${T(it.t, it.p)}${isEx ? `<span class="ex-note">${esc(ex)}</span>` : ''}</span>
+          <div class="sort-b n${st.buckets.length}" role="group">${st.buckets.map((bk, bi) => `<button data-b="${bi}"${isEx ? ` disabled class="${bi === it.b ? 'sel' : ''}"` : ''}>${esc(bk)}</button>`).join('')}</div></div>`; }).join('')}</div>
         <button id="chk" style="width:100%" disabled>Check</button>`;
-      $$('#sstep .sortrow').forEach(row => $$('button', row).forEach(btn => (btn.onclick = () => {
+      $$('#sstep .sortrow:not(.example)').forEach(row => $$('button', row).forEach(btn => (btn.onclick = () => {
         pick[row.dataset.j] = +btn.dataset.b; $$('button', row).forEach(x => x.classList.toggle('sel', x === btn)); row.classList.remove('bad');
         $('#chk').disabled = Object.keys(pick).length < items.length;
       })));
@@ -1293,8 +1319,9 @@ function scenRun(id) {
     view(`<div class="narrow"><div class="scen-card" style="${hueVars(U)}">${scenHero(s, idx, list.length)}<div class="scen-body center">
         <span class="tag gold" style="align-self:center">Scenario solved</span><p style="font:800 2.2rem var(--font-display);margin:.2em 0">${score} / ${steps.length}</p>
         <p class="note">right first time</p>${xpLine(xp)}<p class="note" id="saved">Saving…</p>
-        <div class="row" style="justify-content:center">${nx ? `<a class="btn" href="#/u/${U}/scen/${nx.id}">Next scenario: ${esc(nx.title)} →</a>` : `<a class="btn" href="#/u/${U}/tab/learn">All scenarios</a>`}
-          <a class="btn alt" href="#/u/${U}">Back to ${U}</a></div></div></div></div>`);
+        <div class="row" style="justify-content:center">${nx ? `<a class="btn" href="#/u/${U}/scen/${nx.id}">Next scenario: ${esc(nx.title)} →</a>` : `<a class="btn" href="#/u/${U}/scen">All scenario cards</a>`}
+          <a class="btn alt" href="#/u/${U}/scen/${s.id}">Play again</a></div>
+        <nav class="crumbs" style="justify-content:center"><a href="#/u/${U}/scen">← Scenario cards</a><span aria-hidden="true">·</span><a href="#/u/${U}">${esc(uName())}</a></nav></div></div></div>`);
     const ok = await saveAttempt(a);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
     reward(xp, { wasDone });
