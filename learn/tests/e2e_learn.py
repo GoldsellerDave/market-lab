@@ -48,13 +48,23 @@ def run_student(p, size):
     p.wait_for_selector('#err:not(:empty)'); ok('not right' in p.inner_text('#err'), 'wrong PIN message')
     shot(p, size, '1-signin'); no_overflow(p, size + ' signin')
     p.fill('#u', 'DEMO-01 '); p.fill('#p', '1234'); p.click('#f button')
-    p.wait_for_selector('.units'); ok('Hi An' in p.inner_text('h1'), 'greeting')
-    ok(p.locator('.unit.open').count() == 2, '2.4 and 2.5 open in the demo'); ok(p.locator('.unit').count() == 6, 'six units listed')
+    p.wait_for_selector('.qtile'); ok('Hi, An' in p.inner_text('.hero h1'), 'greeting')
+    ok(p.locator('.workout').count() == 1 and p.locator('.qtile').count() == 6, 'home: workout card and six tiles')
+    ok(p.locator('.bnav a').count() == 5, 'bottom navigation with five tabs')
+    shot(p, size, '2a-home-top'); no_overflow(p, size + ' home')
+    p.click('.bnav a[href="#/units"]'); p.wait_for_selector('.ulist')
+    ok(p.locator('a.urow').count() == 2, '2.4 and 2.5 open in the demo'); ok(p.locator('.urow').count() == 6, 'six units listed')
     shot(p, size, '2-home'); no_overflow(p, size + ' home')
-    p.click('#vi'); ok(p.inner_text('#vi') == 'On', 'Vietnamese words toggle')
-    p.click('.unit[data-u="2.5"]'); p.wait_for_selector('.acts'); shot(p, size, '3-unit'); no_overflow(p, size + ' unit')
+    p.goto(BASE + '/learn/?demo=1#/me/settings'); p.wait_for_selector('[data-vi]'); p.click('[data-vi="true"]')
+    ok(p.get_attribute('[data-vi="true"]', 'aria-selected') == 'true', 'Vietnamese words toggle')
+    p.goto(BASE + '/learn/?demo=1#/u/2.5'); p.wait_for_selector('.msteps'); ok(p.locator('.utabs a').count() == 6, 'unit page: six tabs')
+    ok(p.locator('.msteps li').count() == 6 and p.locator('.msteps li.locked').count() == 1, 'mission: six steps, checkpoint locked')
+    shot(p, size, '3-unit'); no_overflow(p, size + ' unit')
+    for t in ['learn', 'practice', 'paper1', 'data', 'words']:
+        p.goto(BASE + '/learn/?demo=1#/u/2.5/tab/' + t); p.wait_for_selector('[role=tabpanel]'); no_overflow(p, f'{size} unit tab {t}')
+    p.goto(BASE + '/learn/?demo=1#/u/2.5'); p.wait_for_selector('.msteps')
     # Learn
-    p.click('[data-a="learn"]')
+    p.click('.msteps a[href$="/learn"]'); p.wait_for_selector('.steps'); ok(p.locator('.bnav').is_hidden(), 'bottom bar hidden during an activity')
     for i in range(5):
         p.wait_for_selector('.card h2')
         if p.locator('.choice[data-k]').count():
@@ -72,9 +82,9 @@ def run_student(p, size):
         if i == 0: pass
     p.wait_for_selector('text=Shift detective done'); p.wait_for_selector('#saved:has-text("Saved")')
     ok('5 / 6' in p.inner_text('main'), 'shift score 5/6'); ok('+' in p.inner_text('.xp-gain') and 'XP' in p.inner_text('.xp-gain'), 'XP shown after shift run'); shot(p, size, '6-shift-result'); no_overflow(p, size + ' shift result')
-    p.click('#back')
+    p.click('#back'); p.wait_for_selector('.msteps')
     # MCQ: two wrong first (rescue card), rest right
-    p.click('[data-a="mcq"]')
+    p.click('.msteps a[href$="/mcq"]')
     for i in range(10):
         p.wait_for_selector('.event')
         q = MCQ_BY_STEM[p.locator('.event').inner_text().strip()]
@@ -95,9 +105,9 @@ def run_student(p, size):
             p.click('#ok')
     p.wait_for_selector('text=Paper 1 practice done'); p.wait_for_selector('#saved:has-text("Saved")')
     ok('8 / 10' in p.inner_text('main'), 'mcq score 8/10')
-    p.click('#back')
+    p.click('#back'); p.wait_for_selector('.msteps')
     # Data response
-    p.click('[data-a="data"]'); p.wait_for_selector('#qa')
+    p.click('.msteps a[href$="/data"]'); p.wait_for_selector('#qa')
     shot(p, size, '8-data'); no_overflow(p, size + ' data')
     p.fill('#qai', '40'); p.click('#qac'); ok('One more try' in p.inner_text('#qafb'), 'calc retry')
     p.fill('#qai', '50%'); p.click('#qac'); ok('1/2' in p.inner_text('#qafb'), 'calc second try 1/2')
@@ -113,22 +123,45 @@ def run_student(p, size):
     p.locator('#qd button:has-text("Finish")').click()
     p.wait_for_selector('#saved:has-text("Saved")'); ok('8 / 9' in p.inner_text('main'), 'data total 8/9')
     shot(p, size, '10-data-total'); no_overflow(p, size + ' data total')
-    p.click('#back'); p.wait_for_selector('.acts')
-    ok(p.locator('.act .meter').count() == 4, 'all four activities show progress')
-    ok(p.locator('text=most common mistake').count() == 1, 'top mistake card')
+    p.click('#back'); p.wait_for_selector('.msteps')
+    ok(p.locator('.msteps li.done').count() == 5, 'mission: five steps done')
+    ok(p.locator('.msteps li.locked').count() == 0, 'checkpoint unlocked after the other steps')
+    ok(p.locator('text=most common mistake').count() == 1, 'top mistake panel')
     shot(p, size, '11-unit-progress')
-    # XP and leaderboard on the home page
-    p.click('text=All units'); p.wait_for_selector('table.board')
-    ok('An (you)' in p.inner_text('table.board'), 'leaderboard shows me'); ok('this week' in p.inner_text('#xp'), 'XP card')
-    p.locator('#xp').scroll_into_view_if_needed(); shot(p, size, '12-xp-board'); no_overflow(p, size + ' xp board')
+    # Review: the two missed Paper 1 questions come back
+    p.goto(BASE + '/learn/?demo=1#/review'); p.wait_for_selector('.hero'); ok(p.locator('.bnav .nbadge').count() == 1, 'review badge on the tab bar')
+    ok('due today' in p.inner_text('main'), 'review: questions due'); shot(p, size, '12a-review')
+    p.click('a[href="#/review/go"]')
+    while True:
+        p.wait_for_selector('.event, h1:has-text("Review done")')
+        if p.locator('text=Review done').count(): break
+        q = MCQ_BY_STEM[p.locator('.event').inner_text().strip()]
+        p.locator('.choice').filter(has_text=q['options'][0]['t']).first.click(); p.click('#nx')
+    p.wait_for_selector('#saved:has-text("Saved")'); ok('Review done' in p.inner_text('main'), 'review run saved')
+    p.goto(BASE + '/learn/?demo=1#/u/2.5'); p.wait_for_selector('.msteps')
+    # Unit checkpoint: all right → passed and badge
+    p.click('.msteps a[href$="/check"]')
+    for i in range(12):
+        p.wait_for_selector('.event'); q = MCQ_BY_STEM[p.locator('.event').inner_text().strip()]
+        p.locator('.choice').filter(has_text=q['options'][0]['t']).first.click()
+    p.wait_for_selector('#saved:has-text("Saved")'); ok('12 / 12' in p.inner_text('main') and 'Shift spotter' in p.inner_text('main'), 'checkpoint passed, badge won')
+    shot(p, size, '11b-checkpoint'); no_overflow(p, size + ' checkpoint')
+    p.goto(BASE + '/learn/?demo=1#/u/2.5'); p.wait_for_selector('.msteps'); ok('Badge won' in p.inner_text('.mission'), 'mission complete')
+    # Me: stats and leaderboard
+    p.goto(BASE + '/learn/?demo=1#/me'); p.wait_for_selector('.scard'); ok('Overall' in p.inner_text('.scard'), 'my stats: unit scores')
+    shot(p, size, '12b-me'); no_overflow(p, size + ' me')
+    p.goto(BASE + '/learn/?demo=1#/me/leaderboard'); p.wait_for_selector('table.lb'); ok('An (you)' in p.inner_text('table.lb'), 'leaderboard shows me')
+    shot(p, size, '12-xp-board'); no_overflow(p, size + ' leaderboard')
+    p.goto(BASE + '/learn/?demo=1#/games'); p.wait_for_selector('.tiles'); ok(p.locator('.atile').count() >= 5, 'games page tiles'); no_overflow(p, size + ' games')
+    p.goto(BASE + '/learn/?demo=1#/'); p.wait_for_selector('.workout'); shot(p, size, '12c-home-after'); no_overflow(p, size + ' home after')
     # reload keeps the session; sign out works
-    p.reload(); p.wait_for_selector('.units, .acts'); ok(p.locator('#out').is_visible(), 'session survives reload')
+    p.reload(); p.wait_for_selector('.hero h1'); ok(p.locator('#out').is_visible(), 'session survives reload')
     p.click('#out'); p.wait_for_selector('#f'); ok(not p.locator('#out').is_visible(), 'signed out: no sign-out button')
 
 def run_struggler(p, size):
     # demo-02 gets every case wrong twice: answers are revealed, worked example appears, flagged for the teacher
     p.goto(BASE + '/learn/?demo=1'); p.wait_for_selector('#f')
-    p.fill('#u', 'demo-02'); p.fill('#p', '1234'); p.click('#f button'); p.wait_for_selector('.units')
+    p.fill('#u', 'demo-02'); p.fill('#p', '1234'); p.click('#f button'); p.wait_for_selector('.hero h1')
     p.goto(BASE + '/learn/?demo=1#/u/2.5/shift')
     for i in range(6):
         p.wait_for_selector('.event')
@@ -149,12 +182,12 @@ def set_slider(p, v):
 
 def run_u24(p, size):
     p.goto(BASE + '/learn/?demo=1'); p.wait_for_selector('#f')
-    p.fill('#u', 'demo-03'); p.fill('#p', '1234'); p.click('#f button'); p.wait_for_selector('.units')
-    p.click('.unit[data-u="2.4"]'); p.wait_for_selector('.acts')
-    ok('2.4 Price determination' in p.inner_text('h1'), '2.4 page title'); ok(p.locator('.act').count() == 4, '2.4 has four activities')
+    p.fill('#u', 'demo-03'); p.fill('#p', '1234'); p.click('#f button'); p.wait_for_selector('.hero h1')
+    p.goto(BASE + '/learn/?demo=1#/u/2.4'); p.wait_for_selector('.msteps')
+    ok('2.4 Price determination' in p.inner_text('.uhead h2'), '2.4 page title'); ok('Equilibrium finder' in p.inner_text('.msteps'), '2.4 mission uses the finder')
     shot(p, size, 'u24-1-unit'); no_overflow(p, size + ' 2.4 unit')
     # Learn
-    p.click('[data-a="learn"]'); p.wait_for_selector('#pr')
+    p.click('.msteps a[href$="/learn"]'); p.wait_for_selector('#pr')
     set_slider(p, 0); ok(p.inner_text('#rkind') == 'shortage' and '750' in p.inner_text('#rqd'), 'explorer: shortage at 20k')
     ok(p.locator('.dg-gaplab.shortage').count() == 1, 'diagram labels the shortage')
     shot(p, size, 'u24-2-explorer-short')
@@ -197,17 +230,17 @@ def run_u24(p, size):
         p.click('#nx')
         if p.locator('#ok').count(): p.click('#ok')
     p.wait_for_selector('text=Equilibrium finder done'); p.wait_for_selector('#saved:has-text("Saved")')
-    ok('5 / 6' in p.inner_text('main'), 'finder score 5/6'); p.click('#back')
+    ok('5 / 6' in p.inner_text('main'), 'finder score 5/6'); p.click('#back'); p.wait_for_selector('.msteps')
     # Paper 1 (2.4): all right
-    p.click('[data-a="mcq"]')
+    p.click('.msteps a[href$="/mcq"]')
     for i in range(10):
         p.wait_for_selector('.event'); q = MCQ_BY_STEM[p.locator('.event').inner_text().strip()]
         ok(q['id'].startswith('q4-'), f'2.4 mcq {i+1} is a 2.4 question')
         right = q['options'][0]['t']; btns = p.locator('.choice'); texts = [btns.nth(k).inner_text()[1:].strip() for k in range(4)]
         btns.nth(texts.index(right)).click(); p.click('#nx')
-    p.wait_for_selector('text=Paper 1 practice done'); ok('10 / 10' in p.inner_text('main'), '2.4 mcq 10/10'); p.click('#back')
+    p.wait_for_selector('text=Paper 1 practice done'); ok('10 / 10' in p.inner_text('main'), '2.4 mcq 10/10'); p.click('#back'); p.wait_for_selector('.msteps')
     # Data response (2.4)
-    p.click('[data-a="data"]'); p.wait_for_selector('#qa')
+    p.click('.msteps a[href$="/data"]'); p.wait_for_selector('#qa')
     ok('Rambutan' in p.inner_text('h1'), '2.4 data response title'); shot(p, size, 'u24-8-data'); no_overflow(p, size + ' 2.4 data')
     p.fill('#qai', '40'); p.click('#qac'); ok('1/1' in p.inner_text('#qafb'), 'identify equilibrium 1/1'); p.locator('#qa button:has-text("Next")').click()
     p.fill('#qbi', '300'); p.click('#qbc'); ok('2/2' in p.inner_text('#qbfb'), 'shortage 2/2'); p.locator('#qb button:has-text("Next")').click()
@@ -221,39 +254,43 @@ def run_u24(p, size):
     p.fill('#qdi', 'At 60 there is a surplus because supply is more than demand. Sellers cut the price. Quantity demanded extends and quantity supplied contracts until equilibrium at 40.')
     p.click('#qdc'); ok('4/4' in p.inner_text('#qdfb'), 'explain 4/4'); p.locator('#qd button:has-text("Finish")').click()
     p.wait_for_selector('#saved:has-text("Saved")'); ok('9 / 9' in p.inner_text('main'), '2.4 data 9/9')
-    p.click('#back'); p.wait_for_selector('.acts'); ok(p.locator('.act .meter').count() == 4, '2.4: all four activities show progress')
-    p.click('text=All units'); p.wait_for_selector('.units'); ok('4/4 done' in p.inner_text('.unit[data-u="2.4"]'), 'home shows 2.4 done')
+    p.click('#back'); p.wait_for_selector('.msteps'); ok(p.locator('.msteps li.done').count() >= 4, '2.4: mission steps done')
+    p.goto(BASE + '/learn/?demo=1#/units'); p.wait_for_selector('.ulist'); ok('Mission' in p.inner_text('a.urow[href="#/u/2.4"]'), 'units page shows 2.4 mission progress')
     p.click('#out'); p.wait_for_selector('#f')
 
 def run_teacher(p, size):
     p.goto(BASE + '/learn/teacher.html?demo=1'); p.wait_for_selector('#f')
     p.fill('#u', 'teacher'); p.fill('#p', 'demo'); p.click('#f button'); p.wait_for_selector('table.grid')
-    ok('An' in p.inner_text('table.grid'), 'teacher sees the student'); ok('XP week' in p.inner_text('table.grid'), 'XP columns')
-    ok('Needs help (1)' in p.inner_text('main') and 'needs help' in p.inner_text('table.grid'), 'struggling student flagged'); shot(p, size, 't1-progress'); no_overflow(p, size + ' teacher progress')
-    p.click('[data-unit="2.4"]'); p.wait_for_selector('table.grid'); ok('Equilibrium finder' in p.inner_text('table.grid'), 'teacher: 2.4 progress columns')
+    ok('An' in p.inner_text('table.grid'), 'teacher sees the student'); ok('XP WEEK' in p.inner_text('table.grid').upper(), 'XP columns')
+    ok(p.locator('.stats .stat').count() == 4, 'four stat cards')
+    ok('Needs help in 2.5 (1)' in p.inner_text('main') and 'needs help' in p.inner_text('table.grid'), 'struggling student flagged'); shot(p, size, 't1-progress'); no_overflow(p, size + ' teacher progress')
+    p.click('[data-unit="2.4"]'); p.wait_for_selector('table.grid'); ok('MISSION' in p.inner_text('table.grid').upper() and 'Mia' in p.inner_text('table.grid'), 'teacher: 2.4 student table')
     p.click('[data-tab="traps"]'); ok('What equilibrium means' in p.inner_text('main'), 'teacher: 2.4 misconceptions'); shot(p, size, 't7-u24-traps')
     p.click('[data-tab="items"]'); ok('Finder' in p.inner_text('main'), 'teacher: 2.4 hardest questions list finder kinds'); shot(p, size, 't8-u24-items')
-    p.click('[data-unit="2.5"]'); p.click('[data-tab="progress"]'); p.wait_for_selector('table.grid')
+    p.click('[data-unit="2.5"]'); p.click('[data-tab="students"]'); p.wait_for_selector('table.grid')
     p.click('[data-tab="traps"]'); p.wait_for_selector('text=Reteach first'); shot(p, size, 't2-traps'); no_overflow(p, size + ' teacher traps')
     p.click('[data-tab="items"]'); p.wait_for_selector('text=hardest first'); shot(p, size, 't3-items'); no_overflow(p, size + ' teacher items')
-    p.click('[data-tab="progress"]'); p.locator('tr[data-id]').first.click(); p.wait_for_selector('details.card')
+    p.click('[data-tab="students"]'); p.locator('a.sname').first.click(); p.wait_for_selector('details.card')
+    ok(p.locator('.msteps').count() == 2, 'student tracker: a mission card for each unit')
+    p.click('#bk'); p.click('[data-tab="leaderboard"]'); p.wait_for_selector('table.lb'); ok(p.locator('table.lb tr').count() >= 3, 'teacher leaderboard'); shot(p, size, 't4b-leaderboard')
+    p.click('[data-tab="students"]'); p.locator('a.sname').first.click(); p.wait_for_selector('details.card')
     p.locator('details.card').first.locator('summary').click(); shot(p, size, 't4-student'); no_overflow(p, size + ' teacher student')
     p.click('#bk'); p.click('[data-tab="manage"]'); p.wait_for_selector('#paste')
-    btn = p.locator('tr[data-id] [data-act="pin"]').nth(1); btn.click(); ok('again' in btn.inner_text(), 'reset PIN asks twice'); btn.click()
+    btn = p.locator('tr[data-row] [data-act="pin"]').nth(1); btn.click(); ok('again' in btn.inner_text(), 'reset PIN asks twice'); btn.click()
     p.wait_for_selector('#slips'); ok(re.search(r'PIN \d{4}', p.inner_text('#slips')) is not None, 'new PIN shown')
     p.click('#cl')
     p.fill('#paste', 'Nguyễn Văn Test\tTester\nTRẦN THỊ BÌNH'); ok('Bình' in p.inner_text('#prev'), 'roster preview')
     p.click('#add'); p.wait_for_selector('#slips'); ok('demo-05' in p.inner_text('#slips'), 'new usernames continue numbering')
     shot(p, size, 't5-manage'); no_overflow(p, size + ' teacher manage'); p.click('#cl')
     p.click('[data-tab="units"]'); p.check('input[value="2.3"]'); p.click('#save'); p.wait_for_timeout(300)
-    ok('2.3' in p.inner_text('.card .small.muted'), 'units saved'); shot(p, size, 't6-units')
+    ok('2.3' in p.inner_text('.dash-head'), 'units saved'); shot(p, size, 't6-units')
     ok('Live' in p.inner_text('#live') and 'off' not in p.inner_text('#live'), 'live refresh on by default')
-    p.uncheck('#board'); p.wait_for_timeout(300)
+    p.click('[data-tab="manage"]'); p.wait_for_selector('#board'); p.uncheck('#board'); p.wait_for_timeout(300)
     p.click('#out'); p.wait_for_selector('#f')
     # the student now sees 2.3 as open but "coming soon"
     p.goto(BASE + '/learn/?demo=1'); p.wait_for_selector('#f'); p.fill('#u', 'demo-03'); p.fill('#p', '1234'); p.click('#f button')
-    p.wait_for_selector('.units'); ok('Coming soon' in p.inner_text('.units'), 'opened-but-unbuilt unit shows Coming soon')
-    p.wait_for_selector('#xp .stat'); ok(p.locator('table.board').count() == 0, 'leaderboard hidden when the teacher turns it off')
+    p.wait_for_selector('.hero h1'); p.goto(BASE + '/learn/?demo=1#/units'); p.wait_for_selector('.ulist'); ok('Coming soon' in p.inner_text('.ulist'), 'opened-but-unbuilt unit shows Coming soon')
+    p.goto(BASE + '/learn/?demo=1#/me/leaderboard'); p.wait_for_selector('#lb .panel'); ok('turned the class leaderboard off' in p.inner_text('#lb'), 'leaderboard hidden when the teacher turns it off')
 
 with sync_playwright() as pw:
     b = pw.chromium.launch()
