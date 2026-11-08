@@ -337,3 +337,12 @@ select.gap.good{border-color:var(--ok);background:var(--ok-soft)}select.gap.bad{
 .ainote{margin:.5em 0 0;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--teal) 10%,var(--panel));border:1.5px solid color-mix(in srgb,var(--teal) 40%,transparent)}
 .ai-row.flagged{opacity:.6}.ai-row td{white-space:normal;vertical-align:top}.ai-row td:nth-child(3){min-width:200px}.ai-ans{min-width:260px;white-space:pre-wrap!important}.tablewrap table.grid{min-width:880px}
 .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* Paper 2 ladder: order → word bank → frame → write it yourself */
+.ladder{list-style:none;display:flex;flex-wrap:wrap;gap:6px;padding:0;margin:8px 0 4px;counter-reset:st}
+.ladder li{flex:1 1 130px;display:flex;align-items:center;justify-content:center;min-height:40px;padding:4px 8px;border-radius:12px;border:2px solid var(--line);font-weight:700;font-size:.9rem;text-align:center}
+.ladder li.on{border-color:var(--teal);background:var(--teal);color:#fff}
+.ladder li.done{border-color:var(--ok);background:var(--ok-soft)}.ladder li.done::after{content:' ✔';color:var(--ok);margin-left:4px}
+.ladder li.locked{opacity:.5}.ladder li .linkbtn{font-weight:700}
+.cmdtag{display:inline-block;padding:1px 10px;border-radius:99px;background:#7B4FC4;color:#fff;font:800 .8rem var(--font-body);vertical-align:middle}
+select.gap.fixgap{border-color:var(--ok);background:var(--ok-soft)}
+.card .linkbtn,.tcard .linkbtn{color:var(--teal)}#easier{font-size:.95rem}
