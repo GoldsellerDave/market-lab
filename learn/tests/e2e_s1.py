@@ -145,6 +145,25 @@ def teacher(p, size, band=None, vi=None):
         ok(('set by you' in p.inner_text('main')) == (band != 'auto'), f'teacher: override {band} shown')
     if p.locator('#out').count(): p.click('#out')
 
+def test_accounts(p, size):
+    p.goto(BASE + '/learn/teacher.html?demo=1'); p.wait_for_selector('#u, .tabs')
+    if p.locator('#u').count(): p.fill('#u', 'teacher'); p.fill('#p', 'demo'); p.click('form button'); p.wait_for_selector('.tabs')
+    p.click('.tabs [role=tab]:has-text("Manage class"), .tabs button:has-text("Manage class")'); p.wait_for_selector('#tadd')
+    p.select_option('#tband', '0'); p.click('#tadd'); p.click('#tadd'); p.wait_for_selector('#slips')
+    slip = p.inner_text('#slips'); m = re.search(r'Username (\S+) · PIN (\d{4})', slip)
+    ok(m and m.group(1) == 'demo-test-a1', f'test account made: {slip[:80]}'); shot(p, size, '11-test-account')
+    p.click('.tabs [role=tab]:has-text("Students"), .tabs button:has-text("Students")'); p.wait_for_selector('table.grid')
+    ok('TEST' in p.inner_text('table.grid') and 'Test A1' in p.inner_text('table.grid'), 'teacher: test account listed with a TEST mark')
+    ok(re.search(r'\d/3\b', p.inner_text('.stats')) is not None, 'teacher: class figures count the 3 real students only')
+    p.click('#out')
+    p.goto(BASE + '/learn/?demo=1'); p.wait_for_selector('#f'); p.fill('#u', m.group(1)); p.fill('#p', m.group(2)); p.click('#f button'); p.wait_for_selector('#out')
+    ok('A1' in p.inner_text('.stats'), 'test account starts at A1')
+    mcq_round(p, '1.1', 0)
+    p.goto(BASE + '/learn/?demo=1#/me/leaderboard'); p.wait_for_selector('table.lb'); ok('Test A1 (you)' in p.inner_text('table.lb'), 'test account sees itself on the leaderboard')
+    logout(p); student(p, 'demo-03')
+    p.goto(BASE + '/learn/?demo=1#/me/leaderboard'); p.wait_for_selector('table.lb'); ok('Test A1' not in p.inner_text('table.lb'), 'students do not see the test account on the leaderboard')
+    logout(p)
+
 VI_ON = [True]
 POS = []
 DONE = set()
@@ -188,6 +207,7 @@ def run(p, size):
         student(p, 'demo-01'); mcq_round(p, '1.3', b, size if b == 2 else None, use_pill=(b == 2)); p2_round(p, '1.3', b, size); logout(p)
     teacher(p, None, band='auto')
     # automatic band changes: demo-02 starts at B1 (9/12), three strong runs move them to B2
+    test_accounts(p, size)
     student(p, 'demo-02'); out = baseline(p, None, 9); ok('B1' in out, 'baseline 9/12 → B1')
     for u in ('1.1', '1.2'): mcq_round(p, u, 2)
     out = p2_round(p, '1.4', 2)

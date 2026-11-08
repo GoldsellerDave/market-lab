@@ -83,17 +83,21 @@ function demo(fn, a) {
       const c = { code, name: a.p_name || '', teacher_id: t.id, open_units: ['2.5'] }; d.classes.push(c); out = addPeople(c, a.p_people || []); break; }
     case 'ec_t_add_students': teacher(); out = addPeople(cls(a.p_code), a.p_people || []); break;
     case 'ec_t_class': { teacher(); const c = cls(a.p_code), st = d.users.filter(u => u.class_code === c.code && u.role === 'student');
-      out = { code: c.code, name: c.name, open_units: c.open_units, vi_a1: c.vi_a1 !== false, students: st.map(u => ({ id: u.id, username: u.username, full_name: u.full_name, display_name: u.display_name, last_seen: u.last_seen || null, locked: false, eng_band: u.eng_band ?? null })),
+      out = { code: c.code, name: c.name, open_units: c.open_units, vi_a1: c.vi_a1 !== false, students: st.map(u => ({ id: u.id, username: u.username, full_name: u.full_name, display_name: u.display_name, last_seen: u.last_seen || null, locked: false, eng_band: u.eng_band ?? null, is_test: !!u.is_test })),
         attempts: d.attempts.filter(x => st.some(u => u.id === x.user_id)) }; break; }
     case 'ec_t_set_band': { teacher(); const u = d.users.find(x => x.id === a.p_user); if (u) u.eng_band = a.p_band == null ? null : +a.p_band; out = null; break; }
     case 'ec_t_set_vi': teacher(); cls(a.p_code).vi_a1 = !!a.p_on; out = null; break;
+    case 'ec_t_add_test': { teacher(); const c = cls(a.p_code), b = Math.max(0, Math.min(3, +a.p_band || 0)), lv = ['A1', 'A2', 'B1', 'B2'][b], un = `${c.code}-test-${lv.toLowerCase()}`;
+      let u = d.users.find(x => x.username === un);
+      if (!u) { u = { id: 's' + (++d.seq) + 't', username: un, role: 'student', class_code: c.code, display_name: 'Test ' + lv, full_name: `Test account (${lv})`, is_test: true }; d.users.push(u); }
+      d.attempts = d.attempts.filter(x => x.user_id !== u.id); u.secret = pin(); u.eng_band = b; out = { username: un, pin: u.secret, level: lv }; break; }
     case 'ec_t_set_units': teacher(); cls(a.p_code).open_units = a.p_units || []; out = null; break;
     case 'ec_t_reset_pin': { teacher(); const u = d.users.find(x => x.id === a.p_user); u.secret = pin(); out = u.secret; break; }
-    case 'ec_t_new_pins': { teacher(); const c = cls(a.p_code); out = d.users.filter(u => u.class_code === c.code && u.role === 'student').map(u => { u.secret = pin(); return { username: u.username, full_name: u.full_name, display_name: u.display_name, pin: u.secret }; }); break; }
+    case 'ec_t_new_pins': { teacher(); const c = cls(a.p_code); out = d.users.filter(u => u.class_code === c.code && u.role === 'student' && !u.is_test).map(u => { u.secret = pin(); return { username: u.username, full_name: u.full_name, display_name: u.display_name, pin: u.secret }; }); break; }
     case 'ec_t_rename': { teacher(); const u = d.users.find(x => x.id === a.p_user); if (u && a.p_display.trim()) u.display_name = a.p_display.trim(); out = null; break; }
     case 'ec_t_remove_student': { teacher(); d.users = d.users.filter(x => x.id !== a.p_user); d.attempts = d.attempts.filter(x => x.user_id !== a.p_user); out = null; break; }
     case 'ec_board': { const u = me(), c = d.classes.find(x => x.code === u.class_code) || {}, on = c.board !== false;
-      const rows = d.users.filter(x => x.role === 'student' && x.class_code === u.class_code && (on || x.id === u.id))
+      const rows = d.users.filter(x => x.role === 'student' && x.class_code === u.class_code && (on || x.id === u.id) && (!x.is_test || x.id === u.id))
         .map(x => ({ name: x.display_name, ...(({ total, week }) => ({ xp: total, week }))(xpTotals(d.attempts.filter(t => t.user_id === x.id))), me: x.id === u.id }))
         .sort((a, b) => b.week - a.week || b.xp - a.xp || a.name.localeCompare(b.name));
       out = { on, rows }; break; }

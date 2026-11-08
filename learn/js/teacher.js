@@ -82,6 +82,8 @@ async function start() {
 async function load(code) {
   const c = await rpc('ec_t_class', { p_token: T(), p_code: code });
   c.by = {}; c.students.forEach(s => (c.by[s.id] = s));
+  c.tests = c.students.filter(s => s.is_test); c.students = c.students.filter(s => !s.is_test);
+  const tid = new Set(c.tests.map(s => s.id)); c.all = c.attempts; c.attempts = c.all.filter(a => !tid.has(a.user_id));
   cls = c; pref.set('t-class', code);
 }
 function fail(e) { if (e.message === 'not-signed-in' || e.message === 'teachers-only') { token.set(null); me = null; header(); return login(errText(e)); } toast(errText(e)); }
@@ -94,7 +96,7 @@ function startLive() {
     try { await load(cls.code); render(true); } catch { }
   }, 20000);
 }
-const mine = id => cls.attempts.filter(a => a.user_id === id);
+const mine = id => cls.all.filter(a => a.user_id === id);
 const levelOf = (atts, u) => { const p = pracOf(u) || { id: 'mcq' }, r = atts.filter(a => a.unit === u && a.activity === p.id).pop(); return r ? r.level_end : null; };
 
 // ---------- layout ----------
@@ -130,13 +132,13 @@ const openStudent = el => $$('[data-id]', el).forEach(r => (r.onclick = e => { e
 
 // ---------- Students ----------
 function students(body) {
-  const rows = cls.students.map(st => {
+  const rows = [...cls.students, ...cls.tests].map(st => {
     const a = mine(st.id), s = E.summarise(a, UNIT), m = mission(UNIT, a), xp = E.xpTotals(a), top = E.topTrap(E.trapCounts(a, UNIT)), nh = E.needsHelp(a, UNIT), cb = checkBest(UNIT, a), l = levelOf(a, UNIT), bi = bandOf(a, st.eng_band);
     return { st, a, s, m, xp, top, nh, cb, l, bi };
   });
-  const help = rows.filter(r => r.nh), idle = rows.filter(r => !r.st.last_seen || Date.now() - new Date(r.st.last_seen) > 14 * 864e5);
+  const help = rows.filter(r => r.nh && !r.st.is_test), idle = rows.filter(r => !r.st.is_test && !r.st.last_seen || Date.now() - new Date(r.st.last_seen) > 14 * 864e5);
   body.innerHTML = `<div class="scroll"><table class="grid"><tr><th>Student</th><th>Username</th><th>English</th><th>Level</th><th>Mission</th><th class="num">Paper 1 best</th><th class="num">Checkpoint</th><th class="num">XP week</th><th class="num">XP total</th><th class="num">Activities</th><th>Last active</th><th>Main mistake</th></tr>
-    ${rows.map(({ st, a, s, m, xp, top, nh, cb, l, bi }) => `<tr><td><a href="#" class="sname" data-id="${st.id}">${esc(st.display_name)}</a>${nh ? ` <span class="chip bad" title="${esc(nh)}">needs help</span>` : ''}${st.locked ? ' <span class="chip gold">locked</span>' : ''}<br><span class="note">${esc(st.full_name)}</span></td>
+    ${rows.map(({ st, a, s, m, xp, top, nh, cb, l, bi }) => `<tr><td><a href="#" class="sname" data-id="${st.id}">${esc(st.display_name)}</a>${nh ? ` <span class="chip bad" title="${esc(nh)}">needs help</span>` : ''}${st.locked ? ' <span class="chip gold">locked</span>' : ''}${st.is_test ? ' <span class="chip testchip" title="Only you see test accounts">TEST</span>' : ''}<br><span class="note">${esc(st.full_name)}</span></td>
       <td>${esc(st.username)}</td><td>${engChip(bi)}${bi.baseline != null ? `<br><span class="note">baseline ${bi.baseline}/${BASELINE_N}</span>` : ''}</td><td>${l == null ? '<span class="lvlchip">Not started</span>' : `<span class="lvlchip lvl${l}">${E.LEVELS[l]}</span>`}</td>
       <td>${m.n}/${m.steps.length}${m.complete ? ' ✔' : ''}</td><td class="num">${s.mcq ? pct(s.mcq.bestScore, s.mcq.max) + '%' : '–'}</td>
       <td class="num">${cb == null ? '–' : `<span class="chip ${cb >= CHECK_PASS ? 'ok' : 'bad'}">${Math.round(cb * 100)}%</span>`}</td>
@@ -254,6 +256,10 @@ function manage(body) {
     ${cls.students.map(s => `<tr data-row="${s.id}"><td>${esc(s.username)}${s.locked ? ' <span class="chip gold">locked</span>' : ''}</td><td>${esc(s.full_name)}</td>
       <td><input value="${esc(s.display_name)}" maxlength="40" style="min-width:120px;padding:6px 8px" aria-label="Name shown for ${esc(s.username)}"></td>
       <td><button class="alt small" data-act="rename">Save name</button> <button class="alt small" data-act="pin">Reset PIN</button> <button class="alt small" data-act="rm">Remove</button></td></tr>`).join('')}</table></div></div>
+    <div class="tcard" style="margin-top:14px"><h3>Test accounts</h3><p class="note">Sign in as a student at a set English level to try the app. Only you see test accounts: they are not on the class leaderboard and not in the class figures.
+      Making one again gives it a new PIN and deletes its work, so you can start fresh.</p>
+      ${cls.tests.length ? `<table class="grid" style="margin-bottom:10px"><tr><th>Username</th><th>English level</th><th>Activities</th></tr>${cls.tests.map(s => `<tr><td>${esc(s.username)}</td><td>${s.eng_band == null ? 'Automatic' : BANDS[s.eng_band]}</td><td class="num">${mine(s.id).length}</td></tr>`).join('')}</table>` : ''}
+      <div class="row"><select id="tband" style="width:auto" aria-label="English level of the test account">${BANDS.map((b, k) => `<option value="${k}">${b} ${BAND_NAMES[k]}</option>`).join('')}</select><button class="alt" id="tadd">Make or reset test account</button></div></div>
     <div class="tcard" style="margin-top:14px"><h3>Add students</h3><p class="note">One per line: full name, then a TAB or comma, then the English name (or nothing). Students without an English name are shown by their given name.</p>
       <textarea id="paste" placeholder="Nguyễn Văn An&#9;Andy&#10;Trần Thị Bình"></textarea><div id="prev" class="note"></div><div class="row"><button id="add" disabled>Add students</button></div></div>
     <div class="tcard" style="margin-top:14px"><h3>Class leaderboard</h3><label class="toggle"><input type="checkbox" id="board" ${boardOn() ? 'checked' : ''}>
@@ -275,6 +281,8 @@ function manage(body) {
   $('#board').onchange = async e => { try { await rpc('ec_t_set_board', { p_token: T(), p_code: cls.code, p_on: e.target.checked }); const c = classes.find(x => x.code === cls.code); if (c) c.board = e.target.checked; toast(e.target.checked ? 'Leaderboard on' : 'Leaderboard off'); } catch (er) { e.target.checked = !e.target.checked; fail(er); } };
   $('#vi').onchange = async e => { try { await rpc('ec_t_set_vi', { p_token: T(), p_code: cls.code, p_on: e.target.checked }); cls.vi_a1 = e.target.checked; const c = classes.find(x => x.code === cls.code); if (c) c.vi_a1 = e.target.checked; toast(e.target.checked ? 'Vietnamese help on' : 'Vietnamese help off'); }
     catch (er) { e.target.checked = !e.target.checked; fail(er); } };
+  confirmBtn($('#tadd'), 'Tap again: a reset deletes its work', async () => { try { const r = await rpc('ec_t_add_test', { p_token: T(), p_code: cls.code, p_band: +$('#tband').value });
+    await load(cls.code); render(); pinSheet([{ ...r, display_name: 'Test ' + r.level, full_name: 'Test account (' + r.level + ')' }], 'Test account ' + r.level); } catch (er) { fail(er); } });
   $('#nc').onclick = addClassPage;
 }
 function addClassPage() {
