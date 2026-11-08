@@ -124,3 +124,21 @@ test('the PPC scenarios agree with the diagram', () => {
   assert.equal(cost.steps[1].options[0].t, `${P.C[1] - P.D[1]} million phones`);
   assert.deepEqual(P.B, [6, 8]);
 });
+
+// The right answer must not give itself away by being the longest option.
+test('answer lengths: the right option is not usually the longest', () => {
+  const strip = s => String(s || '').replace(/\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/g, (m, k, sh) => sh || k);
+  const pools = { 'Paper 1 (1.x)': [], 'scenarios': [], 'Paper 1 (2.x)': [] };
+  for (const u of UNITS) U1.MCQ[u].forEach(q => pools['Paper 1 (1.x)'].push([q.id, q.options]));
+  SCENARIOS.forEach(s => s.steps.forEach((st, k) => st.type === 'choice' && pools.scenarios.push([`${s.id}-${k + 1}`, st.options])));
+  for (const u of ['2.4', '2.5']) CONTENT[u].MCQ.forEach(q => pools['Paper 1 (2.x)'].push([q.id, q.options]));
+  for (const [name, list] of Object.entries(pools)) for (const f of ['t', 'p']) {
+    let longest = 0;
+    for (const [id, opts] of list) {
+      const L = opts.map(o => strip(o[f] ?? o.t).length), r = L[0], mx = Math.max(...L.slice(1));
+      if (r > mx) longest++;
+      assert.ok(r <= 1.35 * mx, `${id} (${f}): right answer is much longer than the others (${r} vs ${mx})`);
+    }
+    assert.ok(longest / list.length <= 0.35, `${name} (${f}): right answer is the longest in ${longest} of ${list.length}`);
+  }
+});
