@@ -334,3 +334,6 @@ select.gap.good{border-color:var(--ok);background:var(--ok-soft)}select.gap.bad{
 .sort-b button.sel{background:var(--teal);border-color:var(--teal);color:#fff}
 .sort-b button:disabled{opacity:1}.sort-b button:disabled:not(.sel):not(.fix){opacity:.55}
 .castrow .vi{display:block;margin-top:4px}.scen-story{white-space:pre-line}
+.ainote{margin:.5em 0 0;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--teal) 10%,var(--panel));border:1.5px solid color-mix(in srgb,var(--teal) 40%,transparent)}
+.ai-row.flagged{opacity:.6}.ai-row td{white-space:normal;vertical-align:top}.ai-row td:nth-child(3){min-width:200px}.ai-ans{min-width:260px;white-space:pre-wrap!important}.tablewrap table.grid{min-width:880px}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}

@@ -1,22 +1,22 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText } from './api.js?v=7490a618';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=7490a618';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=7490a618';
-import * as E from './engine.js?v=7490a618';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=7490a618';
-import { BASELINE, BASELINE_N } from './u1.js?v=7490a618';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=7490a618';
-import { createPPC } from './ppc.js?v=7490a618';
-import * as S from './sound.js?v=7490a618';
-import * as Cel from './celebrate.js?v=7490a618';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=7490a618';
-import { scene } from './scenes.js?v=7490a618';
-import { SHIFTS } from './u25.js?v=7490a618';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=7490a618';
-import { createDiagram } from './diagram.js?v=7490a618';
-import { icon, tile } from './icons.js?v=7490a618';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=7490a618';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=d340b079';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=d340b079';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=d340b079';
+import * as E from './engine.js?v=d340b079';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=d340b079';
+import { BASELINE, BASELINE_N } from './u1.js?v=d340b079';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=d340b079';
+import { createPPC } from './ppc.js?v=d340b079';
+import * as S from './sound.js?v=d340b079';
+import * as Cel from './celebrate.js?v=d340b079';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=d340b079';
+import { scene } from './scenes.js?v=d340b079';
+import { SHIFTS } from './u25.js?v=d340b079';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=d340b079';
+import { createDiagram } from './diagram.js?v=d340b079';
+import { icon, tile } from './icons.js?v=d340b079';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=d340b079';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -837,7 +837,7 @@ function data() {
       r.first = false; r.trap = q.trap || null;
       fb.innerHTML = `<div class="fb no"><b>${s} of 2 right. One more try.</b>${esc(q.hint)}</div>`;
     };
-    chk.onclick = () => {
+    chk.onclick = async () => {
       const isPick = q.type === 'diagram' || q.type === 'priceline';
       const val = isPick ? null : $('#' + id + 'i').value;
       if (!isPick && !String(val).trim()) return (fb.innerHTML = '<div class="fb tip"><b>Write an answer first.</b></div>');
@@ -854,15 +854,15 @@ function data() {
       if (q.type === 'diagram') return twoPart(['D', 'S'].filter(c => (pick[c] || 0) === q.dir[c]).length, () => dg.set(q.dir));
       if (q.type === 'priceline') return twoPart((+pick.p === q.target) + (pick.t === q.answer), () => dg.priceLine(pyOf(q.target), String(q.target)));
       // short answers, marked by keyword groups
-      const m = E.markShort(val, q.groups, q.need);
-      r.score = Math.max(r.score, m.score);
+      const m = await markWritten(String(val), q.groups, q.need, { item: `${C().DATA.id}-${q.id}`, q: q.q, context: [].concat(C().DATA.source || []).join(' '), model: q.why }, chk);
+      r.score = Math.max(r.score, m.score); r.by = m.by;
       const pills = q.groups.length > 1 ? `<div>${q.groups.map(g => `<span class="pill ${m.hits.includes(g.label) ? 'hit' : 'miss'}">${m.hits.includes(g.label) ? '✔' : '…'} ${esc(g.label)}</span>`).join('')}</div>` : '';
       if (m.ok || r.tries >= 2) {
         if (!m.ok) { r.first = false; r.trap = (m.missing.find(g => g.trap === 'shortage-surplus') || m.missing.find(g => g.trap) || {}).trap || q.trap || null; }
-        return lock(`<div class="fb ${m.ok ? 'ok' : 'no'}"><b>${r.score}/${q.marks}</b>${pills}<p style="margin:.5em 0 0"><b>A full answer:</b> ${esc(q.why)}</p></div>`);
+        return lock(`<div class="fb ${m.ok ? 'ok' : 'no'}"><b>${r.score}/${q.marks}</b>${pills}${aiNote(m)}<p style="margin:.5em 0 0"><b>A full answer:</b> ${esc(q.why)}</p></div>`);
       }
       r.first = false;
-      fb.innerHTML = `<div class="fb no"><b>${m.score}/${q.marks} so far. Improve your answer once.</b>${pills}${m.missing.filter(g => g.ask).map(g => `<p style="margin:.4em 0 0">• ${esc(g.ask)}</p>`).join('') || esc(q.hint)}</div>`;
+      fb.innerHTML = `<div class="fb no"><b>${m.score}/${q.marks} so far. Improve your answer once.</b>${pills}${aiNote(m)}${m.missing.filter(g => g.ask).map(g => `<p style="margin:.4em 0 0">• ${esc(g.ask)}</p>`).join('') || esc(q.hint)}</div>`;
       chk.textContent = 'Check again';
     };
   };
@@ -1035,9 +1035,9 @@ function p2() {
       <p class="note">${lead}</p><div id="work"></div><div id="fb" aria-live="polite"></div></div>`);
     bindTools({ ...q, hint: q.groups.map(x => x.ask).join(' '), stem: q.q });
     const W = $('#work'), fb = $('#fb');
-    const finishQ = (score, first, model = true) => {
+    const finishQ = (score, first, model = true, note = '') => {
       rec.score = score; rec.first_try = first; rec.ok = score === q.marks; answers.push(rec);
-      fb.innerHTML = `<div class="fb ${rec.ok ? 'ok' : 'no'}"><b>${score}/${q.marks}${rec.ok ? (first ? ' · right first time ⭐' : '') : ''}</b>${model ? `<p style="margin:.4em 0 0"><b>Model answer:</b> ${rich(q.chain.map(plainChain).join(' '), Math.min(b, 2))}</p>` : ''}</div>
+      fb.innerHTML = `<div class="fb ${rec.ok ? 'ok' : 'no'}"><b>${score}/${q.marks}${rec.ok ? (first ? ' · right first time ⭐' : '') : ''}</b>${note}${model ? `<p style="margin:.4em 0 0"><b>Model answer:</b> ${rich(q.chain.map(plainChain).join(' '), Math.min(b, 2))}</p>` : ''}</div>
         <button id="nx" style="width:100%">${i + 1 < items.length ? 'Next question' : 'See my results'}</button>`;
       W.querySelectorAll('button,select,textarea').forEach(x => (x.disabled = true));
       $('#nx').onclick = () => { i++; show(); };
@@ -1083,13 +1083,13 @@ function p2() {
       let tries = 0, best = 0;
       W.innerHTML = `${mode === 'frame' ? `<p class="frame">${esc(q.frame)}</p>` : ''}<textarea id="ans" aria-label="Your answer" style="min-height:150px"></textarea>
         <button id="chk" style="width:100%">Check my answer</button>`;
-      $('#chk', W).onclick = () => {
+      $('#chk', W).onclick = async () => {
         const v = $('#ans').value; if (!v.trim()) return (fb.innerHTML = '<div class="fb tip"><b>Write an answer first.</b></div>');
         tries++; rec.text = v.slice(0, 600);
-        const m = E.markShort(v, q.groups, q.need); best = Math.max(best, m.score);
+        const m = await markWritten(v, q.groups, q.need, { item: q.id, q: q.q, model: q.chain.map(plainChain).join(' ') }, $('#chk', W)); best = Math.max(best, m.score); rec.by = m.by;
         const pills = `<div>${q.groups.map(x => `<span class="pill ${m.hits.includes(x.label) ? 'hit' : 'miss'}">${m.hits.includes(x.label) ? '✔' : '…'} ${esc(x.label)}</span>`).join('')}</div>`;
-        if (m.ok || tries >= 2) return finishQ(best, m.ok && tries === 1);
-        fb.innerHTML = `<div class="fb no"><b>${m.score}/${q.marks} so far. Improve your answer once.</b>${pills}${m.missing.map(x => `<p style="margin:.3em 0 0">• ${esc(x.ask)}</p>`).join('')}</div>`;
+        if (m.ok || tries >= 2) return finishQ(best, m.ok && tries === 1, true, pills + aiNote(m));
+        fb.innerHTML = `<div class="fb no"><b>${m.score}/${q.marks} so far. Improve your answer once.</b>${pills}${aiNote(m)}${m.missing.map(x => `<p style="margin:.3em 0 0">• ${esc(x.ask)}</p>`).join('')}</div>`;
         $('#chk', W).textContent = 'Check again';
       };
     }
@@ -1296,16 +1296,16 @@ function scenRun(id) {
     if (st.type === 'explain') {
       let tries = 0, best = 0;
       el().innerHTML = `<h3 class="scen-q">${esc(st.q)} <span class="badge">B2 challenge</span></h3><textarea id="ans" aria-label="Your answer" style="min-height:120px"></textarea><button id="chk" style="width:100%">Check my answer</button>`;
-      $('#chk').onclick = () => {
+      $('#chk').onclick = async () => {
         const v = $('#ans').value; if (!v.trim()) return (fb().innerHTML = '<div class="fb tip"><b>Write an answer first.</b></div>');
         tries++; rec.text = v.slice(0, 600);
-        const m = E.markShort(v, st.groups, st.need); best = Math.max(best, m.score);
+        const m = await markWritten(v, st.groups, st.need, { item: rec.id, q: st.q, context: s.story }, $('#chk')); best = Math.max(best, m.score); rec.by = m.by;
         const pills = `<div>${st.groups.map(x => `<span class="pill ${m.hits.includes(x.label) ? 'hit' : 'miss'}">${m.hits.includes(x.label) ? '✔' : '…'} ${esc(x.label)}</span>`).join('')}</div>`;
         if (m.ok || tries >= 2) {
           rec.ok = m.ok; rec.first_try = m.ok && tries === 1; rec.score = best; rec.marks = st.need; $('#chk').remove(); $('#ans').disabled = true;
-          fb().innerHTML = `<div class="fb ${m.ok ? 'ok' : 'no'}"><b>${best}/${st.need}${m.ok ? ' ⭐' : ''}</b>${pills}</div>`; answers.push(rec); return nextBtn();
+          fb().innerHTML = `<div class="fb ${m.ok ? 'ok' : 'no'}"><b>${best}/${st.need}${m.ok ? ' ⭐' : ''}</b>${pills}${aiNote(m)}</div>`; answers.push(rec); return nextBtn();
         }
-        fb().innerHTML = `<div class="fb no"><b>${m.score}/${st.need} so far. Improve your answer once.</b>${pills}${m.missing.map(x => `<p style="margin:.3em 0 0">• ${esc(x.ask)}</p>`).join('')}</div>`;
+        fb().innerHTML = `<div class="fb no"><b>${m.score}/${st.need} so far. Improve your answer once.</b>${pills}${aiNote(m)}${m.missing.map(x => `<p style="margin:.3em 0 0">• ${esc(x.ask)}</p>`).join('')}</div>`;
         $('#chk').textContent = 'Check again';
       };
     }
@@ -1328,6 +1328,22 @@ function scenRun(id) {
   };
   show();
 }
+
+// ---------- written answers: keywords first, then AI marking when it is set up ----------
+// ctx: { item, q (question), context, model }. Returns the keyword-style result { score, max, ok, hits, missing } plus
+// by ('ai' or 'keywords') and the AI's feedback sentence. Any AI problem leaves the keyword result.
+async function markWritten(text, groups, need, ctx, btn) {
+  const kw = E.markShort(text, groups, need);
+  const old = btn && btn.textContent; if (btn) { btn.disabled = true; btn.textContent = 'Checking your answer… 🤖'; }
+  const ai = await aiMark({ unit: U, item: ctx.item, question: ctx.q, context: String(ctx.context || '').replace(/\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/g, (m, k, s) => s || k),
+    model: ctx.model || '', points: groups.map(g => g.label), need, answer: text, band: band(), name: String(me.display_name || '').split(/\s+/)[0],
+    keyword_ok: kw.ok, keyword_hits: kw.hits });
+  if (btn) { btn.disabled = false; btn.textContent = old; }
+  if (!ai) return { ...kw, by: 'keywords' };
+  const hits = groups.filter(g => ai.hits.includes(g.label)).map(g => g.label);
+  return { score: Math.min(hits.length, need), max: need, ok: hits.length >= need, hits, missing: groups.filter(g => !hits.includes(g.label)), by: 'ai', feedback: ai.feedback };
+}
+const aiNote = m => (m.by === 'ai' ? `<p class="ainote">🤖 ${esc(m.feedback || '')}<span class="note"> · marked by AI</span></p>` : '');
 
 // ---------- router ----------
 const ACT = { learn, shift: () => shift(), eqm: () => eqm(), mcq: () => mcq(), data, check: checkpoint, p2, ppc: () => ppcRun() };
