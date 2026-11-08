@@ -1,15 +1,15 @@
 // Teacher dashboard, laid out like Checkpoint Quest's: class pills, four stat cards, tabs for Students, Units,
 // Skills heat map, Hardest questions, Leaderboard and Manage class, and a tracker page for each student.
-import { rpc, token, DEMO, errText } from './api.js?v=7490a618';
-import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js?v=7490a618';
-import { UNITS, ACTIVITIES } from './units.js?v=7490a618';
-import * as E from './engine.js?v=7490a618';
-import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js?v=7490a618';
-import { mission, checkBest, CHECK_PASS } from './mission.js?v=7490a618';
-import { icon, tile } from './icons.js?v=7490a618';
-import { bandOf, BANDS, BAND_NAMES } from './bands.js?v=7490a618';
-import { BASELINE_N } from './u1.js?v=7490a618';
-import { SCENARIOS } from './u1s.js?v=7490a618';
+import { rpc, token, DEMO, errText } from './api.js?v=d340b079';
+import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js?v=d340b079';
+import { UNITS, ACTIVITIES } from './units.js?v=d340b079';
+import * as E from './engine.js?v=d340b079';
+import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js?v=d340b079';
+import { mission, checkBest, CHECK_PASS } from './mission.js?v=d340b079';
+import { icon, tile } from './icons.js?v=d340b079';
+import { bandOf, BANDS, BAND_NAMES } from './bands.js?v=d340b079';
+import { BASELINE_N } from './u1.js?v=d340b079';
+import { SCENARIOS } from './u1s.js?v=d340b079';
 
 let me = null, classes = [], cls = null, tab = pref.get('t-tab2', 'students'), live = null, focus = null, lbMode = 'week';
 const BUILT = UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);
@@ -20,7 +20,7 @@ const pracOf = u => (ACTIVITIES[u] || []).find(a => a.id === 'shift' || a.id ===
 const engChip = bi => (bi.band == null ? '<span class="lvlchip">Not placed</span>' : `<span class="chip mint" title="${BAND_NAMES[bi.band]}">${BANDS[bi.band]}</span>${bi.source === 'teacher' ? ' <span class="note">set by you</span>' : ''}`);
 const viClass = () => (classes.find(x => x.code === cls.code) || cls).vi_a1 !== false;
 const T = () => token.get();
-const TABS = [['students', 'Students'], ['units', 'Units'], ['traps', 'Skills heat map'], ['items', 'Hardest questions'], ['leaderboard', 'Leaderboard'], ['manage', 'Manage class']];
+const TABS = [['students', 'Students'], ['units', 'Units'], ['traps', 'Skills heat map'], ['items', 'Hardest questions'], ['leaderboard', 'Leaderboard'], ['ai', 'AI marking'], ['manage', 'Manage class']];
 
 function header() {
   const m = $('#meta'); if (!m) return;
@@ -126,7 +126,7 @@ function render(quiet = false) {
   $('#refresh').onclick = e => busy(e.target, async () => { try { await load(cls.code); render(); toast('Updated'); } catch (er) { fail(er); } });
   $('#live').onclick = () => { pref.set('t-live', !live); startLive(); render(); };
   const body = $('#body', app);
-  if (focus) tracker(body, focus); else ({ students, units, traps, items, leaderboard, manage })[tab](body);
+  if (focus) tracker(body, focus); else ({ students, units, traps, items, leaderboard, ai: aiTab, manage })[tab](body);
   if (quiet) window.scrollTo(0, y);
 }
 const openStudent = el => $$('[data-id]', el).forEach(r => (r.onclick = e => { e.preventDefault(); focus = r.dataset.id; render(); }));
@@ -228,6 +228,26 @@ function leaderboard(body) {
     <p class="note" style="margin-top:8px">Students see ${boardOn() ? 'the top 10 and their own place (this week and all time)' : 'only their own XP: the class leaderboard is off (Manage class)'}.</p>`;
   $$('[data-lb]', body).forEach(b => (b.onclick = () => { lbMode = b.dataset.lb; render(); }));
   openStudent(body);
+}
+
+// ---------- AI marking: every AI decision on a written answer, with a flag when the teacher disagrees ----------
+async function aiTab(body) {
+  body.innerHTML = '<p class="note">Loading…</p>';
+  let rows;
+  try { rows = await rpc('ec_t_ai_log', { p_token: T(), p_code: cls.code }); }
+  catch (er) { body.innerHTML = `<div class="tcard"><h3>AI marking is not set up yet</h3><p class="note">Run <b>schema_ai.sql</b> in Supabase and deploy the <b>ecl-grade</b> function (see learn/README). Until then written answers are marked by keywords.</p><p class="note">${esc(er.message || '')}</p></div>`; return; }
+  const agree = rows.filter(x => x.ok === x.keyword_ok).length, flagged = rows.filter(x => x.overruled).length;
+  body.innerHTML = `<div class="stats"><div class="stat"><b>${rows.length}</b><span>AI checks (last 300)</span></div><div class="stat"><b>${rows.filter(x => x.ok).length}</b><span>marked right</span></div>
+      <div class="stat"><b>${rows.length ? Math.round(100 * agree / rows.length) : 0}%</b><span>agree with keywords</span></div><div class="stat"><b>${flagged}</b><span>flagged by you</span></div></div>
+    <p class="note">Written answers (Paper 2 at B1/B2, B2 scenario tasks, data responses) are checked by keywords first, then by AI. Flag a decision you disagree with: it is a note for you and does not change marks or XP.</p>
+    ${rows.length ? `<div class="tablewrap"><table class="grid"><tr><th>When</th><th>Student</th><th>Question</th><th>Answer</th><th>AI</th><th>Keywords</th><th></th></tr>
+    ${rows.map(x => `<tr class="ai-row${x.overruled ? ' flagged' : ''}"><td class="note">${esc(new Date(x.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</td>
+      <td>${esc(x.display_name)}${x.is_test ? ' <span class="chip testchip">TEST</span>' : ''}<br><span class="note">${esc(x.unit)} · ${x.band == null ? '' : BANDS[x.band]}</span></td>
+      <td>${esc(x.question)}</td><td class="ai-ans">${esc(x.answer)}<br><span class="note">🤖 ${esc(x.feedback)}</span></td>
+      <td>${x.ok ? '<span class="chip ok">Right</span>' : '<span class="chip gold">Not yet</span>'}<br><span class="note">${(x.hits || []).length}/${x.need ?? ''} points</span></td>
+      <td>${x.keyword_ok == null ? '' : x.keyword_ok ? 'Right' : 'Not yet'}</td>
+      <td><button class="alt small" data-flag="${x.id}" data-on="${!x.overruled}">${x.overruled ? 'Unflag' : 'Flag'}</button></td></tr>`).join('')}</table></div>` : '<p class="note">No AI checks yet.</p>'}`;
+  $$('[data-flag]', body).forEach(b => (b.onclick = async () => { try { await rpc('ec_t_ai_flag', { p_token: T(), p_id: +b.dataset.flag, p_overruled: b.dataset.on === 'true' }); aiTab(body); } catch (er) { fail(er); } }));
 }
 
 // ---------- Manage class: students, PINs, leaderboard switch, new class ----------

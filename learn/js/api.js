@@ -1,6 +1,6 @@
 // Every database call goes through rpc(): Supabase ec_* functions, or a demo store in this browser
 // (demo mode: ?demo=1, or no Supabase settings in ../config.js). Demo logins: demo-01 / 1234, teacher / demo.
-import { xpTotals } from './engine.js?v=7490a618';
+import { xpTotals } from './engine.js?v=d340b079';
 const CFG = window.MARKET_CONFIG || {};
 const PARAMS = new URLSearchParams(location.search);
 export const DEMO = PARAMS.has('demo') || !String(CFG.supabaseUrl || '').trim();
@@ -40,6 +40,31 @@ export async function rpc(fn, args = {}) {
   if (!r.ok) throw new Error((body && body.message) || 'HTTP ' + r.status);
   if (body && typeof body === 'object' && !Array.isArray(body) && body.error) throw new Error(body.error);
   return body;
+}
+
+// AI marking of a written answer by the "ecl-grade" Edge Function. Returns { ok, hits, feedback },
+// or null on any problem (not deployed, no key, daily limit, slow), so the keyword mark stands.
+// Demo mode has no AI; ?demo=1&aidemo=1 imitates it (it agrees with the keywords) so the screens can be tried.
+export async function aiMark(q) {
+  if (DEMO) {
+    if (!PARAMS.has('aidemo')) return null;
+    await new Promise(r => setTimeout(r, 400));
+    const d = db(), u = d.users.find(x => x.id === d.tokens[token.get()]);
+    const out = { ok: !!q.keyword_ok, hits: q.keyword_hits || [], feedback: q.keyword_ok ? 'Well done: your answer makes the points.' : 'Good start. Explain your idea in one more step.' };
+    (d.ai = d.ai || []).push({ id: d.ai.length + 1, user_id: u && u.id, username: u && u.username, display_name: u && u.display_name, is_test: !!(u && u.is_test), unit: q.unit, item: q.item, band: q.band,
+      question: q.question, answer: q.answer, ok: out.ok, hits: out.hits, need: q.need, keyword_ok: q.keyword_ok, feedback: out.feedback, model: 'demo', overruled: false, created_at: new Date().toISOString() });
+    save(d); return out;
+  }
+  const t = token.get(); if (!t) return null;
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 25000);
+  try {
+    const res = await fetch(`${String(CFG.supabaseUrl).replace(/\/$/, '')}/functions/v1/ecl-grade`, {
+      method: 'POST', signal: ctl.signal, headers: { 'Content-Type': 'application/json', apikey: String(CFG.supabaseAnonKey || '') },
+      body: JSON.stringify({ token: t, ...q, keyword_hits: undefined })
+    });
+    const body = await res.json().catch(() => null);
+    return res.ok && body && typeof body.ok === 'boolean' && Array.isArray(body.hits) ? body : null;
+  } catch { return null; } finally { clearTimeout(timer); }
 }
 
 // ---------- demo store (same behaviour as the SQL functions, kept in localStorage) ----------
@@ -85,6 +110,9 @@ function demo(fn, a) {
     case 'ec_t_class': { teacher(); const c = cls(a.p_code), st = d.users.filter(u => u.class_code === c.code && u.role === 'student');
       out = { code: c.code, name: c.name, open_units: c.open_units, vi_a1: c.vi_a1 !== false, students: st.map(u => ({ id: u.id, username: u.username, full_name: u.full_name, display_name: u.display_name, last_seen: u.last_seen || null, locked: false, eng_band: u.eng_band ?? null, is_test: !!u.is_test })),
         attempts: d.attempts.filter(x => st.some(u => u.id === x.user_id)) }; break; }
+    case 'ec_t_ai_log': { teacher(); const c = cls(a.p_code), ids = new Set(d.users.filter(u => u.class_code === c.code).map(u => u.id));
+      out = (d.ai || []).filter(x => ids.has(x.user_id)).slice().reverse(); break; }
+    case 'ec_t_ai_flag': { teacher(); const x = (d.ai || []).find(r => r.id === +a.p_id); if (x) x.overruled = !!a.p_overruled; out = null; break; }
     case 'ec_t_set_band': { teacher(); const u = d.users.find(x => x.id === a.p_user); if (u) u.eng_band = a.p_band == null ? null : +a.p_band; out = null; break; }
     case 'ec_t_set_vi': teacher(); cls(a.p_code).vi_a1 = !!a.p_on; out = null; break;
     case 'ec_t_add_test': { teacher(); const c = cls(a.p_code), b = Math.max(0, Math.min(3, +a.p_band || 0)), lv = ['A1', 'A2', 'B1', 'B2'][b], un = `${c.code}-test-${lv.toLowerCase()}`;

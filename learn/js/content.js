@@ -1,9 +1,9 @@
 // Every built unit's content, keyed by unit id, plus merged lookups for traps and items (used by the teacher console).
-import * as U24 from './u24.js?v=7490a618';
-import * as U25 from './u25.js?v=7490a618';
-import * as U1 from './u1.js?v=7490a618';
-import { SCENARIOS } from './u1s.js?v=7490a618';
-import { EQ_TITLES } from './u24.js?v=7490a618';
+import * as U24 from './u24.js?v=d340b079';
+import * as U25 from './u25.js?v=d340b079';
+import * as U1 from './u1.js?v=d340b079';
+import { SCENARIOS } from './u1s.js?v=d340b079';
+import { EQ_TITLES } from './u24.js?v=d340b079';
 
 // Section 1 units share one glossary and one set of traps; each has its own cards and questions. BANDED: English adapts to the band.
 const terms = u => [...new Set([...JSON.stringify([U1.LEARN[u], U1.MCQ[u], U1.P2[u]]).matchAll(/\[\[([^|\]]+)(?:\|[^\]]*)?\]\]/g)].map(m => m[1]))].filter(t => U1.GLOSSARY[t]);
