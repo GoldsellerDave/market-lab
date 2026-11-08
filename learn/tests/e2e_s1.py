@@ -77,34 +77,44 @@ def mcq_round(p, unit, band, size=None, use_pill=False):
         if p.locator('text=Paper 1 practice done').count(): break
     p.wait_for_selector('text=Paper 1 practice done'); p.wait_for_selector('#saved:has-text("Saved")')
 
-def p2_round(p, unit, band, size=None):
+def p2_round(p, unit, band, size=None, back=False):
+    """Every question is a ladder: order -> word bank -> frame -> write it yourself, starting at the student's band."""
     p.goto(BASE + f'/learn/?demo=1#/u/{unit}/p2')
     qs = [q for q in D['P2'] if q['unit'] == unit]
+    full = ' '.join(' '.join(c['chain']) for c in qs)   # every model chain: makes every keyword group of the unit
+    names = ['order', 'bank', 'frame', 'free']
     for i in range(len(qs)):
         p.wait_for_selector('#work')
-        if band == 0:
-            ok(p.locator('ol.chain .ctile').count() >= 3, 'A1 Paper 2: ordering task')
-            texts = [norm(x) for x in p.locator('.ctile .ctext').all_inner_texts()]
-            q = next(q for q in qs if sorted(norm(c) for c in q['chain']) == sorted(texts))
-            if i == 0 and size: shot(p, size, '3-p2-order'); no_overflow(p, size + ' p2 order')
-            for target, line in enumerate(q['chain']):
-                cur = [norm(x) for x in p.locator('.ctile .ctext').all_inner_texts()].index(norm(line))
-                for _ in range(cur - target): p.click(f'[data-up="{cur}"]'); cur -= 1
-            p.click('#chk')
-        elif band == 1:
-            ok(p.locator('select.gap').count() >= 2 and p.locator('.bank .chip').count() >= 3, 'A2 Paper 2: word bank with gaps')
-            q = next(q for q in qs if len(q['gaps']) == p.locator('select.gap').count() and all(g in p.inner_text('.bank') for g in q['gaps']) and norm(q['chain'][0].split(q['gaps'][0])[0]) in norm(p.inner_text('.gapped')))
-            if i == 0 and size: shot(p, size, '4-p2-bank'); no_overflow(p, size + ' p2 bank')
-            for k, gword in enumerate(q['gaps']): p.select_option(f'select.gap[data-g="{k}"]', gword)
-            p.click('#chk')
-        else:
-            ok(p.locator('textarea#ans').count() == 1, 'B1/B2 Paper 2: written answer')
-            ok((p.locator('p.frame').count() == 1) == (band == 2), f'sentence frame only at B1 (band {band})')
-            ok(p.locator('#hint').count() == 0, f'no hint button for written answers (band {band})')
-            if i == 0 and size: shot(p, size, f'5-p2-band{band}'); no_overflow(p, f'{size} p2 band {band}')
-            # a full answer: every model chain sentence for all questions of the unit gives every keyword group
-            p.fill('#ans', ' '.join(' '.join(c['chain']) for c in qs)); p.click('#chk')
-        p.wait_for_selector('#nx'); ok(p.locator('#fb .fb.ok').count() == 1, f'{unit} p2 q{i+1} band {band}: full marks')
+        ok(p.locator('.ladder li.on').count() == 1 and names.index(['order', 'bank', 'frame', 'free'][min(band, 3)]) == [li.get_attribute('class') for li in p.locator('.ladder li').all()].index('on'), f'{unit} p2 q{i+1}: starts at step {min(band, 3) + 1} for band {band}')
+        if back and i == 0 and band > 0:
+            p.click('#easier'); p.wait_for_selector('.ladder li.on'); ok([li.get_attribute('class') for li in p.locator('.ladder li').all()].index('on') == band - 1, 'Need more help? goes one step easier')
+            p.locator('.ladder [data-step]').last.click(); p.wait_for_selector('#work')
+        steps = 0
+        while True:
+            steps += 1
+            if p.locator('ol.chain').count():
+                texts = [norm(x) for x in p.locator('.ctile .ctext').all_inner_texts()]
+                q = next(q for q in qs if sorted(norm(c) for c in q['chain']) == sorted(texts))
+                if size and 'p2order' not in DONE: DONE.add('p2order'); shot(p, size, '3-p2-order'); no_overflow(p, size + ' p2 order')
+                for target, line in enumerate(q['chain']):
+                    cur = [norm(x) for x in p.locator('.ctile .ctext').all_inner_texts()].index(norm(line))
+                    for _ in range(cur - target): p.click(f'[data-up="{cur}"]'); cur -= 1
+                p.click('#chk')
+            elif p.locator('select.gap').count():
+                q = next(q for q in qs if len(q['gaps']) == p.locator('select.gap').count() and all(g in p.inner_text('.bank') for g in q['gaps']) and norm(q['chain'][0].split(q['gaps'][0])[0]) in norm(p.inner_text('.gapped')))
+                if size and 'p2bank' not in DONE: DONE.add('p2bank'); shot(p, size, '4-p2-bank'); no_overflow(p, size + ' p2 bank')
+                for k, gword in enumerate(q['gaps']): p.select_option(f'select.gap[data-g="{k}"]', gword)
+                p.click('#chk')
+            else:
+                ok(p.locator('textarea#ans').count() == 1, 'Paper 2: written answer')
+                is_frame = p.locator('.ladder li.on').inner_text().find('frame') >= 0
+                ok((p.locator('p.frame').count() == 1) == is_frame, 'sentence frame only on the frame step')
+                if size and f'p2w{is_frame}' not in DONE: DONE.add(f'p2w{is_frame}'); shot(p, size, f'5-p2-{"frame" if is_frame else "free"}'); no_overflow(p, size + ' p2 writing')
+                p.fill('#ans', full); p.click('#chk')
+            p.wait_for_selector('#up, #nx'); ok(p.locator('#fb .fb.ok').count() == 1, f'{unit} p2 q{i+1} step {steps} band {band}: all right')
+            if p.locator('#nx').count(): break
+            p.click('#up'); p.wait_for_selector('#work')
+        ok(steps == 4 - min(band, 3), f'{unit} p2 q{i+1}: climbed {steps} steps from band {band}')
         p.click('#nx')
     p.wait_for_selector('text=Paper 2 builder done'); p.wait_for_selector('#saved:has-text("Saved")')
     return p.inner_text('main')
@@ -251,7 +261,7 @@ def run(p, size):
     # teacher sets A2, B1, B2 in turn
     for b in (1, 2, 3):
         teacher(p, size if b == 2 else None, band=b)
-        student(p, 'demo-01'); mcq_round(p, '1.3', b, size if b == 2 else None, use_pill=(b == 2)); p2_round(p, '1.3', b, size); logout(p)
+        student(p, 'demo-01'); mcq_round(p, '1.3', b, size if b == 2 else None, use_pill=(b == 2)); p2_round(p, '1.3', b, size, back=(b == 2)); logout(p)
     teacher(p, None, band='auto')
     # automatic band changes: demo-02 starts at B1 (9/12), three strong runs move them to B2
     test_accounts(p, size)

@@ -268,7 +268,17 @@ export const P2 = {
       [g('economic good is scarce', ['economic good is scarce', 'economic goods are scarce', 'scarce', 'limited'], 'Is an economic good scarce?'),
         g('opportunity cost', ['opportunity cost', 'uses resources', 'use resources', 'cost to produce'], 'Does making it have an opportunity cost?'),
         g('free good: not scarce / no opportunity cost', ['not scarce', 'no opportunity cost', 'unlimited', 'enough for everyone', 'zero opportunity cost'], 'What is different about a free good?'),
-        g('examples', ['air', 'sunlight', 'sun light', 'sea water', 'seawater', 'wind'], 'Give an example of a free good, like air.')])
+        g('examples', ['air', 'sunlight', 'sun light', 'sea water', 'seawater', 'wind'], 'Give an example of a free good, like air.')]),
+    { ...P('p11-analyse', 2, 6, 'Analyse why the basic economic problem means that consumers have to make choices.', 'Analyse: why must [[consumer|consumers]] make [[choice|choices]]? Use the [[basic economic problem]].', 'Hãy phân tích: vì sao vấn đề kinh tế cơ bản khiến người tiêu dùng phải lựa chọn?',
+      ['Consumers have {unlimited} wants: they always want more goods and services.', 'But their income and time are {limited}.', 'This means there is {scarcity}: they cannot buy everything they want.',
+        'So consumers must {choose} which wants to satisfy.', 'When they choose one good, they give up the {next} best alternative.', 'This lost alternative is the {opportunity} cost of their choice.'],
+      ['free', 'profit'], 'Consumers have … wants. But their … is limited. This means that … . As a result, they must … . When they choose one good, they give up … . This is called … .',
+      [g('unlimited wants', ['unlimited want', 'infinite want', 'wants are unlimited', 'wants are infinite', 'want more', 'endless want', 'many want'], 'What is true about consumers\' wants?'),
+        g('limited income or resources', ['limited income', 'limited money', 'limited resource', 'income is limited', 'money is limited', 'not enough money', 'finite', 'limited time', 'time is limited', 'are limited', 'is limited'], 'What is true about their income and time?'),
+        g('scarcity: cannot have everything', ['scarcity', 'scarce', 'cannot buy everything', 'can\'t buy everything', 'cannot have everything', 'cannot afford everything', 'not enough to buy'], 'So what problem do they face?'),
+        g('they must choose', ['choose', 'choice', 'decide', 'decision'], 'So what must consumers do?'),
+        g('they give up the next best alternative', ['next best', 'give up', 'gave up', 'given up', 'forgo', 'sacrific'], 'What happens to the option they do not choose?'),
+        g('this is the opportunity cost', ['opportunity cost'], 'What is the name for what they give up?')]), cmd: 'analyse' }
   ],
   '1.2': [
     P('p12-define', 0, 4, 'Identify the four factors of production and state the reward for each.', 'Name the four [[factors of production]] and the [[reward]] for each.', 'Hãy kể tên bốn yếu tố sản xuất và thu nhập của mỗi yếu tố.',
@@ -281,7 +291,18 @@ export const P2 = {
       [g('education or training', ['education', 'training', 'school', 'course', 'teach'], 'Name one way, such as education or training.'),
         g('more skills', ['skill', 'knowledge', 'qualif', 'better at'], 'What does training give workers?'),
         g('health care', ['health', 'hospital', 'medical', 'doctor'], 'Name a second way, such as health care.'),
-        g('more productive', ['productive', 'produce more', 'work better', 'fewer days', 'less sick', 'more output', 'efficient'], 'Why do healthy, skilled workers help the economy?')])
+        g('more productive', ['productive', 'produce more', 'work better', 'fewer days', 'less sick', 'more output', 'efficient'], 'Why do healthy, skilled workers help the economy?')]),
+    { ...P('p12-analyse', 2, 6, 'Analyse why labour may be more geographically mobile than land.', 'Analyse: why can [[labour]] move to a new place more easily than [[land]]? ([[geographical mobility]])', 'Hãy phân tích: vì sao lao động có thể di chuyển về địa lý dễ hơn đất đai?',
+      ['Geographical mobility means how easily a factor can move to a different {place}.', 'Land cannot {move}: a field in Củ Chi stays in Củ Chi.', 'So land is completely geographically {immobile}.',
+        'Workers can move to another city or {country} to find a job.', 'For example, a farmer from An Giang can move to Ho Chi Minh City for higher {wages}.',
+        'So labour is more geographically mobile than land, although family ties and high {housing} costs can stop some workers moving.'],
+      ['profit', 'skills'], 'Geographical mobility means … . Land cannot … , so land is … . Workers can … . For example, … . So labour is more mobile than land, although … .',
+      [g('meaning: moving to a different place', ['different place', 'another place', 'new place', 'different area', 'location', 'region', 'move place'], 'What does geographical mobility mean?'),
+        g('land cannot move', ['land cannot move', 'land can\'t move', 'cannot be moved', 'can\'t be moved', 'land does not move', 'land is fixed', 'stays in'], 'Can land move?'),
+        g('so land is immobile', ['immobile', 'not mobile', 'not geographically mobile', 'no mobility', 'zero mobility'], 'So how mobile is land?'),
+        g('workers can move to find work', ['workers can move', 'labour can move', 'people can move', 'worker can move', 'move to another', 'move to a different', 'migrate', 'migration', 'move to the city', 'move to ho chi minh'], 'What can workers do?'),
+        g('reason or example: jobs and higher wages', ['wage', 'job', 'pay', 'salary', 'income', 'work in'], 'Why would a worker move? Give an example.'),
+        g('limits: family or housing costs', ['family', 'housing', 'house', 'rent', 'cost of living', 'language', 'friends', 'home'], 'What can stop some workers from moving?')]), cmd: 'analyse' }
   ],
   '1.3': [
     P('p13-define', 0, 3, 'Define opportunity cost and give an example.', 'What is [[opportunity cost]]? Give an example.', 'Chi phí cơ hội là gì? Hãy cho một ví dụ.',
@@ -296,7 +317,17 @@ export const P2 = {
       [g('limited budget', ['limited', 'scarce', 'fixed budget', 'not enough money', 'finite'], 'Is the government\'s money unlimited?'),
         g('one use instead of another', ['instead', 'cannot spend', 'can\'t spend', 'give up', 'gives up', 'forgo'], 'What happens to the other project?'),
         g('names the opportunity cost', ['opportunity cost'], 'Name the opportunity cost.'),
-        g('compares benefits', ['compare', 'benefit', 'most useful', 'best use', 'priority', 'priorit'], 'How does the government decide?')])
+        g('compares benefits', ['compare', 'benefit', 'most useful', 'best use', 'priority', 'priorit'], 'How does the government decide?')]),
+    { ...P('p13-analyse', 2, 6, 'Analyse how opportunity cost affects a student\'s decision to go to university instead of getting a job.', 'Analyse: how does [[opportunity cost]] help a student decide: university or a job?', 'Hãy phân tích: chi phí cơ hội ảnh hưởng thế nào đến quyết định học đại học thay vì đi làm của một học sinh?',
+      ['Opportunity cost is the next best {alternative} given up.', 'If a student goes to university, they cannot {work} full-time at the same time.', 'So the opportunity cost is the {wages} they could have earned from a job.',
+        'The student compares this cost with the {benefits} of university.', 'With a degree they may get a better job and {higher} wages in the future.', 'So the student chooses university if the future benefits are {greater} than the opportunity cost.'],
+      ['rent', 'free'], 'Opportunity cost means … . If a student goes to university, they cannot … . So the opportunity cost is … . The student compares this with … . With a degree, … . So the student will choose university if … .',
+      [g('meaning: next best alternative given up', ['next best', 'alternative', 'given up', 'give up', 'forgo', 'forgone'], 'What is opportunity cost?'),
+        g('cannot work full-time', ['cannot work', 'can\'t work', 'not work', 'no time to work', 'instead of working', 'instead of a job', 'give up a job', 'give up work', 'not get a job'], 'What can the student not do at university?'),
+        g('opportunity cost = wages from a job', ['wage', 'income', 'salary', 'earn', 'money from a job'], 'What exactly is the opportunity cost?'),
+        g('compares the cost with the benefits', ['compare', 'weigh', 'benefit', 'worth'], 'What does the student compare?'),
+        g('future benefit: better job or higher pay', ['better job', 'higher wage', 'higher pay', 'higher income', 'more money in the future', 'future', 'skilled job', 'qualification', 'degree'], 'What can a degree give in the future?'),
+        g('decision: choose if benefits are greater', ['greater', 'more than', 'bigger', 'higher than', 'outweigh', 'larger than', 'worth it'], 'When will the student choose university?')]), cmd: 'analyse' }
   ],
   '1.4': [
     P('p14-inside', 0, 3, 'Explain what a point inside a production possibility curve shows.', 'What does a point INSIDE the [[PPC]] show? Explain.', 'Một điểm nằm bên trong đường PPC cho thấy điều gì? Hãy giải thích.',
@@ -311,7 +342,17 @@ export const P2 = {
       [g('more productive resources', ['productive', 'better machine', 'more efficient', 'quality'], 'What does technology do to resources?'),
         g('produce more', ['produce more', 'make more', 'more goods', 'more output', 'more of both'], 'What can the economy now do?'),
         g('shifts outwards', ['outward', 'out ward', 'shift out', 'moves out', 'shifts to the right', 'outwards'], 'Which way does the PPC shift?'),
-        g('economic growth', ['economic growth', 'growth'], 'What is this called?')])
+        g('economic growth', ['economic growth', 'growth'], 'What is this called?')]),
+    { ...P('p14-analyse', 2, 6, 'Analyse the effect of investment in new capital goods on an economy\'s production possibility curve.', 'Analyse: what happens to a country\'s [[PPC]] when it buys new machines ([[investment]] in [[capital]])?', 'Hãy phân tích: điều gì xảy ra với đường giới hạn khả năng sản xuất (PPC) khi một nền kinh tế đầu tư vào tư liệu sản xuất mới?',
+      ['Investment means buying new {capital} goods, such as machines and factories.', 'This increases the {quantity} and quality of capital in the economy.', 'Workers with better machines are more {productive}.',
+        'So the economy can produce more of {both} goods.', 'This means the PPC shifts {outwards}, away from the origin.', 'Points that were {unattainable} before, outside the old PPC, can now be reached: this is economic growth.'],
+      ['inwards', 'unemployed'], 'Investment means … . This increases … . Workers become … . So the economy can … . This means the PPC … . Points that were … can now be reached.',
+      [g('investment buys new capital goods', ['capital', 'machine', 'equipment', 'tool', 'factory', 'factories', 'technology'], 'What does investment buy?'),
+        g('more or better capital', ['more capital', 'quantity', 'quality', 'better machine', 'new machine', 'more machine', 'increase in capital', 'increases capital'], 'What happens to the economy\'s capital?'),
+        g('workers become more productive', ['productive', 'productivity', 'efficient', 'faster', 'output per'], 'What happens to workers with better machines?'),
+        g('more of both goods can be produced', ['more of both', 'both goods', 'more goods', 'more output', 'produce more', 'make more'], 'What can the economy now produce?'),
+        g('the PPC shifts outwards', ['outward', 'shift out', 'shifts out', 'moves out', 'move out', 'to the right', 'shifts right', 'away from the origin'], 'What happens to the PPC?'),
+        g('economic growth: new points can be reached', ['unattainable', 'economic growth', 'growth', 'outside', 'reach', 'attainable'], 'What can the economy now reach? What is this called?')]), cmd: 'analyse' }
   ]
 };
 

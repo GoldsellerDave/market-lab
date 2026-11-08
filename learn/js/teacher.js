@@ -1,15 +1,15 @@
 // Teacher dashboard, laid out like Checkpoint Quest's: class pills, four stat cards, tabs for Students, Units,
 // Skills heat map, Hardest questions, Leaderboard and Manage class, and a tracker page for each student.
-import { rpc, token, DEMO, errText } from './api.js?v=2c001f3e';
-import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js?v=2c001f3e';
-import { UNITS, ACTIVITIES } from './units.js?v=2c001f3e';
-import * as E from './engine.js?v=2c001f3e';
-import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js?v=2c001f3e';
-import { mission, checkBest, CHECK_PASS } from './mission.js?v=2c001f3e';
-import { icon, tile } from './icons.js?v=2c001f3e';
-import { bandOf, BANDS, BAND_NAMES } from './bands.js?v=2c001f3e';
-import { BASELINE_N } from './u1.js?v=2c001f3e';
-import { SCENARIOS } from './u1s.js?v=2c001f3e';
+import { rpc, token, DEMO, errText } from './api.js?v=152deb46';
+import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js?v=152deb46';
+import { UNITS, ACTIVITIES } from './units.js?v=152deb46';
+import * as E from './engine.js?v=152deb46';
+import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js?v=152deb46';
+import { mission, checkBest, CHECK_PASS } from './mission.js?v=152deb46';
+import { icon, tile } from './icons.js?v=152deb46';
+import { bandOf, BANDS, BAND_NAMES } from './bands.js?v=152deb46';
+import { BASELINE_N } from './u1.js?v=152deb46';
+import { SCENARIOS } from './u1s.js?v=152deb46';
 
 let me = null, classes = [], cls = null, tab = pref.get('t-tab2', 'students'), live = null, focus = null, lbMode = 'week';
 const BUILT = UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);

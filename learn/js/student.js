@@ -1,22 +1,22 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=2c001f3e';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=2c001f3e';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=2c001f3e';
-import * as E from './engine.js?v=2c001f3e';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=2c001f3e';
-import { BASELINE, BASELINE_N } from './u1.js?v=2c001f3e';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=2c001f3e';
-import { createPPC } from './ppc.js?v=2c001f3e';
-import * as S from './sound.js?v=2c001f3e';
-import * as Cel from './celebrate.js?v=2c001f3e';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=2c001f3e';
-import { scene } from './scenes.js?v=2c001f3e';
-import { SHIFTS } from './u25.js?v=2c001f3e';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=2c001f3e';
-import { createDiagram } from './diagram.js?v=2c001f3e';
-import { icon, tile } from './icons.js?v=2c001f3e';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=2c001f3e';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=152deb46';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=152deb46';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=152deb46';
+import * as E from './engine.js?v=152deb46';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=152deb46';
+import { BASELINE, BASELINE_N } from './u1.js?v=152deb46';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=152deb46';
+import { createPPC } from './ppc.js?v=152deb46';
+import * as S from './sound.js?v=152deb46';
+import * as Cel from './celebrate.js?v=152deb46';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=152deb46';
+import { scene } from './scenes.js?v=152deb46';
+import { SHIFTS } from './u25.js?v=152deb46';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=152deb46';
+import { createDiagram } from './diagram.js?v=152deb46';
+import { icon, tile } from './icons.js?v=152deb46';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=152deb46';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -1019,88 +1019,120 @@ function baselineRun() {
 }
 
 // ---------- Paper 2 builder: one model answer, four ways in (order / word bank / frame / free) ----------
+// Paper 2 builder: every question is a ladder of four steps (order, word bank, sentence frame, write it yourself).
+// Students start at the step for their English band and climb to writing the answer alone; they can step back for more help.
+// The question's mark is the mark for the final, unaided answer. "Right first time" (for the band) is judged on the starting step.
+const P2_STEPS = [['order', 'Put in order', '🧩'], ['bank', 'Word bank', '🔤'], ['frame', 'Sentence frame', '🪜'], ['free', 'Write it yourself', '✍️']];
+const P2_LEAD = {
+  order: 'Use ▲ and ▼ to put the sentences in the right order. Together they make the answer.',
+  bank: 'Choose the missing words to complete the answer.',
+  frame: 'Write the answer in your own words. Use the sentence frame to help you.',
+  free: 'Write the answer by yourself.'
+};
+const LINKS = /\b(because|so|this means|which means|therefore|as a result|leads? to|led to|then|causing|causes|so that|meaning)\b/i;
 function p2() {
   wide(true); helpCount = 0;
-  const b = band(), items = C().P2.slice().sort((x, y) => x.level - y.level), t0 = Date.now(), answers = [];
-  const mode = ['order', 'bank', 'frame', 'free'][b];
+  const b = band(), items = C().P2.slice().sort((x, y) => x.level - y.level || x.marks - y.marks), t0 = Date.now(), answers = [];
+  const start = Math.min(3, b ?? 1);
   let i = 0;
   const show = () => {
     if (i >= items.length) return done();
-    const q = items[i], n = q.chain.length, plainQ = b <= 1, rec = { id: q.id, level: q.level, first_try: false, ok: false, score: 0, marks: q.marks, mode };
-    const lead = { order: 'Use ▲ and ▼ to put the sentences in the right order. Together they make the answer.', bank: 'Choose the missing words to complete the answer.', frame: 'Write your answer. Use the sentence frame to help you.', free: 'Write your answer.' }[mode];
-    view(`${backLink()}<div class="row"><b class="grow">Paper 2 builder · question ${i + 1} of ${items.length}</b>${bandChip(b)}</div>
-      <div class="steps" style="margin-top:8px">${items.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
-      <div class="card"><div class="row"><p class="event grow">${plainQ ? rich(q.plain, b) : autoPill(q.q, b)}</p><span class="badge">${q.marks} marks</span></div>
-      ${toolsHTML({ ...q, hint: q.groups.map(x => x.ask).join(' '), stem: q.q }, mode === 'free')}
-      <p class="note">${lead}</p><div id="work"></div><div id="fb" aria-live="polite"></div></div>`);
-    bindTools({ ...q, hint: q.groups.map(x => x.ask).join(' '), stem: q.q });
-    const W = $('#work'), fb = $('#fb');
-    const finishQ = (score, first, model = true, note = '') => {
-      rec.score = score; rec.first_try = first; rec.ok = score === q.marks; answers.push(rec);
-      fb.innerHTML = `<div class="fb ${rec.ok ? 'ok' : 'no'}"><b>${score}/${q.marks}${rec.ok ? (first ? ' · right first time ⭐' : '') : ''}</b>${note}${model ? `<p style="margin:.4em 0 0"><b>Model answer:</b> ${rich(q.chain.map(plainChain).join(' '), Math.min(b, 2))}</p>` : ''}</div>
-        <button id="nx" style="width:100%">${i + 1 < items.length ? 'Next question' : 'See my results'}</button>`;
-      W.querySelectorAll('button,select,textarea').forEach(x => (x.disabled = true));
-      $('#nx').onclick = () => { i++; show(); };
-    };
-    if (mode === 'order') {
-      let ord = E.shuffle(q.chain.map((_, k) => k)); if (ord.every((v, k) => v === k)) ord = ord.slice().reverse();
-      let tries = 0, marked = false;
-      const draw = () => {
-        W.innerHTML = `<ol class="chain">${ord.map((k, pos) => `<li class="ctile${marked ? (k === pos ? ' good' : ' bad') : ''}"><span class="ctext">${rich(plainChain(q.chain[k]), b)}</span>
-            <span class="cmove"><button class="alt small" data-up="${pos}" ${pos === 0 ? 'disabled' : ''} aria-label="Move up">▲</button><button class="alt small" data-down="${pos}" ${pos === n - 1 ? 'disabled' : ''} aria-label="Move down">▼</button></span></li>`).join('')}</ol>
-          <button id="chk" style="width:100%">Check my order</button>`;
-        const swap = (x, y) => { [ord[x], ord[y]] = [ord[y], ord[x]]; marked = false; draw(); };
-        $$('[data-up]', W).forEach(x => (x.onclick = () => swap(+x.dataset.up, +x.dataset.up - 1)));
-        $$('[data-down]', W).forEach(x => (x.onclick = () => swap(+x.dataset.down, +x.dataset.down + 1)));
-        $('#chk', W).onclick = () => {
-          tries++;
-          const frac = orderScore(ord, n);
-          if (frac === 1) return finishQ(q.marks, tries === 1, false);
-          if (tries >= 2) { marked = true; draw(); return finishQ(marksFor(frac, q.marks), false); }
-          marked = true; draw();
-          fb.innerHTML = `<div class="fb no"><b>${Math.round(frac * n)} of ${n} in the right place.</b> Green = right place. Move the red ones and check again.</div>`;
+    const q = items[i], rec = { id: q.id, level: q.level, first_try: false, ok: false, score: 0, marks: q.marks, start, steps: [] };
+    let s = start, reached = start;
+    const ladder = () => `<ol class="ladder" aria-label="Steps for this question">${P2_STEPS.map(([k, label, ic], j) => {
+        const cls = j === s ? 'on' : rec.steps.some(x => x.s === j) ? 'done' : j <= reached || j < start ? 'open' : 'locked';
+        return `<li class="${cls}">${cls === 'locked' || j === s ? `<span>${ic} ${label}</span>` : `<button class="linkbtn" data-step="${j}">${ic} ${label}</button>`}</li>`; }).join('')}</ol>`;
+    const stage = () => {
+      const mode = P2_STEPS[s][0], plainQ = b <= 1 && mode !== 'free';
+      view(`${backLink()}<div class="row"><b class="grow">Paper 2 builder · question ${i + 1} of ${items.length}</b>${bandChip(b)}</div>
+        <div class="steps" style="margin-top:8px">${items.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
+        <div class="card"><div class="row"><p class="event grow">${q.cmd === 'analyse' ? '<span class="cmdtag">Analyse</span> ' : ''}${plainQ ? rich(q.plain, b) : autoPill(q.q, b)}</p><span class="badge">${q.marks} marks</span></div>
+        ${ladder()}
+        ${toolsHTML({ ...q, hint: q.groups.map(x => x.ask).join(' '), stem: q.q }, mode === 'free')}
+        <p class="note">${P2_LEAD[mode]}${q.cmd === 'analyse' && mode !== 'order' ? ' Analyse = explain each step and link it to the next one (because… so… this means…).' : ''}</p>
+        <div id="work"></div><div id="fb" aria-live="polite"></div>
+        ${s > 0 ? `<p class="center" style="margin:10px 0 0"><button class="linkbtn" id="easier">Need more help? Go back to: ${P2_STEPS[s - 1][2]} ${P2_STEPS[s - 1][1]}</button></p>` : ''}</div>`);
+      bindTools({ ...q, hint: q.groups.map(x => x.ask).join(' '), stem: q.q });
+      $$('[data-step]').forEach(x => (x.onclick = () => { s = +x.dataset.step; stage(); }));
+      $('#easier')?.addEventListener('click', () => { s--; stage(); });
+      const W = $('#work'), fb = $('#fb'), n = q.chain.length;
+      // one step finished: record it, then offer the next step (or the next question after writing it yourself)
+      const stepDone = (score, first, note = '', model = false) => {
+        if (s === start && !rec.steps.some(x => x.s === s)) rec.first_try = first;
+        rec.steps.push({ s, score, first });
+        const last = s === 3, full = score === q.marks;
+        if (last) { rec.score = Math.max(rec.score, score); rec.ok = rec.score === q.marks; }
+        reached = Math.max(reached, s + 1);
+        fb.innerHTML = `<div class="fb ${full ? 'ok' : 'no'}"><b>${mode === 'order' || mode === 'bank' ? (full ? 'All right! ⭐' : 'Done. Look at the right answer above.') : `${score}/${q.marks}${full && first ? ' · right first time ⭐' : ''}`}</b>${note}
+          ${model ? `<p style="margin:.4em 0 0"><b>Model answer:</b> ${rich(q.chain.map(plainChain).join(' '), Math.min(b, 2))}</p>` : ''}</div>
+          ${last ? `<button id="nx" style="width:100%">${i + 1 < items.length ? 'Next question' : 'See my results'}</button>`
+            : `<button id="up" style="width:100%">Next step: ${P2_STEPS[s + 1][2]} ${P2_STEPS[s + 1][1]} →</button>`}`;
+        W.querySelectorAll('button,select,textarea').forEach(x => (x.disabled = true));
+        $('#easier')?.remove();
+        if (last) $('#nx').onclick = () => { answers.push(rec); i++; show(); };
+        else $('#up').onclick = () => { s++; stage(); };
+      };
+      if (mode === 'order') {
+        let ord = E.shuffle(q.chain.map((_, k) => k)); if (ord.every((v, k) => v === k)) ord = ord.slice().reverse();
+        let tries = 0, marked = false;
+        const draw = () => {
+          W.innerHTML = `<ol class="chain">${ord.map((k, pos) => `<li class="ctile${marked ? (k === pos ? ' good' : ' bad') : ''}"><span class="ctext">${rich(plainChain(q.chain[k]), b)}</span>
+              <span class="cmove"><button class="alt small" data-up="${pos}" ${pos === 0 ? 'disabled' : ''} aria-label="Move up">▲</button><button class="alt small" data-down="${pos}" ${pos === n - 1 ? 'disabled' : ''} aria-label="Move down">▼</button></span></li>`).join('')}</ol>
+            <button id="chk" style="width:100%">Check my order</button>`;
+          const swap = (x, y) => { [ord[x], ord[y]] = [ord[y], ord[x]]; marked = false; draw(); };
+          $$('[data-up]', W).forEach(x => (x.onclick = () => swap(+x.dataset.up, +x.dataset.up - 1)));
+          $$('[data-down]', W).forEach(x => (x.onclick = () => swap(+x.dataset.down, +x.dataset.down + 1)));
+          $('#chk', W).onclick = () => {
+            tries++; const frac = orderScore(ord, n);
+            if (frac === 1) { marked = true; draw(); return stepDone(q.marks, tries === 1); }
+            if (tries >= 2) { ord = q.chain.map((_, k) => k); marked = true; draw(); return stepDone(marksFor(frac, q.marks), false); }
+            marked = true; draw();
+            fb.innerHTML = `<div class="fb no"><b>${Math.round(frac * n)} of ${n} in the right place.</b> Green = right place. Move the red ones and check again.</div>`;
+          };
         };
-      };
-      draw();
-    }
-    if (mode === 'bank') {
-      const gaps = gapsOf(q.chain), words = E.shuffle([...new Set([...gaps, ...(q.bank || [])])]);
-      let tries = 0, gi = 0;
-      W.innerHTML = `<div class="bank">${words.map(x => `<span class="chip mint">${esc(x)}</span>`).join(' ')}</div>
-        <div class="gapped">${q.chain.map(s => `<p>${esc(s).replace(/\{([^}]*)\}/g, () => `<select class="gap" data-g="${gi++}" aria-label="Missing word ${gi}"><option value="">…</option>${words.map(x => `<option>${esc(x)}</option>`).join('')}</select>`)}</p>`).join('')}</div>
-        <button id="chk" style="width:100%">Check</button>`;
-      $('#chk', W).onclick = () => {
-        const sel = $$('select.gap', W); if (sel.some(s => !s.value)) return (fb.innerHTML = '<div class="fb tip"><b>Choose a word for every gap first.</b></div>');
-        tries++;
-        const right = sel.filter((s, k) => s.value === gaps[k]); sel.forEach((s, k) => { s.classList.toggle('good', s.value === gaps[k]); s.classList.toggle('bad', s.value !== gaps[k]); if (s.value === gaps[k]) s.disabled = true; });
-        const frac = right.length / gaps.length;
-        if (frac === 1) return finishQ(q.marks, tries === 1, false);
-        if (tries >= 2) return finishQ(marksFor(frac, q.marks), false);
-        fb.innerHTML = `<div class="fb no"><b>${right.length} of ${gaps.length} right.</b> Change the red ones and check again.</div>`;
-      };
-    }
-    if (mode === 'frame' || mode === 'free') {
-      let tries = 0, best = 0;
-      W.innerHTML = `${mode === 'frame' ? `<p class="frame">${esc(q.frame)}</p>` : ''}<textarea id="ans" aria-label="Your answer" style="min-height:150px"></textarea>
-        <button id="chk" style="width:100%">Check my answer</button>`;
-      $('#chk', W).onclick = async () => {
-        const v = $('#ans').value; if (!v.trim()) return (fb.innerHTML = '<div class="fb tip"><b>Write an answer first.</b></div>');
-        tries++; rec.text = v.slice(0, 600);
-        const m = await markWritten(v, q.groups, q.need, { item: q.id, q: q.q, model: q.chain.map(plainChain).join(' ') }, $('#chk', W)); best = Math.max(best, m.score); rec.by = m.by;
-        const pills = `<div>${q.groups.map(x => `<span class="pill ${m.hits.includes(x.label) ? 'hit' : 'miss'}">${m.hits.includes(x.label) ? '✔' : '…'} ${esc(x.label)}</span>`).join('')}</div>`;
-        if (m.ok || tries >= 2) return finishQ(best, m.ok && tries === 1, true, pills + aiNote(m));
-        fb.innerHTML = `<div class="fb no"><b>${m.score}/${q.marks} so far. Improve your answer once.</b>${pills}${aiNote(m)}${m.missing.map(x => `<p style="margin:.3em 0 0">• ${esc(x.ask)}</p>`).join('')}</div>`;
-        $('#chk', W).textContent = 'Check again';
-      };
-    }
+        draw();
+      }
+      if (mode === 'bank') {
+        const gaps = gapsOf(q.chain), words = E.shuffle([...new Set([...gaps, ...(q.bank || [])])]);
+        let tries = 0, gi = 0;
+        W.innerHTML = `<div class="bank">${words.map(x => `<span class="chip mint">${esc(x)}</span>`).join(' ')}</div>
+          <div class="gapped">${q.chain.map(t => `<p>${esc(t).replace(/\{([^}]*)\}/g, () => `<select class="gap" data-g="${gi++}" aria-label="Missing word ${gi}"><option value="">…</option>${words.map(x => `<option>${esc(x)}</option>`).join('')}</select>`)}</p>`).join('')}</div>
+          <button id="chk" style="width:100%">Check</button>`;
+        $('#chk', W).onclick = () => {
+          const sel = $$('select.gap', W); if (sel.some(x => !x.value)) return (fb.innerHTML = '<div class="fb tip"><b>Choose a word for every gap first.</b></div>');
+          tries++;
+          const right = sel.filter((x, k) => x.value === gaps[k]); sel.forEach((x, k) => { x.classList.toggle('good', x.value === gaps[k]); x.classList.toggle('bad', x.value !== gaps[k]); if (x.value === gaps[k]) x.disabled = true; });
+          const frac = right.length / gaps.length;
+          if (frac === 1) return stepDone(q.marks, tries === 1);
+          if (tries >= 2) { sel.forEach((x, k) => { x.value = gaps[k]; x.classList.remove('bad'); x.classList.add('fixgap'); }); return stepDone(marksFor(frac, q.marks), false); }
+          fb.innerHTML = `<div class="fb no"><b>${right.length} of ${gaps.length} right.</b> Change the red ones and check again.</div>`;
+        };
+      }
+      if (mode === 'frame' || mode === 'free') {
+        let tries = 0, best = 0;
+        W.innerHTML = `${mode === 'frame' ? `<p class="frame">${esc(q.frame)}</p>` : ''}<textarea id="ans" aria-label="Your answer" style="min-height:${q.marks > 4 ? 200 : 150}px"></textarea>
+          <button id="chk" style="width:100%">Check my answer</button>`;
+        $('#chk', W).onclick = async () => {
+          const v = $('#ans').value; if (!v.trim()) return (fb.innerHTML = '<div class="fb tip"><b>Write an answer first.</b></div>');
+          tries++; if (mode === 'free') rec.text = v.slice(0, 900);
+          const m = await markWritten(v, q.groups, q.need, { item: q.id, q: q.q, model: q.chain.map(plainChain).join(' '), cmd: q.cmd }, $('#chk', W)); best = Math.max(best, m.score); rec.by = m.by;
+          const pills = `<div>${q.groups.map(x => `<span class="pill ${m.hits.includes(x.label) ? 'hit' : 'miss'}">${m.hits.includes(x.label) ? '✔' : '…'} ${esc(x.label)}</span>`).join('')}</div>`;
+          const capNote = m.listOnly ? '<p style="margin:.4em 0 0"><b>Tip:</b> an Analyse answer must link the points: use because, so, this means, as a result. A list gets at most 2 marks.</p>' : '';
+          if (m.ok || tries >= 2) return stepDone(best, m.ok && tries === 1, pills + aiNote(m) + capNote, true);
+          fb.innerHTML = `<div class="fb no"><b>${m.score}/${q.marks} so far. Improve your answer once.</b>${pills}${aiNote(m)}${capNote}${m.missing.map(x => `<p style="margin:.3em 0 0">• ${esc(x.ask)}</p>`).join('')}</div>`;
+          $('#chk', W).textContent = 'Check again';
+        };
+      }
+    };
+    stage();
   };
   const done = async () => {
     wide(false);
-    const score = answers.reduce((s, a) => s + a.score, 0), max = items.reduce((s, q) => s + q.marks, 0);
+    const score = answers.reduce((t, a) => t + a.score, 0), max = items.reduce((t, q) => t + q.marks, 0);
     const a = { unit: U, activity: 'p2', level_start: 0, level_end: 0, score, max_score: max, seconds: Math.round((Date.now() - t0) / 1000), answers: [...answers, { id: 'meta', band: b, help: helpCount }] };
     const xp = E.xpForNew(history, a), before = bandInfo().band, wasDone = missionDone();
     view(`<div class="narrow"><div class="tcard" style="text-align:center"><h1>Paper 2 builder done</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${score} / ${max}</p>
-      <p class="note">marks</p>${xpLine(xp)}<p class="note" id="saved">Saving…</p><p id="lvl"></p></div>
+      <p class="note">marks for the answers you wrote yourself</p>${xpLine(xp)}<p class="note" id="saved">Saving…</p><p id="lvl"></p></div>
       <div class="row"><a class="btn" href="#/u/${U}/p2">Try again</a><a class="btn alt" href="#/u/${U}">Back to ${U}</a></div></div>`);
     const ok = await saveAttempt(a);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
@@ -1336,10 +1368,13 @@ async function markWritten(text, groups, need, ctx, btn) {
   const kw = E.markShort(text, groups, need);
   const old = btn && btn.textContent; if (btn) { btn.disabled = true; btn.textContent = 'Checking your answer… 🤖'; }
   const ai = await aiMark({ unit: U, item: ctx.item, question: ctx.q, context: String(ctx.context || '').replace(/\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/g, (m, k, s) => s || k),
-    model: ctx.model || '', points: groups.map(g => g.label), need, answer: text, band: band(), name: String(me.display_name || '').split(/\s+/)[0],
+    model: ctx.model || '', command: ctx.cmd || 'explain', points: groups.map(g => g.label), need, answer: text, band: band(), name: String(me.display_name || '').split(/\s+/)[0],
     keyword_ok: kw.ok, keyword_hits: kw.hits });
   if (btn) { btn.disabled = false; btn.textContent = old; }
-  if (!ai) return { ...kw, by: 'keywords' };
+  if (!ai) {
+    if (ctx.cmd === 'analyse' && kw.score > 2 && !LINKS.test(text)) return { ...kw, score: 2, ok: false, listOnly: true, by: 'keywords' };
+    return { ...kw, by: 'keywords' };
+  }
   const hits = groups.filter(g => ai.hits.includes(g.label)).map(g => g.label);
   return { score: Math.min(hits.length, need), max: need, ok: hits.length >= need, hits, missing: groups.filter(g => !hits.includes(g.label)), by: 'ai', feedback: ai.feedback };
 }
