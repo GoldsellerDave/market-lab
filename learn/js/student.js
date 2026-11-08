@@ -1,16 +1,21 @@
-// Student app: sign in, unit map (2.1 to 2.6), and the activities of every built unit (2.4 Price determination, 2.5 Price changes).
+// Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
+// Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
 import { rpc, token, DEMO, errText } from './api.js';
-import { $, $$, esc, view, toast, pct, pref, busy } from './ui.js';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js';
 import { UNITS, ACTIVITIES } from './units.js';
 import * as E from './engine.js';
 import { CONTENT, TRAPS } from './content.js';
 import { SHIFTS } from './u25.js';
 import { genEq, nextEqKind, LEARN_MARKET } from './u24.js';
 import { createDiagram } from './diagram.js';
+import { icon, tile } from './icons.js';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, CHECK_N, BADGE } from './mission.js';
+const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
 const C = () => CONTENT[U];
-const uName = (u = U) => `${u} ${(UNITS.find(x => x.id === u) || {}).title || ''}`;
+const uTitle = (u = U) => (UNITS.find(x => x.id === u) || {}).title || '';
+const uName = (u = U) => `${u} ${uTitle(u)}`;
 const backLink = () => `<p><a href="#/u/${U}">← ${esc(uName())}</a></p>`;
 const VI_ALL = Object.assign({}, ...Object.values(CONTENT).map(c => c.VI || {}));
 const vi = () => pref.get('vi', false);
@@ -23,6 +28,11 @@ const go = h => { if (location.hash === h) route(); else location.hash = h; };
 const wide = on => document.getElementById('app').classList.toggle('play', on);
 window.addEventListener('hashchange', () => wide(false));
 const LEVELED = new Set(['shift', 'eqm', 'mcq']);
+const TICK = `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const BUILT = () => UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);
+const openUnits = () => BUILT().filter(u => (me.open_units || []).includes(u));
+const vnDay = iso => new Date(new Date(iso).getTime() + 7 * 3600e3).toISOString().slice(0, 10);
+const today = () => vnDay(new Date().toISOString());
 
 // ---------- saving (queued, so a Wi-Fi drop never loses a run) ----------
 const QK = DEMO ? 'ecl:demo:pending' : 'ecl:pending';
@@ -31,6 +41,7 @@ const writeQ = q => { try { localStorage.setItem(QK, JSON.stringify(q)); } catch
 async function saveAttempt(a) {
   history.push({ ...a, created_at: new Date().toISOString() });
   writeQ([...readQ(), a]);
+  header();
   return flush();
 }
 async function flush() {
@@ -47,25 +58,37 @@ async function flush() {
 }
 window.addEventListener('online', () => flush());
 
-// ---------- header ----------
+// ---------- header and bottom navigation ----------
 function header() {
-  $('#who').textContent = me ? me.display_name + (DEMO ? ' · demo' : '') : (DEMO ? 'Demo mode' : '');
-  const out = $('#out'); out.hidden = !me;
-  out.onclick = async () => { try { await rpc('ec_logout', { p_token: token.get() }); } catch { } token.set(null); me = null; history = []; header(); go('#/'); };
+  const m = $('#meta'); if (!m) return;
+  if (!me) { m.innerHTML = DEMO ? '<span class="pill">Demo mode</span>' : ''; return; }
+  m.innerHTML = `<span class="pill xp" title="Your XP">${E.xpTotals(history).total} XP</span>${DEMO ? '<span class="pill">Demo</span>' : ''}<button class="linkbtn" id="out">Sign out</button>`;
+  $('#out').onclick = async () => { try { await rpc('ec_logout', { p_token: token.get() }); } catch { } token.set(null); me = null; history = []; header(); nav(null); go('#/'); };
+}
+const NAV = [['', 'Home', 'home'], ['units', 'Units', 'units'], ['review', 'Review', 'review'], ['games', 'Games', 'games'], ['me', 'Me', 'me']];
+// The bar shows on every page except sign-in and while an activity runs. on = null hides it.
+function nav(on) {
+  let el = $('#nav');
+  if (!el) { el = document.createElement('nav'); el.id = 'nav'; el.className = 'bnav'; el.setAttribute('aria-label', 'Main'); document.body.append(el); }
+  document.body.classList.toggle('has-nav', on != null);
+  if (on == null) { el.hidden = true; return; }
+  const due = reviewDue(history).length;
+  el.hidden = false;
+  el.innerHTML = `<div class="bnav-in">${NAV.map(([k, label, ic]) => `<a href="#/${k}" ${k === on ? 'aria-current="page"' : ''}>${icon(ic)}<span>${label}</span>${k === 'review' && due ? `<b class="nbadge">${due > 99 ? '99+' : due}</b>` : ''}</a>`).join('')}</div>`;
 }
 
 // ---------- sign in ----------
 function login(msg = '') {
-  view(`<div class="card" style="max-width:420px;margin:20px auto">
-    <h1>Sign in</h1><p class="muted">Use the username and PIN on your login slip.</p>
-    <form id="f" autocomplete="on">
+  nav(null);
+  view(`<div class="narrow" style="max-width:440px"><div class="hero"><p class="eyebrow">IGCSE Economics 0455</p><h1>Sign in</h1><p class="lede">Use the username and PIN on your login slip.</p></div>
+    <form id="f" class="tcard" autocomplete="on">
       <label for="u">Username</label><input id="u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. eco9-07" required>
       <label for="p">PIN</label><input id="p" name="password" type="password" inputmode="numeric" autocomplete="current-password" required>
       <div class="err" id="err" role="alert">${esc(msg)}</div>
       <button style="width:100%">Sign in</button>
     </form>
-    ${DEMO ? '<p class="small muted">Demo mode: try <b>demo-01</b> with PIN <b>1234</b>. Nothing is sent to the school database.</p>' : ''}
-    <p class="small muted center">Teacher? <a href="teacher.html${location.search}">Teacher console</a></p></div>`);
+    ${DEMO ? '<p class="note">Demo mode: try <b>demo-01</b> with PIN <b>1234</b>. Nothing is sent to the school database.</p>' : ''}
+    <p class="note">Teacher? <a href="teacher.html${location.search}">Teacher dashboard</a></p></div>`);
   $('#f').onsubmit = async ev => {
     ev.preventDefault();
     await busy($('#f button'), async () => {
@@ -83,14 +106,14 @@ function login(msg = '') {
 }
 
 function changePin(forced = false) {
-  view(`<div class="card" style="max-width:420px;margin:20px auto">
-    <h1>${forced ? 'Choose your own PIN' : 'Change my PIN'}</h1>
-    <form id="f"><label for="o">Old PIN</label><input id="o" type="password" inputmode="numeric" autocomplete="current-password" required>
+  nav(forced ? null : 'me');
+  view(`<div class="narrow" style="max-width:440px"><div class="hero"><p class="eyebrow">Settings</p><h1>${forced ? 'Choose your own PIN' : 'Change my PIN'}</h1></div>
+    <form id="f" class="tcard"><label for="o">Old PIN</label><input id="o" type="password" inputmode="numeric" autocomplete="current-password" required>
     <label for="n">New PIN (4 to 6 numbers)</label><input id="n" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4,6}" required>
     <label for="n2">New PIN again</label><input id="n2" type="password" inputmode="numeric" autocomplete="new-password" required>
     <div class="err" id="err" role="alert"></div>
-    <div class="row"><button class="grow">Save PIN</button>${forced ? '' : '<button type="button" class="ghost" id="back">Back</button>'}</div></form></div>`);
-  if (!forced) $('#back').onclick = () => go('#/');
+    <div class="row"><button class="grow">Save PIN</button>${forced ? '' : '<button type="button" class="alt" id="back">Back</button>'}</div></form></div>`);
+  if (!forced) $('#back').onclick = () => go('#/me/settings');
   $('#f').onsubmit = async ev => {
     ev.preventDefault();
     const n = $('#n').value.trim();
@@ -103,56 +126,280 @@ function changePin(forced = false) {
   };
 }
 
-// ---------- home: the unit map ----------
-function home() {
-  const open = new Set(me.open_units || []);
-  view(`<h1>Hi ${esc(me.display_name)} 👋</h1><p class="muted">Unit 2: The allocation of resources</p>
-    <div class="units">${UNITS.map(u => {
-      const can = open.has(u.id) && u.ready && CONTENT[u.id];
-      const acts = ACTIVITIES[u.id] || [], s = E.summarise(history, u.id), done = acts.filter(a => s[a.id]).length;
-      const tag = can ? `<span class="badge">${done}/${acts.length} done</span>` : `<span class="badge">${open.has(u.id) ? 'Coming soon' : '🔒 Locked'}</span>`;
-      return `<button class="unit ${can ? 'open' : 'locked'}" ${can ? `data-u="${u.id}"` : 'disabled aria-disabled="true"'}>
-        <span class="num">${u.id}</span><span class="grow"><span class="t">${esc(u.title)}</span><br><span class="s">${esc(u.sub)}</span></span>${tag}</button>`;
-    }).join('')}</div>
-    <div class="card" id="xp" style="margin-top:18px"><h3>⭐ XP</h3><p class="muted small">Loading…</p></div>
-    <div class="card"><h3>Settings</h3>
-      <div class="row"><span class="grow">Vietnamese help words <span class="vi">(từ vựng tiếng Việt)</span></span><button class="ghost small" id="vi">${vi() ? 'On' : 'Off'}</button></div>
-      <div class="row" style="margin-top:8px"><span class="grow">My PIN</span><button class="ghost small" id="pin">Change PIN</button></div>
-      <p class="small muted" style="margin-top:10px">Signed in as ${esc(me.username)}</p></div>`);
-  $$('.unit[data-u]').forEach(b => (b.onclick = () => go('#/u/' + b.dataset.u)));
-  $('#vi').onclick = () => { pref.set('vi', !vi()); home(); };
-  $('#pin').onclick = () => changePin(false);
-  board();
-}
-async function board() {
-  let b;
-  try { b = await rpc('ec_board', { p_token: token.get() }); }
-  catch { const x = E.xpTotals(history); b = { on: false, rows: [{ name: me.display_name, xp: x.total, week: x.week, me: true }], offline: true }; }
-  const el = $('#xp'); if (!el) return;
-  const mine = b.rows.find(r => r.me) || { xp: 0, week: 0 }, rank = b.rows.findIndex(r => r.me) + 1;
-  const row = (r, k) => `<tr class="${r.me ? 'me' : ''}"><td>${k < 3 && r.week > 0 ? ['🥇', '🥈', '🥉'][k] : k + 1}</td><td>${esc(r.name)}${r.me ? ' (you)' : ''}</td><td class="num">${r.week}</td></tr>`;
-  const shown = b.rows.filter(r => r.week > 0 || r.me), top = shown.slice(0, 10), myPos = shown.findIndex(r => r.me) + 1;
-  el.innerHTML = `<h3>⭐ XP</h3><div class="row"><span class="stat"><b>${mine.week}</b>this week</span><span class="stat"><b>${mine.xp}</b>total</span>${b.on && rank ? `<span class="stat"><b>#${rank}</b>in class this week</span>` : ''}</div>
-    ${b.on ? `<h3 style="margin-top:12px">Class leaderboard · this week</h3><table class="t board">${top.map(row).join('')}
-      ${myPos > 10 ? `<tr><td colspan="3" class="muted center">…</td></tr>${row(shown[myPos - 1], myPos - 1)}` : ''}</table>` : ''}
-    <p class="small muted" style="margin-top:8px">Earn XP: 10 for each answer right first time, 2 for each question you finish, 20 for the Learn cards. The leaderboard starts again every Monday.${b.offline ? ' (Offline: showing XP saved on this device.)' : ''}</p>`;
+// The unit the student is working on: the latest open unit whose mission is not finished, else the latest open unit.
+function focusUnit(hist = history) {
+  const us = openUnits();
+  return us.find(u => !mission(u, hist).complete) || us[us.length - 1] || null;
 }
 
-// ---------- unit page ----------
-function unitPage() {
-  const s = E.summarise(history, U), top = E.topTrap(E.trapCounts(history, U));
-  view(`<p><a href="#/">← All units</a></p><h1>${esc(uName())}</h1>
-    <p class="muted">Work through them in order. Each activity adapts: get two right first time and it gets harder.</p>
-    <div class="acts">${ACTIVITIES[U].map(a => {
-      const x = s[a.id];
-      return `<button class="act" data-a="${a.id}"><div class="t">${a.icon} ${esc(a.title)}</div><div class="s">${esc(a.sub)}</div>
-        ${x ? `<div class="small" style="margin-top:6px">Best ${pct(x.bestScore, x.max)}% · ${x.runs} ${x.runs === 1 ? 'try' : 'tries'}${LEVELED.has(a.id) ? ' · ' + levelBadge(x.level) : ''}</div><div class="meter"><i style="width:${pct(x.bestScore, x.max)}%"></i></div>`
-          : '<div class="small muted" style="margin-top:6px">Not started</div>'}</button>`;
-    }).join('')}</div>
-    ${top ? `<div class="card" style="margin-top:14px"><h3>Your most common mistake so far</h3>${trapBox(top[0])}</div>` : ''}
-    <details class="card" style="margin-top:14px"><summary><b>Key words</b> <span class="vi">(từ vựng)</span></summary>
-      <table class="t" style="margin-top:8px">${Object.entries(C().VI || {}).map(([en, v]) => `<tr><td><b>${esc(en)}</b></td><td>${esc(v)}</td></tr>`).join('')}</table></details>`);
-  $$('.act').forEach(b => (b.onclick = () => go('#/u/' + U + '/' + b.dataset.a)));
+// ---------- review: Paper 1 questions the student got wrong come back after 0, 1, 3 and 7 days ----------
+const MCQ_BY_ID = Object.fromEntries(Object.entries(CONTENT).flatMap(([u, c]) => (c.MCQ || []).map(q => [q.id, { ...q, unit: u }])));
+function reviewDue(hist, now = Date.now()) {
+  const res = {};
+  for (const a of hist.slice().sort((x, y) => new Date(x.created_at) - new Date(y.created_at)))
+    for (const x of a.answers || []) if (MCQ_BY_ID[x.id] && (me?.open_units || []).includes(MCQ_BY_ID[x.id].unit)) (res[x.id] ||= []).push({ ok: !!x.first_try, t: new Date(a.created_at || now).getTime() });
+  const due = [];
+  for (const [id, r] of Object.entries(res)) {
+    if (r.every(x => x.ok)) continue;               // never missed: nothing to review
+    let k = 0; for (let i = r.length - 1; i >= 0 && r[i].ok; i--) k++;
+    if (k >= 4) continue;                            // right 4 times in a row since the last miss: learned
+    if (now - r[r.length - 1].t >= [0, 1, 3, 7][k] * 864e5) due.push(id);
+  }
+  return due;
+}
+
+// ---------- weekly streak: 2 activities a week ----------
+function streak(hist = history) {
+  const wk = iso => E.weekStart(new Date(iso)).getTime(), count = {};
+  hist.forEach(a => { const k = wk(a.created_at); count[k] = (count[k] || 0) + 1; });
+  const thisWeek = count[E.weekStart().getTime()] || 0;
+  let n = 0, t = E.weekStart().getTime();
+  if (thisWeek < 2) t -= 7 * 864e5;                 // the current week still counts once it reaches 2
+  while ((count[t] || 0) >= 2) { n++; t -= 7 * 864e5; }
+  return { weeks: n, thisWeek };
+}
+
+// ---------- Today's workout: three tasks, weakest first. Planned from work before today, so it stays the same all day. ----------
+function workoutPlan() {
+  const t = today(), before = history.filter(a => vnDay(a.created_at) < t), todays = history.filter(a => vnDay(a.created_at) === t);
+  const fu = focusUnit(before); if (!fu) return [];
+  const items = [], add = it => { if (items.length < 3 && !items.some(x => x.unit === it.unit && x.act === it.act)) items.push(it); };
+  const due = reviewDue(before);
+  if (due.length >= 2) add({ unit: 'review', act: 'review', ic: 'review', label: `Fix ${Math.min(due.length, 10)} questions you missed` });
+  const m = mission(fu, before);
+  m.steps.filter(x => !x.done && !x.locked).slice(0, 2).forEach(x => add({ unit: fu, act: x.act, ic: x.ic, label: `${fu}: ${x.label}` }));
+  // then the open unit with the weakest Paper 1 result
+  const weakest = openUnits().map(u => ({ u, b: (E.summarise(before, u).mcq || { best: -1 }).best })).sort((a, b) => a.b - b.b)[0];
+  if (weakest) add({ unit: weakest.u, act: 'mcq', ic: 'mcq', label: `${weakest.u}: Paper 1 practice` });
+  openUnits().slice().reverse().forEach(u => { const p = ACTIVITIES[u].find(a => a.id === 'shift' || a.id === 'eqm'); add({ unit: u, act: p.id, ic: p.id, label: `${u}: ${p.title}` }); });
+  items.forEach(it => (it.done = todays.some(a => a.unit === it.unit && a.activity === it.act)));
+  return items;
+}
+const itemHref = it => (it.unit === 'review' ? '#/review/go' : `#/u/${it.unit}/${it.act}`);
+function ringSVG(items) {
+  const n = Math.max(items.length, 1), gap = 16, seg = 360 / n, r = 42;
+  const pt = a => [50 + r * Math.sin(a * Math.PI / 180), 50 - r * Math.cos(a * Math.PI / 180)].map(v => v.toFixed(1)).join(' ');
+  const arcs = items.map((it, k) => { const a0 = k * seg + gap / 2, a1 = (k + 1) * seg - gap / 2;
+    return `<path d="M${pt(a0)} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${pt(a1)}"${it.done ? ' class="on"' : ''}/>`; }).join('');
+  return `<div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true">${arcs}</svg>${tile('workout', 'm')}</div>`;
+}
+function workoutCard() {
+  const items = workoutPlan(); if (!items.length) return '';
+  const n = items.filter(i => i.done).length, next = items.find(i => !i.done);
+  return `<div class="tcard workout"><div class="wo-head">${ringSVG(items)}<div><p class="eyebrow">Today's workout</p>
+      <h3>${next ? 'Strengthen your weakest areas' : 'Workout complete!'}</h3>
+      <p class="note">${next ? `${n} of ${items.length} done. Your weakest areas come first.` : 'Great work. A new workout is ready tomorrow.'}</p></div></div>
+    <ol class="wo-list">${items.map(it => `<li class="${it.done ? 'done' : it === next ? 'next' : ''}">${tile(it.ic, 's')}<span>${esc(it.label)}</span>${it.done ? `<span class="wo-tick" aria-label="done">${TICK}</span>` : ''}</li>`).join('')}</ol>
+    ${next ? `<a class="btn go" href="${itemHref(next)}">${n ? 'Continue workout' : 'Start workout'}</a>` : ''}</div>`;
+}
+
+// ---------- Home ----------
+function home() {
+  nav('');
+  const fu = focusUnit(), st = streak(), xp = E.xpTotals(history), due = reviewDue(history).length;
+  let h = `<div class="narrow"><div class="hero"><p class="eyebrow">Class ${esc((me.class_code || '').toUpperCase())}</p><h1>Hi, ${esc(me.display_name)}</h1></div>`;
+  if (!fu) h += `<div class="panel"><b>No units are open yet.</b><p class="note">Your teacher will open the first unit when the class starts it.</p></div>`;
+  else {
+    if (!history.length) h += `<div class="tcard"><span class="tag gold">Start here</span><h3>${esc(uName(fu))}</h3>
+      <p class="note" style="font-size:1rem">Start with the Learn cards: five short cards with moving diagrams. Then work through the unit mission, step by step. It takes about 10 minutes to begin.</p>
+      <div class="row"><a class="btn" href="#/u/${fu}/learn">Start the Learn cards</a></div></div>`;
+    h += workoutCard();
+    const m = mission(fu), s = E.summarise(history, fu), prac = ACTIVITIES[fu].find(a => a.id === 'shift' || a.id === 'eqm');
+    const q = (href, ic, title, note) => `<a class="qtile" href="${href}">${tile(ic, 'm')}<b>${title}</b><span class="note">${note}</span></a>`;
+    h += `<div class="qtiles">${q(`#/u/${fu}`, fu, `Unit ${fu}`, `Mission ${m.n} of ${m.steps.length}`)}
+      ${q('#/review', 'review', 'Review', due ? `${due} question${due > 1 ? 's' : ''} to fix` : 'Nothing due')}
+      ${q(`#/u/${fu}/${prac.id}`, prac.id, prac.title, s[prac.id] ? `Level: ${E.LEVELS[s[prac.id].level]}` : 'Not started')}
+      ${q(`#/u/${fu}/mcq`, 'mcq', 'Paper 1 practice', s.mcq ? `Best ${pct(s.mcq.bestScore, s.mcq.max)}%` : 'Not started')}
+      ${q('#/games', 'games', 'Games', 'Play and practise')}
+      ${q('#/me', 'stats', 'My stats', `${xp.total} XP in total`)}</div>`;
+  }
+  h += `<div class="stats"><div class="stat gold"><b>${xp.week}</b><span>XP this week</span></div>
+      <div class="stat"><b>${fu ? (E.summarise(history, fu)[ACTIVITIES[fu].find(a => a.id === 'shift' || a.id === 'eqm').id] ? E.LEVELS[E.summarise(history, fu)[ACTIVITIES[fu].find(a => a.id === 'shift' || a.id === 'eqm').id].level] : '–') : '–'}</b><span>level in ${esc(fu || 'unit')}</span></div>
+      <div class="stat"><b>${st.weeks} wk</b><span>streak</span></div><div class="stat"><b>${xp.total}</b><span>XP in total</span></div></div>
+    <div class="panel goal"><b>This week: ${Math.min(st.thisWeek, 2)} of 2 activities</b><div class="bar"><i style="width:${Math.min(st.thisWeek, 2) * 50}%"></i></div>
+      <p class="note">Finish 2 activities a week to keep your streak going.</p></div>
+    ${DEMO ? `<p class="note">Demo mode: <button class="linkbtn teal" id="reset">reset the demo data</button></p>` : ''}</div>`;
+  view(h);
+  $('#reset')?.addEventListener('click', () => { try { Object.keys(localStorage).filter(k => k.startsWith('ecl:demo')).forEach(k => localStorage.removeItem(k)); } catch { } location.reload(); });
+}
+
+// ---------- Units ----------
+function unitsView() {
+  nav('units');
+  const open = new Set(me.open_units || []);
+  view(`<div class="narrow"><div class="hero"><p class="eyebrow">Units</p><h1>The allocation of resources</h1>
+    <p class="lede">Section 2 of the IGCSE Economics syllabus. Tap a unit to see its mission, learning cards, practice and Paper 1 questions.</p></div>
+    <div class="ulist">${UNITS.map(u => {
+      const built = u.ready && CONTENT[u.id], isOpen = open.has(u.id);
+      if (!isOpen) return `<div class="urow locked">${tile('lock', 'm')}<div><b>${u.id} ${esc(u.title)}</b><span class="note">Locked. Your teacher will open ${u.id} when the class gets to it.</span></div></div>`;
+      if (!built) return `<div class="urow locked">${tile(u.id, 'm')}<div><b>${u.id} ${esc(u.title)}</b><span class="note">Coming soon: the activities for this unit are being built.</span></div></div>`;
+      const m = mission(u.id);
+      return `<a class="urow" href="#/u/${u.id}">${tile(u.id, 'm')}<div><b>${u.id} ${esc(u.title)}</b><span class="note">${esc(u.sub)} · Mission ${m.n} of ${m.steps.length}</span>
+        <div class="bar" aria-hidden="true"><i style="width:${Math.round(100 * m.n / m.steps.length)}%"></i></div></div>${m.complete ? '<span class="chip ok">Done</span>' : ''}</a>`;
+    }).join('')}</div></div>`);
+}
+
+// ---------- unit page: Mission, Learn, Practice, Paper 1, Data, Key words ----------
+const UTABS = [['mission', 'Mission', 'mission'], ['learn', 'Learn', 'learn'], ['practice', 'Practice', 'shift'], ['paper1', 'Paper 1', 'mcq'], ['data', 'Data response', 'data'], ['words', 'Key words', 'words']];
+function aTile(ic, href, title, note, done = false) {
+  return `<a class="atile" href="${href}"><span class="ahead" style="--hue:${hueOf(ic)}">${icon(ic, 34)}${done ? `<span class="adone">${TICK}</span>` : ''}</span>
+    <span class="abody"><b>${esc(title)}</b><span class="note">${note}</span></span></a>`;
+}
+const hueOf = ic => ({ learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', market: '#B8432F', words: '#2A7A4B' }[ic] || '#1E8C87');
+function missionHTML(u) {
+  const m = mission(u);
+  return `<div class="mission"><div class="row" style="justify-content:space-between"><p class="eyebrow">Unit ${u} mission · ${m.n} of ${m.steps.length} steps</p>${m.complete ? '<span class="chip ok">Badge won</span>' : ''}</div>
+    <div class="mbar" aria-hidden="true"><i style="width:${Math.round(100 * m.n / m.steps.length)}%"></i></div>
+    <ol class="msteps">${m.steps.map(s => `<li class="${s.done ? 'done' : s.locked ? 'locked' : m.next === s ? 'next' : ''}"><span class="mico">${tile(s.ic, 's')}${s.done ? `<span class="mtick">${TICK}</span>` : ''}</span>
+      <div><b>${esc(s.label)}</b><br><span class="note">${esc(s.detail)}</span></div>
+      ${!s.locked ? `<a class="btn small${m.next === s ? '' : ' alt'}" href="#/u/${u}/${s.act}">${s.done ? 'Again' : s.key === 'check' ? 'Start' : 'Go'}</a>` : ''}</li>`).join('')}</ol>
+    <p class="note">${m.complete ? `You won the <b>${esc(m.badge)}</b> badge.` : `Finish the final challenge to win the <b>${esc(m.badge)}</b> badge.`}</p></div>`;
+}
+function unitPage(tab = 'mission') {
+  nav('units');
+  const s = E.summarise(history, U), acts = ACTIVITIES[U], prac = acts.find(a => a.id === 'shift' || a.id === 'eqm'), m = mission(U), top = E.topTrap(E.trapCounts(history, U));
+  const cur = UTABS.find(t => t[0] === tab) || UTABS[0];
+  const bestNote = id => (s[id] ? `Best ${pct(s[id].bestScore, s[id].max)}% · ${s[id].runs} ${s[id].runs === 1 ? 'try' : 'tries'}${LEVELED.has(id) ? ' · ' + E.LEVELS[s[id].level] : ''}` : 'Not started');
+  const cb = checkBest(U);
+  let body = '';
+  if (cur[0] === 'mission') body = missionHTML(U) + (top ? `<div class="panel" style="margin-top:12px"><b>Your most common mistake in ${U}</b>${trapBox(top[0])}</div>` : '');
+  if (cur[0] === 'learn') body = `<div class="tiles">${aTile('learn', `#/u/${U}/learn`, 'Learn cards', `${C().LEARN.length} cards with moving diagrams`, !!s.learn)}</div>
+    <ol class="note" style="margin-top:12px">${C().LEARN.map(c => `<li>${esc(c.title)}</li>`).join('')}</ol>`;
+  if (cur[0] === 'practice') body = `<div class="tiles">${aTile(prac.id, `#/u/${U}/${prac.id}`, prac.title, bestNote(prac.id), !!s[prac.id])}</div>
+    <p class="note" style="margin-top:12px">${esc(prac.sub)}. Two right first time in a row moves you up a level (Core, Stretch, Challenge).</p>`;
+  if (cur[0] === 'paper1') body = `<div class="tiles">${aTile('mcq', `#/u/${U}/mcq`, 'Paper 1 practice', bestNote('mcq'), !!s.mcq && s.mcq.best >= 0.6)}
+      ${aTile('check', `#/u/${U}/check`, 'Unit checkpoint', cb != null ? `Best ${Math.round(cb * 100)}%` : `${CHECK_N} questions, no hints`, cb != null && cb >= CHECK_PASS)}</div>
+    <div class="minicard${cb != null && cb >= CHECK_PASS ? ' won' : ''}">${tile('check', 'm')}<div><p class="eyebrow">Unit checkpoint</p><b>${esc(uName())} checkpoint</b>
+      <p class="note">${cb != null && cb >= CHECK_PASS ? `Passed with ${Math.round(cb * 100)}%.` : `${CHECK_N} Paper 1 questions from Core to Challenge, with no hints. Score ${CHECK_PASS * 100}% to pass. Best taken after the mission.`}</p></div>
+      <a class="btn small${cb != null && cb >= CHECK_PASS ? ' alt' : ''}" href="#/u/${U}/check">${cb != null ? 'Try again' : 'Start'}</a></div>`;
+  if (cur[0] === 'data') body = `<div class="tiles">${aTile('data', `#/u/${U}/data`, C().DATA.title, s.data ? `Best ${s.data.bestScore}/${s.data.max}` : 'Not started', !!s.data)}</div>
+    <p class="note" style="margin-top:12px">A Paper 2 style case study: identify, calculate, draw and explain. Two tries on each part.</p>`;
+  if (cur[0] === 'words') body = `<table class="lb">${Object.entries(C().VI || {}).map(([en, v]) => `<tr><td><b>${esc(en)}</b></td><td>${esc(v)}</td></tr>`).join('')}</table>`;
+  view(`<div class="narrow"><div class="row"><a href="#/units">← All units</a></div>
+    <div class="tcard ucard"><div class="uhead">${tile(U, 'm')}<h2>${esc(uName())}</h2><span class="chip ${m.complete ? 'ok' : 'gold'}">${m.complete ? 'Done' : `${m.n}/${m.steps.length}`}</span></div>
+      <div class="utabs" role="tablist" aria-label="Unit ${U} sections">${UTABS.map(([k, label, ic]) => `<a role="tab" href="#/u/${U}/tab/${k}" aria-selected="${k === cur[0]}">${icon(k === 'practice' ? prac.id : ic, 16)}${label}</a>`).join('')}</div>
+      <div role="tabpanel" aria-label="${cur[1]}">${body}</div></div></div>`);
+}
+
+// ---------- Review ----------
+function reviewView() {
+  nav('review');
+  const due = reviewDue(history), traps = Object.entries(E.trapCounts(history.filter(a => (me.open_units || []).includes(a.unit)))).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  view(`<div class="narrow"><div class="hero"><p class="eyebrow">Review</p><h1>Questions to fix</h1></div>
+    ${due.length ? `<div class="tcard"><h3>${due.length} question${due.length > 1 ? 's' : ''} due today</h3>
+      <p class="note">Paper 1 questions you missed, from ${esc([...new Set(due.map(id => MCQ_BY_ID[id].unit))].join(' and '))}.</p>
+      <div class="row"><a class="btn" href="#/review/go">Review ${Math.min(due.length, 10)} questions</a></div></div>`
+      : `<div class="panel"><p style="margin:0"><b>Nothing due today.</b> Well done! Try a Paper 1 practice to find more to work on.</p></div>`}
+    <div class="panel"><p class="note" style="margin:0">A question you miss comes back straight away. When you get it right it comes back after 1, then 3 and 7 days, so it stays in your memory.</p></div>
+    ${traps.length ? `<h2>Mistakes you make most</h2>${traps.map(([t, n]) => `<div class="fb tip"><b>${esc(TRAPS[t].label)} · ${n}×</b>${esc(TRAPS[t].tip)}</div>`).join('')}` : ''}
+    <h2>Key words</h2><table class="lb">${openUnits().flatMap(u => Object.entries(CONTENT[u].VI || {})).filter((x, i, a) => a.findIndex(y => y[0] === x[0]) === i).map(([en, v]) => `<tr><td><b>${esc(en)}</b></td><td>${esc(v)}</td></tr>`).join('')}</table></div>`);
+}
+function reviewRun() {
+  const ids = reviewDue(history).slice(0, 10);
+  if (!ids.length) return go('#/review');
+  nav(null); wide(true);
+  const t0 = Date.now(), answers = []; let i = 0, score = 0;
+  const show = () => {
+    if (i >= ids.length) return done();
+    const it = MCQ_BY_ID[ids[i]], opts = E.shuffle(it.options.map((o, k) => ({ ...o, right: k === 0 })));
+    const rec = { id: it.id, level: it.level, first_try: false, trap: null, ok: false, hinted: false };
+    view(`<p><a href="#/review">← Review</a></p><div class="row"><b class="grow">Question ${i + 1} of ${ids.length}</b><span class="chip mint">${it.unit}</span></div>
+      <div class="steps" style="margin-top:8px">${ids.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="card"><p class="event">${esc(it.stem)}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
+      <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> ${esc(o.t)}</button>`).join('')}</div>
+      <button class="alt small" id="hint">Show a hint</button><div id="fb" aria-live="polite"></div></div></div></div>`);
+    if (it.diagram) createDiagram($('#dg'), { start: it.diagram });
+    $('#hint').onclick = () => { rec.hinted = true; $('#hint').outerHTML = `<div class="fb tip"><b>Hint</b>${esc(it.hint)}</div>`; };
+    $$('.choice').forEach(b => (b.onclick = () => {
+      const o = opts[+b.dataset.k];
+      $$('.choice').forEach((x, k) => { x.disabled = true; if (opts[k].right) x.classList.add('right'); });
+      rec.pick = o.t; rec.ok = o.right; rec.first_try = o.right && !rec.hinted; if (!o.right) { b.classList.add('wrong'); rec.trap = o.trap || null; }
+      if (rec.first_try) score++;
+      answers.push(rec); $('#hint')?.remove();
+      $('#fb').innerHTML = `<div class="fb ${o.right ? 'ok' : 'no'}"><b>${o.right ? 'Right! ⭐' : 'Not this time. It will come back soon.'}</b>${esc(it.explain)}</div>${o.right ? '' : trapBox(o.trap)}
+        <button id="nx" style="width:100%">${i + 1 < ids.length ? 'Next question' : 'See my results'}</button>`;
+      $('#nx').onclick = () => { i++; show(); };
+    }));
+  };
+  const done = async () => {
+    wide(false);
+    const a = { unit: 'review', activity: 'review', level_start: 0, level_end: 0, score, max_score: ids.length, seconds: Math.round((Date.now() - t0) / 1000), answers };
+    const xp = E.xpForNew(history, a);
+    view(`<div class="narrow"><div class="tcard" style="text-align:center"><h1>Review done</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${score} / ${ids.length}</p>
+      <p class="note">right first time</p>${xpLine(xp)}<p class="note" id="saved">Saving…</p></div><a class="btn" href="#/review">Back to Review</a></div>`);
+    const ok = await saveAttempt(a);
+    $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
+  };
+  show();
+}
+
+// ---------- Games ----------
+function gamesView() {
+  nav('games');
+  const us = openUnits();
+  view(`<div class="narrow"><div class="hero"><p class="eyebrow">Games</p><h1>Play and practise</h1>
+    <p class="lede">The practice games adapt to you: two right first time in a row and they get harder. Market Town is the class trading game your teacher runs.</p></div>
+    ${us.map(u => { const p = ACTIVITIES[u].find(a => a.id === 'shift' || a.id === 'eqm'), s = E.summarise(history, u);
+      return `<h2>${esc(uName(u))}</h2><div class="tiles">${aTile(p.id, `#/u/${u}/${p.id}`, p.title, s[p.id] ? `Level: ${E.LEVELS[s[p.id].level]}` : esc(p.sub), !!s[p.id])}
+        ${aTile('mcq', `#/u/${u}/mcq`, 'Paper 1 race', s.mcq ? `Best ${pct(s.mcq.bestScore, s.mcq.max)}%` : '10 questions that adapt', !!s.mcq)}</div>`; }).join('')}
+    <h2>Class games</h2><div class="tiles">${aTile('market', '../', 'Market Town', 'Buy and sell in a live class market. Your teacher starts it.')}</div></div>`);
+}
+
+// ---------- Me: stats, leaderboard, settings ----------
+function meView(tab = 'stats') {
+  nav('me');
+  const tabs = `<div class="tabs" role="tablist">${[['stats', 'My stats'], ['leaderboard', 'Leaderboard'], ['settings', 'Settings']].map(([k, l]) => `<a role="tab" href="#/me/${k}" aria-selected="${k === tab}">${l}</a>`).join('')}</div>`;
+  const headH = `<div class="hero"><p class="eyebrow">Me</p><h1>${esc(me.display_name)}</h1></div>${tabs}`;
+  if (tab === 'leaderboard') { view(`<div class="narrow">${headH}<div id="lb"><p class="note">Loading…</p></div></div>`); return leaderboard(); }
+  if (tab === 'settings') {
+    const mode = pref.get('mode', '');
+    view(`<div class="narrow">${headH}<div class="tcard"><h3>Vietnamese help words</h3><p class="note">Show Vietnamese for key words like demand (cầu) and supply (cung).</p>
+        <div class="tabs">${[[true, 'On'], [false, 'Off']].map(([v, l]) => `<button data-vi="${v}" aria-selected="${vi() === v}">${l}</button>`).join('')}</div></div>
+      <div class="tcard"><h3>Colours</h3><div class="tabs">${[['', 'Device'], ['light', 'Light'], ['dark', 'Dark']].map(([v, l]) => `<button data-mode="${v}" aria-selected="${mode === v}">${l}</button>`).join('')}</div></div>
+      <div class="tcard"><h3>My PIN</h3><p class="note">Signed in as ${esc(me.username)}.</p><div class="row"><button class="alt" id="pin">Change my PIN</button></div></div></div>`);
+    $$('[data-vi]').forEach(b => (b.onclick = () => { pref.set('vi', b.dataset.vi === 'true'); meView('settings'); }));
+    $$('[data-mode]').forEach(b => (b.onclick = () => { pref.set('mode', b.dataset.mode); if (b.dataset.mode) document.documentElement.dataset.mode = b.dataset.mode; else delete document.documentElement.dataset.mode; meView('settings'); }));
+    $('#pin').onclick = () => changePin(false);
+    return;
+  }
+  const us = openUnits(), xp = E.xpTotals(history), st = streak();
+  const unitScore = u => { const cb = checkBest(u), s = E.summarise(history, u); return cb != null ? Math.round(cb * 100) : s.mcq ? pct(s.mcq.bestScore, s.mcq.max) : null; };
+  const scores = us.map(unitScore).filter(x => x != null), overall = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+  const srow = (name, v, big = false, note = '') => `<div class="srow${big ? ' big' : ''}"><div class="sname">${esc(name)}</div><div class="sline"><div class="sbar"><i style="width:${v || 0}%"></i></div><b>${v == null ? '–' : v + '%'}</b></div>${note ? `<p class="note">${note}</p>` : ''}</div>`;
+  // right first time on each kind of task, from the last 20 answers of that kind
+  const rft = (acts, u) => { const xs = history.filter(a => (!u || a.unit === u) && acts.includes(a.activity)).flatMap(a => (a.answers || []).filter(x => x.id !== 'meta')).slice(-20); return xs.length ? pct(xs.filter(x => x.first_try).length, xs.length) : null; };
+  const skill = (label, v) => `<div class="skillrow"><span>${esc(label)}</span><div class="bar"><i class="${v != null && v < 50 ? 'low' : ''}" style="width:${v || 0}%"></i></div><span>${v == null ? '–' : v + '%'}</span></div>`;
+  const traps = Object.entries(E.trapCounts(history)).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const ACT = Object.fromEntries(Object.entries(ACTIVITIES).flatMap(([u, as]) => as.map(a => [u + a.id, a.title])));
+  view(`<div class="narrow">${headH}
+    <div class="scard"><div class="shead">${icon('workout', 16)} Unit scores</div>
+      ${srow('Overall', overall, true)}
+      ${us.map(u => { const cb = checkBest(u), s = E.summarise(history, u); return srow(uName(u), unitScore(u), false, cb != null ? `Best unit checkpoint` : s.mcq ? 'Best Paper 1 practice (take the unit checkpoint to update)' : 'Not started'); }).join('')}</div>
+    <h2>My progress</h2>
+    <div class="stats"><div class="stat gold"><b>${xp.total}</b><span>XP in total</span></div><div class="stat"><b>${xp.week}</b><span>XP this week</span></div>
+      <div class="stat"><b>${st.weeks} wk</b><span>streak (${Math.min(st.thisWeek, 2)}/2 this week)</span></div><div class="stat"><b>${history.length}</b><span>activities finished</span></div></div>
+    <div class="panel"><h3>Skills</h3><div class="skills">
+      ${skill('Practice games', rft(['shift', 'eqm']))}${skill('Paper 1 questions', rft(['mcq', 'check', 'review']))}${skill('Data response', rft(['data']))}
+      ${us.map(u => skill(`${u} overall`, rft(['shift', 'eqm', 'mcq', 'check', 'data'], u))).join('')}</div>
+      <p class="note">Right first time, from your last 20 answers of each kind.</p></div>
+    <div class="panel"><h3>Mistakes to watch</h3>${traps.length ? traps.map(([t, n]) => `<div class="fb tip"><b>${esc(TRAPS[t].label)} · ${n}×</b>${esc(TRAPS[t].tip)}</div>`).join('') : '<p class="note">No mistakes recorded yet.</p>'}</div>
+    <div class="panel"><h3>History</h3>${history.length ? `<ul class="hist">${history.slice().reverse().slice(0, 15).map(a => `<li>${tile(a.activity === 'review' ? 'review' : a.activity === 'check' ? 'check' : a.activity, 's')}<span>${esc(a.unit === 'review' ? 'Review' : `${a.unit} ${ACT[a.unit + a.activity] || (a.activity === 'check' ? 'Unit checkpoint' : a.activity)}`)}</span><span class="note">${a.score}/${a.max_score} · ${ago(a.created_at)}</span></li>`).join('')}</ul>` : '<p class="note">Nothing yet.</p>'}</div></div>`);
+}
+async function leaderboard() {
+  let b; try { b = await rpc('ec_board', { p_token: token.get() }); } catch { b = null; }
+  const el = $('#lb'); if (!el) return;
+  if (!b) { el.innerHTML = '<div class="panel"><p class="note">The leaderboard needs an internet connection.</p></div>'; return; }
+  if (!b.on) { el.innerHTML = `<div class="panel"><b>Your teacher has turned the class leaderboard off.</b><p class="note">Your XP this week: ${(b.rows[0] || {}).week || 0}. In total: ${(b.rows[0] || {}).xp || 0}.</p></div>`; return; }
+  const draw = mode => {
+    const key = mode === 'week' ? 'week' : 'xp', rows = b.rows.slice().sort((x, y) => y[key] - x[key]).filter(r => r[key] > 0 || r.me);
+    const myPos = rows.findIndex(r => r.me), top = rows.slice(0, 10);
+    const row = (r, k) => `<tr class="${r.me ? 'me' : ''}"><td style="width:2.4em">${k < 3 && r[key] > 0 ? `<span class="medal m${k + 1}">${k + 1}</span>` : k + 1}</td><td>${esc(r.name)}${r.me ? ' (you)' : ''}</td><td class="num">${r[key]} XP</td></tr>`;
+    el.innerHTML = `<div class="tabs scope">${[['week', 'This week'], ['all', 'All time']].map(([k, l]) => `<button data-lb="${k}" aria-selected="${k === mode}">${l}</button>`).join('')}</div>
+      <table class="lb" style="margin-top:10px">${top.map(row).join('')}${myPos >= 10 ? `<tr><td colspan="3" class="note">…</td></tr>${row(rows[myPos], myPos)}` : ''}</table>
+      <p class="note" style="margin-top:8px">Earn XP: 10 for each answer right first time, 2 for each question you finish, 20 for the Learn cards. This week starts again every Monday.</p>`;
+    $$('[data-lb]', el).forEach(x => (x.onclick = () => draw(x.dataset.lb)));
+  };
+  draw('week');
 }
 
 // ---------- Learn ----------
@@ -181,17 +428,17 @@ function learn() {
     if (c.kind === 'explorer') body += `<label for="pr">Price: <span id="prv"></span> ${esc(M.priceUnit)}</label>
       <input type="range" class="slider" id="pr" min="0" max="${M.prices.length - 1}" step="1" value="${c.market ? 1 : 0}" aria-describedby="eff">
       <div class="readout"><div class="d"><b id="rqd"></b>${w('quantity demanded', 'quantity demanded')}</div><div class="s"><b id="rqs"></b>${w('quantity supplied', 'quantity supplied')}</div><div><b id="rgap"></b><span id="rkind"></span></div></div>
-      ${c.market ? '<button class="ghost" id="work" style="width:100%">Let the market work ▶</button>' : ''}`;
+      ${c.market ? '<button class="alt" id="work" style="width:100%">Let the market work ▶</button>' : ''}`;
     if (c.kind === 'schedule') body += `<div class="scroll"><table class="sched"><tr><th>Price (${esc(M.priceUnit)})</th><th>${w('Quantity demanded', 'quantity demanded')} (kg)</th><th>${w('Quantity supplied', 'quantity supplied')} (kg)</th></tr>
       ${M.prices.map(P => `<tr data-p="${P}"><td>${P}</td><td>${fmt(M.qd(P))}</td><td>${fmt(M.qs(P))}</td></tr>`).join('')}</table></div>
-      <button class="ghost" id="showeq" style="width:100%">Show me the equilibrium</button><p id="eff" aria-live="polite"></p>`;
+      <button class="alt" id="showeq" style="width:100%">Show me the equilibrium</button><p id="eff" aria-live="polite"></p>`;
     const hasDg = ['four', 'move', 'two', 'explorer'].includes(c.kind);
     let under = '';   // the explorer's slider and readout sit directly under the diagram, so students see both while dragging
     if (c.kind === 'explorer') { const k = body.indexOf('<label for="pr">'); under = body.slice(k); body = body.slice(0, k); }
     view(`${backLink()}
       <div class="steps">${L.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
       <div class="card"><h2>${i + 1}. ${esc(c.title)}</h2>${hasDg ? `<div class="play-grid"><div><div class="dgwrap" id="dg"></div>${under}<p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : body}</div>
-      <div class="sticky-foot"><button class="ghost" id="prev" ${i ? '' : 'disabled'}>Back</button><button id="next">${i === L.length - 1 ? 'Finish' : 'Next'}</button></div>`);
+      <div class="sticky-foot"><button class="alt" id="prev" ${i ? '' : 'disabled'}>Back</button><button id="next">${i === L.length - 1 ? 'Finish' : 'Next'}</button></div>`);
     if (hasDg) {
       const dg = createDiagram($('#dg'));
       if (c.kind === 'explorer') {
@@ -228,7 +475,7 @@ function learn() {
       const xp = E.xpForNew(history, la);
       await saveAttempt(la);
       const nextAct = ACTIVITIES[U][1];
-      view(`<div class="card center"><h1>Cards done ✔</h1>${xp ? xpLine(xp) : ''}<p>Now test yourself.</p><div class="row" style="justify-content:center"><button id="n">${esc(nextAct.title)} →</button><button class="ghost" id="b">Back to ${U}</button></div></div>`);
+      view(`<div class="card center"><h1>Cards done ✔</h1>${xp ? xpLine(xp) : ''}<p>Now test yourself.</p><div class="row" style="justify-content:center"><button id="n">${esc(nextAct.title)} →</button><button class="alt" id="b">Back to ${U}</button></div></div>`);
       $('#n').onclick = () => go('#/u/' + U + '/' + nextAct.id); $('#b').onclick = () => go('#/u/' + U);
     };
   };
@@ -295,7 +542,7 @@ async function finish(run, title, again) {
   view(`<div class="card center"><h1>${esc(title)} done</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${run.score} / ${run.n}</p>
     <p class="muted">right first time · finished at ${levelBadge(run.lad.level)}</p>${xpLine(xp)}<p class="small" id="saved">Saving…</p></div>
     ${traps.length ? `<div class="card"><h3>Things to watch</h3>${traps.map(trapBox).join('')}</div>` : '<div class="card center">No mistakes: excellent! ⭐</div>'}
-    <div class="row"><button class="grow" id="again">Try again</button><button class="ghost grow" id="back">Back to ${U}</button></div>`);
+    <div class="row"><button class="grow" id="again">Try again</button><button class="alt grow" id="back">Back to ${U}</button></div>`);
   $('#again').onclick = again; $('#back').onclick = () => go('#/u/' + U);
   const ok = await saveAttempt(a);
   const el = $('#saved'); if (el) el.textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
@@ -439,7 +686,7 @@ function mcq(run = newRun('mcq', 10)) {
   const rec = { id: it.id, level: it.level, first_try: false, trap: null, ok: false, hinted: false };
   view(`${runHead(run, 'Question')}<div class="card"><p class="event">${esc(it.stem)}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
     <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> ${esc(o.t)}</button>`).join('')}</div>
-    <button class="ghost small" id="hint">Show a hint</button><div id="fb" aria-live="polite"></div></div></div></div>`);
+    <button class="alt small" id="hint">Show a hint</button><div id="fb" aria-live="polite"></div></div></div></div>`);
   if (it.diagram) createDiagram($('#dg'), { start: it.diagram });
   $('#hint').onclick = () => { rec.hinted = true; $('#hint').outerHTML = `<div class="fb tip"><b>Hint</b>${esc(it.hint)}</div>`; };
   $$('.choice').forEach(b => (b.onclick = () => {
@@ -466,7 +713,7 @@ function data() {
     const score = Object.values(res).reduce((s, r) => s + r.score, 0);
     const answers = D.questions.map(q => ({ id: D.id + '-' + q.id, level: 1, first_try: res[q.id].first, ok: res[q.id].score === q.marks, trap: res[q.id].trap || null, score: res[q.id].score, marks: q.marks, text: res[q.id].text }));
     const da = { unit: U, activity: 'data', level_start: 1, level_end: 1, score, max_score: maxScore, seconds: Math.round((Date.now() - t0) / 1000), answers };
-    qs.insertAdjacentHTML('beforeend', `<div class="card center"><h2>Total: ${score} / ${maxScore}</h2>${xpLine(E.xpForNew(history, da))}<p class="small" id="saved">Saving…</p><div class="row" style="justify-content:center"><button id="again">Try again</button><button class="ghost" id="back">Back to ${U}</button></div></div>`);
+    qs.insertAdjacentHTML('beforeend', `<div class="card center"><h2>Total: ${score} / ${maxScore}</h2>${xpLine(E.xpForNew(history, da))}<p class="small" id="saved">Saving…</p><div class="row" style="justify-content:center"><button id="again">Try again</button><button class="alt" id="back">Back to ${U}</button></div></div>`);
     $('#again').onclick = () => data(); $('#back').onclick = () => go('#/u/' + U);
     const ok = await saveAttempt(da);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
@@ -477,7 +724,7 @@ function data() {
     const card = document.createElement('div'); card.className = 'card'; card.id = id;
     let input = '';
     if (q.type === 'calc') input = `<div class="row"><input id="${id}i" inputmode="decimal" style="max-width:180px" aria-label="Your answer"><b>${esc(q.unit)}</b></div>`;
-    if (q.type === 'short') input = `<textarea id="${id}i" aria-label="Your answer" style="min-height:${q.marks > 1 ? 150 : 70}px"></textarea>${q.marks > 1 ? `<button class="ghost small" id="${id}f" type="button">Show the sentence frame</button>` : ''}`;
+    if (q.type === 'short') input = `<textarea id="${id}i" aria-label="Your answer" style="min-height:${q.marks > 1 ? 150 : 70}px"></textarea>${q.marks > 1 ? `<button class="alt small" id="${id}f" type="button">Show the sentence frame</button>` : ''}`;
     if (q.type === 'diagram') input = `<div class="dgwrap" id="${id}dg"></div>${['D', 'S'].map(c => `<p style="margin:10px 0 4px"><b>${CURVE_LABEL[c]()}</b></p>
       <div class="seg" data-curve="${c}"><button data-v="-1">← Left</button><button data-v="0">No shift</button><button data-v="1">Right →</button></div>`).join('')}`;
     if (q.type === 'priceline') input = `<div class="dgwrap" id="${id}dg"></div><p style="margin:10px 0 4px"><b>Price line (thousand VND)</b></p>
@@ -485,7 +732,7 @@ function data() {
       <p style="margin:10px 0 4px"><b>The gap between the curves shows</b></p>
       <div class="seg" data-k="t"><button data-v="shortage">A shortage</button><button data-v="surplus">A surplus</button><button data-v="eq">No gap</button></div>`;
     card.innerHTML = `<div class="row"><h3 class="grow">(${q.id}) ${esc(q.q)}</h3><span class="badge">${q.marks} mark${q.marks > 1 ? 's' : ''}</span></div>${input}
-      <div class="row" style="margin-top:10px"><button id="${id}c">Check</button><button class="ghost small" id="${id}h" type="button">Hint</button></div><div id="${id}fb" aria-live="polite"></div>`;
+      <div class="row" style="margin-top:10px"><button id="${id}c">Check</button><button class="alt small" id="${id}h" type="button">Hint</button></div><div id="${id}fb" aria-live="polite"></div>`;
     qs.append(card); card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     const fb = $('#' + id + 'fb'), chk = $('#' + id + 'c');
     $('#' + id + 'h').onclick = e => { e.target.outerHTML = `<div class="fb tip"><b>Hint</b>${esc(q.hint)}</div>`; };
@@ -540,17 +787,63 @@ function data() {
   ask(0);
 }
 
+
+// ---------- Unit checkpoint: 12 Paper 1 questions (4 Core, 4 Stretch, 4 Challenge), no hints, marked at the end ----------
+function checkpoint() {
+  wide(true);
+  const pool = C().MCQ, qs = [0, 1, 2].flatMap(l => E.shuffle(pool.filter(q => q.level === l)).slice(0, CHECK_N / 3));
+  const t0 = Date.now(), answers = []; let i = 0;
+  const show = () => {
+    if (i >= qs.length) return done();
+    const it = qs[i], opts = E.shuffle(it.options.map((o, k) => ({ ...o, right: k === 0 })));
+    view(`${backLink()}<div class="row"><b class="grow">${esc(U)} checkpoint · question ${i + 1} of ${qs.length}</b><span class="chip gold">No hints</span></div>
+      <div class="steps" style="margin-top:8px">${qs.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="card"><p class="event">${esc(it.stem)}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
+      <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> ${esc(o.t)}</button>`).join('')}</div>
+      <p class="note">Your answers are marked at the end.</p></div></div></div>`);
+    if (it.diagram) createDiagram($('#dg'), { start: it.diagram });
+    $$('.choice').forEach(b => (b.onclick = () => {
+      const o = opts[+b.dataset.k];
+      answers.push({ id: it.id, level: it.level, first_try: o.right, ok: o.right, trap: o.right ? null : o.trap || null, pick: o.t });
+      i++; show();
+    }));
+  };
+  const done = async () => {
+    wide(false);
+    const score = answers.filter(a => a.ok).length, passed = score / qs.length >= CHECK_PASS;
+    const a = { unit: U, activity: 'check', level_start: 0, level_end: 0, score, max_score: qs.length, seconds: Math.round((Date.now() - t0) / 1000), answers };
+    const xp = E.xpForNew(history, a);
+    view(`<div class="narrow"><div class="tcard" style="text-align:center"><span class="tag ${passed ? '' : 'gold'}" style="align-self:center">${passed ? 'Passed' : 'Not yet'}</span>
+        <h1>${esc(U)} checkpoint</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${score} / ${qs.length}</p>
+        <p class="note">${passed ? `You passed (${CHECK_PASS * 100}% needed).${mission(U).steps.slice(0, 5).every(s => s.done) ? ` You won the <b>${esc(BADGE[U] || 'Unit champion')}</b> badge.` : ''}` : `You need ${Math.ceil(CHECK_PASS * qs.length)} to pass. Look at the answers below, then try again.`}</p>
+        ${xpLine(xp)}<p class="note" id="saved">Saving…</p></div>
+      <div class="panel"><h3>Your answers</h3>${answers.map((x, k) => { const q = qs[k]; return `<div class="fb ${x.ok ? 'ok' : 'no'}"><b>${k + 1}. ${x.ok ? '✔' : '✘'} ${esc(q.stem)}</b>
+        ${x.ok ? '' : `You chose: ${esc(x.pick)}<br>Answer: <b>${esc(q.options[0].t)}</b><br>`}<span class="note">${esc(q.explain)}</span></div>`; }).join('')}</div>
+      <div class="row"><a class="btn" href="#/u/${U}/tab/paper1">Back to ${esc(U)}</a><a class="btn alt" href="#/review">Review</a></div></div>`);
+    const ok = await saveAttempt(a);
+    $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
+  };
+  show();
+}
+
 // ---------- router ----------
-const ACT = { learn, shift: () => shift(), eqm: () => eqm(), mcq: () => mcq(), data };
+const ACT = { learn, shift: () => shift(), eqm: () => eqm(), mcq: () => mcq(), data, check: checkpoint };
 function route() {
   if (!me) return login();
   if (me.must_change) return changePin(true);
-  const [a, u, act] = location.hash.replace(/^#\/?/, '').split('/');
+  const [a, u, act, sub] = location.hash.replace(/^#\/?/, '').split('/');
+  if (a === 'units') return unitsView();
+  if (a === 'review') return u === 'go' ? reviewRun() : reviewView();
+  if (a === 'games') return gamesView();
+  if (a === 'me') return meView(u || 'stats');
   const unit = UNITS.find(x => x.id === u);
   if (a === 'u' && unit && unit.ready && CONTENT[u] && (me.open_units || []).includes(u)) {
     U = u;
-    return act && ACT[act] && ACTIVITIES[U].some(x => x.id === act) ? ACT[act]() : unitPage();
+    if (act === 'tab') return unitPage(sub);
+    if (act && ACT[act] && (act === 'check' || ACTIVITIES[U].some(x => x.id === act))) { nav(null); return ACT[act](); }
+    return unitPage();
   }
+  if (a === 'u') return unitsView();
   home();
 }
 window.addEventListener('hashchange', route);
