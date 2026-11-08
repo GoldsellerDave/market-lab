@@ -8,6 +8,8 @@ import { CONTENT, TRAPS, GLOSSARY } from './content.js';
 import { BASELINE, BASELINE_N } from './u1.js';
 import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js';
 import { createPPC } from './ppc.js';
+import * as S from './sound.js';
+import * as Cel from './celebrate.js';
 import { SHIFTS } from './u25.js';
 import { genEq, nextEqKind, LEARN_MARKET } from './u24.js';
 import { createDiagram } from './diagram.js';
@@ -80,9 +82,29 @@ window.addEventListener('online', () => flush());
 function header() {
   const m = $('#meta'); if (!m) return;
   if (!me) { m.innerHTML = DEMO ? '<span class="pill">Demo mode</span>' : ''; return; }
-  m.innerHTML = `<span class="pill xp" title="Your XP">${E.xpTotals(history).total} XP</span>${DEMO ? '<span class="pill">Demo</span>' : ''}<button class="linkbtn" id="out">Sign out</button>`;
+  S.soundUser(me.username); const on = S.soundOn();
+  m.innerHTML = `<span class="pill xp" title="Your XP">${E.xpTotals(history).total} XP</span>${DEMO ? '<span class="pill">Demo</span>' : ''}<button class="pill snd" id="snd" aria-pressed="${on}" aria-label="Sound effects ${on ? 'on' : 'off'}" title="Sound effects ${on ? 'on' : 'off'}">${on ? SOUND_ON : SOUND_OFF}</button><button class="linkbtn" id="out">Sign out</button>`;
+  $('#snd').onclick = () => { S.setSound(!S.soundOn()); S.play('ok'); header(); };
   $('#out').onclick = async () => { try { await rpc('ec_logout', { p_token: token.get() }); } catch { } token.set(null); me = null; history = []; header(); nav(null); go('#/'); };
 }
+const SOUND_ON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+const SOUND_OFF = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+// Feedback sounds: every activity shows right/wrong feedback as .fb.ok / .fb.no, so one watcher covers them all.
+new MutationObserver(ms => {
+  for (const m of ms) for (const n of m.addedNodes) {
+    if (n.nodeType !== 1 || !n.matches('.fb.ok, .fb.no')) continue;
+    return S.play(n.matches('.fb.ok') ? 'ok' : 'bad');
+  }
+}).observe(document.getElementById('app'), { childList: true, subtree: true });
+// At the end of an activity: coins, stars and the XP counting up; a mission completed or an English level up gets the big celebration.
+function reward(xp, { wasDone = true, bandBefore = null } = {}) {
+  const mission = U && CONTENT[U] && !wasDone && missionOf(U, history).complete;
+  const after = bandInfo().band, up = bandBefore != null && after != null && after > bandBefore;
+  if (mission) Cel.big({ icon: '🏅', title: `Mission complete, ${me.display_name}!`, sub: `${BADGE[U] || 'Unit champion'} badge · ${U}${up ? ` · English level up: ${BANDS[after]}` : ''}`, xp });
+  else if (up) Cel.big({ icon: '🎓', title: `Level up! You are now ${BANDS[after]}`, sub: `${BAND_NAMES[after]}. You will get a little less help.`, xp });
+  else Cel.set(xp);
+}
+const missionDone = () => !!(U && CONTENT[U] && missionOf(U, history).complete);
 const NAV = [['', 'Home', 'home'], ['units', 'Units', 'units'], ['review', 'Review', 'review'], ['games', 'Games', 'games'], ['me', 'Me', 'me']];
 // The bar shows on every page except sign-in and while an activity runs. on = null hides it.
 function nav(on) {
@@ -363,6 +385,7 @@ function reviewRun() {
       <p class="note">right first time</p>${xpLine(xp)}<p class="note" id="saved">Saving…</p></div><a class="btn" href="#/review">Back to Review</a></div>`);
     const ok = await saveAttempt(a);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
+    reward(xp);
   };
   show();
 }
@@ -522,11 +545,12 @@ function learn() {
     $('#next').onclick = async () => {
       if (i < L.length - 1) { i++; return show(); }
       const la = { unit: U, activity: 'learn', level_start: 0, level_end: 0, score: L.length, max_score: L.length, seconds: Math.round((Date.now() - t0) / 1000), answers: L.map(x => ({ id: 'learn-' + x.id, ok: true })) };
-      const xp = E.xpForNew(history, la);
+      const xp = E.xpForNew(history, la), wasDone = missionDone();
       await saveAttempt(la);
       const nextAct = ACTIVITIES[U][1];
       if (C().BANDED) helpCount = 0;
       view(`<div class="card center"><h1>Cards done ✔</h1>${xp ? xpLine(xp) : ''}<p>Now test yourself.</p><div class="row" style="justify-content:center"><button id="n">${esc(nextAct.title)} →</button><button class="alt" id="b">Back to ${U}</button></div></div>`);
+      reward(xp, { wasDone });
       $('#n').onclick = () => go('#/u/' + U + '/' + nextAct.id); $('#b').onclick = () => go('#/u/' + U);
     };
   };
@@ -541,7 +565,7 @@ function newRun(activity, n) {
 function afterItem(run, rec, next) {
   run.answers.push(rec); if (rec.first_try) run.score++;
   const prev = run.lad.level; run.lad = E.ladder(run.lad, rec.first_try);
-  if (run.lad.level > prev) toast('⬆ Level up: ' + E.LEVELS[run.lad.level]);
+  if (run.lad.level > prev) { toast('⬆ Level up: ' + E.LEVELS[run.lad.level]); S.play('level'); }
   run.i++;
   if (run.lad.rescue) run.rescues = (run.rescues || 0) + 1;
   if (run.lad.rescue && run.i < run.n) return rescue(run, rec.trap, prev === 0, next);
@@ -589,7 +613,7 @@ async function finish(run, title, again) {
   const traps = [...new Set(run.answers.map(a => a.trap).filter(Boolean))];
   const a = { unit: U, activity: run.activity, level_start: run.levelStart, level_end: run.lad.level, score: run.score, max_score: run.n, seconds: Math.round((Date.now() - run.t0) / 1000),
     answers: [...run.answers, { id: 'meta', rescues: run.rescues || 0, ...(C().BANDED ? { band: band(), help: helpCount } : {}) }] };
-  const xp = E.xpForNew(history, a), before = run.bandBefore ?? bandInfo().band;
+  const xp = E.xpForNew(history, a), before = run.bandBefore ?? bandInfo().band, wasDone = missionDone();
   view(`<div class="card center"><h1>${esc(title)} done</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${run.score} / ${run.n}</p>
     <p class="muted">right first time · finished at ${levelBadge(run.lad.level)}</p>${xpLine(xp)}<p class="small" id="saved">Saving…</p><p id="lvl"></p></div>
     ${traps.length ? `<div class="card"><h3>Things to watch</h3>${traps.map(trapBox).join('')}</div>` : '<div class="card center">No mistakes: excellent! ⭐</div>'}
@@ -598,6 +622,7 @@ async function finish(run, title, again) {
   const ok = await saveAttempt(a);
   const el = $('#saved'); if (el) el.textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
   if (C().BANDED) levelUpNote(before);
+  reward(xp, { wasDone, bandBefore: C().BANDED ? before : null });
 }
 const runHead = (run, label) => `${backLink()}
   <div class="row"><b class="grow">${label} ${run.i + 1} of ${run.n}</b>${levelBadge(run.lad.level)}</div>
@@ -769,8 +794,9 @@ function data() {
     const da = { unit: U, activity: 'data', level_start: 1, level_end: 1, score, max_score: maxScore, seconds: Math.round((Date.now() - t0) / 1000), answers };
     qs.insertAdjacentHTML('beforeend', `<div class="card center"><h2>Total: ${score} / ${maxScore}</h2>${xpLine(E.xpForNew(history, da))}<p class="small" id="saved">Saving…</p><div class="row" style="justify-content:center"><button id="again">Try again</button><button class="alt" id="back">Back to ${U}</button></div></div>`);
     $('#again').onclick = () => data(); $('#back').onclick = () => go('#/u/' + U);
-    const ok = await saveAttempt(da);
+    const wasDone = missionDone(), ok = await saveAttempt(da);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
+    reward(E.xpForNew(history.slice(0, -1), da), { wasDone });
   };
   const ask = k => {
     if (k >= D.questions.length) return done();
@@ -874,9 +900,10 @@ function checkpoint() {
       <div class="panel"><h3>Your answers</h3>${answers.map((x, k) => { const q = qs[k]; return `<div class="fb ${x.ok ? 'ok' : 'no'}"><b>${k + 1}. ${x.ok ? '✔' : '✘'} ${esc(q.stem)}</b>
         ${x.ok ? '' : `You chose: ${esc(x.pick)}<br>Answer: <b>${esc(q.options[0].t)}</b><br>`}<span class="note">${esc(q.explain)}</span></div>`; }).join('')}</div>
       <div class="row"><a class="btn" href="#/u/${U}/tab/paper1">Back to ${esc(U)}</a><a class="btn alt" href="#/review">Review</a></div></div>`);
-    const ok = await saveAttempt(a);
+    const wasDone = missionDone(), ok = await saveAttempt(a);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
     if (C().BANDED) levelUpNote(before);
+    reward(xp, { wasDone, bandBefore: C().BANDED ? before : null });
   };
   show();
 }
@@ -984,6 +1011,7 @@ function baselineRun() {
       <a class="btn go" href="#/">Start learning</a></div>`);
     const ok = await saveAttempt(a);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
+    Cel.big({ icon: '🎯', title: `Your English level: ${BANDS[b]}`, sub: `${BAND_NAMES[b]} · ${score} / ${BASELINE_N} right`, xp });
   };
   intro();
 }
@@ -1068,13 +1096,14 @@ function p2() {
     wide(false);
     const score = answers.reduce((s, a) => s + a.score, 0), max = items.reduce((s, q) => s + q.marks, 0);
     const a = { unit: U, activity: 'p2', level_start: 0, level_end: 0, score, max_score: max, seconds: Math.round((Date.now() - t0) / 1000), answers: [...answers, { id: 'meta', band: b, help: helpCount }] };
-    const xp = E.xpForNew(history, a), before = bandInfo().band;
+    const xp = E.xpForNew(history, a), before = bandInfo().band, wasDone = missionDone();
     view(`<div class="narrow"><div class="tcard" style="text-align:center"><h1>Paper 2 builder done</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${score} / ${max}</p>
       <p class="note">marks</p>${xpLine(xp)}<p class="note" id="saved">Saving…</p><p id="lvl"></p></div>
       <div class="row"><a class="btn" href="#/u/${U}/p2">Try again</a><a class="btn alt" href="#/u/${U}">Back to ${U}</a></div></div>`);
     const ok = await saveAttempt(a);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
     levelUpNote(before);
+    reward(xp, { wasDone, bandBefore: before });
   };
   show();
 }
@@ -1113,8 +1142,9 @@ function ppcRun(run = newRun('ppc', 6)) {
   const render = () => {
     const st = it.steps[si], el = $('#step');
     if (st.type === 'choice') {
-      el.innerHTML = `<h3>${esc(st.q)}</h3><div class="choices">${st.options.map((o, k) => `<button class="choice" data-k="${k}">${esc(o.t)}</button>`).join('')}</div>`;
-      $$('.choice', el).forEach(btn => (btn.onclick = () => { const o = st.options[+btn.dataset.k]; if (o.v === st.answer) return right(); btn.classList.add('wrong'); btn.disabled = true; wrong(o.trap); }));
+      const opts = E.shuffle(st.options);
+      el.innerHTML = `<h3>${esc(st.q)}</h3><div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}">${esc(o.t)}</button>`).join('')}</div>`;
+      $$('.choice', el).forEach(btn => (btn.onclick = () => { const o = opts[+btn.dataset.k]; if (o.v === st.answer) return right(); btn.classList.add('wrong'); btn.disabled = true; wrong(o.trap); }));
     } else {
       el.innerHTML = `<h3>${esc(st.q)}</h3><div class="numrow"><input id="num" inputmode="numeric" aria-label="Your answer"><span>${esc(st.unit)}</span></div><button id="chk" style="width:100%;margin-top:10px">Check</button>`;
       const check = () => { const v = $('#num').value; if (!v.trim()) return; if (E.markNumber(v, st.answer, 0).ok) right(); else { wrong(st.trap); $('#num').select(); } };

@@ -10,6 +10,11 @@ MCQ_BY_STEM = {q['stem']: q for q in ITEMS['MCQ'] + ITEMS.get('MCQ24', [])}
 fails, checks = [], 0
 SHOT_DONE = set()
 
+CEL = """window.__cel = []; new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => {
+  if (n.nodeType === 1 && n.classList.contains('celbig')) { window.__cel.push(n.querySelector('.celtitle').textContent); setTimeout(() => n.click(), 750); }
+  if (n.nodeType === 1 && n.classList.contains('celchip')) window.__cel.push('chip');
+}))).observe(document, { childList: true, subtree: true });"""  # records celebrations and taps the big ones away, as a student would
+
 def ok(cond, msg):
     global checks
     checks += 1
@@ -297,7 +302,7 @@ with sync_playwright() as pw:
     for size, (w, h) in SIZES.items():
         print('==', size)
         ctx = b.new_context(viewport={'width': w, 'height': h}, has_touch=size != 'laptop', is_mobile=size == 'phone')
-        p = ctx.new_page(); errs = []
+        p = ctx.new_page(); errs = []; p.add_init_script(CEL)
         p.on('pageerror', lambda e: errs.append(str(e))); p.on('console', lambda m: m.type == 'error' and errs.append(m.text))
         try:
             run_student(p, size); run_struggler(p, size); run_u24(p, size); run_teacher(p, size)
