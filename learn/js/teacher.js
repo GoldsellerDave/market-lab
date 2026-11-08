@@ -9,11 +9,12 @@ import { mission, checkBest, CHECK_PASS } from './mission.js';
 import { icon, tile } from './icons.js';
 import { bandOf, BANDS, BAND_NAMES } from './bands.js';
 import { BASELINE_N } from './u1.js';
+import { SCENARIOS } from './u1s.js';
 
 let me = null, classes = [], cls = null, tab = pref.get('t-tab2', 'students'), live = null, focus = null, lbMode = 'week';
 const BUILT = UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);
 let UNIT = BUILT.includes(pref.get('t-unit', '2.5')) ? pref.get('t-unit', '2.5') : BUILT[BUILT.length - 1];
-const actName = (unit, id) => (id === 'check' ? 'Unit checkpoint' : id === 'review' ? 'Review' : ((ACTIVITIES[unit] || []).find(a => a.id === id) || { title: id }).title);
+const actName = (unit, id) => (id.startsWith('sc-') ? 'Scenario: ' + ((SCENARIOS.find(s => 'sc-' + s.id === id) || {}).title || id) : id === 'check' ? 'Unit checkpoint' : id === 'review' ? 'Review' : ((ACTIVITIES[unit] || []).find(a => a.id === id) || { title: id }).title);
 const LEVELED = new Set(['shift', 'eqm', 'mcq', 'ppc']);
 const pracOf = u => (ACTIVITIES[u] || []).find(a => a.id === 'shift' || a.id === 'eqm' || a.id === 'ppc');
 const engChip = bi => (bi.band == null ? '<span class="lvlchip">Not placed</span>' : `<span class="chip mint" title="${BAND_NAMES[bi.band]}">${BANDS[bi.band]}</span>${bi.source === 'teacher' ? ' <span class="note">set by you</span>' : ''}`);

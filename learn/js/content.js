@@ -2,6 +2,7 @@
 import * as U24 from './u24.js';
 import * as U25 from './u25.js';
 import * as U1 from './u1.js';
+import { SCENARIOS } from './u1s.js';
 import { EQ_TITLES } from './u24.js';
 
 // Section 1 units share one glossary and one set of traps; each has its own cards and questions. BANDED: English adapts to the band.
@@ -21,5 +22,7 @@ for (const [u, C] of Object.entries(CONTENT)) {
   (C.P2 || []).forEach(q => (ITEMS[q.id] = { unit: u, kind: 'Paper 2', text: q.q, level: q.level }));
   (C.PPC || []).forEach(q => (ITEMS[q.id] = { unit: u, kind: 'PPC', text: q.title + ': ' + q.steps[0].q, level: q.level }));
 }
+SCENARIOS.forEach(s => { s.steps.forEach((st, k) => (ITEMS[`${s.id}-${k + 1}`] = { unit: s.unit, kind: 'Scenario', text: `${s.title}: ${st.q}`, level: 0 }));
+  if (s.explain) ITEMS[`${s.id}-x`] = { unit: s.unit, kind: 'Scenario (B2)', text: `${s.title}: ${s.explain.q}`, level: 2 }; });
 U1.BASELINE.forEach(t => t.qs.forEach((q, k) => (ITEMS[`${t.id}-${k + 1}`] = { unit: 'base', kind: `Baseline ${t.level}`, text: `${t.title}: ${q.q}`, level: 0 })));
 Object.entries(EQ_TITLES).forEach(([k, t]) => (ITEMS[k] = { unit: '2.4', kind: 'Finder', text: t + ' (a new schedule each time)', level: U24.EQ_KINDS[k] }));

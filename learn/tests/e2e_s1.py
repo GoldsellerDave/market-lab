@@ -164,6 +164,43 @@ def test_accounts(p, size):
     p.goto(BASE + '/learn/?demo=1#/me/leaderboard'); p.wait_for_selector('table.lb'); ok('Test A1' not in p.inner_text('table.lb'), 'students do not see the test account on the leaderboard')
     logout(p)
 
+def scen_round(p, unit, size=None, explain=False):
+    for k, sc in enumerate([x for x in D['SCEN'] if x['unit'] == unit]):
+        p.goto(BASE + f'/learn/?demo=1#/u/{unit}/scen/{sc["id"]}'); p.wait_for_selector('#sstep h3')
+        ok(sc['title'] in p.inner_text('.scen-title'), f'{sc["id"]}: card shows its title')
+        ok(p.locator('.scen-hero svg.scene-svg').count() == 1 and p.locator('.scen-stk span').count() >= 2, f'{sc["id"]}: cartoon scene and stickers')
+        if size and k == 0: shot(p, size, f'12-scen-{unit}'); no_overflow(p, f'{size} scenario {sc["id"]}')
+        for j, st in enumerate(sc['steps']):
+            p.wait_for_selector('#sstep h3')
+            if st['type'] == 'choice':
+                btns = p.locator('#sstep .choice'); texts = [norm(btns.nth(i).inner_text()) for i in range(btns.count())]
+                idx = next((i for i, t in enumerate(texts) if t in [norm(x) for x in st['right']]), None)
+                ok(idx is not None, f'{sc["id"]} step {j+1}: right answer on screen {texts}'); btns.nth(idx or 0).click(position={'x': 6, 'y': 6})
+            elif st['type'] == 'sort':
+                rows = p.locator('#sstep .sortrow')
+                for i in range(rows.count()):
+                    t = norm(rows.nth(i).locator('.sort-t').inner_text()); it = next(x for x in st['items'] if t in [norm(y) for y in x['t']])
+                    rows.nth(i).locator('.sort-b button').nth(it['b']).click()
+                if size and 'sort' not in DONE: DONE.add('sort'); shot(p, size, '13-scen-sort')
+                p.click('#chk')
+            else:
+                for target, line in enumerate(st['lines']):
+                    cur = [norm(x) for x in p.locator('#sstep .ctile .ctext').all_inner_texts()].index(norm(line))
+                    for _ in range(cur - target): p.click(f'#sstep [data-up="{cur}"]'); cur -= 1
+                p.click('#chk')
+            ok(p.locator('#fb .fb.ok').count() == 1, f'{sc["id"]} step {j+1} ({st["type"]}): right first time')
+            p.click('#nx')
+        if explain and sc.get('explain'):
+            p.wait_for_selector('#ans'); p.fill('#ans', sc['explain']['answer']); p.click('#chk'); ok(p.locator('#fb .fb.ok').count() == 1, f'{sc["id"]}: B2 written answer marked'); p.click('#nx')
+        elif sc.get('explain'): ok(p.locator('#ans').count() == 0, f'{sc["id"]}: no written task below B2')
+        p.wait_for_selector('text=Scenario solved'); p.wait_for_selector('#saved:has-text("Saved")')
+        n = len(sc['steps']) + (1 if explain and sc.get('explain') else 0)
+        ok(f'{n} / {n}' in p.inner_text('main'), f'{sc["id"]}: all right first time ({n})')
+    p.goto(BASE + f'/learn/?demo=1#/u/{unit}/tab/learn'); p.wait_for_selector('.scen-grid')
+    ok(p.locator('.scen-tile.done').count() == 5, f'{unit}: all 5 scenario tiles ticked')
+    p.goto(BASE + f'/learn/?demo=1#/u/{unit}'); p.wait_for_selector('.msteps')
+    ok(p.locator('.msteps li.done').filter(has_text='Solve the scenarios').count() == 1, f'{unit}: mission step "Solve the scenarios" done')
+
 VI_ON = [True]
 POS = []
 DONE = set()
@@ -208,11 +245,17 @@ def run(p, size):
     teacher(p, None, band='auto')
     # automatic band changes: demo-02 starts at B1 (9/12), three strong runs move them to B2
     test_accounts(p, size)
+    student(p, 'demo-03')
+    for u in ('1.1', '1.2', '1.3', '1.4'): scen_round(p, u, size if u == '1.2' else None)
+    ok('chip' in p.evaluate('window.__cel'), 'scenario solved: XP chip')
+    p.goto(BASE + '/learn/?demo=1#/'); p.wait_for_selector('.pill.xp'); xp = int(p.inner_text('.pill.xp').split()[0])
+    ok(xp >= 400, f'XP earned for the scenarios ({xp})'); logout(p)
     student(p, 'demo-02'); out = baseline(p, None, 9); ok('B1' in out, 'baseline 9/12 → B1')
     for u in ('1.1', '1.2'): mcq_round(p, u, 2)
     out = p2_round(p, '1.4', 2)
     ok('level up' in out.lower(), 'three strong activities in a row: level up message')
     p.goto(BASE + '/learn/?demo=1#/me'); p.wait_for_selector('.tcard'); ok('B2' in p.inner_text('main'), 'band moved up to B2 automatically')
+    scen_round(p, '1.3', None, explain=True)
     logout(p)
 
 with sync_playwright() as pw:
