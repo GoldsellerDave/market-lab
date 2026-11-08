@@ -11,6 +11,11 @@ for q in D['MCQ']: MCQ[norm(q['stem'])] = q; MCQ[norm(q['plain'])] = q
 PPC = {it['title']: it for it in D['PPC']}
 fails, checks, errors = [], 0, []
 
+CEL = """window.__cel = []; new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => {
+  if (n.nodeType === 1 && n.classList.contains('celbig')) { window.__cel.push(n.querySelector('.celtitle').textContent); setTimeout(() => n.click(), 750); }
+  if (n.nodeType === 1 && n.classList.contains('celchip')) window.__cel.push('chip');
+}))).observe(document, { childList: true, subtree: true });"""  # records celebrations and taps the big ones away, as a student would
+
 def ok(cond, msg):
     global checks
     checks += 1
@@ -66,6 +71,7 @@ def mcq_round(p, unit, band, size=None, use_pill=False):
         btns = p.locator('.choice'); texts = [norm(btns.nth(k).locator('.otext').inner_text()) for k in range(n)]
         idx = next((k for k, t in enumerate(texts) if t in [norm(x) for x in q['right']]), None)
         ok(idx is not None, f'{unit} mcq {i+1} band {band}: right answer is on screen {texts} {q["right"]}')
+        POS.append(idx)
         btns.nth(idx or 0).locator('b').first.click(); p.click('#nx')
         if p.locator('#ok').count(): p.click('#ok')
         if p.locator('text=Paper 1 practice done').count(): break
@@ -140,6 +146,7 @@ def teacher(p, size, band=None, vi=None):
     if p.locator('#out').count(): p.click('#out')
 
 VI_ON = [True]
+POS = []
 DONE = set()
 
 def run(p, size):
@@ -148,6 +155,7 @@ def run(p, size):
     ok('English and economics baseline' in p.inner_text('main'), 'home: baseline first'); shot(p, size, '0-home'); no_overflow(p, size + ' home')
     ok(p.locator('.wo-list a[href="#/baseline"], a[href="#/baseline"]').count() >= 1, 'home: baseline link')
     out = baseline(p, size, 3); ok('A1' in out, 'baseline 3/12 → A1')
+    p.wait_for_function('window.__cel.length > 0'); ok('Your English level: A1' in p.evaluate('window.__cel'), 'baseline: big celebration with the level')
     p.goto(BASE + '/learn/?demo=1#/'); p.wait_for_selector('.stats'); ok('A1' in p.inner_text('.stats'), 'home stat shows A1')
     p.goto(BASE + '/learn/?demo=1#/units'); p.wait_for_selector('.ulist')
     ok('Section 1: The basic economic problem' in p.inner_text('main') and 'Section 2' in p.inner_text('main'), 'units grouped by section'); no_overflow(p, size + ' units')
@@ -164,7 +172,9 @@ def run(p, size):
     p.click('#next'); p.wait_for_selector('[data-mv]'); p.click('[data-mv="CD"]'); ok('6 phones' in p.inner_text('#eff') or '6 million phones' in p.inner_text('#eff'), 'learn PPC: C→D opportunity cost')
     p.click('#next'); p.wait_for_selector('[data-sh]'); p.click('[data-sh="2"]'); p.wait_for_timeout(900); ok('rice' in p.inner_text('#eff'), 'learn PPC: rice-seed shift')
     shot(p, size, '6b-learn-shift')
+    p.wait_for_timeout(300); ok('chip' in p.evaluate('window.__cel'), 'finishing an activity: XP chip and stars')
     ppc_round(p, size)
+    p.wait_for_timeout(300); ok(any('Level up! You are now A2' in c for c in p.evaluate('window.__cel')), 'English level up: big celebration')
     p.goto(BASE + '/learn/?demo=1#/me'); p.wait_for_selector('.tcard'); ok('English level' in p.inner_text('main') and 'Baseline: 3/12' in p.inner_text('main'), 'Me: English level card')
     ok('A2' in p.inner_text('.tcard'), 'three strong A1 activities (Paper 1, Paper 2, PPC) moved the student up to A2'); shot(p, size, '10-me')
     logout(p)
@@ -189,12 +199,15 @@ with sync_playwright() as pw:
     b = pw.chromium.launch()
     for size, (w, h) in SIZES.items():
         print('==', size)
-        ctx = b.new_context(viewport={'width': w, 'height': h}); p = ctx.new_page(); p.set_default_timeout(8000)
+        ctx = b.new_context(viewport={'width': w, 'height': h}); p = ctx.new_page(); p.set_default_timeout(8000); p.add_init_script(CEL)
         p.on('pageerror', lambda e: errors.append(str(e)))
         try: run(p, size)
         except Exception as e: fails.append(f'{size}: {e}'); print('  ERROR', e); shot(p, size, 'zz-error')
         ctx.close()
     b.close()
 ok(not errors, f'no page errors: {errors[:3]}')
+from collections import Counter
+c = Counter(POS); print('right-answer positions in Paper 1:', dict(sorted(c.items())))
+ok(len(c) >= 3 and max(c.values()) / len(POS) < 0.5, f'Paper 1 answers are in random positions {dict(c)}')
 print(f'{checks} checks, {len(fails)} failed')
 sys.exit(1 if fails else 0)
