@@ -232,3 +232,30 @@ table.grid a.sname{color:var(--teal);font-weight:600}
 .toggle{display:flex;gap:10px;align-items:center;font-weight:400;margin:6px 0}.toggle input{width:auto}
 .toast{top:auto;bottom:96px}
 @media print{.bnav,header.top{display:none!important}}
+/* ---- Section 1: English bands, key-word pills, Paper 2 builder, PPC ---- */
+.pillterm{display:inline;padding:0 6px;border-radius:99px;background:var(--mint);color:var(--teal);font-weight:700;border-bottom:2px solid var(--teal);cursor:pointer;white-space:nowrap}
+.pillterm.soft{background:transparent;padding:0;border-bottom:2px dotted var(--teal);color:inherit;font-weight:inherit}
+.gloss{display:block;margin:6px 0;padding:10px 12px;border-radius:10px;background:var(--panel);border:1.5px solid var(--teal);color:var(--ink);font-weight:400;font-size:.95rem;text-align:left;line-height:1.45;white-space:normal}
+.gloss .gx{display:block;margin-top:4px;color:var(--muted)}
+.vi{color:var(--warn);font-style:italic}.gloss .vi,p.vi{display:block;margin-top:4px}
+.qtools{margin:10px 0 4px}
+.passage{background:var(--card);border-radius:var(--r);padding:14px 16px;line-height:1.7;font-size:1.05rem}
+.passage .pn{color:var(--muted);font-size:.8rem;font-weight:700;margin-right:6px}
+.bq{margin:14px 0 6px;font-weight:700}
+ol.chain{list-style:none;padding:0;margin:8px 0 12px;counter-reset:c}
+.ctile{counter-increment:c;display:flex;gap:10px;align-items:center;padding:10px 12px;margin:0 0 8px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel)}
+.ctile::before{content:counter(c);flex:0 0 28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.9rem}
+.ctile .ctext{flex:1;line-height:1.45}.ctile.good{border-color:var(--ok);background:var(--ok-soft)}.ctile.bad{border-color:var(--bad);background:var(--bad-soft)}
+.cmove{display:flex;flex-direction:column;gap:4px}.cmove button{min-height:36px;min-width:42px;padding:2px 8px}
+.bank{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px;padding:10px;border:1.5px dashed var(--line);border-radius:12px}
+.gapped p{line-height:2.4}.gapped select.gap{width:auto;display:inline-block;padding:4px 8px;min-height:38px;font-weight:700;margin:0 2px}
+select.gap.good{border-color:var(--ok);background:var(--ok-soft)}select.gap.bad{border-color:var(--bad);background:var(--bad-soft)}
+.ppc .ppc-grid{stroke:var(--line);stroke-width:1}
+.ppc-curve{stroke:var(--teal);stroke-width:3.5;fill:none}.ppc-old{stroke:var(--muted);stroke-width:2.2;stroke-dasharray:6 5;fill:none;opacity:.7}
+.ppc-lab{fill:var(--teal);font:700 14px var(--font-body)}
+.ppc-pt{fill:var(--navy);stroke:var(--panel);stroke-width:2}.ppc-pt.hi{fill:var(--orange)}
+:root[data-mode=dark] .ppc-pt:not(.hi){fill:var(--title)}
+.ppc-ptlab{fill:var(--ink);font:800 14px var(--font-body)}
+.ppc-move{stroke:none;fill:none}.ppc-drop{stroke:var(--bad);stroke-width:3}.ppc-gain{stroke:var(--ok);stroke-width:3}
+.ppc-note{fill:var(--ink);font:700 12px var(--font-body)}
+.choice .otext{flex:1;min-width:0}.choice .otext .gloss{margin:8px 0 2px}

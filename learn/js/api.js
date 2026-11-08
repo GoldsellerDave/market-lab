@@ -48,9 +48,10 @@ function db() {
   let d; try { d = JSON.parse(localStorage.getItem(DKEY)); } catch { }
   if (!d) {
     d = { users: [{ id: 't1', username: 'teacher', role: 'teacher', secret: 'demo', display_name: 'Demo Teacher', full_name: 'Demo Teacher', is_admin: true }],
-      classes: [{ code: 'demo', name: 'Demo class', teacher_id: 't1', open_units: ['2.4', '2.5'], board: true }], tokens: {}, attempts: [], seq: 1 };
+      classes: [{ code: 'demo', name: 'Demo class', teacher_id: 't1', open_units: ['1.1', '1.2', '1.3', '1.4', '2.4', '2.5'], board: true, vi_a1: true }], tokens: {}, attempts: [], seq: 1, s1: true };
     ['An', 'Tony', 'Mia'].forEach((n, i) => d.users.push({ id: 's' + (i + 1), username: 'demo-0' + (i + 1), role: 'student', class_code: 'demo', secret: '1234', display_name: n, full_name: 'Demo ' + n }));
   }
+  if (!d.s1) { d.s1 = true; d.classes.forEach(c => { c.open_units = [...new Set(['1.1', '1.2', '1.3', '1.4', ...(c.open_units || [])])]; if (c.vi_a1 == null) c.vi_a1 = true; }); }
   return d;
 }
 const save = d => { try { localStorage.setItem(DKEY, JSON.stringify(d)); } catch { } };
@@ -60,7 +61,7 @@ function demo(fn, a) {
   const me = () => { const id = d.tokens[a.p_token]; const u = d.users.find(x => x.id === id); if (!u) throw new Error('not-signed-in'); u.last_seen = now; return u; };
   const teacher = () => { const u = me(); if (u.role !== 'teacher') throw new Error('teachers-only'); return u; };
   const cls = code => { const c = d.classes.find(x => x.code === String(code).toLowerCase()); if (!c) throw new Error('no-such-class'); return c; };
-  const prof = u => ({ role: u.role, username: u.username, display_name: u.display_name, full_name: u.full_name, class_code: u.class_code || null, must_change: !!u.must_change, is_admin: !!u.is_admin, open_units: (d.classes.find(c => c.code === u.class_code) || {}).open_units || [] });
+  const prof = u => ({ role: u.role, username: u.username, display_name: u.display_name, full_name: u.full_name, class_code: u.class_code || null, must_change: !!u.must_change, is_admin: !!u.is_admin, open_units: (d.classes.find(c => c.code === u.class_code) || {}).open_units || [], eng_band: u.eng_band ?? null, vi_a1: (d.classes.find(c => c.code === u.class_code) || {}).vi_a1 !== false });
   const addPeople = (c, people) => {
     let n = Math.max(0, ...d.users.filter(u => u.class_code === c.code && u.role === 'student').map(u => +u.username.split('-').pop() || 0));
     return people.map(p => { n++; const u = { id: 'u' + Date.now() + n, username: c.code + '-' + String(n).padStart(2, '0'), role: 'student', class_code: c.code, secret: pin(), full_name: p.full_name || '', display_name: p.display_name || p.full_name };
@@ -77,13 +78,15 @@ function demo(fn, a) {
       const at = { id: d.seq++, user_id: u.id, class_code: u.class_code, unit: a.p_unit, activity: a.p_activity, level_start: a.p_level_start, level_end: a.p_level_end, score: a.p_score, max_score: a.p_max, seconds: a.p_seconds, answers: a.p_answers, created_at: now };
       d.attempts.push(at); out = at.id; break; }
     case 'ec_history': { const u = me(); out = d.attempts.filter(x => x.user_id === u.id); break; }
-    case 'ec_t_classes': { const t = teacher(); out = d.classes.filter(c => c.teacher_id === t.id || t.is_admin).map(c => ({ ...c, students: d.users.filter(u => u.class_code === c.code && u.role === 'student').length })); break; }
+    case 'ec_t_classes': { const t = teacher(); out = d.classes.filter(c => c.teacher_id === t.id || t.is_admin).map(c => ({ ...c, vi_a1: c.vi_a1 !== false, students: d.users.filter(u => u.class_code === c.code && u.role === 'student').length })); break; }
     case 'ec_t_add_class': { const t = teacher(), code = String(a.p_code).trim().toLowerCase(); if (!/^[a-z0-9]{2,12}$/.test(code)) throw new Error('bad-class-code'); if (d.classes.some(c => c.code === code)) throw new Error('class-exists');
       const c = { code, name: a.p_name || '', teacher_id: t.id, open_units: ['2.5'] }; d.classes.push(c); out = addPeople(c, a.p_people || []); break; }
     case 'ec_t_add_students': teacher(); out = addPeople(cls(a.p_code), a.p_people || []); break;
     case 'ec_t_class': { teacher(); const c = cls(a.p_code), st = d.users.filter(u => u.class_code === c.code && u.role === 'student');
-      out = { code: c.code, name: c.name, open_units: c.open_units, students: st.map(u => ({ id: u.id, username: u.username, full_name: u.full_name, display_name: u.display_name, last_seen: u.last_seen || null, locked: false })),
+      out = { code: c.code, name: c.name, open_units: c.open_units, vi_a1: c.vi_a1 !== false, students: st.map(u => ({ id: u.id, username: u.username, full_name: u.full_name, display_name: u.display_name, last_seen: u.last_seen || null, locked: false, eng_band: u.eng_band ?? null })),
         attempts: d.attempts.filter(x => st.some(u => u.id === x.user_id)) }; break; }
+    case 'ec_t_set_band': { teacher(); const u = d.users.find(x => x.id === a.p_user); if (u) u.eng_band = a.p_band == null ? null : +a.p_band; out = null; break; }
+    case 'ec_t_set_vi': teacher(); cls(a.p_code).vi_a1 = !!a.p_on; out = null; break;
     case 'ec_t_set_units': teacher(); cls(a.p_code).open_units = a.p_units || []; out = null; break;
     case 'ec_t_reset_pin': { teacher(); const u = d.users.find(x => x.id === a.p_user); u.secret = pin(); out = u.secret; break; }
     case 'ec_t_new_pins': { teacher(); const c = cls(a.p_code); out = d.users.filter(u => u.class_code === c.code && u.role === 'student').map(u => { u.secret = pin(); return { username: u.username, full_name: u.full_name, display_name: u.display_name, pin: u.secret }; }); break; }
