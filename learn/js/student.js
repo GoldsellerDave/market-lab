@@ -1,22 +1,22 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText } from './api.js';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js';
-import * as E from './engine.js';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js';
-import { BASELINE, BASELINE_N } from './u1.js';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js';
-import { createPPC } from './ppc.js';
-import * as S from './sound.js';
-import * as Cel from './celebrate.js';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js';
-import { scene } from './scenes.js';
-import { SHIFTS } from './u25.js';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js';
-import { createDiagram } from './diagram.js';
-import { icon, tile } from './icons.js';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js';
+import { rpc, token, DEMO, errText } from './api.js?v=7490a618';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=7490a618';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=7490a618';
+import * as E from './engine.js?v=7490a618';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=7490a618';
+import { BASELINE, BASELINE_N } from './u1.js?v=7490a618';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=7490a618';
+import { createPPC } from './ppc.js?v=7490a618';
+import * as S from './sound.js?v=7490a618';
+import * as Cel from './celebrate.js?v=7490a618';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=7490a618';
+import { scene } from './scenes.js?v=7490a618';
+import { SHIFTS } from './u25.js?v=7490a618';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=7490a618';
+import { createDiagram } from './diagram.js?v=7490a618';
+import { icon, tile } from './icons.js?v=7490a618';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=7490a618';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
