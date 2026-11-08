@@ -288,3 +288,4 @@ select.gap.good{border-color:var(--ok);background:var(--ok-soft)}select.gap.bad{
 @keyframes celtap{0%,100%{opacity:.35}50%{opacity:1}}
 @media (prefers-reduced-motion:reduce){ .celrays,.celtap,.celchip{animation:none} .celbadge,.celflash,.celbadge::after{animation-duration:.01s} .celchip{opacity:1} }
 .pill.snd{border:0;color:var(--on-dark);display:inline-flex;align-items:center;padding:5px 9px;cursor:pointer;min-height:0}.pill.snd[aria-pressed=false]{opacity:.6}
+.chip.testchip{background:#3A2E7A;color:#fff;font-weight:800;letter-spacing:.04em}
