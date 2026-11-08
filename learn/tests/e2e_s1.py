@@ -159,6 +159,15 @@ def test_accounts(p, size):
     p.goto(BASE + '/learn/?demo=1'); p.wait_for_selector('#f'); p.fill('#u', m.group(1)); p.fill('#p', m.group(2)); p.click('#f button'); p.wait_for_selector('#out')
     ok('A1' in p.inner_text('.stats'), 'test account starts at A1')
     mcq_round(p, '1.1', 0)
+    p.goto(BASE + '/learn/?demo=1#/u/1.1/scen'); p.wait_for_selector('.cast'); ok(p.locator('.castrow').count() == 4 and 'Mr Minh' in p.inner_text('.cast'), 'Scenario cards page: Meet the people')
+    shot(p, size, '14-scen-group'); no_overflow(p, size + ' scenario group')
+    p.click('.hero .btn'); p.wait_for_selector('#castbox'); ok(p.locator('#castbox').is_visible(), 'first scenario: Who\'s who? is open')
+    p.goto(BASE + '/learn/?demo=1#/u/1.1/scen/s11-who'); p.wait_for_selector('.sortrow')
+    v0 = p.locator('#castbox').is_visible(); p.click('#who'); ok(p.locator('#castbox').is_visible() != v0 and p.locator('#castbox .castrow').count() == 4, 'Who\'s who? button opens and closes the 4 people')
+    ok('Lan is a student' in p.inner_text('.scen-story') and 'Mr Minh owns a café' in p.inner_text('.scen-story'), 'A1 story introduces the people')
+    ex = p.locator('.sortrow.example'); ok(ex.count() == 1 and 'Example' in ex.inner_text() and 'consumer' in ex.inner_text(), 'A1: worked example row')
+    ok(p.locator('.sortrow.example button.sel').count() == 1 and p.locator('.sortrow.example button:enabled').count() == 0, 'A1: example is answered and locked')
+    ok('(café owner)' in p.inner_text('#sstep'), 'A1: roles shown with names'); shot(p, size, '15-scen-a1-example')
     p.goto(BASE + '/learn/?demo=1#/me/leaderboard'); p.wait_for_selector('table.lb'); ok('Test A1 (you)' in p.inner_text('table.lb'), 'test account sees itself on the leaderboard')
     logout(p); student(p, 'demo-03')
     p.goto(BASE + '/learn/?demo=1#/me/leaderboard'); p.wait_for_selector('table.lb'); ok('Test A1' not in p.inner_text('table.lb'), 'students do not see the test account on the leaderboard')
@@ -168,6 +177,7 @@ def scen_round(p, unit, size=None, explain=False):
     for k, sc in enumerate([x for x in D['SCEN'] if x['unit'] == unit]):
         p.goto(BASE + f'/learn/?demo=1#/u/{unit}/scen/{sc["id"]}'); p.wait_for_selector('#sstep h3')
         ok(sc['title'] in p.inner_text('.scen-title'), f'{sc["id"]}: card shows its title')
+        ok(p.locator('.crumbs a[href$="/scen"]').count() == 1 and p.locator('.prevnext a').count() == 2, f'{sc["id"]}: links to the unit, the scenario cards and previous/next')
         ok(p.locator('.scen-hero svg.scene-svg').count() == 1 and p.locator('.scen-stk span').count() >= 2, f'{sc["id"]}: cartoon scene and stickers')
         if size and k == 0: shot(p, size, f'12-scen-{unit}'); no_overflow(p, f'{size} scenario {sc["id"]}')
         for j, st in enumerate(sc['steps']):
@@ -177,7 +187,7 @@ def scen_round(p, unit, size=None, explain=False):
                 idx = next((i for i, t in enumerate(texts) if t in [norm(x) for x in st['right']]), None)
                 ok(idx is not None, f'{sc["id"]} step {j+1}: right answer on screen {texts}'); btns.nth(idx or 0).click(position={'x': 6, 'y': 6})
             elif st['type'] == 'sort':
-                rows = p.locator('#sstep .sortrow')
+                rows = p.locator('#sstep .sortrow:not(.example)')
                 for i in range(rows.count()):
                     t = norm(rows.nth(i).locator('.sort-t').inner_text()); it = next(x for x in st['items'] if t in [norm(y) for y in x['t']])
                     rows.nth(i).locator('.sort-b button').nth(it['b']).click()

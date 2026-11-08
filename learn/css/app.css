@@ -321,3 +321,16 @@ select.gap.good{border-color:var(--ok);background:var(--ok-soft)}select.gap.bad{
 @media (prefers-reduced-motion:reduce){.scen-stk span{animation:none}}
 .sort-b.n4 button{flex-basis:40%}
 @media (min-width:700px){.sort-b.n4 button{flex-basis:auto}}
+/* scenario navigation, cast and worked examples */
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 12px;font-weight:600}.crumbs span{color:var(--muted)}
+.prevnext{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:2px dashed var(--line)}
+.prevnext .btn{flex:1 1 200px;font-size:.92rem;text-align:center}
+.cast{display:flex;flex-direction:column;gap:8px;margin:6px 0}
+.castrow{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--h2,#7ED6A5) 18%,var(--panel));border:2px solid color-mix(in srgb,var(--h1,#1E9E8F) 40%,transparent);line-height:1.45}
+.cast-e{font-size:32px;line-height:1}
+.sortrow.example{border-style:dashed;border-color:var(--teal);background:color-mix(in srgb,var(--teal) 10%,var(--panel))}
+.ex-tag{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--teal);color:#fff;font-size:.75rem;font-weight:800;vertical-align:middle}
+.ex-note{display:block;margin-top:4px;font-weight:400;font-size:.92rem;color:var(--muted)}
+.sort-b button.sel{background:var(--teal);border-color:var(--teal);color:#fff}
+.sort-b button:disabled{opacity:1}.sort-b button:disabled:not(.sel):not(.fix){opacity:.55}
+.castrow .vi{display:block;margin-top:4px}.scen-story{white-space:pre-line}
