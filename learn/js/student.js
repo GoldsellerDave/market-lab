@@ -10,6 +10,8 @@ import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf,
 import { createPPC } from './ppc.js';
 import * as S from './sound.js';
 import * as Cel from './celebrate.js';
+import { SCEN_BY_UNIT, scenAct } from './u1s.js';
+import { scene } from './scenes.js';
 import { SHIFTS } from './u25.js';
 import { genEq, nextEqKind, LEARN_MARKET } from './u24.js';
 import { createDiagram } from './diagram.js';
@@ -213,7 +215,7 @@ function workoutPlan() {
   const weakest = openUnits().map(u => ({ u, b: (E.summarise(before, u).mcq || { best: -1 }).best })).sort((a, b) => a.b - b.b)[0];
   if (weakest) add({ unit: weakest.u, act: 'mcq', ic: 'mcq', label: `${weakest.u}: Paper 1 practice` });
   openUnits().slice().reverse().forEach(u => { const p = pracOf(u) || ACTIVITIES[u].find(a => a.id === 'p2'); add({ unit: u, act: p.id, ic: p.id, label: `${u}: ${p.title}` }); });
-  items.forEach(it => (it.done = todays.some(a => a.unit === it.unit && a.activity === it.act)));
+  items.forEach(it => (it.done = todays.some(a => a.unit === it.unit && (it.act === 'scen' ? a.activity.startsWith('sc-') : a.activity === it.act))));
   return items;
 }
 const itemHref = it => (it.unit === 'review' ? '#/review/go' : it.unit === BASE_UNIT ? '#/baseline' : `#/u/${it.unit}/${it.act}`);
@@ -295,7 +297,7 @@ function aTile(ic, href, title, note, done = false) {
   return `<a class="atile" href="${href}"><span class="ahead" style="--hue:${hueOf(ic)}">${icon(ic, 34)}${done ? `<span class="adone">${TICK}</span>` : ''}</span>
     <span class="abody"><b>${esc(title)}</b><span class="note">${note}</span></span></a>`;
 }
-const hueOf = ic => ({ p2: '#7B4FC4', ppc: '#2F6FB5', learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', market: '#B8432F', words: '#2A7A4B' }[ic] || '#1E8C87');
+const hueOf = ic => ({ scen: '#FF7A59', p2: '#7B4FC4', ppc: '#2F6FB5', learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', market: '#B8432F', words: '#2A7A4B' }[ic] || '#1E8C87');
 function missionHTML(u) {
   const m = mission(u);
   return `<div class="mission"><div class="row" style="justify-content:space-between"><p class="eyebrow">Unit ${u} mission · ${m.n} of ${m.steps.length} steps</p>${m.complete ? '<span class="chip ok">Badge won</span>' : ''}</div>
@@ -316,7 +318,7 @@ function unitPage(tab = 'mission') {
   const cb = checkBest(U);
   let body = '';
   if (cur[0] === 'mission') body = missionHTML(U) + (top ? `<div class="panel" style="margin-top:12px"><b>Your most common mistake in ${U}</b>${trapBox(top[0])}</div>` : '');
-  if (cur[0] === 'learn') body = `<div class="tiles">${aTile('learn', `#/u/${U}/learn`, 'Learn cards', `${C().LEARN.length} short cards`, !!s.learn)}</div>
+  if (cur[0] === 'learn') body = `<div class="tiles">${aTile('learn', `#/u/${U}/learn`, 'Learn cards', `${C().LEARN.length} short cards`, !!s.learn)}</div>${scenTiles(U)}
     <ol class="note" style="margin-top:12px">${C().LEARN.map(c => `<li>${esc(c.title)}</li>`).join('')}</ol>`;
   if (cur[0] === 'paper2') body = `<div class="tiles">${aTile('p2', `#/u/${U}/p2`, 'Paper 2 builder', s.p2 ? `Best ${s.p2.bestScore}/${s.p2.max}` : 'Not started', !!s.p2)}</div>
     <p class="note" style="margin-top:12px">${['Put the sentences in the right order to build each answer.', 'Choose the missing words to complete each answer.', 'Write each answer with a sentence frame to help you.', 'Write each answer yourself, then compare it with the mark scheme.'][band()]} Your level: ${bandChip(bandInfo().band)}</p>`;
@@ -895,7 +897,7 @@ function checkpoint() {
     const xp = E.xpForNew(history, a);
     view(`<div class="narrow"><div class="tcard" style="text-align:center"><span class="tag ${passed ? '' : 'gold'}" style="align-self:center">${passed ? 'Passed' : 'Not yet'}</span>
         <h1>${esc(U)} checkpoint</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${score} / ${qs.length}</p>
-        <p class="note">${passed ? `You passed (${CHECK_PASS * 100}% needed).${mission(U).steps.slice(0, 5).every(s => s.done) ? ` You won the <b>${esc(BADGE[U] || 'Unit champion')}</b> badge.` : ''}` : `You need ${Math.ceil(CHECK_PASS * qs.length)} to pass. Look at the answers below, then try again.`}</p>
+        <p class="note">${passed ? `You passed (${CHECK_PASS * 100}% needed).${mission(U).steps.filter(s => s.key !== 'check').every(s => s.done) ? ` You won the <b>${esc(BADGE[U] || 'Unit champion')}</b> badge.` : ''}` : `You need ${Math.ceil(CHECK_PASS * qs.length)} to pass. Look at the answers below, then try again.`}</p>
         ${xpLine(xp)}<p class="note" id="saved">Saving…</p><p id="lvl"></p></div>
       <div class="panel"><h3>Your answers</h3>${answers.map((x, k) => { const q = qs[k]; return `<div class="fb ${x.ok ? 'ok' : 'no'}"><b>${k + 1}. ${x.ok ? '✔' : '✘'} ${esc(q.stem)}</b>
         ${x.ok ? '' : `You chose: ${esc(x.pick)}<br>Answer: <b>${esc(q.options[0].t)}</b><br>`}<span class="note">${esc(q.explain)}</span></div>`; }).join('')}</div>
@@ -1154,6 +1156,152 @@ function ppcRun(run = newRun('ppc', 6)) {
   render();
 }
 
+
+// ---------- Scenarios (Section 1): stories in Ho Chi Minh City where students apply the ideas; XP for each one solved ----------
+const UHUE = { '1.1': ['#FF7A59', '#FFC15E'], '1.2': ['#1E9E8F', '#7ED6A5'], '1.3': ['#7B4FC4', '#C79BF2'], '1.4': ['#2F6FB5', '#6EC6FF'] };
+const scenSolved = (u, hist = history) => (SCEN_BY_UNIT[u] || []).filter(s => hist.some(a => a.unit === u && a.activity === scenAct(s.id)));
+const hueVars = u => `--h1:${(UHUE[u] || UHUE['1.1'])[0]};--h2:${(UHUE[u] || UHUE['1.1'])[1]}`;
+function scenHero(s, k, n) {
+  return `<div class="scen-hero" style="${hueVars(s.unit)}">${scene(s.scene, s.title)}
+    <div class="scen-stk" aria-hidden="true">${s.stickers.map((e, i) => `<span style="animation-delay:${i * 0.15}s">${e}</span>`).join('')}</div>
+    <div class="scen-title"><span class="scen-kicker">Scenario ${k + 1} of ${n} · ${s.unit}</span><h2>${esc(s.title)}</h2></div></div>`;
+}
+function scenTiles(u) {
+  const list = SCEN_BY_UNIT[u] || [], done = new Set(scenSolved(u).map(s => s.id));
+  if (!list.length) return '';
+  return `<h3 style="margin:18px 0 8px">Scenarios: use the ideas <span class="chip mint">${done.size} of ${list.length} solved</span></h3>
+    <div class="scen-grid">${list.map((s, k) => `<a class="scen-tile${done.has(s.id) ? ' done' : ''}" href="#/u/${u}/scen/${s.id}" style="${hueVars(u)}">
+      <span class="scen-thumb">${scene(s.scene, '')}<span class="scen-tstk">${s.stickers.slice(0, 3).join('')}</span>${done.has(s.id) ? `<span class="scen-tick">${TICK}</span>` : ''}</span>
+      <span class="scen-tbody"><b>${k + 1}. ${esc(s.title)}</b><span class="note">${done.has(s.id) ? 'Solved ✔ · play again for more XP' : `${s.steps.length + (s.explain ? 1 : 0)} tasks · earn XP`}</span></span></a>`).join('')}</div>`;
+}
+function scenRun(id) {
+  const list = SCEN_BY_UNIT[U] || [];
+  if (!list.length) return unitPage();
+  if (!id) { const solved = new Set(scenSolved(U).map(s => s.id)); return go(`#/u/${U}/scen/${(list.find(s => !solved.has(s.id)) || list[0]).id}`); }
+  const s = list.find(x => x.id === id); if (!s) return unitPage('learn');
+  wide(true); helpCount = 0;
+  const b = band(), idx = list.indexOf(s), t0 = Date.now(), answers = [], wasDone = missionDone(), plain = b <= 1;
+  const steps = [...s.steps, ...(b === 3 && s.explain ? [{ type: 'explain', ...s.explain }] : [])];
+  const T = (exam, simple) => (plain ? rich(simple, b) : autoPill(exam, b));
+  view(`${backLink()}<div class="scen-card" style="${hueVars(U)}">${scenHero(s, idx, list.length)}<div class="scen-body">
+      <div class="row" style="justify-content:space-between"><div class="steps" style="flex:1;margin:0">${steps.map(() => '<i></i>').join('')}</div>${bandChip(b)}</div>
+      <div class="scen-story">${T(s.story, s.plain)}</div>
+      ${toolsHTML({ vi: s.vi, stem: s.story, plain: s.plain, hint: '' }, false)}
+      <div id="sstep"></div><div id="fb" aria-live="polite"></div></div></div>`);
+  bindTools({ vi: s.vi, stem: s.story, plain: s.plain });
+  const dots = () => $$('.scen-body .steps i').forEach((d, j) => (d.className = j < k ? 'done' : j === k ? 'on' : ''));
+  let k = 0;
+  const el = () => $('#sstep'), fb = () => $('#fb');
+  const nextBtn = () => { fb().insertAdjacentHTML('beforeend', `<button id="nx" style="width:100%;margin-top:10px">${k + 1 < steps.length ? 'Next →' : 'Finish'}</button>`); $('#nx').onclick = () => { k++; show(); }; $('#nx').focus({ preventScroll: true }); };
+  const show = () => {
+    fb().innerHTML = ''; if (k >= steps.length) return done(); dots();
+    const st = steps[k], rec = { id: st.type === 'explain' ? `${s.id}-x` : `${s.id}-${k + 1}`, ok: false, first_try: false, trap: null };
+    const q = `<h3 class="scen-q">${T(st.q, st.plain || st.q)}</h3>`;
+    if (st.type === 'choice') {
+      let opts = st.options.map((o, j) => ({ ...o, right: j === 0 }));
+      if (b === 0) opts = opts.slice(0, 3);
+      opts = E.shuffle(opts);
+      let tries = 0;
+      el().innerHTML = `${st.ppc ? '<div class="dgwrap" id="spg"></div>' : ''}${q}<div class="choices">${opts.map((o, j) => `<button class="choice" data-j="${j}"><span class="otext">${T(o.t, o.p)}</span></button>`).join('')}</div>`;
+      const pg = st.ppc ? createPPC($('#spg'), { show: st.ppc.show || [] }) : null;
+      const after = () => { if (!pg) return; if (st.ppc.arrow) pg.arrow(...st.ppc.arrow); if (st.ppc.shift) pg.shift(st.ppc.shift); };
+      $$('#sstep .choice').forEach(btn => (btn.onclick = () => {
+        const o = opts[+btn.dataset.j]; tries++;
+        if (o.right) {
+          rec.ok = true; rec.first_try = tries === 1; btn.classList.add('right'); $$('#sstep .choice').forEach(x => (x.disabled = true)); after();
+          fb().innerHTML = `<div class="fb ok"><b>${tries === 1 ? 'Right! ⭐' : 'Right.'}</b>${esc(st.why)}</div>`; answers.push(rec); return nextBtn();
+        }
+        btn.classList.add('wrong'); btn.disabled = true; rec.trap ||= o.trap || null; rec.pick ||= o.t;
+        if (tries >= 2) {
+          const r = $$('#sstep .choice').find(x => opts[+x.dataset.j].right); r.classList.add('right'); $$('#sstep .choice').forEach(x => (x.disabled = true)); after();
+          fb().innerHTML = `<div class="fb no"><b>The answer is: ${esc(opts.find(x => x.right).t)}</b>${esc(st.why)}</div>${trapBox(o.trap)}`; answers.push(rec); return nextBtn();
+        }
+        fb().innerHTML = `<div class="fb no"><b>Not this one. Try again.</b></div>${trapBox(o.trap)}`;
+      }));
+    }
+    if (st.type === 'sort') {
+      const items = E.shuffle(st.items.map((it, j) => ({ ...it, j }))), pick = {};
+      let tries = 0;
+      el().innerHTML = `${q}<div class="sortlist">${items.map(it => `<div class="sortrow" data-j="${it.j}"><span class="sort-e" aria-hidden="true">${it.e}</span><span class="sort-t">${T(it.t, it.p)}</span>
+          <div class="sort-b n${st.buckets.length}" role="group">${st.buckets.map((bk, bi) => `<button data-b="${bi}">${esc(bk)}</button>`).join('')}</div></div>`).join('')}</div>
+        <button id="chk" style="width:100%" disabled>Check</button>`;
+      $$('#sstep .sortrow').forEach(row => $$('button', row).forEach(btn => (btn.onclick = () => {
+        pick[row.dataset.j] = +btn.dataset.b; $$('button', row).forEach(x => x.classList.toggle('sel', x === btn)); row.classList.remove('bad');
+        $('#chk').disabled = Object.keys(pick).length < items.length;
+      })));
+      $('#chk').onclick = () => {
+        tries++;
+        const wrong = items.filter(it => pick[it.j] !== it.b);
+        $$('#sstep .sortrow').forEach(row => { const it = st.items[+row.dataset.j], good = pick[row.dataset.j] === it.b; row.classList.toggle('good', good); row.classList.toggle('bad', !good); if (good) $$('button', row).forEach(x => (x.disabled = true)); });
+        if (!wrong.length || tries >= 2) {
+          rec.ok = !wrong.length; rec.first_try = !wrong.length && tries === 1; if (!rec.first_try) rec.trap = st.trap;
+          if (wrong.length) $$('#sstep .sortrow.bad').forEach(row => { const it = st.items[+row.dataset.j]; $$('button', row).forEach((x, bi) => { x.classList.toggle('sel', bi === it.b); x.classList.toggle('fix', bi === it.b); x.disabled = true; }); });
+          $('#chk').remove();
+          fb().innerHTML = `<div class="fb ${rec.ok ? 'ok' : 'no'}"><b>${rec.ok ? (rec.first_try ? 'All right! ⭐' : 'All right now.') : `${items.length - wrong.length} of ${items.length} right. The right answers are shown.`}</b>${esc(st.why)}</div>${rec.ok ? '' : trapBox(st.trap)}`;
+          answers.push(rec); return nextBtn();
+        }
+        fb().innerHTML = `<div class="fb no"><b>${items.length - wrong.length} of ${items.length} right.</b>Change the red ones and check again.</div>${trapBox(st.trap)}`;
+      };
+    }
+    if (st.type === 'order') {
+      const n = st.lines.length; let ord = E.shuffle(st.lines.map((_, j) => j)); if (ord.every((v, j) => v === j)) ord = ord.slice().reverse();
+      let tries = 0, marked = false;
+      const draw = () => {
+        el().innerHTML = `${q}<ol class="chain">${ord.map((j, pos) => `<li class="ctile${marked ? (j === pos ? ' good' : ' bad') : ''}"><span class="ctext">${esc(st.lines[j])}</span>
+          <span class="cmove"><button class="alt small" data-up="${pos}" ${pos === 0 ? 'disabled' : ''} aria-label="Move up">▲</button><button class="alt small" data-down="${pos}" ${pos === n - 1 ? 'disabled' : ''} aria-label="Move down">▼</button></span></li>`).join('')}</ol>
+          <button id="chk" style="width:100%">Check my order</button>`;
+        const swap = (x, y) => { [ord[x], ord[y]] = [ord[y], ord[x]]; marked = false; draw(); };
+        $$('#sstep [data-up]').forEach(x => (x.onclick = () => swap(+x.dataset.up, +x.dataset.up - 1)));
+        $$('#sstep [data-down]').forEach(x => (x.onclick = () => swap(+x.dataset.down, +x.dataset.down + 1)));
+        $('#chk').onclick = () => {
+          tries++; const frac = orderScore(ord, n);
+          if (frac === 1 || tries >= 2) {
+            if (frac < 1) ord = st.lines.map((_, j) => j);
+            marked = true; draw(); $('#chk').remove(); $$('#sstep .cmove button').forEach(x => (x.disabled = true));
+            rec.ok = frac === 1; rec.first_try = rec.ok && tries === 1;
+            fb().innerHTML = `<div class="fb ${rec.ok ? 'ok' : 'no'}"><b>${rec.ok ? (rec.first_try ? 'Perfect order! ⭐' : 'Right order.') : 'Here is the right order.'}</b>${esc(st.why)}</div>`;
+            answers.push(rec); return nextBtn();
+          }
+          marked = true; draw(); fb().innerHTML = `<div class="fb no"><b>${Math.round(frac * n)} of ${n} in the right place.</b>Green = right place. Move the red ones.</div>`;
+        };
+      };
+      draw();
+    }
+    if (st.type === 'explain') {
+      let tries = 0, best = 0;
+      el().innerHTML = `<h3 class="scen-q">${esc(st.q)} <span class="badge">B2 challenge</span></h3><textarea id="ans" aria-label="Your answer" style="min-height:120px"></textarea><button id="chk" style="width:100%">Check my answer</button>`;
+      $('#chk').onclick = () => {
+        const v = $('#ans').value; if (!v.trim()) return (fb().innerHTML = '<div class="fb tip"><b>Write an answer first.</b></div>');
+        tries++; rec.text = v.slice(0, 600);
+        const m = E.markShort(v, st.groups, st.need); best = Math.max(best, m.score);
+        const pills = `<div>${st.groups.map(x => `<span class="pill ${m.hits.includes(x.label) ? 'hit' : 'miss'}">${m.hits.includes(x.label) ? '✔' : '…'} ${esc(x.label)}</span>`).join('')}</div>`;
+        if (m.ok || tries >= 2) {
+          rec.ok = m.ok; rec.first_try = m.ok && tries === 1; rec.score = best; rec.marks = st.need; $('#chk').remove(); $('#ans').disabled = true;
+          fb().innerHTML = `<div class="fb ${m.ok ? 'ok' : 'no'}"><b>${best}/${st.need}${m.ok ? ' ⭐' : ''}</b>${pills}</div>`; answers.push(rec); return nextBtn();
+        }
+        fb().innerHTML = `<div class="fb no"><b>${m.score}/${st.need} so far. Improve your answer once.</b>${pills}${m.missing.map(x => `<p style="margin:.3em 0 0">• ${esc(x.ask)}</p>`).join('')}</div>`;
+        $('#chk').textContent = 'Check again';
+      };
+    }
+    if (k > 0) el().scrollIntoView({ block: 'nearest' });
+  };
+  const done = async () => {
+    wide(false);
+    const score = answers.filter(a => a.first_try).length, a = { unit: U, activity: scenAct(s.id), level_start: 0, level_end: 0, score, max_score: steps.length,
+      seconds: Math.round((Date.now() - t0) / 1000), answers: [...answers, { id: 'meta', band: b, help: helpCount }] };
+    const xp = E.xpForNew(history, a), nx = list[idx + 1];
+    view(`<div class="narrow"><div class="scen-card" style="${hueVars(U)}">${scenHero(s, idx, list.length)}<div class="scen-body center">
+        <span class="tag gold" style="align-self:center">Scenario solved</span><p style="font:800 2.2rem var(--font-display);margin:.2em 0">${score} / ${steps.length}</p>
+        <p class="note">right first time</p>${xpLine(xp)}<p class="note" id="saved">Saving…</p>
+        <div class="row" style="justify-content:center">${nx ? `<a class="btn" href="#/u/${U}/scen/${nx.id}">Next scenario: ${esc(nx.title)} →</a>` : `<a class="btn" href="#/u/${U}/tab/learn">All scenarios</a>`}
+          <a class="btn alt" href="#/u/${U}">Back to ${U}</a></div></div></div></div>`);
+    const ok = await saveAttempt(a);
+    $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
+    reward(xp, { wasDone });
+  };
+  show();
+}
+
 // ---------- router ----------
 const ACT = { learn, shift: () => shift(), eqm: () => eqm(), mcq: () => mcq(), data, check: checkpoint, p2, ppc: () => ppcRun() };
 function route() {
@@ -1169,6 +1317,7 @@ function route() {
   if (a === 'u' && unit && unit.ready && CONTENT[u] && (me.open_units || []).includes(u)) {
     U = u;
     if (act === 'tab') return unitPage(sub);
+    if (act === 'scen') { nav(null); return scenRun(sub); }
     if (act && ACT[act] && (act === 'check' || ACTIVITIES[U].some(x => x.id === act))) { nav(null); return ACT[act](); }
     return unitPage();
   }

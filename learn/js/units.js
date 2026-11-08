@@ -16,11 +16,12 @@ export const UNITS = [
 ];
 const S1 = [
   { id: 'learn', title: 'Learn', sub: 'Short cards with key words you can tap', icon: '📘' },
+  { id: 'scen', title: 'Scenarios', sub: 'Use the ideas in real situations in Ho Chi Minh City', icon: '🎬' },
   { id: 'mcq', title: 'Paper 1 practice', sub: 'Multiple-choice questions at your level', icon: '✅' },
   { id: 'p2', title: 'Paper 2 builder', sub: 'Build written answers step by step', icon: '🧩' }];
 export const ACTIVITIES = {
   '1.1': S1, '1.2': S1, '1.3': S1,
-  '1.4': [S1[0], { id: 'ppc', title: 'PPC explorer', sub: 'Read points, movements and shifts on a PPC', icon: '📈' }, S1[1], S1[2]],
+  '1.4': [S1[0], S1[1], { id: 'ppc', title: 'PPC explorer', sub: 'Read points, movements and shifts on a PPC', icon: '📈' }, S1[2], S1[3]],
   '2.4': [
     { id: 'learn', title: 'Learn', sub: 'Five cards with a price slider: watch shortages and surpluses disappear', icon: '📘' },
     { id: 'eqm', title: 'Equilibrium finder', sub: 'Read schedules and diagrams: find equilibrium, shortages and surpluses', icon: '⚖️' },

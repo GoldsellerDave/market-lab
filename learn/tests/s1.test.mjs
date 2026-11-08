@@ -84,3 +84,43 @@ test('Section 1 units are registered with their glossary words', () => {
   for (const u of UNITS) { assert.ok(CONTENT[u].BANDED); assert.ok(CONTENT[u].TERMS.length >= 8, u); }
   assert.equal(CONTENT['1.4'].PPC.length, 8);
 });
+
+import { SCENARIOS, SCEN_BY_UNIT } from '../js/u1s.js';
+import { SCENE_KEYS } from '../js/scenes.js';
+test('scenarios: 5 per unit, complete, pills in the glossary, traps known, answers valid', () => {
+  for (const u of UNITS) assert.equal(SCEN_BY_UNIT[u].length, 5, u);
+  assert.equal(new Set(SCENARIOS.map(s => s.id)).size, 20);
+  for (const s of SCENARIOS) {
+    assert.ok(s.story && s.plain && s.vi && s.title && s.stickers.length >= 2, s.id);
+    assert.ok(SCENE_KEYS.includes(s.scene), `${s.id}: scene ${s.scene}`);
+    assert.ok(!/Đà Nẵng/.test(s.story + s.plain + s.vi), `${s.id}: set in Ho Chi Minh City`);
+    const texts = [s.plain];
+    for (const st of s.steps) {
+      texts.push(st.plain);
+      if (st.type === 'choice') {
+        assert.ok(st.options.length >= 3 && !st.options[0].trap && st.why, s.id);
+        st.options.slice(1).forEach(o => assert.ok(U1.TRAPS[o.trap], `${s.id}: trap ${o.trap}`));
+        st.options.forEach(o => texts.push(o.p));
+        if (st.ppc) (st.ppc.show || []).concat(st.ppc.arrow || []).forEach(p => assert.ok(U1.PPC_POINTS[p], `${s.id}: point ${p}`));
+      }
+      if (st.type === 'sort') {
+        assert.ok(U1.TRAPS[st.trap], `${s.id}: sort trap`);
+        st.items.forEach(i => { assert.ok(i.b >= 0 && i.b < st.buckets.length && i.e, `${s.id}: ${i.t}`); texts.push(i.p); });
+        st.buckets.forEach((_, b) => assert.ok(st.items.some(i => i.b === b), `${s.id}: every bucket used`));
+      }
+      if (st.type === 'order') assert.ok(st.lines.length >= 3, s.id);
+    }
+    texts.flatMap(pills).forEach(t => assert.ok(U1.GLOSSARY[t], `${s.id}: [[${t}]] is in the glossary`));
+    if (s.explain) {
+      const good = s.explain.groups.map(g => g.k[0]).join('. ');
+      assert.ok(markShort(good, s.explain.groups, s.explain.need).ok, `${s.id}: a full answer is marked right`);
+      assert.equal(markShort('I like it.', s.explain.groups, s.explain.need).score, 0, `${s.id}: an empty answer scores 0`);
+    }
+  }
+});
+test('the PPC scenarios agree with the diagram', () => {
+  const P = U1.PPC_POINTS, cost = SCENARIOS.find(s => s.id === 's14-cost');
+  assert.equal(cost.steps[0].options[0].t, `${P.B[1] - P.C[1]} million phones`);
+  assert.equal(cost.steps[1].options[0].t, `${P.C[1] - P.D[1]} million phones`);
+  assert.deepEqual(P.B, [6, 8]);
+});

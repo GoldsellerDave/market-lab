@@ -50,6 +50,9 @@ export const GLOSSARY = {
   'economic growth': { def: 'An increase in the amount an economy can produce.', ex: 'New technology lets Việt Nam make more of everything.', vi: 'tăng trưởng kinh tế' },
   'shift': { def: 'When the whole curve moves to a new place.', ex: 'The PPC moves outwards after new technology.', vi: 'dịch chuyển' },
   'trade-off': { def: 'Getting more of one thing means having less of another.', ex: 'More time on games means less time to study.', vi: 'sự đánh đổi' },
+  'mobility': { def: 'How easily a factor of production can move to a different place or a different use.', ex: 'A worker moves from An Giang to Ho Chi Minh City.', vi: 'tính di động' },
+  'geographical mobility': { def: 'How easily a factor can move to a different PLACE.', ex: 'A farmer moves from the countryside to the city to work.', vi: 'di chuyển về địa lý (nơi chốn)' },
+  'occupational mobility': { def: 'How easily a factor can move to a different JOB or use.', ex: 'A rice farmer learns new skills and becomes a factory worker.', vi: 'di chuyển về nghề nghiệp' },
   'axis': { def: 'One of the two lines along the side and bottom of a graph.', ex: 'Rice is on the horizontal axis.', vi: 'trục' }
 };
 
@@ -67,6 +70,7 @@ export const TRAPS = {
   'ppc-point': { label: 'Inside, on or outside?', tip: 'On the curve: all resources used fully. Inside: some resources unemployed. Outside: unattainable with today\'s resources.' },
   'ppc-oc': { label: 'Reading opportunity cost on a PPC', tip: 'Moving along the curve, the opportunity cost of more of one good is how much of the OTHER good you give up.' },
   'ppc-shift': { label: 'Movement or shift?', tip: 'Using resources differently = a movement ALONG the curve. More or better resources, or new technology = a SHIFT of the whole curve.' },
+  'mobility': { label: 'Geographical or occupational?', tip: 'Geographical mobility = moving to a different PLACE. Occupational mobility = moving to a different JOB or use. Land cannot move place at all.' },
   'ppc-dir': { label: 'Which way does it shift?', tip: 'More or better resources → outwards (economic growth). Fewer resources (war, disaster, emigration) → inwards.' }
 };
 
@@ -92,8 +96,8 @@ export const LEARN = {
         ['[[capital|Capital]]', 'Man-made things used to make other goods: machines, tools, factories, computers.'], ['[[enterprise|Enterprise]]', 'Starting and organising a business and taking the risk. The person is an [[entrepreneur]].']] },
     { id: 'rewards', title: 'Rewards', kind: 'rows', text: 'Each factor earns a [[reward]].',
       rows: [['Land → [[rent]]', 'A farmer pays rent to use a field.'], ['Labour → [[wages]]', 'A worker earns a wage.'], ['Capital → [[interest]]', 'Lenders earn interest on money used to buy capital.'], ['Enterprise → [[profit]]', 'The owner keeps the profit, but may also make a loss.']] },
-    { id: 'cafe', title: 'Example: a café in Đà Nẵng', kind: 'text',
-      text: 'The café uses a building and the coffee beans grown on farms ([[land]]), baristas ([[labour]]), a coffee machine, tables and a delivery motorbike ([[capital]]), and the owner who started it and takes the risk ([[enterprise]]).',
+    { id: 'cafe', title: 'Example: a café in Ho Chi Minh City', kind: 'text',
+      text: 'The café uses the plot of ground it stands on and water ([[land]]), baristas ([[labour]]), the building, a coffee machine, tables and a delivery motorbike ([[capital]]), and the owner who started it and takes the risk ([[enterprise]]).',
       example: 'Careful: the money in the café\'s bank account is not capital. Capital is the machine that money buys.' },
     { id: 'change', title: 'More and better factors', kind: 'rows', text: 'The [[quantity]] (how much) and [[quality]] (how good) of each factor can change.',
       rows: [['Land', 'More: finding new oil, taking land from the sea. Less: erosion, deforestation. Better: fertiliser, irrigation. Worse: pollution.'],
