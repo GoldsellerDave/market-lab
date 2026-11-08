@@ -7,13 +7,17 @@ import * as E from './engine.js';
 import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js';
 import { mission, checkBest, CHECK_PASS } from './mission.js';
 import { icon, tile } from './icons.js';
+import { bandOf, BANDS, BAND_NAMES } from './bands.js';
+import { BASELINE_N } from './u1.js';
 
 let me = null, classes = [], cls = null, tab = pref.get('t-tab2', 'students'), live = null, focus = null, lbMode = 'week';
 const BUILT = UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);
 let UNIT = BUILT.includes(pref.get('t-unit', '2.5')) ? pref.get('t-unit', '2.5') : BUILT[BUILT.length - 1];
 const actName = (unit, id) => (id === 'check' ? 'Unit checkpoint' : id === 'review' ? 'Review' : ((ACTIVITIES[unit] || []).find(a => a.id === id) || { title: id }).title);
-const LEVELED = new Set(['shift', 'eqm', 'mcq']);
-const pracOf = u => (ACTIVITIES[u] || []).find(a => a.id === 'shift' || a.id === 'eqm');
+const LEVELED = new Set(['shift', 'eqm', 'mcq', 'ppc']);
+const pracOf = u => (ACTIVITIES[u] || []).find(a => a.id === 'shift' || a.id === 'eqm' || a.id === 'ppc');
+const engChip = bi => (bi.band == null ? '<span class="lvlchip">Not placed</span>' : `<span class="chip mint" title="${BAND_NAMES[bi.band]}">${BANDS[bi.band]}</span>${bi.source === 'teacher' ? ' <span class="note">set by you</span>' : ''}`);
+const viClass = () => (classes.find(x => x.code === cls.code) || cls).vi_a1 !== false;
 const T = () => token.get();
 const TABS = [['students', 'Students'], ['units', 'Units'], ['traps', 'Skills heat map'], ['items', 'Hardest questions'], ['leaderboard', 'Leaderboard'], ['manage', 'Manage class']];
 
@@ -91,7 +95,7 @@ function startLive() {
   }, 20000);
 }
 const mine = id => cls.attempts.filter(a => a.user_id === id);
-const levelOf = (atts, u) => { const p = pracOf(u), r = atts.filter(a => a.unit === u && a.activity === p.id).pop(); return r ? r.level_end : null; };
+const levelOf = (atts, u) => { const p = pracOf(u) || { id: 'mcq' }, r = atts.filter(a => a.unit === u && a.activity === p.id).pop(); return r ? r.level_end : null; };
 
 // ---------- layout ----------
 function render(quiet = false) {
@@ -127,13 +131,13 @@ const openStudent = el => $$('[data-id]', el).forEach(r => (r.onclick = e => { e
 // ---------- Students ----------
 function students(body) {
   const rows = cls.students.map(st => {
-    const a = mine(st.id), s = E.summarise(a, UNIT), m = mission(UNIT, a), xp = E.xpTotals(a), top = E.topTrap(E.trapCounts(a, UNIT)), nh = E.needsHelp(a, UNIT), cb = checkBest(UNIT, a), l = levelOf(a, UNIT);
-    return { st, a, s, m, xp, top, nh, cb, l };
+    const a = mine(st.id), s = E.summarise(a, UNIT), m = mission(UNIT, a), xp = E.xpTotals(a), top = E.topTrap(E.trapCounts(a, UNIT)), nh = E.needsHelp(a, UNIT), cb = checkBest(UNIT, a), l = levelOf(a, UNIT), bi = bandOf(a, st.eng_band);
+    return { st, a, s, m, xp, top, nh, cb, l, bi };
   });
   const help = rows.filter(r => r.nh), idle = rows.filter(r => !r.st.last_seen || Date.now() - new Date(r.st.last_seen) > 14 * 864e5);
-  body.innerHTML = `<div class="scroll"><table class="grid"><tr><th>Student</th><th>Username</th><th>Level</th><th>Mission</th><th class="num">Paper 1 best</th><th class="num">Checkpoint</th><th class="num">XP week</th><th class="num">XP total</th><th class="num">Activities</th><th>Last active</th><th>Main mistake</th></tr>
-    ${rows.map(({ st, a, s, m, xp, top, nh, cb, l }) => `<tr><td><a href="#" class="sname" data-id="${st.id}">${esc(st.display_name)}</a>${nh ? ` <span class="chip bad" title="${esc(nh)}">needs help</span>` : ''}${st.locked ? ' <span class="chip gold">locked</span>' : ''}<br><span class="note">${esc(st.full_name)}</span></td>
-      <td>${esc(st.username)}</td><td>${l == null ? '<span class="lvlchip">Not started</span>' : `<span class="lvlchip lvl${l}">${E.LEVELS[l]}</span>`}</td>
+  body.innerHTML = `<div class="scroll"><table class="grid"><tr><th>Student</th><th>Username</th><th>English</th><th>Level</th><th>Mission</th><th class="num">Paper 1 best</th><th class="num">Checkpoint</th><th class="num">XP week</th><th class="num">XP total</th><th class="num">Activities</th><th>Last active</th><th>Main mistake</th></tr>
+    ${rows.map(({ st, a, s, m, xp, top, nh, cb, l, bi }) => `<tr><td><a href="#" class="sname" data-id="${st.id}">${esc(st.display_name)}</a>${nh ? ` <span class="chip bad" title="${esc(nh)}">needs help</span>` : ''}${st.locked ? ' <span class="chip gold">locked</span>' : ''}<br><span class="note">${esc(st.full_name)}</span></td>
+      <td>${esc(st.username)}</td><td>${engChip(bi)}${bi.baseline != null ? `<br><span class="note">baseline ${bi.baseline}/${BASELINE_N}</span>` : ''}</td><td>${l == null ? '<span class="lvlchip">Not started</span>' : `<span class="lvlchip lvl${l}">${E.LEVELS[l]}</span>`}</td>
       <td>${m.n}/${m.steps.length}${m.complete ? ' ✔' : ''}</td><td class="num">${s.mcq ? pct(s.mcq.bestScore, s.mcq.max) + '%' : '–'}</td>
       <td class="num">${cb == null ? '–' : `<span class="chip ${cb >= CHECK_PASS ? 'ok' : 'bad'}">${Math.round(cb * 100)}%</span>`}</td>
       <td class="num"><b>${xp.week}</b></td><td class="num">${xp.total}</td><td class="num">${a.filter(x => x.unit === UNIT).length}</td><td>${ago(st.last_seen)}</td>
@@ -148,23 +152,30 @@ function students(body) {
 const drew = t => { try { const d = JSON.parse(t); if (d.p) return `price line at ${d.p}, gap: ${d.t || '?'}`; const f = v => (v > 0 ? 'right' : v < 0 ? 'left' : 'no shift'); return `demand ${f(d.D || 0)}, supply ${f(d.S || 0)}`; } catch { return t; } };
 function tracker(body, id) {
   const st = cls.by[id]; if (!st) { focus = null; return render(); }
-  const a = mine(id), xp = E.xpTotals(a), tc = E.trapCounts(a);
+  const a = mine(id), xp = E.xpTotals(a), tc = E.trapCounts(a), bi = bandOf(a, st.eng_band), autoB = bandOf(a, null);
   body.innerHTML = `<div class="row" style="margin-bottom:10px"><button class="alt small" id="bk">← All students</button></div>
     <div class="tcard"><div class="uhead">${tile('me', 'm')}<h2>${esc(st.display_name)} <span class="note">${esc(st.username)} · ${esc(st.full_name)}</span></h2></div>
       <div class="stats"><div class="stat gold"><b>${xp.total}</b><span>XP in total</span></div><div class="stat"><b>${xp.week}</b><span>XP this week</span></div>
         <div class="stat"><b>${a.length}</b><span>activities finished</span></div><div class="stat"><b>${ago(st.last_seen)}</b><span>last active</span></div></div></div>
+    <div class="tcard" style="margin-top:14px"><div class="uhead">${tile('base', 's')}<h3 style="flex:1">English level</h3>${engChip(bi)}</div>
+      <p class="note">${bi.baseline != null ? `Baseline: ${bi.baseline}/${BASELINE_N}. ` : 'Not taken the baseline yet. '}${bi.source === 'auto' ? `Set by the app: it moves up after 3 strong activities in a row (now ${bi.up} of 3) and down after 2 weak ones. ` : bi.source === 'teacher' ? `You set this level. Choose Automatic to let the app decide again (it would be ${autoB.band == null ? 'not placed' : BANDS[autoB.band]}). ` : ''}
+        A1: plain English, key-word pills, ${viClass() ? 'Vietnamese help, ' : ''}3 options and ordering tasks for Paper 2 · A2: plain English, pills and word banks · B1: exam wording, some pills, sentence frames · B2: exam wording, no extra help.</p>
+      <div class="row"><label for="band" style="margin:0">Level</label><select id="band" style="width:auto"><option value="">Automatic</option>${BANDS.map((b, k) => `<option value="${k}" ${bi.source === 'teacher' && bi.band === k ? 'selected' : ''}>${b} ${BAND_NAMES[k]}</option>`).join('')}</select></div></div>
     <div class="cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:14px 0">${BUILT.map(u => { const m = mission(u, a), nh = E.needsHelp(a, u);
       return `<div class="tcard"><div class="uhead">${tile(u, 's')}<h3 style="flex:1">${u} ${esc((UNITS.find(x => x.id === u) || {}).title)}</h3><span class="chip ${m.complete ? 'ok' : 'gold'}">${m.n}/${m.steps.length}</span></div>
         <ol class="msteps">${m.steps.map(s => `<li class="${s.done ? 'done' : s.locked ? 'locked' : ''}"><span class="mico">${tile(s.ic, 's')}${s.done ? '<span class="mtick">✓</span>' : ''}</span><div><b>${esc(s.label)}</b><br><span class="note">${esc(s.detail)}</span></div></li>`).join('')}</ol>
         ${nh ? `<p class="note"><span class="chip bad">needs help</span> ${esc(nh)}</p>` : ''}</div>`; }).join('')}</div>
     ${Object.keys(tc).length ? `<div class="panel"><h3>Mistakes</h3><div>${Object.entries(tc).sort((x, y) => y[1] - x[1]).map(([t, n]) => `<span class="pill miss">${esc(TRAPS[t]?.label || t)} ×${n}</span>`).join('')}</div></div>` : ''}
     <h3 style="margin-top:14px">History</h3>
-    ${a.slice().reverse().map(x => `<details class="card"><summary><b>${esc(x.unit === 'review' ? 'Review' : x.unit + ' ' + actName(x.unit, x.activity))}</b> · ${x.score}/${x.max_score} · ${LEVELED.has(x.activity) ? E.LEVELS[x.level_start] + ' → ' + E.LEVELS[x.level_end] + ' · ' : ''}${Math.round(x.seconds / 60)} min · <span class="note">${new Date(x.created_at).toLocaleString()}</span></summary>
+    ${a.slice().reverse().map(x => `<details class="card"><summary><b>${esc(x.unit === 'review' ? 'Review' : x.unit === 'base' ? 'English baseline' : x.unit + ' ' + actName(x.unit, x.activity))}</b> · ${x.score}/${x.max_score} · ${LEVELED.has(x.activity) ? E.LEVELS[x.level_start] + ' → ' + E.LEVELS[x.level_end] + ' · ' : ''}${Math.round(x.seconds / 60)} min · <span class="note">${new Date(x.created_at).toLocaleString()}</span></summary>
       <table class="t" style="margin-top:8px">${(x.answers || []).filter(q => ITEM[q.id]).map(q => `<tr><td>${q.first_try ? '✔' : q.ok ? '◐' : '✘'}</td><td style="min-width:220px">${esc(ITEM[q.id].text)}
         ${q.pick ? `<br><span class="note">Chose: ${esc(q.pick)}</span>` : ''}${q.text && x.activity === 'data' ? `<br><span class="note">${q.text.startsWith('{') ? 'Drew: ' + esc(drew(q.text)) : 'Wrote: ' + esc(q.text)}</span>` : ''}</td>
         <td class="note">${q.score != null ? q.score + '/' + q.marks : ''} ${q.trap ? esc(TRAPS[q.trap]?.label || q.trap) : ''}${q.hinted ? ' (hint)' : ''}</td></tr>`).join('') || '<tr><td>Learning cards viewed.</td></tr>'}</table></details>`).join('') || '<p class="note">No activities yet.</p>'}
     <p class="note">✔ right first time · ◐ right after a retry or hint · ✘ wrong</p>`;
   $('#bk').onclick = () => { focus = null; render(); };
+  $('#band').onchange = async e => { const v = e.target.value === '' ? null : +e.target.value;
+    try { await rpc('ec_t_set_band', { p_token: T(), p_user: id, p_band: v }); st.eng_band = v; toast(v == null ? 'English level: automatic' : 'English level set to ' + BANDS[v]); tracker(body, id); }
+    catch (er) { fail(er); } };
 }
 
 // ---------- Units ----------
@@ -247,6 +258,8 @@ function manage(body) {
       <textarea id="paste" placeholder="Nguyễn Văn An&#9;Andy&#10;Trần Thị Bình"></textarea><div id="prev" class="note"></div><div class="row"><button id="add" disabled>Add students</button></div></div>
     <div class="tcard" style="margin-top:14px"><h3>Class leaderboard</h3><label class="toggle"><input type="checkbox" id="board" ${boardOn() ? 'checked' : ''}>
       <span>Show students the XP leaderboard (top 10 and their own place). When off, each student sees only their own XP.</span></label></div>
+    <div class="tcard" style="margin-top:14px"><h3>Vietnamese help</h3><label class="toggle"><input type="checkbox" id="vi" ${viClass() ? 'checked' : ''}>
+      <span>Show Vietnamese translations to A1 (Starter) students in Section 1: a Tiếng Việt button under each question and Vietnamese in the key-word pills. Other levels never see Vietnamese.</span></label></div>
     <div class="tcard" style="margin-top:14px"><h3>New class</h3><div class="row"><button class="alt" id="nc">Create another class</button></div></div>`;
   $$('tr[data-row]', body).forEach(r => {
     const id = r.dataset.row, s = cls.by[id];
@@ -260,6 +273,8 @@ function manage(body) {
     $('#prev').innerHTML = people.length ? `<p>${people.length} students: ${people.map(p => `<span class="pill">${esc(p.display_name)} <span class="muted">${esc(p.full_name)}</span></span>`).join('')}</p>` : ''; };
   $('#add').onclick = e => busy(e.target, async () => { try { const rows = await rpc('ec_t_add_students', { p_token: T(), p_code: cls.code, p_people: people }); await load(cls.code); render(); pinSheet(rows, 'New students'); } catch (er) { fail(er); } });
   $('#board').onchange = async e => { try { await rpc('ec_t_set_board', { p_token: T(), p_code: cls.code, p_on: e.target.checked }); const c = classes.find(x => x.code === cls.code); if (c) c.board = e.target.checked; toast(e.target.checked ? 'Leaderboard on' : 'Leaderboard off'); } catch (er) { e.target.checked = !e.target.checked; fail(er); } };
+  $('#vi').onchange = async e => { try { await rpc('ec_t_set_vi', { p_token: T(), p_code: cls.code, p_on: e.target.checked }); cls.vi_a1 = e.target.checked; const c = classes.find(x => x.code === cls.code); if (c) c.vi_a1 = e.target.checked; toast(e.target.checked ? 'Vietnamese help on' : 'Vietnamese help off'); }
+    catch (er) { e.target.checked = !e.target.checked; fail(er); } };
   $('#nc').onclick = addClassPage;
 }
 function addClassPage() {

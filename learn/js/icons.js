@@ -19,6 +19,13 @@ const P = {
   lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   tick: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   badge: '<circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/>',
+  p2: '<rect x="3" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="5" rx="1.5"/><rect x="3" y="17" width="8" height="4" rx="1.5"/><path d="M11 5.5h4v4.5M13 12.5H7v4.5"/>',
+  ppc: '<path d="M4 4v16h16"/><path d="M5 7a13 13 0 0 1 12 12"/><circle cx="10" cy="13" r="1.4" fill="currentColor"/>',
+  base: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
+  '1.1': '<path d="M12 3v18"/><path d="M5 8h14"/><path d="M5 8l-2.5 6a2.5 2.5 0 0 0 5 0zM19 8l-2.5 6a2.5 2.5 0 0 0 5 0z"/>',
+  '1.2': '<path d="M3 21V10l5 3V10l5 3V6l8 4v11z"/><path d="M7 17h2M12 17h2M17 17h2"/>',
+  '1.3': '<path d="M12 21V11"/><path d="M12 11L6 5M12 11l6-6"/><path d="M6 5H9M6 5v3M18 5h-3M18 5v3"/>',
+  '1.4': '<path d="M4 4v16h16"/><path d="M5 7a13 13 0 0 1 12 12"/>',
   '2.1': '<path d="M3 9l2-5h14l2 5"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8h14v-8"/>',
   '2.2': '<path d="M4 4v16h16"/><path d="M7 6c2 7 6 10 12 11"/>',
   '2.3': '<path d="M4 4v16h16"/><path d="M7 17c6-1 10-5 12-11"/>',
@@ -26,7 +33,7 @@ const P = {
   '2.5': '<path d="M4 4v16h16"/><path d="M6 8l9 10" opacity=".45"/><path d="M10 6l9 10"/><path d="M13 7h3v3"/>',
   '2.6': '<path d="M4 4v16h16"/><path d="M6 12c2-2 3 2 5 0s3 2 5 0 2 1 3 0"/>'
 };
-const HUE = { mission: '#D29A0F', learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', review: '#D9622B',
+const HUE = { p2: '#7B4FC4', ppc: '#2F6FB5', base: '#1E8C87', mission: '#D29A0F', learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', review: '#D9622B',
   games: '#C2417A', stats: '#C98A0B', workout: '#D9622B', words: '#2A7A4B', market: '#B8432F', lock: '#7A8794', badge: '#C98A0B', unit: '#1E8C87' };
 
 export function icon(name, size = 22) {

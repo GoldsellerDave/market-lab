@@ -2,18 +2,35 @@
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
 import { rpc, token, DEMO, errText } from './api.js';
 import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js';
-import { UNITS, ACTIVITIES } from './units.js';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js';
 import * as E from './engine.js';
-import { CONTENT, TRAPS } from './content.js';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js';
+import { BASELINE, BASELINE_N } from './u1.js';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js';
+import { createPPC } from './ppc.js';
 import { SHIFTS } from './u25.js';
 import { genEq, nextEqKind, LEARN_MARKET } from './u24.js';
 import { createDiagram } from './diagram.js';
 import { icon, tile } from './icons.js';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, CHECK_N, BADGE } from './mission.js';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
 const C = () => CONTENT[U];
+// 1.4 learn cards: what each point means, and three events that shift the curve (new maximums for rice x and phones y)
+const PPC_INFO = {
+  A: 'Point A: all [[resources]] make phones: 10 million phones and no rice.',
+  B: 'Point B is ON the curve: 6 million tonnes of rice and 8 million phones. All resources are used fully.',
+  C: 'Point C is ON the curve: 8 million tonnes of rice and 6 million phones. All resources are used fully.',
+  D: 'Point D: all resources make rice: 10 million tonnes and no phones.',
+  E: 'Point E is INSIDE the curve. Some resources are [[unemployed resources|unemployed]]: the economy could make more of both goods.',
+  F: 'Point F is OUTSIDE the curve. It is [[unattainable]] now. [[economic growth|Economic growth]] could make it possible.'
+};
+const PPC_SHIFTS = [
+  ['Better technology', { x: 12, y: 12 }, 'Better [[technology]] lets the economy make more of both goods. The PPC shifts outwards: [[economic growth]].'],
+  ['A flood', { x: 7, y: 8 }, 'A flood destroys farms and factories. There are fewer [[resources]], so the PPC shifts inwards.'],
+  ['New rice seeds', { x: 13, y: 10 }, 'New seeds help rice only. The curve moves out on the rice [[axis]] only; the most phones stays at 10 million.']
+];
 const uTitle = (u = U) => (UNITS.find(x => x.id === u) || {}).title || '';
 const uName = (u = U) => `${u} ${uTitle(u)}`;
 const backLink = () => `<p><a href="#/u/${U}">← ${esc(uName())}</a></p>`;
@@ -27,7 +44,8 @@ const fmt = n => Number(n).toLocaleString('en-US');
 const go = h => { if (location.hash === h) route(); else location.hash = h; };
 const wide = on => document.getElementById('app').classList.toggle('play', on);
 window.addEventListener('hashchange', () => wide(false));
-const LEVELED = new Set(['shift', 'eqm', 'mcq']);
+const LEVELED = new Set(['shift', 'eqm', 'mcq', 'ppc']);
+const pracOf = u => (ACTIVITIES[u] || []).find(a => a.id === 'shift' || a.id === 'eqm' || a.id === 'ppc');
 const TICK = `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const BUILT = () => UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);
 const openUnits = () => BUILT().filter(u => (me.open_units || []).includes(u));
@@ -164,6 +182,7 @@ function workoutPlan() {
   const t = today(), before = history.filter(a => vnDay(a.created_at) < t), todays = history.filter(a => vnDay(a.created_at) === t);
   const fu = focusUnit(before); if (!fu) return [];
   const items = [], add = it => { if (items.length < 3 && !items.some(x => x.unit === it.unit && x.act === it.act)) items.push(it); };
+  if (bandOf(before, me.eng_band).source === 'none') add({ unit: BASE_UNIT, act: 'baseline', ic: 'base', label: 'English and economics baseline' });
   const due = reviewDue(before);
   if (due.length >= 2) add({ unit: 'review', act: 'review', ic: 'review', label: `Fix ${Math.min(due.length, 10)} questions you missed` });
   const m = mission(fu, before);
@@ -171,11 +190,11 @@ function workoutPlan() {
   // then the open unit with the weakest Paper 1 result
   const weakest = openUnits().map(u => ({ u, b: (E.summarise(before, u).mcq || { best: -1 }).best })).sort((a, b) => a.b - b.b)[0];
   if (weakest) add({ unit: weakest.u, act: 'mcq', ic: 'mcq', label: `${weakest.u}: Paper 1 practice` });
-  openUnits().slice().reverse().forEach(u => { const p = ACTIVITIES[u].find(a => a.id === 'shift' || a.id === 'eqm'); add({ unit: u, act: p.id, ic: p.id, label: `${u}: ${p.title}` }); });
+  openUnits().slice().reverse().forEach(u => { const p = pracOf(u) || ACTIVITIES[u].find(a => a.id === 'p2'); add({ unit: u, act: p.id, ic: p.id, label: `${u}: ${p.title}` }); });
   items.forEach(it => (it.done = todays.some(a => a.unit === it.unit && a.activity === it.act)));
   return items;
 }
-const itemHref = it => (it.unit === 'review' ? '#/review/go' : `#/u/${it.unit}/${it.act}`);
+const itemHref = it => (it.unit === 'review' ? '#/review/go' : it.unit === BASE_UNIT ? '#/baseline' : `#/u/${it.unit}/${it.act}`);
 function ringSVG(items) {
   const n = Math.max(items.length, 1), gap = 16, seg = 360 / n, r = 42;
   const pt = a => [50 + r * Math.sin(a * Math.PI / 180), 50 - r * Math.cos(a * Math.PI / 180)].map(v => v.toFixed(1)).join(' ');
@@ -200,21 +219,24 @@ function home() {
   let h = `<div class="narrow"><div class="hero"><p class="eyebrow">Class ${esc((me.class_code || '').toUpperCase())}</p><h1>Hi, ${esc(me.display_name)}</h1></div>`;
   if (!fu) h += `<div class="panel"><b>No units are open yet.</b><p class="note">Your teacher will open the first unit when the class starts it.</p></div>`;
   else {
-    if (!history.length) h += `<div class="tcard"><span class="tag gold">Start here</span><h3>${esc(uName(fu))}</h3>
+    if (bandInfo().source === 'none') h += `<div class="tcard"><span class="tag gold">Start here</span><h3>English and economics baseline</h3>
+      <p class="note" style="font-size:1rem">Three short texts about economics with 12 questions and no hints. Your score sets how much help you get with English. It takes about 15 minutes.</p>
+      <div class="row"><a class="btn" href="#/baseline">Start the baseline</a></div></div>`;
+    else if (history.length <= 1) h += `<div class="tcard"><span class="tag gold">Start here</span><h3>${esc(uName(fu))}</h3>
       <p class="note" style="font-size:1rem">Start with the Learn cards: five short cards with moving diagrams. Then work through the unit mission, step by step. It takes about 10 minutes to begin.</p>
       <div class="row"><a class="btn" href="#/u/${fu}/learn">Start the Learn cards</a></div></div>`;
     h += workoutCard();
-    const m = mission(fu), s = E.summarise(history, fu), prac = ACTIVITIES[fu].find(a => a.id === 'shift' || a.id === 'eqm');
+    const m = mission(fu), s = E.summarise(history, fu), prac = pracOf(fu) || ACTIVITIES[fu].find(a => a.id === 'p2');
     const q = (href, ic, title, note) => `<a class="qtile" href="${href}">${tile(ic, 'm')}<b>${title}</b><span class="note">${note}</span></a>`;
     h += `<div class="qtiles">${q(`#/u/${fu}`, fu, `Unit ${fu}`, `Mission ${m.n} of ${m.steps.length}`)}
       ${q('#/review', 'review', 'Review', due ? `${due} question${due > 1 ? 's' : ''} to fix` : 'Nothing due')}
-      ${q(`#/u/${fu}/${prac.id}`, prac.id, prac.title, s[prac.id] ? `Level: ${E.LEVELS[s[prac.id].level]}` : 'Not started')}
+      ${q(`#/u/${fu}/${prac.id}`, prac.id, prac.title, s[prac.id] ? (LEVELED.has(prac.id) ? `Level: ${E.LEVELS[s[prac.id].level]}` : `Best ${s[prac.id].bestScore}/${s[prac.id].max}`) : 'Not started')}
       ${q(`#/u/${fu}/mcq`, 'mcq', 'Paper 1 practice', s.mcq ? `Best ${pct(s.mcq.bestScore, s.mcq.max)}%` : 'Not started')}
       ${q('#/games', 'games', 'Games', 'Play and practise')}
       ${q('#/me', 'stats', 'My stats', `${xp.total} XP in total`)}</div>`;
   }
   h += `<div class="stats"><div class="stat gold"><b>${xp.week}</b><span>XP this week</span></div>
-      <div class="stat"><b>${fu ? (E.summarise(history, fu)[ACTIVITIES[fu].find(a => a.id === 'shift' || a.id === 'eqm').id] ? E.LEVELS[E.summarise(history, fu)[ACTIVITIES[fu].find(a => a.id === 'shift' || a.id === 'eqm').id].level] : '–') : '–'}</b><span>level in ${esc(fu || 'unit')}</span></div>
+      <div class="stat"><b>${bandInfo().band == null ? '–' : BANDS[bandInfo().band]}</b><span>English level</span></div>
       <div class="stat"><b>${st.weeks} wk</b><span>streak</span></div><div class="stat"><b>${xp.total}</b><span>XP in total</span></div></div>
     <div class="panel goal"><b>This week: ${Math.min(st.thisWeek, 2)} of 2 activities</b><div class="bar"><i style="width:${Math.min(st.thisWeek, 2) * 50}%"></i></div>
       <p class="note">Finish 2 activities a week to keep your streak going.</p></div>
@@ -227,16 +249,22 @@ function home() {
 function unitsView() {
   nav('units');
   const open = new Set(me.open_units || []);
-  view(`<div class="narrow"><div class="hero"><p class="eyebrow">Units</p><h1>The allocation of resources</h1>
-    <p class="lede">Section 2 of the IGCSE Economics syllabus. Tap a unit to see its mission, learning cards, practice and Paper 1 questions.</p></div>
-    <div class="ulist">${UNITS.map(u => {
+  view(`<div class="narrow"><div class="hero"><p class="eyebrow">Units</p><h1>IGCSE Economics</h1>
+    <p class="lede">Tap a unit to see its mission, learning cards, practice and exam questions.</p></div>
+    <div class="ulist">${UNITS.map((u, k) => {
+      const head = k === 0 || UNITS[k - 1].id[0] !== u.id[0] ? `<h2 style="margin:10px 0 0">Section ${u.id[0]}: ${esc(SECTIONS[u.id[0]])}</h2>` : '';
+      return head + unitRow(u); }).join('')}</div></div>`);
+}
+function unitRow(u) {
+  const open = new Set(me.open_units || []);
+  return [u].map(u => {
       const built = u.ready && CONTENT[u.id], isOpen = open.has(u.id);
       if (!isOpen) return `<div class="urow locked">${tile('lock', 'm')}<div><b>${u.id} ${esc(u.title)}</b><span class="note">Locked. Your teacher will open ${u.id} when the class gets to it.</span></div></div>`;
       if (!built) return `<div class="urow locked">${tile(u.id, 'm')}<div><b>${u.id} ${esc(u.title)}</b><span class="note">Coming soon: the activities for this unit are being built.</span></div></div>`;
       const m = mission(u.id);
       return `<a class="urow" href="#/u/${u.id}">${tile(u.id, 'm')}<div><b>${u.id} ${esc(u.title)}</b><span class="note">${esc(u.sub)} · Mission ${m.n} of ${m.steps.length}</span>
         <div class="bar" aria-hidden="true"><i style="width:${Math.round(100 * m.n / m.steps.length)}%"></i></div></div>${m.complete ? '<span class="chip ok">Done</span>' : ''}</a>`;
-    }).join('')}</div></div>`);
+    })[0];
 }
 
 // ---------- unit page: Mission, Learn, Practice, Paper 1, Data, Key words ----------
@@ -245,7 +273,7 @@ function aTile(ic, href, title, note, done = false) {
   return `<a class="atile" href="${href}"><span class="ahead" style="--hue:${hueOf(ic)}">${icon(ic, 34)}${done ? `<span class="adone">${TICK}</span>` : ''}</span>
     <span class="abody"><b>${esc(title)}</b><span class="note">${note}</span></span></a>`;
 }
-const hueOf = ic => ({ learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', market: '#B8432F', words: '#2A7A4B' }[ic] || '#1E8C87');
+const hueOf = ic => ({ p2: '#7B4FC4', ppc: '#2F6FB5', learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', market: '#B8432F', words: '#2A7A4B' }[ic] || '#1E8C87');
 function missionHTML(u) {
   const m = mission(u);
   return `<div class="mission"><div class="row" style="justify-content:space-between"><p class="eyebrow">Unit ${u} mission · ${m.n} of ${m.steps.length} steps</p>${m.complete ? '<span class="chip ok">Badge won</span>' : ''}</div>
@@ -257,27 +285,33 @@ function missionHTML(u) {
 }
 function unitPage(tab = 'mission') {
   nav('units');
-  const s = E.summarise(history, U), acts = ACTIVITIES[U], prac = acts.find(a => a.id === 'shift' || a.id === 'eqm'), m = mission(U), top = E.topTrap(E.trapCounts(history, U));
-  const cur = UTABS.find(t => t[0] === tab) || UTABS[0];
+  const s = E.summarise(history, U), acts = ACTIVITIES[U], prac = pracOf(U), m = mission(U), top = E.topTrap(E.trapCounts(history, U));
+  const has = id => acts.some(a => a.id === id);
+  const tabs = UTABS.filter(t => (t[0] !== 'practice' || prac) && (t[0] !== 'data' || has('data'))).flatMap(t => (t[0] === 'data' && false ? [] : [t]));
+  if (has('p2')) tabs.splice(tabs.findIndex(t => t[0] === 'paper1') + 1, 0, ['paper2', 'Paper 2', 'p2']);
+  const cur = tabs.find(t => t[0] === tab) || tabs[0];
   const bestNote = id => (s[id] ? `Best ${pct(s[id].bestScore, s[id].max)}% · ${s[id].runs} ${s[id].runs === 1 ? 'try' : 'tries'}${LEVELED.has(id) ? ' · ' + E.LEVELS[s[id].level] : ''}` : 'Not started');
   const cb = checkBest(U);
   let body = '';
   if (cur[0] === 'mission') body = missionHTML(U) + (top ? `<div class="panel" style="margin-top:12px"><b>Your most common mistake in ${U}</b>${trapBox(top[0])}</div>` : '');
-  if (cur[0] === 'learn') body = `<div class="tiles">${aTile('learn', `#/u/${U}/learn`, 'Learn cards', `${C().LEARN.length} cards with moving diagrams`, !!s.learn)}</div>
+  if (cur[0] === 'learn') body = `<div class="tiles">${aTile('learn', `#/u/${U}/learn`, 'Learn cards', `${C().LEARN.length} short cards`, !!s.learn)}</div>
     <ol class="note" style="margin-top:12px">${C().LEARN.map(c => `<li>${esc(c.title)}</li>`).join('')}</ol>`;
+  if (cur[0] === 'paper2') body = `<div class="tiles">${aTile('p2', `#/u/${U}/p2`, 'Paper 2 builder', s.p2 ? `Best ${s.p2.bestScore}/${s.p2.max}` : 'Not started', !!s.p2)}</div>
+    <p class="note" style="margin-top:12px">${['Put the sentences in the right order to build each answer.', 'Choose the missing words to complete each answer.', 'Write each answer with a sentence frame to help you.', 'Write each answer yourself, then compare it with the mark scheme.'][band()]} Your level: ${bandChip(bandInfo().band)}</p>`;
   if (cur[0] === 'practice') body = `<div class="tiles">${aTile(prac.id, `#/u/${U}/${prac.id}`, prac.title, bestNote(prac.id), !!s[prac.id])}</div>
     <p class="note" style="margin-top:12px">${esc(prac.sub)}. Two right first time in a row moves you up a level (Core, Stretch, Challenge).</p>`;
   if (cur[0] === 'paper1') body = `<div class="tiles">${aTile('mcq', `#/u/${U}/mcq`, 'Paper 1 practice', bestNote('mcq'), !!s.mcq && s.mcq.best >= 0.6)}
-      ${aTile('check', `#/u/${U}/check`, 'Unit checkpoint', cb != null ? `Best ${Math.round(cb * 100)}%` : `${CHECK_N} questions, no hints`, cb != null && cb >= CHECK_PASS)}</div>
+      ${aTile('check', `#/u/${U}/check`, 'Unit checkpoint', cb != null ? `Best ${Math.round(cb * 100)}%` : `${checkN(U)} questions, no hints`, cb != null && cb >= CHECK_PASS)}</div>
     <div class="minicard${cb != null && cb >= CHECK_PASS ? ' won' : ''}">${tile('check', 'm')}<div><p class="eyebrow">Unit checkpoint</p><b>${esc(uName())} checkpoint</b>
-      <p class="note">${cb != null && cb >= CHECK_PASS ? `Passed with ${Math.round(cb * 100)}%.` : `${CHECK_N} Paper 1 questions from Core to Challenge, with no hints. Score ${CHECK_PASS * 100}% to pass. Best taken after the mission.`}</p></div>
+      <p class="note">${cb != null && cb >= CHECK_PASS ? `Passed with ${Math.round(cb * 100)}%.` : `${checkN(U)} Paper 1 questions from Core to Challenge, with no hints. Score ${CHECK_PASS * 100}% to pass. Best taken after the mission.`}</p></div>
       <a class="btn small${cb != null && cb >= CHECK_PASS ? ' alt' : ''}" href="#/u/${U}/check">${cb != null ? 'Try again' : 'Start'}</a></div>`;
   if (cur[0] === 'data') body = `<div class="tiles">${aTile('data', `#/u/${U}/data`, C().DATA.title, s.data ? `Best ${s.data.bestScore}/${s.data.max}` : 'Not started', !!s.data)}</div>
     <p class="note" style="margin-top:12px">A Paper 2 style case study: identify, calculate, draw and explain. Two tries on each part.</p>`;
-  if (cur[0] === 'words') body = `<table class="lb">${Object.entries(C().VI || {}).map(([en, v]) => `<tr><td><b>${esc(en)}</b></td><td>${esc(v)}</td></tr>`).join('')}</table>`;
+  if (cur[0] === 'words') body = C().TERMS ? `<table class="lb">${C().TERMS.map(t => `<tr><td><b>${esc(t)}</b>${viOn() && GLOSSARY[t].vi ? `<br><span class="vi">${esc(GLOSSARY[t].vi)}</span>` : ''}</td><td>${esc(GLOSSARY[t].def)}<br><span class="note">e.g. ${esc(GLOSSARY[t].ex)}</span></td></tr>`).join('')}</table>`
+    : `<table class="lb">${Object.entries(C().VI || {}).map(([en, v]) => `<tr><td><b>${esc(en)}</b></td><td>${esc(v)}</td></tr>`).join('')}</table>`;
   view(`<div class="narrow"><div class="row"><a href="#/units">← All units</a></div>
     <div class="tcard ucard"><div class="uhead">${tile(U, 'm')}<h2>${esc(uName())}</h2><span class="chip ${m.complete ? 'ok' : 'gold'}">${m.complete ? 'Done' : `${m.n}/${m.steps.length}`}</span></div>
-      <div class="utabs" role="tablist" aria-label="Unit ${U} sections">${UTABS.map(([k, label, ic]) => `<a role="tab" href="#/u/${U}/tab/${k}" aria-selected="${k === cur[0]}">${icon(k === 'practice' ? prac.id : ic, 16)}${label}</a>`).join('')}</div>
+      <div class="utabs" role="tablist" aria-label="Unit ${U} sections">${tabs.map(([k, label, ic]) => `<a role="tab" href="#/u/${U}/tab/${k}" aria-selected="${k === cur[0]}">${icon(k === 'practice' ? prac.id : ic, 16)}${label}</a>`).join('')}</div>
       <div role="tabpanel" aria-label="${cur[1]}">${body}</div></div></div>`);
 }
 
@@ -301,15 +335,15 @@ function reviewRun() {
   const t0 = Date.now(), answers = []; let i = 0, score = 0;
   const show = () => {
     if (i >= ids.length) return done();
-    const it = MCQ_BY_ID[ids[i]], opts = E.shuffle(it.options.map((o, k) => ({ ...o, right: k === 0 })));
+    const it = MCQ_BY_ID[ids[i]], P = mcqParts(it), opts = P.options;
     const rec = { id: it.id, level: it.level, first_try: false, trap: null, ok: false, hinted: false };
     view(`<p><a href="#/review">← Review</a></p><div class="row"><b class="grow">Question ${i + 1} of ${ids.length}</b><span class="chip mint">${it.unit}</span></div>
       <div class="steps" style="margin-top:8px">${ids.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
-      <div class="card"><p class="event">${esc(it.stem)}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
-      <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> ${esc(o.t)}</button>`).join('')}</div>
-      <button class="alt small" id="hint">Show a hint</button><div id="fb" aria-live="polite"></div></div></div></div>`);
+      <div class="card"><p class="event">${P.stem}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
+      <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> <span class="otext">${P.text(o)}</span></button>`).join('')}</div>
+      ${toolsHTML(it)}<div id="fb" aria-live="polite"></div></div></div></div>`);
     if (it.diagram) createDiagram($('#dg'), { start: it.diagram });
-    $('#hint').onclick = () => { rec.hinted = true; $('#hint').outerHTML = `<div class="fb tip"><b>Hint</b>${esc(it.hint)}</div>`; };
+    bindTools(it, () => { rec.hinted = true; });
     $$('.choice').forEach(b => (b.onclick = () => {
       const o = opts[+b.dataset.k];
       $$('.choice').forEach((x, k) => { x.disabled = true; if (opts[k].right) x.classList.add('right'); });
@@ -339,8 +373,8 @@ function gamesView() {
   const us = openUnits();
   view(`<div class="narrow"><div class="hero"><p class="eyebrow">Games</p><h1>Play and practise</h1>
     <p class="lede">The practice games adapt to you: two right first time in a row and they get harder. Market Town is the class trading game your teacher runs.</p></div>
-    ${us.map(u => { const p = ACTIVITIES[u].find(a => a.id === 'shift' || a.id === 'eqm'), s = E.summarise(history, u);
-      return `<h2>${esc(uName(u))}</h2><div class="tiles">${aTile(p.id, `#/u/${u}/${p.id}`, p.title, s[p.id] ? `Level: ${E.LEVELS[s[p.id].level]}` : esc(p.sub), !!s[p.id])}
+    ${us.map(u => { const p = pracOf(u), s = E.summarise(history, u);
+      return `<h2>${esc(uName(u))}</h2><div class="tiles">${p ? aTile(p.id, `#/u/${u}/${p.id}`, p.title, s[p.id] ? `Level: ${E.LEVELS[s[p.id].level]}` : esc(p.sub), !!s[p.id]) : ''}
         ${aTile('mcq', `#/u/${u}/mcq`, 'Paper 1 race', s.mcq ? `Best ${pct(s.mcq.bestScore, s.mcq.max)}%` : '10 questions that adapt', !!s.mcq)}</div>`; }).join('')}
     <h2>Class games</h2><div class="tiles">${aTile('market', '../', 'Market Town', 'Buy and sell in a live class market. Your teacher starts it.')}</div></div>`);
 }
@@ -371,7 +405,11 @@ function meView(tab = 'stats') {
   const skill = (label, v) => `<div class="skillrow"><span>${esc(label)}</span><div class="bar"><i class="${v != null && v < 50 ? 'low' : ''}" style="width:${v || 0}%"></i></div><span>${v == null ? '–' : v + '%'}</span></div>`;
   const traps = Object.entries(E.trapCounts(history)).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const ACT = Object.fromEntries(Object.entries(ACTIVITIES).flatMap(([u, as]) => as.map(a => [u + a.id, a.title])));
+  const bi = bandInfo();
   view(`<div class="narrow">${headH}
+    <div class="tcard"><div class="uhead">${tile('base', 'm')}<h2>English level</h2>${bandChip(bi.band)}</div>
+      <p class="note">${bi.source === 'none' ? 'Take the baseline on your home page to find your level.' : bi.source === 'teacher' ? 'Your teacher set this level.' : bi.band === 3 ? 'The top level: full exam questions with no extra help.' : `Get 80% or more right first time, without hints or translations, in ${UP_AFTER} activities in a row to move up. So far: ${bi.up} of ${UP_AFTER}.`}${bi.baseline != null ? ` Baseline: ${bi.baseline}/${BASELINE_N}.` : ''}</p>
+      ${bi.source === 'none' ? '<div class="row"><a class="btn" href="#/baseline">Start the baseline</a></div>' : ''}</div>
     <div class="scard"><div class="shead">${icon('workout', 16)} Unit scores</div>
       ${srow('Overall', overall, true)}
       ${us.map(u => { const cb = checkBest(u), s = E.summarise(history, u); return srow(uName(u), unitScore(u), false, cb != null ? `Best unit checkpoint` : s.mcq ? 'Best Paper 1 practice (take the unit checkpoint to update)' : 'Not started'); }).join('')}</div>
@@ -418,10 +456,15 @@ function learn() {
   let i = 0; const t0 = Date.now();
   const show = () => {
     const c = L[i];
-    let body = `<p>${esc(c.text || '')}</p>`;
+    const R = t => (C().BANDED ? rich(t, Math.min(band(), 2)) : esc(t));
+    let body = `<p>${R(c.text || '')}</p>`;
+    if (c.kind === 'text' && c.example) body += `<div class="fb tip"><b>Example</b>${R(c.example)}</div>`;
+    if (c.kind === 'ppc') body += `<div class="choices two">${Object.keys(PPC_INFO).map(k => `<button class="choice" data-pt="${k}"><b>Point ${k}</b></button>`).join('')}</div>`;
+    if (c.kind === 'ppc-move') body += `<div class="choices">${[['B', 'C'], ['C', 'D']].map(([a, b2]) => `<button class="choice" data-mv="${a}${b2}"><b>${a} → ${b2}</b></button>`).join('')}</div>`;
+    if (c.kind === 'ppc-shift') body += `<div class="choices">${PPC_SHIFTS.map((x, k) => `<button class="choice" data-sh="${k}"><b>${esc(x[0])}</b></button>`).join('')}</div>`;
     if (c.kind === 'four') body += `<div class="choices two">${['Demand increases', 'Demand decreases', 'Supply increases', 'Supply decreases'].map((t, k) => `<button class="choice ${k < 2 ? 'd' : 's'}" data-k="${k}">${t}</button>`).join('')}</div>`;
     if (c.kind === 'move' || c.kind === 'two') body += `<div class="choices">${c.rows.map((r, k) => `<button class="choice" data-k="${k}"><span><b>${esc(r[0])}</b><br><span class="small">${esc(r[1])}</span></span></button>`).join('')}</div>`;
-    if (c.kind === 'rows') body += c.rows.map(r => `<div class="fb tip"><b>${esc(r[0])}</b>${esc(r[1])}</div>`).join('');
+    if (c.kind === 'rows') body += c.rows.map(r => `<div class="fb tip"><b>${R(r[0])}</b>${R(r[1])}</div>`).join('');
     if (c.kind === 'causes') body += `<div class="choices two"><div class="card" style="border-left:8px solid var(--d)"><h3>${w('Demand', 'demand')} shifts</h3><ul>${c.demand.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
       <div class="card" style="border-left:8px solid var(--s)"><h3>${w('Supply', 'supply')} shifts</h3><ul>${c.supply.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>`;
     if (c.kind === 'method') body += `<ol>${c.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol><p><b>Sentence frame</b></p><p class="frame">${esc(c.frame)}</p>`;
@@ -432,12 +475,12 @@ function learn() {
     if (c.kind === 'schedule') body += `<div class="scroll"><table class="sched"><tr><th>Price (${esc(M.priceUnit)})</th><th>${w('Quantity demanded', 'quantity demanded')} (kg)</th><th>${w('Quantity supplied', 'quantity supplied')} (kg)</th></tr>
       ${M.prices.map(P => `<tr data-p="${P}"><td>${P}</td><td>${fmt(M.qd(P))}</td><td>${fmt(M.qs(P))}</td></tr>`).join('')}</table></div>
       <button class="alt" id="showeq" style="width:100%">Show me the equilibrium</button><p id="eff" aria-live="polite"></p>`;
-    const hasDg = ['four', 'move', 'two', 'explorer'].includes(c.kind);
+    const hasDg = ['four', 'move', 'two', 'explorer'].includes(c.kind), hasPPC = c.kind.startsWith('ppc');
     let under = '';   // the explorer's slider and readout sit directly under the diagram, so students see both while dragging
     if (c.kind === 'explorer') { const k = body.indexOf('<label for="pr">'); under = body.slice(k); body = body.slice(0, k); }
     view(`${backLink()}
       <div class="steps">${L.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
-      <div class="card"><h2>${i + 1}. ${esc(c.title)}</h2>${hasDg ? `<div class="play-grid"><div><div class="dgwrap" id="dg"></div>${under}<p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : body}</div>
+      <div class="card"><h2>${i + 1}. ${esc(c.title)}</h2>${hasPPC ? `<div class="play-grid"><div><div class="dgwrap" id="pg"></div><p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : hasDg ? `<div class="play-grid"><div><div class="dgwrap" id="dg"></div>${under}<p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : body}</div>
       <div class="sticky-foot"><button class="alt" id="prev" ${i ? '' : 'disabled'}>Back</button><button id="next">${i === L.length - 1 ? 'Finish' : 'Next'}</button></div>`);
     if (hasDg) {
       const dg = createDiagram($('#dg'));
@@ -466,6 +509,13 @@ function learn() {
         $('#eff').innerHTML = c.kind === 'two' ? esc(c.rows[+b.dataset.k][1]) + '.' : effect(d);
       }));
     }
+    if (hasPPC) {
+      const pg = createPPC($('#pg'), { show: c.kind === 'ppc' ? Object.keys(PPC_INFO) : c.kind === 'ppc-move' ? ['B', 'C', 'D'] : ['A', 'B', 'C', 'D', 'F'] });
+      $$('[data-pt]').forEach(x => (x.onclick = () => { $$('.choice').forEach(y => y.classList.remove('sel')); x.classList.add('sel'); pg.points(Object.keys(PPC_INFO), x.dataset.pt); $('#eff').innerHTML = rich(PPC_INFO[x.dataset.pt], Math.min(band(), 2)); }));
+      $$('[data-mv]').forEach(x => (x.onclick = () => { $$('.choice').forEach(y => y.classList.remove('sel')); x.classList.add('sel'); const [a, b2] = x.dataset.mv.split(''); pg.arrow(a, b2);
+        $('#eff').innerHTML = a === 'B' ? 'From B to C: <b>+2 rice</b>, <b>−2 phones</b>. The opportunity cost of 2 more rice is 2 million phones.' : 'From C to D: <b>+2 rice</b>, <b>−6 phones</b>. The same extra rice now costs 6 million phones: the opportunity cost rises.'; }));
+      $$('[data-sh]').forEach(x => (x.onclick = () => { $$('.choice').forEach(y => y.classList.remove('sel')); x.classList.add('sel'); const sh = PPC_SHIFTS[+x.dataset.sh]; pg.shift(sh[1]); $('#eff').innerHTML = rich(sh[2], Math.min(band(), 2)); }));
+    }
     $('#showeq')?.addEventListener('click', () => { $(`tr[data-p="${M.pe}"]`).classList.add('eqrow');
       $('#eff').innerHTML = `At <b>${M.pe}k</b>, quantity demanded = quantity supplied = <b>${fmt(M.qd(M.pe))} kg</b>. That is the equilibrium price and equilibrium quantity.`; });
     $('#prev').onclick = () => { i--; show(); };
@@ -475,6 +525,7 @@ function learn() {
       const xp = E.xpForNew(history, la);
       await saveAttempt(la);
       const nextAct = ACTIVITIES[U][1];
+      if (C().BANDED) helpCount = 0;
       view(`<div class="card center"><h1>Cards done ✔</h1>${xp ? xpLine(xp) : ''}<p>Now test yourself.</p><div class="row" style="justify-content:center"><button id="n">${esc(nextAct.title)} →</button><button class="alt" id="b">Back to ${U}</button></div></div>`);
       $('#n').onclick = () => go('#/u/' + U + '/' + nextAct.id); $('#b').onclick = () => go('#/u/' + U);
     };
@@ -527,7 +578,7 @@ function rescue(run, trap, atCore, next) {
   }
   const method = C().LEARN.find(c => c.kind === 'method');
   view(`<div class="card"><h2>Strategy card 🧭</h2><p>Two tricky ones in a row. Use this before the next question.</p>${trapBox(trap)}
-    <ol>${method.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div>
+    ${method ? `<ol>${method.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : `<ol><li>Read the question twice. Tap the key words you do not know.</li><li>Find the key idea: which topic is it about?</li><li>Cross out answers you know are wrong.</li><li>Choose, then check your answer against the question.</li></ol>`}</div>
     ${ex ? `<div class="card"><h2>Worked example 📝</h2>${ex}</div>` : ''}
     <button id="ok" style="width:100%">Got it: next question</button>`);
   if (after) after();
@@ -537,15 +588,16 @@ async function finish(run, title, again) {
   wide(false);
   const traps = [...new Set(run.answers.map(a => a.trap).filter(Boolean))];
   const a = { unit: U, activity: run.activity, level_start: run.levelStart, level_end: run.lad.level, score: run.score, max_score: run.n, seconds: Math.round((Date.now() - run.t0) / 1000),
-    answers: [...run.answers, { id: 'meta', rescues: run.rescues || 0 }] };
-  const xp = E.xpForNew(history, a);
+    answers: [...run.answers, { id: 'meta', rescues: run.rescues || 0, ...(C().BANDED ? { band: band(), help: helpCount } : {}) }] };
+  const xp = E.xpForNew(history, a), before = run.bandBefore ?? bandInfo().band;
   view(`<div class="card center"><h1>${esc(title)} done</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${run.score} / ${run.n}</p>
-    <p class="muted">right first time · finished at ${levelBadge(run.lad.level)}</p>${xpLine(xp)}<p class="small" id="saved">Saving…</p></div>
+    <p class="muted">right first time · finished at ${levelBadge(run.lad.level)}</p>${xpLine(xp)}<p class="small" id="saved">Saving…</p><p id="lvl"></p></div>
     ${traps.length ? `<div class="card"><h3>Things to watch</h3>${traps.map(trapBox).join('')}</div>` : '<div class="card center">No mistakes: excellent! ⭐</div>'}
     <div class="row"><button class="grow" id="again">Try again</button><button class="alt grow" id="back">Back to ${U}</button></div>`);
   $('#again').onclick = again; $('#back').onclick = () => go('#/u/' + U);
   const ok = await saveAttempt(a);
   const el = $('#saved'); if (el) el.textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
+  if (C().BANDED) levelUpNote(before);
 }
 const runHead = (run, label) => `${backLink()}
   <div class="row"><b class="grow">${label} ${run.i + 1} of ${run.n}</b>${levelBadge(run.lad.level)}</div>
@@ -681,14 +733,16 @@ function eqm(run = newRun('eqm', 6)) {
 function mcq(run = newRun('mcq', 10)) {
   wide(true);
   if (run.i >= run.n) return finish(run, 'Paper 1 practice', () => mcq());
+  run.n = Math.min(run.n, C().MCQ.length);
   const it = E.pickItem(C().MCQ, run.lad.level, run.used, run.seen); run.used.add(it.id);
-  const opts = E.shuffle(it.options.map((o, k) => ({ ...o, right: k === 0 })));
+  if (run.i === 0 && !run.help0) { helpCount = 0; run.help0 = true; run.bandBefore = bandInfo().band; }
+  const P = mcqParts(it), opts = P.options;
   const rec = { id: it.id, level: it.level, first_try: false, trap: null, ok: false, hinted: false };
-  view(`${runHead(run, 'Question')}<div class="card"><p class="event">${esc(it.stem)}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
-    <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> ${esc(o.t)}</button>`).join('')}</div>
-    <button class="alt small" id="hint">Show a hint</button><div id="fb" aria-live="polite"></div></div></div></div>`);
+  view(`${runHead(run, 'Question')}<div class="card">${it.plain ? `<div class="row" style="justify-content:flex-end">${bandChip(P.band)}</div>` : ''}<p class="event">${P.stem}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
+    <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> <span class="otext">${P.text(o)}</span></button>`).join('')}</div>
+    ${toolsHTML(it)}<div id="fb" aria-live="polite"></div></div></div></div>`);
   if (it.diagram) createDiagram($('#dg'), { start: it.diagram });
-  $('#hint').onclick = () => { rec.hinted = true; $('#hint').outerHTML = `<div class="fb tip"><b>Hint</b>${esc(it.hint)}</div>`; };
+  bindTools(it, () => { rec.hinted = true; });
   $$('.choice').forEach(b => (b.onclick = () => {
     const o = opts[+b.dataset.k];
     $$('.choice').forEach((x, k) => { x.disabled = true; if (opts[k].right) x.classList.add('right'); });
@@ -791,15 +845,15 @@ function data() {
 // ---------- Unit checkpoint: 12 Paper 1 questions (4 Core, 4 Stretch, 4 Challenge), no hints, marked at the end ----------
 function checkpoint() {
   wide(true);
-  const pool = C().MCQ, qs = [0, 1, 2].flatMap(l => E.shuffle(pool.filter(q => q.level === l)).slice(0, CHECK_N / 3));
+  const pool = C().MCQ, qs = [0, 1, 2].flatMap(l => E.shuffle(pool.filter(q => q.level === l)).slice(0, checkN(U) / 3)), before = bandInfo().band;
   const t0 = Date.now(), answers = []; let i = 0;
   const show = () => {
     if (i >= qs.length) return done();
-    const it = qs[i], opts = E.shuffle(it.options.map((o, k) => ({ ...o, right: k === 0 })));
+    const it = qs[i], P = mcqParts(it), opts = P.options;
     view(`${backLink()}<div class="row"><b class="grow">${esc(U)} checkpoint · question ${i + 1} of ${qs.length}</b><span class="chip gold">No hints</span></div>
       <div class="steps" style="margin-top:8px">${qs.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
-      <div class="card"><p class="event">${esc(it.stem)}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
-      <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> ${esc(o.t)}</button>`).join('')}</div>
+      <div class="card"><p class="event">${P.stem}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
+      <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> <span class="otext">${P.text(o)}</span></button>`).join('')}</div>
       <p class="note">Your answers are marked at the end.</p></div></div></div>`);
     if (it.diagram) createDiagram($('#dg'), { start: it.diagram });
     $$('.choice').forEach(b => (b.onclick = () => {
@@ -811,28 +865,273 @@ function checkpoint() {
   const done = async () => {
     wide(false);
     const score = answers.filter(a => a.ok).length, passed = score / qs.length >= CHECK_PASS;
-    const a = { unit: U, activity: 'check', level_start: 0, level_end: 0, score, max_score: qs.length, seconds: Math.round((Date.now() - t0) / 1000), answers };
+    const a = { unit: U, activity: 'check', level_start: 0, level_end: 0, score, max_score: qs.length, seconds: Math.round((Date.now() - t0) / 1000), answers: C().BANDED ? [...answers, { id: 'meta', band: band(), help: 0 }] : answers };
     const xp = E.xpForNew(history, a);
     view(`<div class="narrow"><div class="tcard" style="text-align:center"><span class="tag ${passed ? '' : 'gold'}" style="align-self:center">${passed ? 'Passed' : 'Not yet'}</span>
         <h1>${esc(U)} checkpoint</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${score} / ${qs.length}</p>
         <p class="note">${passed ? `You passed (${CHECK_PASS * 100}% needed).${mission(U).steps.slice(0, 5).every(s => s.done) ? ` You won the <b>${esc(BADGE[U] || 'Unit champion')}</b> badge.` : ''}` : `You need ${Math.ceil(CHECK_PASS * qs.length)} to pass. Look at the answers below, then try again.`}</p>
-        ${xpLine(xp)}<p class="note" id="saved">Saving…</p></div>
+        ${xpLine(xp)}<p class="note" id="saved">Saving…</p><p id="lvl"></p></div>
       <div class="panel"><h3>Your answers</h3>${answers.map((x, k) => { const q = qs[k]; return `<div class="fb ${x.ok ? 'ok' : 'no'}"><b>${k + 1}. ${x.ok ? '✔' : '✘'} ${esc(q.stem)}</b>
         ${x.ok ? '' : `You chose: ${esc(x.pick)}<br>Answer: <b>${esc(q.options[0].t)}</b><br>`}<span class="note">${esc(q.explain)}</span></div>`; }).join('')}</div>
       <div class="row"><a class="btn" href="#/u/${U}/tab/paper1">Back to ${esc(U)}</a><a class="btn alt" href="#/review">Review</a></div></div>`);
     const ok = await saveAttempt(a);
     $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
+    if (C().BANDED) levelUpNote(before);
   };
   show();
 }
 
+
+// =================== Section 1: English bands, key-word pills, baseline, Paper 2 builder, PPC explorer ===================
+const bandInfo = () => bandOf(history, me && me.eng_band);
+const band = () => { const b = bandInfo().band; return b == null ? 1 : b; };   // before the baseline: A2 support
+const viOn = () => band() === 0 && !!me && me.vi_a1 !== false;
+const bandChip = b => (b == null ? '<span class="chip locked">Not placed</span>' : `<span class="chip mint">${BANDS[b]} · ${BAND_NAMES[b]}</span>`);
+const stripMarks = s => String(s || '').replace(/\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/g, (m, key, shown) => shown || key);
+// [[shown|term]] → a key-word pill you can tap (A1 to B1). B2 sees plain words.
+function rich(text, b = band()) {
+  return esc(text).replace(/\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/g, (m, key, shown) => {
+    const t = shown || key;
+    return b >= 3 || !GLOSSARY[key] ? t : `<span class="pillterm${b === 2 ? ' soft' : ''}" role="button" tabindex="0" data-term="${esc(key)}">${t}</span>`;
+  });
+}
+// Exam wording at B1: the first few glossary words become soft pills, so help is there without plain English.
+const GKEYS = Object.keys(GLOSSARY).sort((a, b) => b.length - a.length);
+const GRE = new RegExp(`\\b(${GKEYS.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
+function autoPill(text, b = band()) {
+  if (b !== 2) return esc(text);
+  let n = 0;
+  return esc(text).replace(GRE, m => { const key = GKEYS.find(k => k.toLowerCase() === m.toLowerCase()); if (!key || n >= 3) return m; n++;
+    return `<span class="pillterm soft" role="button" tabindex="0" data-term="${esc(key)}">${m}</span>`; });
+}
+let helpCount = 0;   // hints and translations used in the current activity
+function openPill(el) {
+  const old = $('.gloss'); const same = old && old.dataset.for === el.dataset.term && old.previousElementSibling === el;
+  if (old) old.remove(); if (same) return;
+  const g = GLOSSARY[el.dataset.term]; if (!g) return;
+  const pop = document.createElement('span'); pop.className = 'gloss'; pop.dataset.for = el.dataset.term; pop.setAttribute('role', 'note');
+  pop.innerHTML = `<b>${esc(el.dataset.term)}:</b> ${esc(g.def)}<span class="gx"><i>Example:</i> ${esc(g.ex)}</span>${viOn() && g.vi ? `<span class="vi">Tiếng Việt: ${esc(g.vi)}</span>` : ''}`;
+  el.after(pop);
+}
+// Capture phase: a pill inside an answer button opens the pill and does not choose the answer.
+document.addEventListener('click', e => {
+  const p = e.target.closest('.pillterm');
+  if (p) { e.preventDefault(); e.stopPropagation(); return openPill(p); }
+  if (!e.target.closest('.gloss')) $('.gloss')?.remove();
+}, true);
+document.addEventListener('keydown', e => { const p = e.target.closest && e.target.closest('.pillterm'); if (p && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openPill(p); } });
+const say = text => { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(stripMarks(text)); u.lang = 'en-GB'; u.rate = 0.85; speechSynthesis.speak(u); } catch { } };
+const canSay = () => 'speechSynthesis' in window;
+// The tools under a question: hint, Vietnamese (A1) and read aloud (A1)
+function toolsHTML(it, hints = true) {
+  const b = band();
+  return `<div class="row qtools">${hints && !(it.plain && b === 3) ? '<button class="alt small" id="hint">Show a hint</button>' : ''}
+    ${it.vi && viOn() ? '<button class="alt small" id="vibtn">Tiếng Việt</button>' : ''}${b === 0 && canSay() ? '<button class="alt small" id="say">🔊 Listen</button>' : ''}</div>
+    ${it.vi && viOn() ? `<p class="vi" id="vitext" hidden>${esc(it.vi)}</p>` : ''}`;
+}
+function bindTools(it, onHint) {
+  $('#vibtn')?.addEventListener('click', () => { $('#vitext').hidden = false; $('#vibtn').remove(); helpCount++; });
+  $('#say')?.addEventListener('click', () => say((band() <= 1 && it.plain) || it.stem || it.q));
+  $('#hint')?.addEventListener('click', () => { helpCount++; onHint && onHint(); $('#hint').outerHTML = `<div class="fb tip"><b>Hint</b>${esc(it.hint)}</div>`; });
+}
+// A Paper 1 question at the student's band: plain words for A1 and A2 (3 options at A1), exam words for B1 and B2.
+function mcqParts(it) {
+  const b = band(), plain = !!it.plain && b <= 1;
+  let options = it.options.map((o, k) => ({ ...o, right: k === 0 }));
+  if (it.plain && b === 0) options = options.slice(0, 3);
+  options = E.shuffle(options);
+  const stem = it.plain ? (plain ? rich(it.plain, b) : autoPill(it.stem, b)) : esc(it.stem);
+  const text = o => (it.plain ? (plain ? rich(o.p, b) : autoPill(o.t, b)) : esc(o.t));
+  return { options, stem, text, band: b };
+}
+
+// ---------- Baseline: three texts, 12 questions, no hints. Sets the starting English band. ----------
+function baselineRun() {
+  nav(null); wide(true);
+  const t0 = Date.now(), picks = {}, order = BASELINE.map(t => t.qs.map(q => E.shuffle(q.options.map((o, k) => ({ o, right: k === 0 })))));
+  const intro = () => view(`<div class="narrow"><div class="hero"><p class="eyebrow">Start here</p><h1>English and economics baseline</h1>
+      <p class="lede">Three short texts about economics, from easier to harder. Read each one and answer 4 questions. There are no hints. It takes about 15 minutes.</p></div>
+      <div class="panel"><p style="margin:0">Your score shows how much help you need with English. The app then gives you questions at the right level, and gives you less help as you improve.</p></div>
+      <button class="btn go" id="go">Start</button></div>`) && ($('#go').onclick = () => show(0));
+  const show = t => {
+    const T = BASELINE[t];
+    view(`<div class="row"><b class="grow">Text ${t + 1} of ${BASELINE.length}</b><span class="chip gold">No hints</span></div>
+      <div class="steps" style="margin-top:8px">${BASELINE.map((_, k) => `<i class="${k < t ? 'done' : k === t ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="card"><div class="play-grid"><div class="passage"><h2>${esc(T.title)}</h2>${T.paras.map((p, k) => `<p><b class="pn">${k + 1}</b> ${esc(p)}</p>`).join('')}</div>
+      <div>${T.qs.map((q, k) => `<div class="bq" data-q="${k}"><p class="event" style="font-size:1rem">${k + 1}. ${esc(q.q)}</p>
+        <div class="choices">${order[t][k].map((x, j) => `<button class="choice" data-j="${j}">${esc(x.o)}</button>`).join('')}</div></div>`).join('')}
+      <button id="next" style="width:100%" disabled>${t + 1 < BASELINE.length ? 'Next text' : 'Finish'}</button></div></div></div>`);
+    $$('.bq').forEach(box => $$('.choice', box).forEach(btn => (btn.onclick = () => {
+      $$('.choice', box).forEach(x => x.classList.remove('sel')); btn.classList.add('sel');
+      picks[`${t}-${box.dataset.q}`] = +btn.dataset.j;
+      $('#next').disabled = T.qs.some((_, k) => picks[`${t}-${k}`] == null);
+    })));
+    $('#next').onclick = () => (t + 1 < BASELINE.length ? show(t + 1) : done());
+  };
+  const done = async () => {
+    wide(false);
+    const answers = BASELINE.flatMap((T, t) => T.qs.map((q, k) => { const x = order[t][k][picks[`${t}-${k}`]]; return { id: `${T.id}-${k + 1}`, level: t, first_try: x.right, ok: x.right, pick: x.o, skill: q.skill }; }));
+    const score = answers.filter(a => a.ok).length, b = baselineBand(score, BASELINE_N);
+    const a = { unit: BASE_UNIT, activity: 'baseline', level_start: b, level_end: b, score, max_score: BASELINE_N, seconds: Math.round((Date.now() - t0) / 1000), answers };
+    const xp = E.xpForNew(history, a);
+    const what = ['Short, simple questions with key words you can tap, three answer choices, hints and Vietnamese help. Paper 2: put sentences in order to build the answer.',
+      'Simple questions with key words you can tap and hints. Paper 2: choose the missing words to complete the answer.',
+      'Exam-style questions with some key words you can tap. Paper 2: write your answer using a sentence frame.',
+      'Full exam-style questions with no extra help. Paper 2: write your own answers.'][b];
+    view(`<div class="narrow"><div class="tcard" style="text-align:center"><p class="eyebrow">Baseline done</p><h1>${score} / ${BASELINE_N}</h1>
+      <p style="margin:6px 0">Your starting level: ${bandChip(b)}</p><p class="note">${esc(what)}</p>${xpLine(xp)}<p class="note" id="saved">Saving…</p></div>
+      <div class="panel"><p class="note" style="margin:0">When you get 80% or more right first time in 3 activities in a row, without hints or translations, you move up a level and get less help.</p></div>
+      <a class="btn go" href="#/">Start learning</a></div>`);
+    const ok = await saveAttempt(a);
+    $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
+  };
+  intro();
+}
+
+// ---------- Paper 2 builder: one model answer, four ways in (order / word bank / frame / free) ----------
+function p2() {
+  wide(true); helpCount = 0;
+  const b = band(), items = C().P2.slice().sort((x, y) => x.level - y.level), t0 = Date.now(), answers = [];
+  const mode = ['order', 'bank', 'frame', 'free'][b];
+  let i = 0;
+  const show = () => {
+    if (i >= items.length) return done();
+    const q = items[i], n = q.chain.length, plainQ = b <= 1, rec = { id: q.id, level: q.level, first_try: false, ok: false, score: 0, marks: q.marks, mode };
+    const lead = { order: 'Use ▲ and ▼ to put the sentences in the right order. Together they make the answer.', bank: 'Choose the missing words to complete the answer.', frame: 'Write your answer. Use the sentence frame to help you.', free: 'Write your answer.' }[mode];
+    view(`${backLink()}<div class="row"><b class="grow">Paper 2 builder · question ${i + 1} of ${items.length}</b>${bandChip(b)}</div>
+      <div class="steps" style="margin-top:8px">${items.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="card"><div class="row"><p class="event grow">${plainQ ? rich(q.plain, b) : autoPill(q.q, b)}</p><span class="badge">${q.marks} marks</span></div>
+      ${toolsHTML({ ...q, hint: q.groups.map(x => x.ask).join(' '), stem: q.q }, mode === 'free')}
+      <p class="note">${lead}</p><div id="work"></div><div id="fb" aria-live="polite"></div></div>`);
+    bindTools({ ...q, hint: q.groups.map(x => x.ask).join(' '), stem: q.q });
+    const W = $('#work'), fb = $('#fb');
+    const finishQ = (score, first, model = true) => {
+      rec.score = score; rec.first_try = first; rec.ok = score === q.marks; answers.push(rec);
+      fb.innerHTML = `<div class="fb ${rec.ok ? 'ok' : 'no'}"><b>${score}/${q.marks}${rec.ok ? (first ? ' · right first time ⭐' : '') : ''}</b>${model ? `<p style="margin:.4em 0 0"><b>Model answer:</b> ${rich(q.chain.map(plainChain).join(' '), Math.min(b, 2))}</p>` : ''}</div>
+        <button id="nx" style="width:100%">${i + 1 < items.length ? 'Next question' : 'See my results'}</button>`;
+      W.querySelectorAll('button,select,textarea').forEach(x => (x.disabled = true));
+      $('#nx').onclick = () => { i++; show(); };
+    };
+    if (mode === 'order') {
+      let ord = E.shuffle(q.chain.map((_, k) => k)); if (ord.every((v, k) => v === k)) ord = ord.slice().reverse();
+      let tries = 0, marked = false;
+      const draw = () => {
+        W.innerHTML = `<ol class="chain">${ord.map((k, pos) => `<li class="ctile${marked ? (k === pos ? ' good' : ' bad') : ''}"><span class="ctext">${rich(plainChain(q.chain[k]), b)}</span>
+            <span class="cmove"><button class="alt small" data-up="${pos}" ${pos === 0 ? 'disabled' : ''} aria-label="Move up">▲</button><button class="alt small" data-down="${pos}" ${pos === n - 1 ? 'disabled' : ''} aria-label="Move down">▼</button></span></li>`).join('')}</ol>
+          <button id="chk" style="width:100%">Check my order</button>`;
+        const swap = (x, y) => { [ord[x], ord[y]] = [ord[y], ord[x]]; marked = false; draw(); };
+        $$('[data-up]', W).forEach(x => (x.onclick = () => swap(+x.dataset.up, +x.dataset.up - 1)));
+        $$('[data-down]', W).forEach(x => (x.onclick = () => swap(+x.dataset.down, +x.dataset.down + 1)));
+        $('#chk', W).onclick = () => {
+          tries++;
+          const frac = orderScore(ord, n);
+          if (frac === 1) return finishQ(q.marks, tries === 1, false);
+          if (tries >= 2) { marked = true; draw(); return finishQ(marksFor(frac, q.marks), false); }
+          marked = true; draw();
+          fb.innerHTML = `<div class="fb no"><b>${Math.round(frac * n)} of ${n} in the right place.</b> Green = right place. Move the red ones and check again.</div>`;
+        };
+      };
+      draw();
+    }
+    if (mode === 'bank') {
+      const gaps = gapsOf(q.chain), words = E.shuffle([...new Set([...gaps, ...(q.bank || [])])]);
+      let tries = 0, gi = 0;
+      W.innerHTML = `<div class="bank">${words.map(x => `<span class="chip mint">${esc(x)}</span>`).join(' ')}</div>
+        <div class="gapped">${q.chain.map(s => `<p>${esc(s).replace(/\{([^}]*)\}/g, () => `<select class="gap" data-g="${gi++}" aria-label="Missing word ${gi}"><option value="">…</option>${words.map(x => `<option>${esc(x)}</option>`).join('')}</select>`)}</p>`).join('')}</div>
+        <button id="chk" style="width:100%">Check</button>`;
+      $('#chk', W).onclick = () => {
+        const sel = $$('select.gap', W); if (sel.some(s => !s.value)) return (fb.innerHTML = '<div class="fb tip"><b>Choose a word for every gap first.</b></div>');
+        tries++;
+        const right = sel.filter((s, k) => s.value === gaps[k]); sel.forEach((s, k) => { s.classList.toggle('good', s.value === gaps[k]); s.classList.toggle('bad', s.value !== gaps[k]); if (s.value === gaps[k]) s.disabled = true; });
+        const frac = right.length / gaps.length;
+        if (frac === 1) return finishQ(q.marks, tries === 1, false);
+        if (tries >= 2) return finishQ(marksFor(frac, q.marks), false);
+        fb.innerHTML = `<div class="fb no"><b>${right.length} of ${gaps.length} right.</b> Change the red ones and check again.</div>`;
+      };
+    }
+    if (mode === 'frame' || mode === 'free') {
+      let tries = 0, best = 0;
+      W.innerHTML = `${mode === 'frame' ? `<p class="frame">${esc(q.frame)}</p>` : ''}<textarea id="ans" aria-label="Your answer" style="min-height:150px"></textarea>
+        <button id="chk" style="width:100%">Check my answer</button>`;
+      $('#chk', W).onclick = () => {
+        const v = $('#ans').value; if (!v.trim()) return (fb.innerHTML = '<div class="fb tip"><b>Write an answer first.</b></div>');
+        tries++; rec.text = v.slice(0, 600);
+        const m = E.markShort(v, q.groups, q.need); best = Math.max(best, m.score);
+        const pills = `<div>${q.groups.map(x => `<span class="pill ${m.hits.includes(x.label) ? 'hit' : 'miss'}">${m.hits.includes(x.label) ? '✔' : '…'} ${esc(x.label)}</span>`).join('')}</div>`;
+        if (m.ok || tries >= 2) return finishQ(best, m.ok && tries === 1);
+        fb.innerHTML = `<div class="fb no"><b>${m.score}/${q.marks} so far. Improve your answer once.</b>${pills}${m.missing.map(x => `<p style="margin:.3em 0 0">• ${esc(x.ask)}</p>`).join('')}</div>`;
+        $('#chk', W).textContent = 'Check again';
+      };
+    }
+  };
+  const done = async () => {
+    wide(false);
+    const score = answers.reduce((s, a) => s + a.score, 0), max = items.reduce((s, q) => s + q.marks, 0);
+    const a = { unit: U, activity: 'p2', level_start: 0, level_end: 0, score, max_score: max, seconds: Math.round((Date.now() - t0) / 1000), answers: [...answers, { id: 'meta', band: b, help: helpCount }] };
+    const xp = E.xpForNew(history, a), before = bandInfo().band;
+    view(`<div class="narrow"><div class="tcard" style="text-align:center"><h1>Paper 2 builder done</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${score} / ${max}</p>
+      <p class="note">marks</p>${xpLine(xp)}<p class="note" id="saved">Saving…</p><p id="lvl"></p></div>
+      <div class="row"><a class="btn" href="#/u/${U}/p2">Try again</a><a class="btn alt" href="#/u/${U}">Back to ${U}</a></div></div>`);
+    const ok = await saveAttempt(a);
+    $('#saved').textContent = ok ? '✔ Saved' : 'Saved on this device. It will upload when you are back online.';
+    levelUpNote(before);
+  };
+  show();
+}
+// After a Section 1 activity: tell the student if their English level changed.
+function levelUpNote(before) {
+  const after = bandInfo().band, el = $('#lvl'); if (!el || before == null || after == null || after === before) return;
+  el.innerHTML = after > before ? `<span class="tag gold" style="align-self:center">Level up!</span> You are now ${bandChip(after)}. You will get a little less help.`
+    : `You are now ${bandChip(after)}. You will get more help for a while.`;
+}
+
+// ---------- PPC explorer (1.4): read points, opportunity cost and shifts on one PPC ----------
+function ppcRun(run = newRun('ppc', 6)) {
+  wide(true); if (run.i === 0 && !run.help0) { helpCount = 0; run.help0 = true; run.bandBefore = bandInfo().band; }
+  if (run.i >= run.n) return finish(run, 'PPC explorer', () => ppcRun());
+  const it = E.pickItem(C().PPC, run.lad.level, run.used, run.seen); run.used.add(it.id);
+  const rec = { id: it.id, level: it.level, first_try: true, trap: null, ok: false };
+  view(`${runHead(run, 'Question')}<div class="card"><p class="event">${esc(it.title)}</p>
+    <div class="play-grid"><div class="dgwrap" id="pg"></div><div><ul class="done-steps" id="done"></ul><div id="step"></div>${toolsHTML({ ...it, stem: it.steps[0].q })}<div id="fb" aria-live="polite"></div></div></div></div>`);
+  const pg = createPPC($('#pg'), { show: it.show || ['A', 'B', 'C', 'D'] });
+  bindTools({ ...it, stem: it.steps[0].q });
+  let si = 0, tries = 0;
+  const after = () => { if (it.arrow) pg.arrow(...it.arrow); if (it.shift) pg.shift(it.shift); };
+  const nextBtn = () => `<button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next question' : 'See my results'}</button>`;
+  const bindNext = () => { $('#nx').onclick = () => afterItem(run, rec, () => ppcRun(run)); $('#nx').focus(); };
+  const reveal = () => { rec.revealed = true; $('#fb').innerHTML = ''; after();
+    $('#step').innerHTML = `<div class="fb tip"><b>Here is the answer.</b><ol class="worked" start="${si + 1}">${it.steps.slice(si).map(st => `<li>${esc(st.q)} <b>${esc(stepAnswer(st))}</b><br><span class="muted">${esc(st.why)}</span></li>`).join('')}</ol></div>${trapBox(rec.trap)}${nextBtn()}`; bindNext(); };
+  const wrong = trap => { rec.first_try = false; rec.trap ||= trap || null; tries++; if (tries >= 2) return reveal();
+    $('#fb').innerHTML = `<div class="fb no"><b>Not yet. Try again.</b>Hint: ${esc(it.hint)}</div>${trapBox(trap)}`; };
+  const right = () => {
+    const st = it.steps[si]; $('#done').insertAdjacentHTML('beforeend', `<li>✔ ${esc(st.q)} <b>${esc(stepAnswer(st))}</b></li>`);
+    si++; tries = 0; $('#fb').innerHTML = '';
+    if (si < it.steps.length) { if (si === 1 && it.shift) pg.shift(it.shift); return render(); }
+    rec.ok = true; after();
+    $('#step').innerHTML = `<div class="fb ok"><b>${rec.first_try ? 'Right first time! ⭐' : 'Solved.'}</b>${esc(it.why)}</div>${nextBtn()}`; bindNext();
+  };
+  const render = () => {
+    const st = it.steps[si], el = $('#step');
+    if (st.type === 'choice') {
+      el.innerHTML = `<h3>${esc(st.q)}</h3><div class="choices">${st.options.map((o, k) => `<button class="choice" data-k="${k}">${esc(o.t)}</button>`).join('')}</div>`;
+      $$('.choice', el).forEach(btn => (btn.onclick = () => { const o = st.options[+btn.dataset.k]; if (o.v === st.answer) return right(); btn.classList.add('wrong'); btn.disabled = true; wrong(o.trap); }));
+    } else {
+      el.innerHTML = `<h3>${esc(st.q)}</h3><div class="numrow"><input id="num" inputmode="numeric" aria-label="Your answer"><span>${esc(st.unit)}</span></div><button id="chk" style="width:100%;margin-top:10px">Check</button>`;
+      const check = () => { const v = $('#num').value; if (!v.trim()) return; if (E.markNumber(v, st.answer, 0).ok) right(); else { wrong(st.trap); $('#num').select(); } };
+      $('#chk').onclick = check; $('#num').onkeydown = e => { if (e.key === 'Enter') check(); }; $('#num').focus();
+    }
+  };
+  render();
+}
+
 // ---------- router ----------
-const ACT = { learn, shift: () => shift(), eqm: () => eqm(), mcq: () => mcq(), data, check: checkpoint };
+const ACT = { learn, shift: () => shift(), eqm: () => eqm(), mcq: () => mcq(), data, check: checkpoint, p2, ppc: () => ppcRun() };
 function route() {
   if (!me) return login();
   if (me.must_change) return changePin(true);
   const [a, u, act, sub] = location.hash.replace(/^#\/?/, '').split('/');
   if (a === 'units') return unitsView();
+  if (a === 'baseline') return baselineRun();
   if (a === 'review') return u === 'go' ? reviewRun() : reviewView();
   if (a === 'games') return gamesView();
   if (a === 'me') return meView(u || 'stats');
