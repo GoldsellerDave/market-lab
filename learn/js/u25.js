@@ -84,7 +84,7 @@ export const MCQ = [
     options: [{ t: 'Supply shifts left and the price rises' }, { t: 'Supply shifts right and the price falls', trap: 'direction' }, { t: 'Demand shifts left and the price falls', trap: 'd-vs-s' }, { t: 'Demand shifts right and the price rises', trap: 'd-vs-s' }],
     hint: 'The frost hits the farmers, the sellers.', explain: 'Less coffee can be sold at every price, so supply shifts left. At the old price there is a shortage, so the price rises.' },
   { id: 'q-mango', level: 0, stem: 'The price of mangoes falls. What happens?',
-    options: [{ t: 'A movement along the demand curve: quantity demanded rises' }, { t: 'The demand curve shifts to the right', trap: 'move-vs-shift' }, { t: 'The supply curve shifts to the left', trap: 'move-vs-shift' }, { t: 'The demand curve shifts to the left', trap: 'direction' }],
+    options: [{ t: 'A movement along the demand curve: quantity demanded rises' }, { t: 'The demand curve shifts to the right: demand increases', trap: 'move-vs-shift' }, { t: 'The supply curve shifts to the left: supply decreases', trap: 'move-vs-shift' }, { t: 'The demand curve shifts to the left: demand decreases', trap: 'direction' }],
     hint: 'Is this the good’s own price?', explain: 'A change in the good’s own price is a movement along the demand curve (an extension), not a shift.' },
   { id: 'q-tech', level: 0, stem: 'A firm uses new machines that lower its costs. What happens in the market?',
     options: [{ t: 'Supply increases; price falls; quantity rises' }, { t: 'Supply increases; price rises; quantity rises', trap: 'pq-link' }, { t: 'Demand increases; price rises; quantity rises', trap: 'd-vs-s' }, { t: 'Supply decreases; price rises; quantity falls', trap: 'direction' }],
@@ -97,7 +97,7 @@ export const MCQ = [
     hint: 'More buyers want it at the old price than sellers offer.', explain: 'At the old price, quantity demanded is now greater than quantity supplied: a shortage. Buyers compete, so the price rises.' },
   // Stretch
   { id: 'q-subst', level: 1, stem: 'The price of coffee rises sharply. What happens in the market for tea, a substitute?',
-    options: [{ t: 'Demand for tea shifts right and the price of tea rises' }, { t: 'Demand for tea shifts left and the price of tea falls', trap: 'related-goods' }, { t: 'Supply of tea shifts left and the price of tea rises', trap: 'd-vs-s' }, { t: 'Nothing happens in the tea market', trap: 'related-goods' }],
+    options: [{ t: 'Demand for tea shifts right and the price of tea rises' }, { t: 'Demand for tea shifts left and the price of tea falls', trap: 'related-goods' }, { t: 'Supply of tea shifts left and the price of tea rises', trap: 'd-vs-s' }, { t: 'Nothing happens, because tea is a different market', trap: 'related-goods' }],
     hint: 'If coffee is dearer, what do coffee drinkers buy instead?', explain: 'Buyers switch to tea, so demand for tea shifts right and its price rises.' },
   { id: 'q-compl', level: 1, stem: 'Petrol prices rise. What happens to the demand for large motorbikes?',
     options: [{ t: 'It shifts to the left' }, { t: 'It shifts to the right', trap: 'related-goods' }, { t: 'There is a movement along the demand curve', trap: 'move-vs-shift' }, { t: 'The supply curve shifts to the left instead', trap: 'd-vs-s' }],
@@ -131,7 +131,7 @@ export const MCQ = [
     options: [{ t: 'Demand increased' }, { t: 'Supply increased', trap: 'pq-link' }, { t: 'Supply decreased', trap: 'pq-link' }, { t: 'The higher price made demand increase', trap: 'move-vs-shift' }],
     hint: 'Price and quantity moved the SAME way. Which curve does that?', explain: 'Same-direction changes in price and quantity mean a demand shift: hot weather raised demand.' },
   { id: 'q-contract', level: 2, stem: 'A fall in supply raises the price of a good. What happens to demand?',
-    options: [{ t: 'There is a contraction of demand: a movement up along the demand curve' }, { t: 'Demand decreases: the demand curve shifts left', trap: 'move-vs-shift' }, { t: 'Demand increases: the demand curve shifts right', trap: 'move-vs-shift' }, { t: 'Nothing, because only supply changed', trap: 'pq-link' }],
+    options: [{ t: 'A contraction of demand: a movement up along the demand curve' }, { t: 'Demand decreases: the whole demand curve shifts to the left', trap: 'move-vs-shift' }, { t: 'Demand increases: the whole demand curve shifts to the right', trap: 'move-vs-shift' }, { t: 'Nothing happens to demand, because only supply changed', trap: 'pq-link' }],
     hint: 'The demand curve itself does not move. Buyers react to the new price.', explain: 'Only supply shifted. The higher price causes a movement up along the unchanged demand curve: a contraction of demand.' }
 ];
 

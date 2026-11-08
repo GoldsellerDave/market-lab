@@ -29,7 +29,7 @@ def shot(p, size, name): p.screenshot(path=f'{SHOTS}/{size}-s1-{name}.png', full
 
 def student(p, user):
     p.goto(BASE + '/learn/?demo=1'); p.wait_for_selector('#f')
-    p.fill('#u', user); p.fill('#p', '1234'); p.click('#f button'); p.wait_for_selector('#out')
+    p.fill('#u', user); p.fill('#p', '1234'); p.click('#f button'); p.wait_for_selector('#out'); p.wait_for_selector('main .tcard, main .hero')
 
 def logout(p): p.goto(BASE + '/learn/?demo=1#/'); p.wait_for_selector('#out'); p.click('#out'); p.wait_for_selector('#f')
 

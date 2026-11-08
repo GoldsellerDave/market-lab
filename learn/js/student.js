@@ -1,22 +1,22 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=d340b079';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=d340b079';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=d340b079';
-import * as E from './engine.js?v=d340b079';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=d340b079';
-import { BASELINE, BASELINE_N } from './u1.js?v=d340b079';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=d340b079';
-import { createPPC } from './ppc.js?v=d340b079';
-import * as S from './sound.js?v=d340b079';
-import * as Cel from './celebrate.js?v=d340b079';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=d340b079';
-import { scene } from './scenes.js?v=d340b079';
-import { SHIFTS } from './u25.js?v=d340b079';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=d340b079';
-import { createDiagram } from './diagram.js?v=d340b079';
-import { icon, tile } from './icons.js?v=d340b079';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=d340b079';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=2c001f3e';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=2c001f3e';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=2c001f3e';
+import * as E from './engine.js?v=2c001f3e';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=2c001f3e';
+import { BASELINE, BASELINE_N } from './u1.js?v=2c001f3e';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=2c001f3e';
+import { createPPC } from './ppc.js?v=2c001f3e';
+import * as S from './sound.js?v=2c001f3e';
+import * as Cel from './celebrate.js?v=2c001f3e';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=2c001f3e';
+import { scene } from './scenes.js?v=2c001f3e';
+import { SHIFTS } from './u25.js?v=2c001f3e';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=2c001f3e';
+import { createDiagram } from './diagram.js?v=2c001f3e';
+import { icon, tile } from './icons.js?v=2c001f3e';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=2c001f3e';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
