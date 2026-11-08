@@ -1,8 +1,8 @@
 // The unit mission: six steps per unit, shared by the student app and the teacher dashboard.
-import { ACTIVITIES } from './units.js';
-import { CONTENT } from './content.js';
-import * as E from './engine.js';
-import { SCEN_BY_UNIT, scenAct } from './u1s.js';
+import { ACTIVITIES } from './units.js?v=7490a618';
+import { CONTENT } from './content.js?v=7490a618';
+import * as E from './engine.js?v=7490a618';
+import { SCEN_BY_UNIT, scenAct } from './u1s.js?v=7490a618';
 export const CHECK_PASS = 0.7, CHECK_N = 12;
 export const BADGE = { '1.1': 'Scarcity scout', '1.2': 'Factor finder', '1.3': 'Choice champion', '1.4': 'Curve master', '2.4': 'Market maker', '2.5': 'Shift spotter' };
 /** Checkpoint length: 4 questions per level, or fewer if the unit has fewer */
