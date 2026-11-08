@@ -184,12 +184,12 @@ function units(body) {
   body.innerHTML = `<div class="ulist">${UNITS.map(u => {
     const built = u.ready && CONTENT[u.id];
     let info = 'Activities not built yet: students see "Coming soon".';
-    if (built) { const ms = cls.students.map(s => mission(u.id, mine(s.id))), done = ms.filter(m => m.complete).length, avg = ms.length ? ms.reduce((t, m) => t + m.n, 0) / ms.length : 0;
-      info = `Average mission ${avg.toFixed(1)} of 6 steps · ${done} of ${cls.students.length} finished · ${cls.students.filter(s => (checkBest(u.id, mine(s.id)) || 0) >= CHECK_PASS).length} passed the checkpoint`; }
+    if (built) { const ms = cls.students.map(s => mission(u.id, mine(s.id))), done = ms.filter(m => m.complete).length, avg = ms.length ? ms.reduce((t, m) => t + m.n, 0) / ms.length : 0, steps = mission(u.id, []).steps.length;
+      info = `Average mission ${avg.toFixed(1)} of ${steps} steps · ${done} of ${cls.students.length} finished · ${cls.students.filter(s => (checkBest(u.id, mine(s.id)) || 0) >= CHECK_PASS).length} passed the checkpoint`; }
     return `<label class="urow${built ? '' : ' locked'}" style="cursor:pointer">${tile(u.id, 'm')}<div><b>${u.id} ${esc(u.title)}</b><span class="note">${info}</span></div>
       <span class="toggle"><input type="checkbox" value="${u.id}" ${open.has(u.id) ? 'checked' : ''}> Open</span></label>`; }).join('')}</div>
     <div class="row" style="margin-top:12px"><button id="save">Save units</button><span class="note">Students see only the units you open.</span></div>`;
-  $('#save').onclick = e => busy(e.target, async () => { try { const u = $$('input[type=checkbox]:checked', body).map(x => x.value); await rpc('ec_t_set_units', { p_token: T(), p_code: cls.code, p_units: u }); cls.open_units = u; toast('Units saved'); render(); } catch (er) { fail(er); } });
+  $('#save').onclick = e => busy(e.target, async () => { try { const u = $$('.ulist input[type=checkbox]:checked', body).map(x => x.value).filter(v => UNITS.some(x => x.id === v)); await rpc('ec_t_set_units', { p_token: T(), p_code: cls.code, p_units: u }); cls.open_units = u; toast('Units saved'); render(); } catch (er) { fail(er); } });
 }
 
 // ---------- Skills heat map (misconceptions) ----------
