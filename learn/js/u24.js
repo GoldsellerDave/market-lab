@@ -18,13 +18,13 @@ export const VI = { equilibrium: 'cân bằng', disequilibrium: 'mất cân bằ
 export const LEARN_MARKET = { good: 'Mangoes at a city market', unit: 'kg a day', priceUnit: 'thousand VND per kg', prices: [20, 25, 30, 35, 40, 45, 50], qd: P => 1050 - 15 * P, qs: P => 15 * P, pe: 35 };
 export const LEARN = [
   { id: 'eq', title: 'Equilibrium', kind: 'explorer',
-    text: 'Drag the price. At most prices, buyers and sellers want different amounts. At ONE price they want the same amount: the equilibrium price.' },
+    text: 'Drag the price. At most prices, buyers and sellers want different amounts. At ONE price they want the same amount: the [[equilibrium price]].' },
   { id: 'schedule', title: 'Reading a schedule', kind: 'schedule',
-    text: 'A demand and supply schedule is a table. To find equilibrium, find the row where quantity demanded = quantity supplied.' },
+    text: 'A demand and supply [[schedule]] is a table. To find [[equilibrium]], find the row where [[quantity demanded]] = [[quantity supplied]].' },
   { id: 'gap', title: 'Shortage and surplus', kind: 'explorer', market: true,
-    text: 'Set a price away from equilibrium, then press “Let the market work”. Watch how a shortage or a surplus pushes the price back to equilibrium.' },
+    text: 'Set a price away from [[equilibrium]], then press “Let the market work”. Watch how a [[shortage]] or a [[surplus]] pushes the price back to equilibrium.' },
   { id: 'mechanism', title: 'The price mechanism', kind: 'rows',
-    text: 'In a market, prices answer the three basic questions without anyone in charge.',
+    text: 'In a [[market]], the [[price mechanism]] answers the three basic questions without anyone in charge.',
     rows: [['WHAT to produce?', 'If buyers pay more for bubble tea, making it earns more, so firms make more bubble tea and less of other things.'],
       ['HOW to produce?', 'If wages rise but machines get cheaper, firms use more machines: the cheaper way to produce.'],
       ['FOR WHOM?', 'Goods go to the people willing and able to pay the market price.']] },

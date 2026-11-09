@@ -203,3 +203,45 @@ test('2.1 to 2.3 scenarios: 4 per unit, complete, traps known, cast known', () =
   }
   Object.keys(U2.TRAPS).forEach(t => assert.ok(TALL[t], t));
 });
+
+// ---------- 2.4 and 2.5 joined to the bands and the engine
+import * as U245 from '../js/u245.js';
+import * as EMX from '../js/eengine.js';
+import { EREADY as ERX, EBANK as EBX } from '../js/ebank.js';
+test('2.4 and 2.5: every Paper 1 question has plain English, Vietnamese, known words, and a block with a lesson', () => {
+  for (const u of ['2.4', '2.5']) {
+    assert.ok(CONTENT[u].BANDED && CONTENT[u].TERMS.length >= 5, u);
+    for (const q of CONTENT[u].MCQ) {
+      assert.ok(U245.PLAIN[q.id], `${q.id}: plain English`);
+      assert.ok(q.plain && q.vi && q.options.every(o => o.p), q.id);
+      if (U245.PLAIN[q.id][2]) assert.equal(U245.PLAIN[q.id][2].length, q.options.length, `${q.id}: one plain option each`);
+      [q.plain, ...q.options.map(o => o.p)].flatMap(pills).forEach(t => assert.ok(GALL[t], `${q.id}: [[${t}]]`));
+      q.options.slice(1).forEach(o => assert.ok(EMX.TRAP_BLOCK[o.trap], `${q.id}: trap ${o.trap} points at a block`));
+      assert.ok(ERX.has(EMX.blockOfOptions(q.options)), `${q.id}: its block has a lesson`);
+    }
+    CONTENT[u].LEARN.flatMap(c => [c.text || '']).flatMap(pills).forEach(t => assert.ok(GALL[t], `${u} learn: [[${t}]]`));
+  }
+  for (const id of Object.keys(U245.CHAIN)) assert.ok(CONTENT['2.5'].MCQ.find(q => q.id === id && q.chain), `chain ${id}`);
+  for (const b of Object.values(EMX.EBLOCKS)) assert.ok(ERX.has(b.id), `${b.id}: every block up to 2.5 has a lesson`);
+  for (const ev of EBX['price-chain'].builder.events) assert.ok(['D', 'S'].includes(ev[1]) && [1, -1].includes(ev[2]));
+});
+test('2.4 and 2.5 scenarios: 4 per unit, traps known, cast known, model answers mark full', () => {
+  for (const u of ['2.4', '2.5']) assert.equal(SCEN_BY_UNIT[u].length, 4, u);
+  for (const s of SCENARIOS.filter(s => ['2.4', '2.5'].includes(s.unit))) {
+    assert.ok(s.story && s.plain && s.vi && SCENE_KEYS.includes(s.scene), s.id);
+    (SCEN_CAST[s.id] || []).forEach(k => assert.ok(CAST[k], `${s.id}: cast ${k}`));
+    for (const st of s.steps) {
+      if (st.type === 'choice') { assert.ok(!st.options[0].trap, s.id); st.options.slice(1).forEach(o => assert.ok(TALL[o.trap], `${s.id}: ${o.trap}`)); }
+      if (st.type === 'sort') assert.ok(TALL[st.trap], s.id);
+      [st.plain, ...(st.options || []).map(o => o.p), ...(st.items || []).map(i => i.p)].flatMap(pills).forEach(t => assert.ok(GALL[t], `${s.id}: [[${t}]]`));
+    }
+    if (s.explain) assert.ok(markShort(s.explain.groups.map(g => g.k[0]).join('. '), s.explain.groups, s.explain.need).ok, `${s.id}: a full answer`);
+  }
+});
+test('2.4 and 2.5 plain options: the right answer is not usually the longest', () => {
+  const strip = s => String(s).replace(/\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/g, (m, k, sh) => sh || k);
+  const qs = ['2.4', '2.5'].flatMap(u => CONTENT[u].MCQ).concat(SCENARIOS.filter(s => ['2.4', '2.5'].includes(s.unit)).flatMap(s => s.steps.filter(st => st.type === 'choice')));
+  let longest = 0;
+  for (const q of qs) { const L = q.options.map(o => strip(o.p).length), mx = Math.max(...L.slice(1)); if (L[0] > mx) longest++; assert.ok(L[0] <= 15 || L[0] <= 1.35 * mx, `${q.id || q.q}: ${L}`); }
+  assert.ok(longest <= 0.35 * qs.length, `right answer longest in ${longest} of ${qs.length}`);
+});

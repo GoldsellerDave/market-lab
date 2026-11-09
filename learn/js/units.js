@@ -1,6 +1,6 @@
 // Cambridge IGCSE Economics 0455, syllabus for exams in 2027 to 2029.
 // Section 1 (1.1 to 1.4) and section 2 (2.1 to 2.6; the syllabus continues to 2.10). `ready` marks units whose activities are built;
-// the teacher opens units per class. Section 1 and units 2.1 to 2.3 adapt their English to each student's band (see bands.js).
+// the teacher opens units per class. Section 1 and Section 2 (to 2.5) adapt their English to each student's band (see bands.js).
 export const SECTIONS = { '1': 'The basic economic problem', '2': 'The allocation of resources' };
 export const UNITS = [
   { id: '1.1', title: 'The nature of the economic problem', sub: 'Scarcity, choices, the three questions, economic and free goods', ready: true },
@@ -24,12 +24,14 @@ export const ACTIVITIES = {
   '1.4': [S1[0], S1[1], { id: 'ppc', title: 'PPC explorer', sub: 'Read points, movements and shifts on a PPC', icon: '📈' }, S1[2], S1[3]],
   '2.4': [
     { id: 'learn', title: 'Learn', sub: 'Five cards with a price slider: watch shortages and surpluses disappear', icon: '📘' },
+    S1[1],
     { id: 'eqm', title: 'Equilibrium finder', sub: 'Read schedules and diagrams: find equilibrium, shortages and surpluses', icon: '⚖️' },
     { id: 'mcq', title: 'Paper 1 practice', sub: '10 multiple-choice questions that adapt to you', icon: '✅' },
     { id: 'data', title: 'Data response', sub: 'Rambutan at the Tết market: identify, calculate, draw, explain', icon: '📊' }
   ],
   '2.5': [
     { id: 'learn', title: 'Learn', sub: 'Five short cards with moving diagrams', icon: '📘' },
+    S1[1],
     { id: 'shift', title: 'Shift detective', sub: 'Which curve? Which way? What happens to P and Q?', icon: '🔎' },
     { id: 'mcq', title: 'Paper 1 practice', sub: '10 multiple-choice questions that adapt to you', icon: '✅' },
     { id: 'data', title: 'Data response', sub: 'Vietnam’s coffee market: calculate, identify, draw, explain', icon: '📊' }

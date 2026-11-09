@@ -172,5 +172,45 @@ export const EBANK2 = {
       c('A typhoon destroys much of the rice crop. Supply of rice...', 'A typhoon destroys rice. Rice [[supply]]...', [['shifts left', 'moves left'], ['shifts right', 'moves right'], ['extends', 'extends along'], ['does not change', 'stays the same']], 'Bad weather: less supply.'),
       c('Which would shift the supply of phones to the right?', 'Which one moves phone supply RIGHT?', [['Better technology', 'Better [[technology]]'], ['A new tax on phones', 'A new [[tax]]'], ['Higher wages', 'Higher [[wages]]'], ['A rise in its price', 'Its price goes up']], 'Better technology lowers costs.')
     ]
+  },
+  // ---------- 2.4 and 2.5
+  'shortage-surplus': {
+    builder: { type: 'market', q: 'Mangoes at a city market. Move the price and compare buyers (D) and sellers (S). Try a low price and a high price.',
+      after: 'Price BELOW equilibrium: buyers want more than sellers offer, a [[shortage]], so the price is pushed UP. Price ABOVE: a [[surplus]], so the price is pushed DOWN.' },
+    say: 'At a price below equilibrium, quantity demanded is greater than quantity supplied: a shortage. Buyers compete, so the price rises. At a price above equilibrium, quantity supplied is greater than quantity demanded: a surplus. Sellers cut prices, so the price falls. The size of the gap is the difference between the two quantities.',
+    plain: 'Price too LOW: buyers want more than sellers have, a [[shortage]], so the price goes UP. Price too HIGH: sellers have too much, a [[surplus]], so the price goes DOWN.',
+    vi: 'Giá thấp hơn mức cân bằng: lượng cầu lớn hơn lượng cung, gọi là thiếu hụt, nên giá bị đẩy lên. Giá cao hơn: lượng cung lớn hơn lượng cầu, gọi là dư thừa, nên giá bị đẩy xuống.',
+    checks: [
+      c('At a price below equilibrium there is...', 'The price is LOWER than [[equilibrium]]. There is...', [['a shortage', 'a [[shortage]]'], ['a surplus', 'a [[surplus]]'], ['equilibrium', '[[equilibrium]]'], ['no demand', 'no demand']], 'Low price: buyers want more than sellers offer.'),
+      c('At 30k, Qd = 100 and Qs = 60. What is there?', 'At 30k: buyers 100, sellers 60. What is there?', [['A shortage of 40', 'A [[shortage]] of 40'], ['A surplus of 40', 'A [[surplus]] of 40'], ['A shortage of 160', 'A [[shortage]] of 160'], ['A shortage of 100', 'A [[shortage]] of 100']], '100 − 60 = 40 short.'),
+      c('There is a surplus. What happens to the price?', 'There is a [[surplus]]. What happens to the price?', [['It falls', 'It goes down'], ['It rises', 'It goes up'], ['It stays the same', 'It stays the same'], ['It becomes zero', 'It becomes zero']], 'Sellers cut prices to sell their stock.'),
+      c('Why does a shortage push the price up?', 'Why does a [[shortage]] make the price go UP?', [['Buyers compete for the goods', 'Buyers compete to get one'], ['Sellers have too much stock', 'Sellers have too many'], ['The government adds a tax', 'A new [[tax]]'], ['Costs fall for the sellers', 'Costs go down']], 'Buyers offer more to get the scarce goods.')
+    ]
+  },
+  'equilibrium': {
+    builder: { type: 'market', work: true, q: 'Start at a low price, then press "Let the market work" and watch where the price stops.',
+      after: 'The price stops where quantity demanded = quantity supplied: the [[equilibrium price]]. There is no shortage and no surplus: the [[market clears]].' },
+    say: 'Market equilibrium is where quantity demanded equals quantity supplied. At the equilibrium price the market clears: there is no shortage and no surplus, so there is no pressure on the price to change. Away from equilibrium, the price moves towards it, and quantities extend or contract along the curves.',
+    plain: '[[equilibrium|Equilibrium]]: buyers want the SAME amount that sellers sell. No [[shortage]], no [[surplus]], so the price stays there.',
+    vi: 'Cân bằng thị trường là khi lượng cầu bằng lượng cung. Ở giá cân bằng không có thiếu hụt hay dư thừa nên giá không còn áp lực thay đổi.',
+    checks: [
+      c('Market equilibrium is where...', '[[equilibrium|Equilibrium]] is where...', [['Qd equals Qs', 'buyers = sellers'], ['Qd is at its highest', 'buyers want the most'], ['the price is lowest', 'the price is lowest'], ['profit is highest', 'profit is highest']], 'Quantity demanded = quantity supplied.'),
+      c('Price 30k: Qd 100, Qs 60. Price 40k: Qd 80, Qs 80. The equilibrium price is...', '30k: buyers 100, sellers 60. 40k: buyers 80, sellers 80. The [[equilibrium price]] is...', [['40k', '40k'], ['30k', '30k'], ['35k', '35k'], ['80k', '80k']], 'At 40k the two quantities are equal.'),
+      c('Why does the price stay at equilibrium?', 'Why does the price STAY at [[equilibrium]]?', [['No shortage or surplus pushes it', 'Nothing pushes it up or down'], ['The government fixes it there', 'The government fixes it'], ['Sellers agree on one price', 'Sellers agree on a price'], ['Buyers stop buying the good', 'Buyers stop buying']], 'With no gap, there is no pressure to change.'),
+      c('A surplus exists. As the price falls to equilibrium...', 'There is a [[surplus]]. The price falls to [[equilibrium]]. Then...', [['demand extends, supply contracts', 'buyers buy more, sellers sell less'], ['demand shifts to the right', 'the demand curve moves right'], ['supply shifts to the left', 'the supply curve moves left'], ['demand contracts, supply extends', 'buyers buy less, sellers sell more']], 'Movements along the curves, not shifts.')
+    ]
+  },
+  'price-chain': {
+    builder: { type: 'chain', q: 'Chain it! Three steps for every price change.',
+      events: [['A famous singer advertises bubble tea', 'D', 1, 'up', 'up'], ['A typhoon destroys durian farms', 'S', -1, 'up', 'down'], ['Cafés get faster, cheaper coffee machines', 'S', 1, 'down', 'up']] },
+    say: 'To analyse a price change, use three steps. 1: Which curve shifts, demand or supply? Buyers\' reasons move demand; sellers\' reasons move supply. 2: Which way? More at every price is a shift right, less is a shift left. 3: What happens to the equilibrium price and quantity? A demand shift moves price and quantity the same way; a supply shift moves them in opposite ways.',
+    plain: 'Three steps. 1. Which curve moves: demand (buyers) or supply (sellers)? 2. Which way: right (more) or left (less)? 3. What happens to price and quantity?',
+    vi: 'Ba bước: 1. Đường nào dịch chuyển: cầu (người mua) hay cung (người bán)? 2. Hướng nào: phải (nhiều hơn) hay trái (ít hơn)? 3. Giá và lượng cân bằng thay đổi thế nào?',
+    checks: [
+      c('Milk becomes more expensive. For bubble tea, which curve shifts?', 'Milk costs more. For bubble tea, which curve moves?', [['Supply'], ['Demand'], ['Both'], ['Neither']], 'Milk is a cost for the sellers.'),
+      c('Supply shifts left. What happens to price and quantity?', 'Supply moves LEFT. Price and quantity?', [['Price up, quantity down', 'Price up, quantity down'], ['Price up, quantity up', 'Price up, quantity up'], ['Price down, quantity down', 'Price down, quantity down'], ['Price down, quantity up', 'Price down, quantity up']], 'A supply shift: price and quantity move in opposite ways.'),
+      c('Incomes rise. What happens in the market for restaurant meals?', 'People earn more. Restaurant meals?', [['D right: P up, Q up', 'Demand right: price up, quantity up'], ['S right: P down, Q up', 'Supply right: price down, quantity up'], ['D left: P down, Q down', 'Demand left: price down, quantity down'], ['D right: P up, Q down', 'Demand right: price up, quantity down']], 'Demand shifts right; P and Q both rise.'),
+      c('Demand shifts right and supply shifts left at once. The price...', 'Demand moves right AND supply moves left. The price...', [['rises for sure', 'goes up for sure'], ['falls for sure', 'goes down for sure'], ['stays the same', 'stays the same'], ['might rise or fall', 'might go up or down']], 'Both shifts push the price up; only quantity depends.')
+    ]
   }
 };

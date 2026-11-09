@@ -1,26 +1,26 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=19e7aff6';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=19e7aff6';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=19e7aff6';
-import * as E from './engine.js?v=19e7aff6';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=19e7aff6';
-import { BASELINE, BASELINE_N } from './u1.js?v=19e7aff6';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=19e7aff6';
-import { createPPC } from './ppc.js?v=19e7aff6';
-import * as S from './sound.js?v=19e7aff6';
-import * as EM from './eengine.js?v=19e7aff6';
-import { EBANK, EREADY } from './ebank.js?v=19e7aff6';
-import * as Cel from './celebrate.js?v=19e7aff6';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=19e7aff6';
-import { scene } from './scenes.js?v=19e7aff6';
-import { SHIFTS } from './u25.js?v=19e7aff6';
-import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=19e7aff6';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=19e7aff6';
-import { createDiagram } from './diagram.js?v=19e7aff6';
-import { createCurve } from './curve.js?v=19e7aff6';
-import { icon, tile } from './icons.js?v=19e7aff6';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=19e7aff6';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=4e7248ff';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=4e7248ff';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=4e7248ff';
+import * as E from './engine.js?v=4e7248ff';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=4e7248ff';
+import { BASELINE, BASELINE_N } from './u1.js?v=4e7248ff';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=4e7248ff';
+import { createPPC } from './ppc.js?v=4e7248ff';
+import * as S from './sound.js?v=4e7248ff';
+import * as EM from './eengine.js?v=4e7248ff';
+import { EBANK, EREADY } from './ebank.js?v=4e7248ff';
+import * as Cel from './celebrate.js?v=4e7248ff';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=4e7248ff';
+import { scene } from './scenes.js?v=4e7248ff';
+import { SHIFTS } from './u25.js?v=4e7248ff';
+import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=4e7248ff';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=4e7248ff';
+import { createDiagram } from './diagram.js?v=4e7248ff';
+import { createCurve } from './curve.js?v=4e7248ff';
+import { icon, tile } from './icons.js?v=4e7248ff';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=4e7248ff';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -592,6 +592,13 @@ function curveCard(c, host, eff, onSeen = () => {}) {
   return cv;
 }
 
+// The 3-step price-change chain for a 2.5 question (after the answer)
+const ARW = { up: '↑ rises', down: '↓ falls', '?': 'it depends' };
+const chainHTML = ch => `<div class="fb tip chainbox"><b>⛓ Chain it</b><ol class="worked">
+  <li>Which curve? <b>${ch.c === 'DS' ? 'Both demand and supply' : ch.c === 'D' ? 'Demand' : 'Supply'}</b></li>
+  <li>Which way? <b>${['D', 'S'].filter(k => ch.d[k]).map(k => `${k === 'D' ? 'demand' : 'supply'} ${ch.d[k] > 0 ? 'right (more)' : 'left (less)'}`).join(', ')}</b></li>
+  <li>What happens? Price <b>${ARW[ch.P]}</b>, quantity <b>${ARW[ch.Q]}</b></li></ol></div>`;
+
 // ---------- shared run machinery for the adaptive activities ----------
 function newRun(activity, n) {
   const lvl = E.startLevel(history, U, activity);
@@ -813,7 +820,7 @@ function mcq(run = newRun('mcq', 10)) {
     const bl = !o.right && C().BANDED ? (EM.blockOfTrap(o.trap) || EM.itemBlock(it.id)) : null, canBuild = bl && BUILD_OK(bl);
     if (canBuild) { run.miss = run.miss || {}; run.miss[bl] = (run.miss[bl] || 0) + 1; }
     const auto = canBuild && run.miss[bl] >= 2;
-    $('#fb').innerHTML = `<div class="fb ${o.right ? 'ok' : 'no'}"><b>${o.right ? (rec.hinted ? 'Right (with a hint).' : 'Right! ⭐') : 'Not this time.'}</b>${esc(it.explain)}</div>${o.right ? '' : trapBox(o.trap)}
+    $('#fb').innerHTML = `<div class="fb ${o.right ? 'ok' : 'no'}"><b>${o.right ? (rec.hinted ? 'Right (with a hint).' : 'Right! ⭐') : 'Not this time.'}</b>${esc(it.explain)}</div>${it.chain ? chainHTML(it.chain) : ''}${o.right ? '' : trapBox(o.trap)}
       ${auto ? buildBtn(bl, true) : `<button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next question' : 'See my results'}</button>${canBuild ? buildBtn(bl, false) : ''}`}`;
     const goBuild = () => buildUp(bl, { fromExam: P.band >= 2, onDone: () => {
       run.miss[bl] = 0; run.skipRescue = true;
@@ -1284,6 +1291,7 @@ function scenRun(id) {
   view(`${scenCrumbs()}<div class="scen-card" style="${hueVars(U)}">${scenHero(s, idx, list.length)}<div class="scen-body">
       <div class="row" style="justify-content:space-between"><div class="steps" style="flex:1;margin:0">${steps.map(() => '<i></i>').join('')}</div>${bandChip(b)}</div>
       <div class="scen-story">${T(s.story, s.plain)}</div>
+      ${s.table ? `<div class="tablewrap"><table class="sched"><tr>${s.table.head.map(h => `<th>${esc(h)}</th>`).join('')}</tr>${s.table.rows.map(r => `<tr>${r.map(x => `<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</table></div>` : ''}
       ${toolsHTML({ vi: s.vi, stem: s.story, plain: s.plain, hint: '' }, false)}
       ${cast.length ? `<div><button class="alt small" id="who" aria-expanded="${firstTime}">👥 Who's who?</button></div><div id="castbox" ${firstTime ? '' : 'hidden'}>${castHTML(cast)}</div>` : ''}
       <div id="sstep"></div><div id="fb" aria-live="polite"></div>${scenPrevNext(idx)}</div></div>`);
@@ -1543,6 +1551,44 @@ function buildBuilder(host, bl, onDone) {
     $$('[data-ev]', host).forEach(btn => (btn.onclick = () => { $$('[data-ev]', host).forEach(x => x.classList.remove('sel')); btn.classList.add('sel');
       const ev = evs[+btn.dataset.ev]; cv.shift(ev[1]); $('#beff', host).innerHTML = rich(ev[2], Math.min(band(), 2)); seen.add(btn.dataset.ev); if (seen.size >= 4) doneOnce(); }));
   }
+  if (B.type === 'market') {
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="play-grid"><div><div class="dgwrap" id="bdg"></div></div><div>
+      <label for="bpr">Price: <b id="bprv"></b> ${esc(M.priceUnit)}</label><input type="range" class="slider" id="bpr" min="0" max="${M.prices.length - 1}" step="1" value="0">
+      <div class="readout"><div class="d"><b id="bqd"></b>quantity demanded</div><div class="s"><b id="bqs"></b>quantity supplied</div></div>
+      ${B.work ? '<button class="alt" id="bwork" style="width:100%">Let the market work ▶</button>' : ''}<p id="beff" aria-live="polite"></p><div id="bfb"></div></div></div>`;
+    const dg = createDiagram($('#bdg', host)), sl = $('#bpr', host), seen = new Set();
+    const fin = () => { if (!finished) { $('#bfb', host).innerHTML = `<div class="fb tip"><b>What happened?</b>${T(B.after)}</div>`; doneOnce(); } };
+    const upd = () => { const P = M.prices[+sl.value]; dg.priceLine(mY(P), 'P'); $('#bprv', host).textContent = P; $('#bqd', host).textContent = fmt(M.qd(P)); $('#bqs', host).textContent = fmt(M.qs(P));
+      $('#beff', host).innerHTML = explorerText(P); seen.add(Math.sign(P - M.pe)); if (!B.work && seen.has(1) && seen.has(-1)) fin(); };
+    sl.oninput = upd; upd();
+    $('#bwork', host)?.addEventListener('click', () => { const target = M.prices.indexOf(M.pe); if (+sl.value === target) { sl.value = 0; upd(); }
+      const tm = setInterval(() => { const v = +sl.value; if (v === target) { clearInterval(tm); $('#beff', host).innerHTML += ' <b>The market has reached equilibrium.</b>'; return fin(); } sl.value = v + Math.sign(target - v); upd(); }, 500); });
+  }
+  if (B.type === 'chain') {
+    let e = 0;
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="play-grid"><div><div class="dgwrap" id="bdg"></div></div><div id="bchain"></div></div>`;
+    const dg = createDiagram($('#bdg', host));
+    const ask = () => {
+      if (e >= B.events.length) return doneOnce();
+      const [ev, cv, dir, P, Q] = B.events[e]; dg.set({}, false);
+      const steps = [['1. Which curve shifts?', [['Demand', 'D'], ['Supply', 'S']], cv], ['2. Which way?', [['Right: more', 1], ['Left: less', -1]], dir],
+        ['3. Price and quantity?', [['P ↑ Q ↑', 'up,up'], ['P ↑ Q ↓', 'up,down'], ['P ↓ Q ↑', 'down,up'], ['P ↓ Q ↓', 'down,down']], `${P},${Q}`]];
+      let k = 0;
+      const step = () => {
+        if (k >= 3) { $('#bchain', host).insertAdjacentHTML('beforeend', `<button id="bnext" style="width:100%;margin-top:8px">${e + 1 < B.events.length ? 'Next event →' : 'Done'}</button>`); $('#bnext', host).onclick = () => { e++; ask(); }; return; }
+        const [q, opts, ans] = steps[k];
+        $('#bchain', host).insertAdjacentHTML('beforeend', `<p class="note" style="margin:8px 0 4px"><b>${q}</b></p><div class="choices two" data-s="${k}">${opts.map(([t, v]) => `<button class="choice" data-v="${v}"><b>${t}</b></button>`).join('')}</div>`);
+        $$(`[data-s="${k}"] .choice`, host).forEach(btn => (btn.onclick = () => {
+          if (btn.dataset.v !== String(ans)) { btn.classList.add('wrong'); btn.disabled = true; return; }
+          $$(`[data-s="${k}"] .choice`, host).forEach(x => (x.disabled = true)); btn.classList.add('right');
+          if (k === 1) dg.set({ [cv]: dir });
+          k++; step();
+        }));
+      };
+      $('#bchain', host).innerHTML = `<p class="event">Event ${e + 1} of ${B.events.length}: ${esc(ev)}</p>`; step();
+    };
+    ask();
+  }
 }
 // One block: builder, the idea, then checks (quiz) or a guided walkthrough. Calls back with { right, n, answers }.
 function buildBlock(box, bl, { guided = false, retry = false, depth = 0, fromExam = false, title = '' }, cb) {
@@ -1660,8 +1706,8 @@ function cityView(only) {
       ${next ? `<div class="row"><a class="btn" href="#/city/${next}">${rep[0] ? 'Repair' : 'Build next'}: ${esc(EM.EBLOCKS[next].name)} →</a></div>` : ''}</div>
     <div class="tcard"><h2 style="margin:0 0 6px">District 1: The basic economic problem</h2>${skylineSVG(st, s1)}
       <p class="note">🏢 built ${n} · 🏗️ half built ${halfN} · dashed with a crane = ready to build · faint = build the ones underneath first. Tap a building${innerWidth < 700 ? '; swipe to see the whole street' : ''}.</p><div id="binfo" class="binfo"></div></div>
-    <div class="tcard"><h2 style="margin:0 0 6px">District 2: Markets ${on2 ? `<span class="chip">${n2} built</span>` : '<span class="chip">opens with unit 2.1</span>'}</h2>${skylineSVG(st, s2, { small: !on2 })}
-      <div class="binfo" aria-live="polite"></div><p class="note">${on2 ? 'Markets, demand and supply (2.1 to 2.3). The faint buildings on the right (shortage, equilibrium, price changes) open with 2.4 and 2.5.' : 'Demand, supply and prices: these buildings open when your teacher opens unit 2.1.'}</p></div></div>`);
+    <div class="tcard"><h2 style="margin:0 0 6px">District 2: Markets ${on2 ? `<span class="chip">${n2} built</span>` : '<span class="chip">opens with Section 2</span>'}</h2>${skylineSVG(st, s2, { small: !on2 })}
+      <div class="binfo" aria-live="polite"></div><p class="note">${on2 ? 'Markets, demand, supply, equilibrium and price changes (2.1 to 2.5).' : 'Demand, supply and prices: these buildings open when your teacher opens a unit in Section 2.'}</p></div></div>`);
   const info = id => {
     const Bk = EM.EBLOCKS[id], s = EM.stateOf(st, id), p = Math.round(100 * EM.pOf(st, id)), box = $(`.bld[data-b="${id}"]`)?.closest('.tcard').querySelector('.binfo') || $('#binfo');
     if (!BUILD_OK(id)) return (box.innerHTML = `<div class="fb tip"><b>${esc(Bk.name)}</b>Coming with unit ${Bk.unit}.</div>`);

@@ -5,7 +5,7 @@
 // The cast: Lan (Grade 9, District 3), Mr Minh's café (District 1), Mrs Hoa's rice farm (Củ Chi), a phone factory (Thủ Đức),
 // the city government of Ho Chi Minh City.
 
-import { SCENARIOS2, CAST2, SCEN_CAST2, SORT_EXAMPLE2 } from './u2s.js?v=19e7aff6';
+import { SCENARIOS2, CAST2, SCEN_CAST2, SORT_EXAMPLE2 } from './u2s.js?v=4e7248ff';
 const o = (t, p, trap) => ({ t, p: p || t, trap });
 const choice = (q, plain, options, why, ppc) => ({ type: 'choice', q, plain: plain || q, options, why, ppc });
 // items: [text, emoji, bucket, plain?]

@@ -1,4 +1,4 @@
-// Section 2 scenario cards (2.1 to 2.3), same format as u1s.js: stories in Ho Chi Minh City where students APPLY the ideas.
+// Section 2 scenario cards (2.1 to 2.5), same format as u1s.js: stories in Ho Chi Minh City where students APPLY the ideas.
 // New people: Chị Thu (a bubble tea stall in District 3) and Anh Phúc (a durian farmer in Bến Tre, Mekong Delta).
 // Numbers match u2.js: bubble tea in District 3, demand 160 − 2P, supply 2P (P in thousand đồng, cups a day).
 const o = (t, p, trap) => ({ t, p: p || t, trap });
@@ -178,7 +178,121 @@ export const SCENARIOS2 = [
       'A subsidy lowers costs, so more is supplied at every price.')],
     { q: 'Explain how a tax on soft drinks affects their supply.', groups: [g('higher costs', ['cost'], 'What does the tax do to the seller\'s costs?'),
       g('less profit / supply less at every price', ['less profit', 'supply less', 'produce less', 'less is supplied', 'every price', 'supply falls', 'supply decrease'], 'What do firms do?'),
-      g('shifts left', ['left'], 'Which way does the supply curve move?')], need: 3 })
+      g('shifts left', ['left'], 'Which way does the supply curve move?')], need: 3 }),
+
+  // ---------- 2.4 Price determination ----------
+  { ...S('s24-street', '2.4', 'One street, one price', 'stall', ['🧋', '⚖️', '📋', '🎯'],
+    'On one street in District 3, the table shows how many cups of bubble tea buyers want, and how many the three stalls make, each day at each price.',
+    'This [[schedule]] shows bubble tea on one street. 20k: buyers 120, stalls 40. 30k: 100 and 60. 40k: 80 and 80. 50k: 60 and 100. 60k: 40 and 120.',
+    'Trên một con phố ở Quận 3, mỗi ngày: giá 20.000 đồng: người mua muốn 120 ly, các quầy làm 40 ly. 30.000 đồng: 100 và 60. 40.000 đồng: 80 và 80. 50.000 đồng: 60 và 100. 60.000 đồng: 40 và 120.',
+    [choice('What is the equilibrium price?', 'What is the [[equilibrium price]]?',
+      [o('40,000 đồng'), o('30,000 đồng', '30,000 đồng', 'eq-def'), o('50,000 đồng', '50,000 đồng', 'eq-def'), o('60,000 đồng', '60,000 đồng', 'eq-def')],
+      'At 40,000 đồng, quantity demanded (80) = quantity supplied (80).'),
+    choice('What is there at 30,000 đồng?', 'At 30,000 đồng, what do we see?',
+      [o('A shortage of 40 cups', 'A [[shortage]] of 40 cups'), o('A surplus of 40 cups', 'A [[surplus]] of 40 cups', 'shortage-surplus'), o('A shortage of 100 cups', 'A [[shortage]] of 100 cups', 'gap-calc'), o('A shortage of 160 cups', 'A [[shortage]] of 160 cups', 'gap-calc')],
+      'Buyers want 100, stalls make 60: a shortage of 100 − 60 = 40.'),
+    choice('What is there at 60,000 đồng?', 'At 60,000 đồng, what do we see?',
+      [o('A surplus of 80 cups', 'A [[surplus]] of 80 cups'), o('A shortage of 80 cups', 'A [[shortage]] of 80 cups', 'shortage-surplus'), o('A surplus of 120 cups', 'A [[surplus]] of 120 cups', 'gap-calc'), o('Equilibrium at 60,000 đồng', '[[equilibrium|Equilibrium]] at 60,000 đồng', 'eq-def')],
+      'Stalls make 120, buyers want 40: a surplus of 80.')],
+    { q: 'Explain why 40,000 đồng is the equilibrium price.', groups: [g('quantity demanded = quantity supplied', ['equal', 'same', '80 and 80', 'demanded = supplied', 'qd = qs'], 'What is true about the two quantities?'),
+      g('80 cups', ['80'], 'How many cups?'), g('no shortage or surplus', ['no shortage', 'no surplus', 'clears'], 'What is missing at this price?')], need: 2 }), table: { head: ['Price (đồng)', 'Cups demanded', 'Cups supplied'], rows: [['20,000', '120', '40'], ['30,000', '100', '60'], ['40,000', '80', '80'], ['50,000', '60', '100'], ['60,000', '40', '120']] } },
+
+  S('s24-cheap', '2.4', 'Too cheap!', 'stall', ['🧋', '🏃', '⬆️', '😮'],
+    'To celebrate her stall\'s birthday, Chị Thu sells bubble tea for 20,000 đồng. A long queue forms. Buyers want 120 cups a day, but the stalls make only 40. Customers at the back of the queue say they would happily pay more.',
+    'Chị Thu sells bubble tea for only 20,000 đồng. There is a long queue. Buyers want 120 cups. The stalls make 40. People say they will pay more.',
+    'Mừng sinh nhật quầy, chị Thu bán trà sữa 20.000 đồng. Hàng người xếp rất dài. Người mua muốn 120 ly mỗi ngày nhưng các quầy chỉ làm 40 ly. Khách cuối hàng nói họ sẵn sàng trả nhiều hơn.',
+    [choice('What is there at 20,000 đồng?', 'What is there at 20,000 đồng?',
+      [o('A shortage of 80 cups', 'A [[shortage]] of 80 cups'), o('A surplus of 80 cups', 'A [[surplus]] of 80 cups', 'shortage-surplus'), o('A shortage of 120 cups', 'A [[shortage]] of 120 cups', 'gap-calc'), o('Equilibrium, with a queue', '[[equilibrium|Equilibrium]], with a queue', 'eq-def')],
+      '120 − 40 = 80 cups short.'),
+    order('What happens next? Put it in order.', 'What happens next? Put the steps in order.',
+      ['There is a shortage at 20,000 đồng.', 'Buyers compete and offer more money.', 'The price rises.', 'Buyers buy fewer cups and stalls make more.', 'The price reaches 40,000 đồng, where 80 = 80.'],
+      'A shortage pushes the price up until quantity demanded equals quantity supplied.')],
+    { q: 'Explain how the shortage of bubble tea is removed.', groups: [g('price rises', ['price rise', 'price goes up', 'higher price', 'raise the price', 'price increase'], 'What happens to the price?'),
+      g('quantity demanded falls / contracts', ['contract', 'buy less', 'buy fewer', 'demand falls', 'quantity demanded fall'], 'What do buyers do?'),
+      g('quantity supplied rises / extends', ['extend', 'make more', 'supply more', 'sell more', 'quantity supplied rise'], 'What do sellers do?')], need: 3 }),
+
+  S('s24-mango', '2.4', 'Too many mangoes', 'market', ['🥭', '📦', '⬇️', '🛒'],
+    'At a market in District 8, mango sellers ask 45,000 đồng a kg. At that price they bring 675 kg a day, but buyers want only 375 kg. By evening, boxes of mangoes are left over and starting to go soft.',
+    'Mango sellers ask 45,000 đồng a kg. They bring 675 kg, but buyers want 375 kg. In the evening many mangoes are left.',
+    'Ở một chợ tại Quận 8, người bán xoài đòi 45.000 đồng một ký. Ở giá đó họ mang đến 675 kg mỗi ngày nhưng người mua chỉ muốn 375 kg. Đến tối, nhiều thùng xoài còn thừa và bắt đầu mềm.',
+    [choice('What is there at 45,000 đồng?', 'What is there at 45,000 đồng?',
+      [o('A surplus of 300 kg', 'A [[surplus]] of 300 kg'), o('A shortage of 300 kg', 'A [[shortage]] of 300 kg', 'shortage-surplus'), o('A surplus of 675 kg', 'A [[surplus]] of 675 kg', 'gap-calc'), o('A surplus of 1,050 kg', 'A [[surplus]] of 1,050 kg', 'gap-calc')],
+      '675 − 375 = 300 kg left over.'),
+    choice('What will the sellers do?', 'What will the sellers do?',
+      [o('Cut the price to sell their mangoes', 'Lower the price to sell them'), o('Raise the price to earn more', 'Make the price higher', 'price-pressure'),
+        o('Wait for the demand curve to shift', 'Wait for demand to move', 'move-vs-shift'), o('Bring even more mangoes tomorrow', 'Bring more mangoes tomorrow', 'price-pressure')],
+      'A surplus pushes the price down: sellers cut prices to sell stock.'),
+    choice('As the price falls, what happens to buyers and sellers?', 'The price falls. What do buyers and sellers do?',
+      [o('Demand extends; supply contracts', 'Buyers buy more; sellers bring less'), o('Demand contracts; supply extends', 'Buyers buy less; sellers bring more', 'price-pressure'),
+        o('The demand curve shifts right', 'The demand curve moves right', 'move-vs-shift'), o('The supply curve shifts left', 'The supply curve moves left', 'move-vs-shift')],
+      'Movements along the curves: quantity demanded extends, quantity supplied contracts, until they are equal.')]),
+
+  S('s24-tet', '2.4', 'Peach blossoms at Tết', 'market', ['🌸', '🧧', '💸', '⏳'],
+    'In the week before Tết, many families want peach blossom branches. Sellers on Nguyễn Huệ street have only a limited number of branches, and the price rises day by day. Some families decide to buy a smaller branch, or a kumquat tree instead.',
+    'Before Tết many families want peach blossoms. There are not many branches, so the price goes up every day. Some families buy a small branch, or a kumquat tree.',
+    'Tuần trước Tết, nhiều gia đình muốn mua cành đào. Người bán trên đường Nguyễn Huệ chỉ có số cành hạn chế, và giá tăng từng ngày. Một số gia đình mua cành nhỏ hơn, hoặc mua cây quất.',
+    [choice('Why does the price of peach blossoms rise?', 'Why does the price go up?',
+      [o('There is a shortage at the old price', 'There is a [[shortage]] at the old price'), o('There is a surplus at the old price', 'There is a [[surplus]] at the old price', 'shortage-surplus'),
+        o('Sellers must pay a new tax', 'Sellers must pay a new [[tax]]', 'price-mechanism'), o('The market is in equilibrium', 'The market is in [[equilibrium]]', 'eq-def')],
+      'Buyers want more branches than sellers have: a shortage pushes the price up.'),
+    choice('Which role is the rising price playing?', 'What is the higher price doing?',
+      [o('Rationing branches to those who pay', '[[rationing|Rationing]]: who pays more gets them'), o('Making every family able to buy one', 'Helping every family buy one', 'price-mechanism'),
+        o('Shifting the demand curve to the right', 'Moving the demand curve right', 'move-vs-shift'), o('Taxing the buyers for the government', 'Taxing buyers for the government', 'price-mechanism')],
+      'A higher price rations a scarce good to the buyers willing and able to pay.')]),
+
+  // ---------- 2.5 Price changes
+  S('s25-singer', '2.5', 'A singer drinks bubble tea', 'stall', ['🎤', '🧋', '➡️', '📈'],
+    'A famous V-pop singer posts a video drinking bubble tea from Chị Thu\'s stall. The next day, many more people want bubble tea at every price.',
+    'A famous singer posts a video with Chị Thu\'s bubble tea. Now more people want bubble tea at every price.',
+    'Một ca sĩ V-pop nổi tiếng đăng video uống trà sữa ở quầy chị Thu. Ngày hôm sau, nhiều người muốn mua trà sữa hơn ở mọi mức giá.',
+    [choice('Step 1. Which curve shifts?', 'Step 1. Which curve moves?',
+      [o('The demand curve'), o('The supply curve', 'The supply curve', 'd-vs-s'), o('Neither: it is a movement along', 'Neither: we move along a curve', 'move-vs-shift')],
+      'The video changes what buyers want: demand.'),
+    choice('Step 2. Which way?', 'Step 2. Which way does it move?',
+      [o('To the right: more at every price', 'Right: more at every price'), o('To the left: less at every price', 'Left: less at every price', 'direction')],
+      'More people want it at every price: demand shifts right.'),
+    choice('Step 3. What happens to price and quantity?', 'Step 3. What happens to price and quantity?',
+      [o('Price rises; quantity rises', 'Price up; quantity up'), o('Price rises; quantity falls', 'Price up; quantity down', 'pq-link'), o('Price falls; quantity rises', 'Price down; quantity up', 'pq-link'), o('Price falls; quantity falls', 'Price down; quantity down', 'direction')],
+      'At the old price there is a shortage, so the price rises; quantity rises too. A demand shift moves P and Q the same way.')],
+    { q: 'Explain the effect of the video on the market for bubble tea.', groups: [g('demand increases / shifts right', ['demand increase', 'demand rise', 'shifts right', 'shift right', 'more demand', 'demand goes up'], 'What happens to demand?'),
+      g('shortage at the old price', ['shortage'], 'What is there at the old price?'), g('price and quantity rise', ['price rise', 'price goes up', 'higher price', 'quantity rise', 'price increase'], 'What happens to price and quantity?')], need: 3 }),
+
+  S('s25-typhoon', '2.5', 'Typhoon in the Mekong', 'farm', ['🌀', '🍈', '⬅️', '💸'],
+    'A typhoon hits Bến Tre and destroys many of Anh Phúc\'s durian trees, and those of his neighbours. Fewer durians reach Ho Chi Minh City at every price.',
+    'A typhoon destroys many durian trees, also Anh Phúc\'s trees. Fewer durians come to the city at every price.',
+    'Một cơn bão đổ bộ Bến Tre, phá hủy nhiều cây sầu riêng của anh Phúc và hàng xóm. Ở mọi mức giá, lượng sầu riêng về TP. Hồ Chí Minh ít hơn.',
+    [choice('Step 1. Which curve shifts?', 'Step 1. Which curve moves?',
+      [o('The supply curve'), o('The demand curve', 'The demand curve', 'd-vs-s'), o('Neither: it is a movement along', 'Neither: we move along a curve', 'move-vs-shift')],
+      'The typhoon hits the farmers, the sellers: supply.'),
+    choice('Step 2. Which way?', 'Step 2. Which way does it move?',
+      [o('To the left: less at every price', 'Left: less at every price'), o('To the right: more at every price', 'Right: more at every price', 'direction')],
+      'Fewer durians at every price: supply shifts left.'),
+    choice('Step 3. What happens to price and quantity?', 'Step 3. What happens to price and quantity?',
+      [o('Price rises; quantity falls', 'Price up; quantity down'), o('Price rises; quantity rises', 'Price up; quantity up', 'pq-link'), o('Price falls; quantity falls', 'Price down; quantity down', 'direction'), o('Price falls; quantity rises', 'Price down; quantity up', 'direction')],
+      'At the old price there is a shortage, so the price rises and the quantity bought falls. A supply shift moves P and Q opposite ways.')]),
+
+  S('s25-sugar', '2.5', 'The sugar tax', 'city', ['🏛️', '🥤', '⬅️', '🧮'],
+    'The government adds a tax of 2,000 đồng to every bottle of sugary soft drink. Shops in Ho Chi Minh City now pay more for each bottle they sell.',
+    'The [[government]] adds a [[tax]] to every bottle of sugary drink. Shops pay more for each bottle.',
+    'Chính phủ đánh thuế 2.000 đồng trên mỗi chai nước ngọt có đường. Các cửa hàng ở TP. Hồ Chí Minh phải trả nhiều hơn cho mỗi chai bán ra.',
+    [sort('Sort the three steps of the chain.', 'Put each answer in its step.', ['Which curve?', 'Which way?', 'What happens?'],
+      [['Supply (the sellers pay the tax)', '🏪', 0], ['Left: less at every price', '⬅️', 1], ['Price rises, quantity falls', '📈', 2]], 'tax-subsidy',
+      'A tax raises sellers\' costs: supply shifts left; price rises and quantity falls.'),
+    choice('Why might the government want this?', 'Why might the government do this?',
+      [o('People will buy fewer sugary drinks', 'People will buy fewer sugary drinks'), o('People will buy more sugary drinks', 'People will buy more sugary drinks', 'pq-link'),
+        o('The demand curve will shift right', 'The demand curve will move right', 'd-vs-s'), o('Shops will lower their prices', 'Shops will make prices lower', 'tax-subsidy')],
+      'The quantity of sugary drinks bought falls: better for health.')]),
+
+  S('s25-tet2', '2.5', 'Flowers before Tết', 'market', ['🌼', '🧧', '🌧️', '❓'],
+    'Before Tết, many more families want marigolds. At the same time, heavy rain damages flower farms in Đà Lạt, so fewer marigolds reach the city.',
+    'Before Tết, more families want marigolds. Heavy rain hurts the farms, so fewer flowers come to the city. TWO changes at once!',
+    'Trước Tết, nhiều gia đình muốn mua cúc vạn thọ hơn. Đồng thời, mưa lớn làm hư hại vườn hoa ở Đà Lạt nên ít hoa về thành phố hơn.',
+    [choice('Which curves shift, and which way?', 'Which curves move, and which way?',
+      [o('Demand right and supply left', 'Demand right, supply left'), o('Demand right and supply right', 'Demand right, supply right', 'direction'), o('Only demand shifts right', 'Only demand moves right', 'two-shifts'), o('Demand left and supply left', 'Demand left, supply left', 'direction')],
+      'More families want flowers (demand right); rain cuts supply (supply left).'),
+    choice('What happens to price and quantity?', 'What happens to price and quantity?',
+      [o('Price rises; quantity: it depends', 'Price up; quantity: it depends'), o('Price rises; quantity rises', 'Price up; quantity up', 'two-shifts'), o('Price falls; quantity: it depends', 'Price down; quantity: it depends', 'direction'), o('Price: it depends; quantity falls', 'Price: it depends; quantity down', 'two-shifts')],
+      'Both shifts push the price up. Demand pushes quantity up, supply pushes it down: it depends which shift is bigger.')])
 ];
 
 export const CAST2 = {
@@ -187,10 +301,12 @@ export const CAST2 = {
 };
 export const SCEN_CAST2 = { 's21-where': ['lan'], 's21-durian': ['phuc'], 's21-who': [], 's21-dvd': [],
   's22-lan': ['lan', 'thu'], 's22-class': ['lan', 'thu'], 's22-shift': ['thu'], 's22-coffee': ['minh'],
-  's23-thu': ['thu'], 's23-stalls': ['thu'], 's23-costs': ['thu'], 's23-tax': ['city', 'hoa'] };
+  's23-thu': ['thu'], 's23-stalls': ['thu'], 's23-costs': ['thu'], 's23-tax': ['city', 'hoa'],
+  's24-street': ['thu'], 's24-cheap': ['thu', 'lan'], 's24-mango': [], 's24-tet': [], 's25-singer': ['thu'], 's25-typhoon': ['phuc'], 's25-sugar': ['city'], 's25-tet2': [] };
 export const SORT_EXAMPLE2 = {
   's21-where': 'At Bến Thành Market, Lan (a buyer) pays a seller for fruit, so it is a market.',
   's21-who': 'Teenagers buy trainers, so the factory makes them. This is about WHAT to make.',
   's22-shift': 'This is the price of bubble tea ITSELF, so we move along the curve.',
-  's23-costs': 'A faster machine lowers costs, so more is supplied at every price.'
+  's23-costs': 'A faster machine lowers costs, so more is supplied at every price.',
+  's25-sugar': 'The tax is paid by the sellers, so it is the SUPPLY curve that moves.'
 };

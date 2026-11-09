@@ -6,8 +6,16 @@ from playwright.sync_api import sync_playwright
 BASE, ITEMS, SHOTS = sys.argv[1], json.load(open(sys.argv[2])), sys.argv[3]
 SIZES = {'phone': (390, 844), 'tablet': (820, 1180), 'laptop': (1366, 768)}
 SHIFT_BY_EVENT = {s['event']: s for s in ITEMS['SHIFTS']}
-MCQ_BY_STEM = {q['stem']: q for q in ITEMS['MCQ'] + ITEMS.get('MCQ24', [])}
+MCQ_BY_STEM = {k: q for q in ITEMS['MCQ'] + ITEMS.get('MCQ24', []) for k in (q['stem'], q.get('plain'), ' '.join(q.get('plain', '').split())) if k}
+def norm(t): return ' '.join(t.split())
+def right_idx(p, q):
+    """Index of the right option on screen (exam or plain wording; A1 shows three options)"""
+    btns = p.locator('.choice'); rs = [norm(x) for x in q['rights']]
+    texts = [norm(btns.nth(k).locator('.otext').inner_text() if btns.nth(k).locator('.otext').count() else btns.nth(k).inner_text()[1:]) for k in range(btns.count())]
+    return next(k for k, t in enumerate(texts) if t in rs), texts
+def q_on(p): return MCQ_BY_STEM.get(p.locator('.event').inner_text().strip()) or MCQ_BY_STEM[norm(p.locator('.event').inner_text())]
 fails, checks = [], 0
+VERBOSE = bool(__import__("os").environ.get("VERBOSE"))
 SHOT_DONE = set()
 
 CEL = """window.__cel = []; new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => {
@@ -18,7 +26,8 @@ CEL = """window.__cel = []; new MutationObserver(ms => ms.forEach(m => m.addedNo
 def ok(cond, msg):
     global checks
     checks += 1
-    if not cond: fails.append(msg); print('  FAIL', msg)
+    if not cond: fails.append(msg); print("  FAIL", msg)
+    elif VERBOSE: print("  ok", msg)
 
 def no_overflow(p, where):
     sw = p.evaluate('document.documentElement.scrollWidth'); iw = p.evaluate('innerWidth')
@@ -63,7 +72,7 @@ def run_student(p, size):
     p.goto(BASE + '/learn/?demo=1#/me/settings'); p.wait_for_selector('[data-vi]'); p.click('[data-vi="true"]')
     ok(p.get_attribute('[data-vi="true"]', 'aria-selected') == 'true', 'Vietnamese words toggle')
     p.goto(BASE + '/learn/?demo=1#/u/2.5'); p.wait_for_selector('.msteps'); ok(p.locator('.utabs a').count() == 6, 'unit page: six tabs')
-    ok(p.locator('.msteps li').count() == 6 and p.locator('.msteps li.locked').count() == 1, 'mission: six steps, checkpoint locked')
+    ok(p.locator('.msteps li').count() == 7 and p.locator('.msteps li.locked').count() == 1, 'mission: seven steps (with scenarios), checkpoint locked')
     shot(p, size, '3-unit'); no_overflow(p, size + ' unit')
     for t in ['learn', 'practice', 'paper1', 'data', 'words']:
         p.goto(BASE + '/learn/?demo=1#/u/2.5/tab/' + t); p.wait_for_selector('[role=tabpanel]'); no_overflow(p, f'{size} unit tab {t}')
@@ -78,7 +87,7 @@ def run_student(p, size):
             if i == 0: shot(p, size, '4-learn')
         no_overflow(p, f'{size} learn {i+1}')
         p.click('#next')
-    p.wait_for_selector('text=Cards done'); p.click('#n')
+    p.wait_for_selector('text=Cards done'); p.goto(BASE + '/learn/?demo=1#/u/2.5/shift')
     # Shift detective (6 cases; first one with a wrong step, next two right to level up)
     for i in range(6):
         p.wait_for_selector('.event')
@@ -89,27 +98,29 @@ def run_student(p, size):
     ok('5 / 6' in p.inner_text('main'), 'shift score 5/6'); ok('+' in p.inner_text('.xp-gain') and 'XP' in p.inner_text('.xp-gain'), 'XP shown after shift run'); shot(p, size, '6-shift-result'); no_overflow(p, size + ' shift result')
     p.click('#back'); p.wait_for_selector('.msteps')
     # MCQ: two wrong first (rescue card), rest right
-    p.click('.msteps a[href$="/mcq"]')
+    p.click('.msteps a[href$="/mcq"]'); MISSED = set(); NMISS = [0]
     for i in range(10):
         p.wait_for_selector('.event')
-        q = MCQ_BY_STEM[p.locator('.event').inner_text().strip()]
-        right = q['options'][0]['t']
-        btns = p.locator('.choice')
-        texts = [btns.nth(k).inner_text()[1:].strip() for k in range(4)]
-        k = texts.index(right) if i >= 2 else next(j for j, t in enumerate(texts) if t != right)
+        q = q_on(p)
+        btns = p.locator('.choice'); ri, texts = right_idx(p, q)
+        if i < 2:   # two misses on DIFFERENT ideas, so Build it up is offered but does not start by itself
+            blk = lambda t: next((b for (et, pt, b) in q['blocks'] if norm(et) == t or norm(pt) == t), None)
+            k = next((j for j in range(len(texts)) if j != ri and blk(texts[j]) not in MISSED), ri)   # no new idea to miss: answer right
+            if k != ri: MISSED.add(blk(texts[k])); NMISS[0] += 1
+        else: k = ri
         if i == 3: shot(p, size, '7-mcq')
-        btns.nth(k).click()
+        btns.nth(k).locator('b').first.click()
         ok(p.locator('.choice.right').count() == 1, f'mcq {i+1}: right answer shown')
-        if i < 2: ok(p.locator('.fb.tip').count() == 1, f'mcq {i+1}: trap tip on wrong answer')
+        if i < 2 and k != ri: ok(p.locator('.fb.tip:not(.chainbox)').count() == 1, f'mcq {i+1}: trap tip on wrong answer')
         no_overflow(p, f'{size} mcq {i+1}')
         p.click('#nx')
         if p.locator('#ok').count():
-            ok(i == 1, 'rescue card after two misses')
+            ok(i == 1 and NMISS[0] == 2, 'rescue card after two misses')
             ok(p.locator('text=Worked example').count() == 1, 'worked example at Core')
             p.wait_for_timeout(900); shot(p, size, '7b-worked-example'); no_overflow(p, size + ' worked example')
             p.click('#ok')
     p.wait_for_selector('text=Paper 1 practice done'); p.wait_for_selector('#saved:has-text("Saved")')
-    ok('8 / 10' in p.inner_text('main'), 'mcq score 8/10')
+    ok(f'{10 - NMISS[0]} / 10' in p.inner_text('main'), f'mcq score {10 - NMISS[0]}/10')
     p.click('#back'); p.wait_for_selector('.msteps')
     # Data response
     p.click('.msteps a[href$="/data"]'); p.wait_for_selector('#qa')
@@ -128,8 +139,11 @@ def run_student(p, size):
     p.locator('#qd button:has-text("Finish")').click()
     p.wait_for_selector('#saved:has-text("Saved")'); ok('8 / 9' in p.inner_text('main'), 'data total 8/9')
     shot(p, size, '10-data-total'); no_overflow(p, size + ' data total')
-    p.click('#back'); p.wait_for_selector('.msteps')
-    ok(p.locator('.msteps li.done').count() == 5, 'mission: five steps done')
+    # The scenario cards are played in e2e_s1.py; here they are saved as solved so the checkpoint can open
+    p.evaluate("""async () => { const A = await import('/learn/js/api.js'); const { SCEN_BY_UNIT } = await import('/learn/js/u1s.js');
+      for (const s of SCEN_BY_UNIT['2.5']) await A.rpc('ec_save_attempt', { p_token: A.token.get(), p_unit: '2.5', p_activity: 'sc-' + s.id, p_level_start: 0, p_level_end: 0, p_score: 2, p_max: 2, p_seconds: 30, p_answers: [] }); }""")
+    p.goto(BASE + '/learn/?demo=1#/u/2.5'); p.reload(); p.wait_for_selector('.msteps')
+    ok(p.locator('.msteps li.done').count() == 6, 'mission: six steps done: ' + ' | '.join(p.locator('.msteps li').nth(k).get_attribute('class') + ':' + p.locator('.msteps li').nth(k).inner_text().replace(chr(10), ' ') for k in range(p.locator('.msteps li').count())))
     ok(p.locator('.msteps li.locked').count() == 0, 'checkpoint unlocked after the other steps')
     ok(p.locator('text=most common mistake').count() == 1, 'top mistake panel')
     shot(p, size, '11-unit-progress')
@@ -140,15 +154,15 @@ def run_student(p, size):
     while True:
         p.wait_for_selector('.event, h1:has-text("Review done")')
         if p.locator('text=Review done').count(): break
-        q = MCQ_BY_STEM[p.locator('.event').inner_text().strip()]
-        p.locator('.choice').filter(has_text=q['options'][0]['t']).first.click(); p.click('#nx')
+        q = q_on(p)
+        p.locator('.choice').nth(right_idx(p, q)[0]).locator('b').first.click(); p.click('#nx')
     p.wait_for_selector('#saved:has-text("Saved")'); ok('Review done' in p.inner_text('main'), 'review run saved')
     p.goto(BASE + '/learn/?demo=1#/u/2.5'); p.wait_for_selector('.msteps')
     # Unit checkpoint: all right → passed and badge
     p.click('.msteps a[href$="/check"]')
     for i in range(12):
-        p.wait_for_selector('.event'); q = MCQ_BY_STEM[p.locator('.event').inner_text().strip()]
-        p.locator('.choice').filter(has_text=q['options'][0]['t']).first.click()
+        p.wait_for_selector('.event'); q = q_on(p)
+        p.locator('.choice').nth(right_idx(p, q)[0]).locator('b').first.click()
     p.wait_for_selector('#saved:has-text("Saved")'); ok('12 / 12' in p.inner_text('main') and 'Shift spotter' in p.inner_text('main'), 'checkpoint passed, badge won')
     shot(p, size, '11b-checkpoint'); no_overflow(p, size + ' checkpoint')
     p.goto(BASE + '/learn/?demo=1#/u/2.5'); p.wait_for_selector('.msteps'); ok('Badge won' in p.inner_text('.mission'), 'mission complete')
@@ -205,7 +219,7 @@ def run_u24(p, size):
     p.wait_for_function("document.querySelector('#eff') && document.querySelector('#eff').innerText.includes('reached equilibrium')", timeout=8000)
     ok(p.inner_text('#rkind') == 'equilibrium', 'let the market work ends at equilibrium')
     p.click('#next'); p.wait_for_selector('text=WHAT to produce?'); p.click('#next'); p.wait_for_selector('text=Sentence frame'); p.click('#next')
-    p.wait_for_selector('text=Cards done'); ok('Equilibrium finder' in p.inner_text('#n'), 'learn leads to the finder'); p.click('#n')
+    p.wait_for_selector('text=Cards done'); ok('Scenario' in p.inner_text('#n'), 'learn leads to the scenarios'); p.goto(BASE + '/learn/?demo=1#/u/2.4/eqm')
     # Equilibrium finder: first question wrong twice (answer revealed), the rest right
     for i in range(6):
         p.wait_for_selector('.event')
@@ -239,10 +253,9 @@ def run_u24(p, size):
     # Paper 1 (2.4): all right
     p.click('.msteps a[href$="/mcq"]')
     for i in range(10):
-        p.wait_for_selector('.event'); q = MCQ_BY_STEM[p.locator('.event').inner_text().strip()]
+        p.wait_for_selector('.event'); q = q_on(p)
         ok(q['id'].startswith('q4-'), f'2.4 mcq {i+1} is a 2.4 question')
-        right = q['options'][0]['t']; btns = p.locator('.choice'); texts = [btns.nth(k).inner_text()[1:].strip() for k in range(4)]
-        btns.nth(texts.index(right)).click(); p.click('#nx')
+        p.locator('.choice').nth(right_idx(p, q)[0]).locator('b').first.click(); p.click('#nx')
     p.wait_for_selector('text=Paper 1 practice done'); ok('10 / 10' in p.inner_text('main'), '2.4 mcq 10/10'); p.click('#back'); p.wait_for_selector('.msteps')
     # Data response (2.4)
     p.click('.msteps a[href$="/data"]'); p.wait_for_selector('#qa')

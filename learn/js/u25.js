@@ -20,7 +20,7 @@ export const LEARN = [
   { id: 'four', title: 'Four big changes', kind: 'four',
     text: 'Every price change starts with a shift of demand or supply. Tap a change to see what happens to price (P) and quantity (Q).' },
   { id: 'move', title: 'Shift or movement?', kind: 'move',
-    text: 'If the good’s own price changes, we move along the curve (an extension or a contraction). If anything else changes, the whole curve shifts.',
+    text: 'If the good’s own price changes, we move along the curve (an [[extension]] or a [[contraction]]). If anything else changes, the whole curve [[shift|shifts]].',
     rows: [['Bubble tea price rises', 'Movement up along the demand curve: a contraction of demand (quantity demanded falls)'], ['Incomes rise', 'Demand curve shifts right'], ['Milk costs rise', 'Supply curve shifts left']] },
   { id: 'causes', title: 'What shifts each curve?', kind: 'causes',
     demand: ['Income', 'Tastes and fashion, advertising', 'Price of a substitute (tea vs coffee)', 'Price of a complement (petrol and motorbikes)', 'Population'],
@@ -29,7 +29,7 @@ export const LEARN = [
     steps: ['Which curve shifts: demand or supply?', 'Which way: left (less) or right (more)?', 'Find the new equilibrium.', 'Say what happens to price AND quantity.'],
     frame: 'The [event] causes [demand / supply] to [increase / decrease], so the curve shifts [left / right]. At the old price there is a [shortage / surplus], so the price [rises / falls] and the quantity [rises / falls].' },
   { id: 'two', title: 'Challenge: two shifts at once', kind: 'two',
-    text: 'If demand AND supply shift, one effect is certain and the other depends on which shift is bigger.',
+    text: 'If [[demand]] AND [[supply]] shift, one effect is certain and the other depends on which shift is bigger.',
     rows: [['Demand right + supply left', 'Price rises for sure; quantity: it depends'], ['Demand right + supply right', 'Quantity rises for sure; price: it depends'], ['Demand left + supply right', 'Price falls for sure; quantity: it depends']] }
 ];
 

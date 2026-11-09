@@ -5,7 +5,7 @@
 //   Arcade victory tune, a flash, spinning light rays, a gold badge that stamps in, confetti from both sides.
 //   Tap anywhere (or press a key) to carry on.
 // Sounds follow the student's mute button (sound.js); motion is cut down for reduced motion.
-import { play } from "./sound.js?v=19e7aff6";
+import { play } from "./sound.js?v=4e7248ff";
 
 const COLOURS = ["#FFD54A", "#4FC3F7", "#F06292", "#81C784", "#FF8A65", "#B388FF"];
 const reduced = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;

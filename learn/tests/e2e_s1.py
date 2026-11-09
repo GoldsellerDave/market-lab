@@ -72,7 +72,9 @@ def mcq_round(p, unit, band, size=None, use_pill=False):
         idx = next((k for k, t in enumerate(texts) if t in [norm(x) for x in q['right']]), None)
         ok(idx is not None, f'{unit} mcq {i+1} band {band}: right answer is on screen {texts} {q["right"]}')
         POS.append(idx)
-        btns.nth(idx or 0).locator('b').first.click(); p.click('#nx')
+        btns.nth(idx or 0).locator('b').first.click()
+        if q.get('chain'): ok(p.locator('.chainbox').count() == 1 and 'Which curve?' in p.inner_text('.chainbox'), f'{unit} {q["id"]}: the 3-step chain after the answer')
+        p.click('#nx')
         if p.locator('#ok').count(): p.click('#ok')
         if p.locator('text=Paper 1 practice done').count(): break
     p.wait_for_selector('text=Paper 1 practice done'); p.wait_for_selector('#saved:has-text("Saved")')
@@ -235,6 +237,17 @@ def do_builder(p):
         for v in ('30', '50', '60'): bb.locator('#cpr').fill(v); bb.locator('#cpr').dispatch_event('input')
     elif bb.locator('[data-ev]').count():
         for c in bb.locator('[data-ev]').all(): c.click()
+    elif bb.locator('#bwork').count():
+        bb.locator('#bwork').click(); p.wait_for_selector('#bu #bgo', timeout=8000)
+    elif bb.locator('#bpr').count():
+        for v in ('0', '6'): bb.locator('#bpr').fill(v); bb.locator('#bpr').dispatch_event('input')
+    elif bb.locator('#bchain').count():
+        while not p.locator('#bu #bgo').count():
+            for k in range(3):
+                for c in bb.locator(f'[data-s="{k}"] .choice').all():
+                    if bb.locator(f'[data-s="{k}"] .choice.right').count(): break
+                    if c.is_enabled(): c.click()
+            bb.locator('#bnext').click(); p.wait_for_timeout(150)
     elif bb.locator('#rice').count():
         for v in range(2, 11, 2): bb.locator('#rice').fill(str(v)); bb.locator('#rice').dispatch_event('input')
     elif bb.locator('#bpts').count():
@@ -370,10 +383,25 @@ def s2_round(p, size):
     p.wait_for_selector('.skyline')
     ok(p.locator('.skyline:not(.small)').count() == 2, 'city: District 2 is open (full size)')
     ok(p.locator('.skyline:not(.small) .bld.built[data-b="law-demand"]').count() == 1, 'city: law of demand built in District 2')
-    p.locator('.bld[data-b="equilibrium"]').dispatch_event('click'); ok('Coming with unit 2.4' in p.inner_text('main'), 'city: 2.4 buildings say when they open')
     p.wait_for_timeout(1300)
     if size: shot(p, size, '34-city-d2'); no_overflow(p, size + ' city district 2')
-    p.goto(BASE + '/learn/?demo=1#/'); p.wait_for_selector('a.citycard'); ok('of 35 buildings' in p.inner_text('a.citycard'), 'home: the city counts the market buildings: ' + p.inner_text('a.citycard h3'))
+    p.goto(BASE + '/learn/?demo=1#/'); p.wait_for_selector('a.citycard'); ok('of 38 buildings' in p.inner_text('a.citycard'), 'home: the city counts the market buildings: ' + p.inner_text('a.citycard h3'))
+    # 2.4 and 2.5: banded Paper 1 (with the price-change chain), scenarios, and the three new buildings
+    p.evaluate("""() => { const d = JSON.parse(localStorage.getItem('ecl:demo:db')); d.classes.forEach(c => (c.open_units = [...new Set([...c.open_units, '2.4', '2.5'])])); localStorage.setItem('ecl:demo:db', JSON.stringify(d)); }""")
+    p.goto(BASE + '/learn/?demo=1#/u/2.4/learn'); p.wait_for_selector('.card h2'); p.reload(); p.wait_for_selector('.card h2')
+    for u in ('2.4', '2.5'):
+        mcq_round(p, u, 3, size if u == '2.5' else None)
+        scen_round(p, u, size if u == '2.4' else None, explain=True)
+    for bl in ('shortage-surplus', 'equilibrium', 'price-chain'):
+        p.goto(BASE + f'/learn/?demo=1#/city/{bl}'); p.wait_for_selector('#bu .bu-head')
+        if p.locator('#bu #bsay[hidden]').count():
+            if size: p.wait_for_timeout(200); shot(p, size, f'35-build-{bl}'); no_overflow(p, f'{size} build {bl}')
+            do_builder(p)
+        bu_block(p, right=True); p.wait_for_selector('#bu #buback')
+        ok('building finished' in p.inner_text('#bu'), f'Build it up {bl}: built')
+        p.click('#bu #bucity'); p.wait_for_timeout(400)
+    p.wait_for_selector('.skyline'); ok(p.locator('.skyline .bld.built[data-b="price-chain"]').count() == 1, 'city: the price-change chain is built')
+    ok('Coming with unit' not in p.inner_text('main'), 'city: no building is waiting for a unit')
 
 VI_ON = [True]
 POS = []

@@ -1,17 +1,17 @@
 // Teacher dashboard, laid out like Checkpoint Quest's: class pills, four stat cards, tabs for Students, Units,
 // Skills heat map, Hardest questions, Leaderboard and Manage class, and a tracker page for each student.
-import { rpc, token, DEMO, errText } from './api.js?v=19e7aff6';
-import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js?v=19e7aff6';
-import { UNITS, ACTIVITIES } from './units.js?v=19e7aff6';
-import * as E from './engine.js?v=19e7aff6';
-import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js?v=19e7aff6';
-import { mission, checkBest, CHECK_PASS } from './mission.js?v=19e7aff6';
-import { icon, tile } from './icons.js?v=19e7aff6';
-import { bandOf, BANDS, BAND_NAMES } from './bands.js?v=19e7aff6';
-import { BASELINE_N } from './u1.js?v=19e7aff6';
-import * as EM from './eengine.js?v=19e7aff6';
-import { EREADY } from './ebank.js?v=19e7aff6';
-import { SCENARIOS } from './u1s.js?v=19e7aff6';
+import { rpc, token, DEMO, errText } from './api.js?v=4e7248ff';
+import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js?v=4e7248ff';
+import { UNITS, ACTIVITIES } from './units.js?v=4e7248ff';
+import * as E from './engine.js?v=4e7248ff';
+import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js?v=4e7248ff';
+import { mission, checkBest, CHECK_PASS } from './mission.js?v=4e7248ff';
+import { icon, tile } from './icons.js?v=4e7248ff';
+import { bandOf, BANDS, BAND_NAMES } from './bands.js?v=4e7248ff';
+import { BASELINE_N } from './u1.js?v=4e7248ff';
+import * as EM from './eengine.js?v=4e7248ff';
+import { EREADY } from './ebank.js?v=4e7248ff';
+import { SCENARIOS } from './u1s.js?v=4e7248ff';
 
 let me = null, classes = [], cls = null, tab = pref.get('t-tab2', 'students'), live = null, focus = null, lbMode = 'week';
 const BUILT = UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);
@@ -246,7 +246,7 @@ function concepts(body) {
   const names = l => l.map(st => esc(st.display_name)).join(', ') || '–';
   const nWeak = r => r.g.weak.length + r.g.half.length;
   const worst = rows.slice().sort((a, b) => nWeak(b) - nWeak(a)).filter(r => nWeak(r) > 0).slice(0, 3);
-  body.innerHTML = `<p class="note">Every idea in 1.1 to 1.4 and 2.1 to 2.3 is a building in the students' concept city. When a student misses a question, the app finds the idea underneath and builds it up with them.
+  body.innerHTML = `<p class="note">Every idea in 1.1 to 2.5 is a building in the students' concept city. When a student misses a question, the app finds the idea underneath and builds it up with them.
       <b>Weak</b> = missed recently and below 50%. <b>Half built</b> = finished only with a guided walkthrough (it comes back the next day). <b>English</b> = right in simple English but wrong in exam English: a language gap, not a concept gap.</p>
     ${worst.length ? `<div class="tcard"><h3 style="margin:0 0 6px">Re-teach first</h3>${worst.map(r => `<p style="margin:.3em 0"><b>${esc(EM.EBLOCKS[r.id].name)}</b> (${EM.EBLOCKS[r.id].unit}): ${nWeak(r)} student${nWeak(r) === 1 ? '' : 's'} · stands on ${EM.EBLOCKS[r.id].pre.map(q => esc(EM.EBLOCKS[q].name)).join(', ') || 'everyday ideas'}</p>`).join('')}</div>` : ''}
     <div class="tablewrap"><table class="grid"><tr><th>Idea</th><th>Unit</th><th>Built</th><th>Half built</th><th>Weak</th><th>English gap</th></tr>
