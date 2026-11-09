@@ -1,22 +1,24 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=152deb46';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=152deb46';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=152deb46';
-import * as E from './engine.js?v=152deb46';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=152deb46';
-import { BASELINE, BASELINE_N } from './u1.js?v=152deb46';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=152deb46';
-import { createPPC } from './ppc.js?v=152deb46';
-import * as S from './sound.js?v=152deb46';
-import * as Cel from './celebrate.js?v=152deb46';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=152deb46';
-import { scene } from './scenes.js?v=152deb46';
-import { SHIFTS } from './u25.js?v=152deb46';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=152deb46';
-import { createDiagram } from './diagram.js?v=152deb46';
-import { icon, tile } from './icons.js?v=152deb46';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=152deb46';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=a9a988f6';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=a9a988f6';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=a9a988f6';
+import * as E from './engine.js?v=a9a988f6';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=a9a988f6';
+import { BASELINE, BASELINE_N } from './u1.js?v=a9a988f6';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=a9a988f6';
+import { createPPC } from './ppc.js?v=a9a988f6';
+import * as S from './sound.js?v=a9a988f6';
+import * as EM from './eengine.js?v=a9a988f6';
+import { EBANK, EREADY } from './ebank.js?v=a9a988f6';
+import * as Cel from './celebrate.js?v=a9a988f6';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=a9a988f6';
+import { scene } from './scenes.js?v=a9a988f6';
+import { SHIFTS } from './u25.js?v=a9a988f6';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=a9a988f6';
+import { createDiagram } from './diagram.js?v=a9a988f6';
+import { icon, tile } from './icons.js?v=a9a988f6';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=a9a988f6';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -207,6 +209,8 @@ function workoutPlan() {
   const fu = focusUnit(before); if (!fu) return [];
   const items = [], add = it => { if (items.length < 3 && !items.some(x => x.unit === it.unit && x.act === it.act)) items.push(it); };
   if (bandOf(before, me.eng_band).source === 'none') add({ unit: BASE_UNIT, act: 'baseline', ic: 'base', label: 'English and economics baseline' });
+  const rep = EM.repairs(EM.mastery(before), Date.now(), BUILD_OK).concat(EM.dueReviews(EM.mastery(before), Date.now(), BUILD_OK));
+  if (rep[0]) add({ unit: 'city', act: rep[0], ic: 'city', label: `Build it up: ${EM.EBLOCKS[rep[0]].name}` });
   const due = reviewDue(before);
   if (due.length >= 2) add({ unit: 'review', act: 'review', ic: 'review', label: `Fix ${Math.min(due.length, 10)} questions you missed` });
   const m = mission(fu, before);
@@ -215,10 +219,10 @@ function workoutPlan() {
   const weakest = openUnits().map(u => ({ u, b: (E.summarise(before, u).mcq || { best: -1 }).best })).sort((a, b) => a.b - b.b)[0];
   if (weakest) add({ unit: weakest.u, act: 'mcq', ic: 'mcq', label: `${weakest.u}: Paper 1 practice` });
   openUnits().slice().reverse().forEach(u => { const p = pracOf(u) || ACTIVITIES[u].find(a => a.id === 'p2'); add({ unit: u, act: p.id, ic: p.id, label: `${u}: ${p.title}` }); });
-  items.forEach(it => (it.done = todays.some(a => a.unit === it.unit && (it.act === 'scen' ? a.activity.startsWith('sc-') : a.activity === it.act))));
+  items.forEach(it => (it.done = todays.some(a => it.unit === 'city' ? a.activity === 'build' && (a.answers || []).some(x => x.block === it.act) : a.unit === it.unit && (it.act === 'scen' ? a.activity.startsWith('sc-') : a.activity === it.act))));
   return items;
 }
-const itemHref = it => (it.unit === 'review' ? '#/review/go' : it.unit === BASE_UNIT ? '#/baseline' : `#/u/${it.unit}/${it.act}`);
+const itemHref = it => (it.unit === 'review' ? '#/review/go' : it.unit === BASE_UNIT ? '#/baseline' : it.unit === 'city' ? `#/city/${it.act}` : `#/u/${it.unit}/${it.act}`);
 function ringSVG(items) {
   const n = Math.max(items.length, 1), gap = 16, seg = 360 / n, r = 42;
   const pt = a => [50 + r * Math.sin(a * Math.PI / 180), 50 - r * Math.cos(a * Math.PI / 180)].map(v => v.toFixed(1)).join(' ');
@@ -250,6 +254,8 @@ function home() {
       <p class="note" style="font-size:1rem">Start with the Learn cards: five short cards with moving diagrams. Then work through the unit mission, step by step. It takes about 10 minutes to begin.</p>
       <div class="row"><a class="btn" href="#/u/${fu}/learn">Start the Learn cards</a></div></div>`;
     h += workoutCard();
+    if ((me.open_units || []).some(u => u[0] === '1')) { const st = est(), ids = S1_BLOCKS(), n = ids.filter(id => EM.isMastered(st, id)).length;
+      h += `<a class="tcard citycard" href="#/city"><div class="uhead">${tile('city', 'm')}<div class="grow"><p class="eyebrow">My concept city</p><h3 style="margin:0">${n} of ${ids.length} buildings built</h3></div><span aria-hidden="true">→</span></div>${skylineSVG(st, ids, { small: true })}</a>`; }
     const m = mission(fu), s = E.summarise(history, fu), prac = pracOf(fu) || ACTIVITIES[fu].find(a => a.id === 'p2');
     const q = (href, ic, title, note) => `<a class="qtile" href="${href}">${tile(ic, 'm')}<b>${title}</b><span class="note">${note}</span></a>`;
     h += `<div class="qtiles">${q(`#/u/${fu}`, fu, `Unit ${fu}`, `Mission ${m.n} of ${m.steps.length}`)}
@@ -297,7 +303,7 @@ function aTile(ic, href, title, note, done = false) {
   return `<a class="atile" href="${href}"><span class="ahead" style="--hue:${hueOf(ic)}">${icon(ic, 34)}${done ? `<span class="adone">${TICK}</span>` : ''}</span>
     <span class="abody"><b>${esc(title)}</b><span class="note">${note}</span></span></a>`;
 }
-const hueOf = ic => ({ scen: '#FF7A59', p2: '#7B4FC4', ppc: '#2F6FB5', learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', market: '#B8432F', words: '#2A7A4B' }[ic] || '#1E8C87');
+const hueOf = ic => ({ city: '#E76F51', scen: '#FF7A59', p2: '#7B4FC4', ppc: '#2F6FB5', learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', market: '#B8432F', words: '#2A7A4B' }[ic] || '#1E8C87');
 function missionHTML(u) {
   const m = mission(u);
   return `<div class="mission"><div class="row" style="justify-content:space-between"><p class="eyebrow">Unit ${u} mission · ${m.n} of ${m.steps.length} steps</p>${m.complete ? '<span class="chip ok">Badge won</span>' : ''}</div>
@@ -570,7 +576,8 @@ function afterItem(run, rec, next) {
   if (run.lad.level > prev) { toast('⬆ Level up: ' + E.LEVELS[run.lad.level]); S.play('level'); }
   run.i++;
   if (run.lad.rescue) run.rescues = (run.rescues || 0) + 1;
-  if (run.lad.rescue && run.i < run.n) return rescue(run, rec.trap, prev === 0, next);
+  if (run.lad.rescue && run.i < run.n && !run.skipRescue) return rescue(run, rec.trap, prev === 0, next);
+  run.skipRescue = false;
   next();
 }
 // The steps of a 2.5 shift case, filled in with the answers (for worked examples and revealed answers)
@@ -761,7 +768,8 @@ function mcq(run = newRun('mcq', 10)) {
   wide(true);
   if (run.i >= run.n) return finish(run, 'Paper 1 practice', () => mcq());
   run.n = Math.min(run.n, C().MCQ.length);
-  const it = E.pickItem(C().MCQ, run.lad.level, run.used, run.seen); run.used.add(it.id);
+  const forced = run.force && C().MCQ.find(q => q.id === run.force); run.force = null;
+  const it = forced || E.pickItem(C().MCQ, run.lad.level, run.used, run.seen); run.used.add(it.id);
   if (run.i === 0 && !run.help0) { helpCount = 0; run.help0 = true; run.bandBefore = bandInfo().band; }
   const P = mcqParts(it), opts = P.options;
   const rec = { id: it.id, level: it.level, first_try: false, trap: null, ok: false, hinted: false };
@@ -775,10 +783,19 @@ function mcq(run = newRun('mcq', 10)) {
     $$('.choice').forEach((x, k) => { x.disabled = true; if (opts[k].right) x.classList.add('right'); });
     rec.pick = o.t; rec.ok = o.right; rec.first_try = o.right && !rec.hinted; if (!o.right) { b.classList.add('wrong'); rec.trap = o.trap || null; }
     $('#hint')?.remove();
+    const bl = !o.right && C().BANDED ? (EM.blockOfTrap(o.trap) || EM.itemBlock(it.id)) : null, canBuild = bl && BUILD_OK(bl);
+    if (canBuild) { run.miss = run.miss || {}; run.miss[bl] = (run.miss[bl] || 0) + 1; }
+    const auto = canBuild && run.miss[bl] >= 2;
     $('#fb').innerHTML = `<div class="fb ${o.right ? 'ok' : 'no'}"><b>${o.right ? (rec.hinted ? 'Right (with a hint).' : 'Right! ⭐') : 'Not this time.'}</b>${esc(it.explain)}</div>${o.right ? '' : trapBox(o.trap)}
-      <button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next question' : 'See my results'}</button>`;
-    $('#nx').onclick = () => afterItem(run, rec, () => mcq(run));
-    $('#nx').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      ${auto ? buildBtn(bl, true) : `<button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next question' : 'See my results'}</button>${canBuild ? buildBtn(bl, false) : ''}`}`;
+    const goBuild = () => buildUp(bl, { fromExam: P.band >= 2, onDone: () => {
+      run.miss[bl] = 0; run.skipRescue = true;
+      const fresh = E.shuffle(C().MCQ.filter(q => !run.used.has(q.id) && EM.itemBlock(q.id) === bl))[0];
+      if (fresh && run.i + 1 < run.n) { run.force = fresh.id; toast('Now try a new question on this idea'); }
+      afterItem(run, rec, () => mcq(run)); } });
+    $('#bu-go')?.addEventListener('click', goBuild);
+    if ($('#nx')) $('#nx').onclick = () => afterItem(run, rec, () => mcq(run));
+    ($('#nx') || $('#bu-go')).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }));
 }
 
@@ -1248,7 +1265,17 @@ function scenRun(id) {
   const dots = () => $$('.scen-body .steps i').forEach((d, j) => (d.className = j < k ? 'done' : j === k ? 'on' : ''));
   let k = 0;
   const el = () => $('#sstep'), fb = () => $('#fb');
-  const nextBtn = () => { fb().insertAdjacentHTML('beforeend', `<button id="nx" style="width:100%;margin-top:10px">${k + 1 < steps.length ? 'Next →' : 'Finish'}</button>`); $('#nx').onclick = () => { k++; show(); }; $('#nx').focus({ preventScroll: true }); };
+  const smiss = {};
+  const nextBtn = () => {
+    const last = answers[answers.length - 1], st = steps[k];
+    const bl = last && !last.first_try && st.type !== 'explain' ? (EM.blockOfTrap(last.trap) || EM.itemBlock(last.id)) : null, canBuild = bl && BUILD_OK(bl);
+    if (canBuild) smiss[bl] = (smiss[bl] || 0) + 1;
+    const auto = canBuild && smiss[bl] >= 2, label = k + 1 < steps.length ? 'Next →' : 'Finish';
+    fb().insertAdjacentHTML('beforeend', auto ? buildBtn(bl, true) : `<button id="nx" style="width:100%;margin-top:10px">${label}</button>${canBuild ? buildBtn(bl, false) : ''}`);
+    const cont = () => { k++; show(); };
+    $('#bu-go')?.addEventListener('click', () => buildUp(bl, { fromExam: b >= 2, onDone: () => { smiss[bl] = 0; cont(); } }));
+    if ($('#nx')) { $('#nx').onclick = cont; $('#nx').focus({ preventScroll: true }); }
+  };
   const show = () => {
     fb().innerHTML = ''; if (k >= steps.length) return done(); dots();
     const st = steps[k], rec = { id: st.type === 'explain' ? `${s.id}-x` : `${s.id}-${k + 1}`, ok: false, first_try: false, trap: null };
@@ -1380,6 +1407,227 @@ async function markWritten(text, groups, need, ctx, btn) {
 }
 const aiNote = m => (m.by === 'ai' ? `<p class="ainote">🤖 ${esc(m.feedback || '')}<span class="note"> · marked by AI</span></p>` : '');
 
+
+// ---------- Econ engine: Build it up (drop down to the idea underneath) and My city (the skyline) ----------
+// A miss in Paper 1 practice or a scenario points at a block (eengine.js). After one miss the student can choose "Build it up";
+// after a second miss on the same block it starts by itself. One block = an intuition builder, the idea, and 3 checks
+// (the first in plain English, to tell a language problem from a concept problem). Fail the checks and it goes ONE floor
+// down to the weakest block underneath, then back up. Fail again and it becomes a guided walkthrough: half a building,
+// which comes back the next day. Then the student returns to their question and gets a fresh one on the same idea.
+const est = () => EM.mastery(history);
+const BUILD_OK = id => EREADY.has(id);
+function buildBtn(block, auto) {
+  return `<button class="${auto ? '' : 'alt '}buildbtn" id="bu-go" style="width:100%;margin-top:8px">🏗️ ${auto ? 'Build it up first' : 'Build it up (2 min)'}: ${esc(EM.EBLOCKS[block].name)}${auto ? ' →' : ''}</button>`;
+}
+function buildBuilder(host, bl, onDone) {
+  const B = EBANK[bl].builder, b = band(), T = (t, p) => (b <= 1 ? rich(p || t, b) : autoPill(t, b));
+  let finished = false; const doneOnce = () => { if (!finished) { finished = true; onDone(); } };
+  if (B.type === 'sort') {
+    const items = E.shuffle(B.items.map((it, j) => ({ t: it[0], e: it[1], b: it[2], p: it[3] || it[0], j }))), pick = {};
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="sortlist">${items.map(it => `<div class="sortrow" data-j="${it.j}"><span class="sort-e" aria-hidden="true">${it.e}</span><span class="sort-t">${esc(it.p)}</span>
+      <div class="sort-b n${B.buckets.length}" role="group">${B.buckets.map((bk, bi) => `<button data-b="${bi}">${esc(bk)}</button>`).join('')}</div></div>`).join('')}</div>
+      <button id="bchk" style="width:100%" disabled>Check</button><div id="bfb"></div>`;
+    $$('.sortrow', host).forEach(row => $$('button', row).forEach(btn => (btn.onclick = () => { pick[row.dataset.j] = +btn.dataset.b; $$('button', row).forEach(x => x.classList.toggle('sel', x === btn)); $('#bchk', host).disabled = Object.keys(pick).length < items.length; })));
+    $('#bchk', host).onclick = () => {
+      let right = 0;
+      $$('.sortrow', host).forEach(row => { const it = items.find(x => x.j === +row.dataset.j), ok = pick[it.j] === it.b; right += ok; row.classList.add(ok ? 'good' : 'bad');
+        $$('button', row).forEach((x, bi) => { x.disabled = true; x.classList.toggle('sel', bi === it.b); x.classList.toggle('fix', !ok && bi === it.b); }); });
+      $('#bchk', host).remove(); $('#bfb', host).innerHTML = `<div class="fb ${right === items.length ? 'ok' : 'tip'}"><b>${right} of ${items.length} right.</b>${right === items.length ? 'Great!' : 'The green answers show the right group.'}</div>`; doneOnce();
+    };
+  }
+  if (B.type === 'budget') {
+    const fmtd = v => v.toLocaleString('en-US') + ' đồng'; let spent = 0; const got = new Set();
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="budget"><div class="purse">👛 <b id="left">${fmtd(B.money)}</b> left</div>
+      <div class="choices two">${B.items.map(([n, e, pr], k) => `<button class="choice" data-k="${k}"><span class="otext">${e} ${esc(n)}<br><span class="note">${fmtd(pr)}</span></span></button>`).join('')}</div></div>
+      <button id="bdone" class="alt" style="width:100%">I can't buy any more</button><div id="bfb"></div>`;
+    $$('.budget .choice', host).forEach(btn => (btn.onclick = () => {
+      const [n, , pr] = B.items[+btn.dataset.k]; if (got.has(btn.dataset.k)) return;
+      if (spent + pr > B.money) { btn.classList.add('wrong'); btn.animate?.([{ transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'none' }], 250); $('#bfb', host).innerHTML = `<div class="fb no"><b>Not enough money for the ${esc(n.toLowerCase())}.</b></div>`; return; }
+      spent += pr; got.add(btn.dataset.k); btn.classList.add('right'); $('#left', host).textContent = fmtd(B.money - spent); $('#bfb', host).innerHTML = '';
+    }));
+    $('#bdone', host).onclick = () => { $$('.budget .choice', host).forEach(x => (x.disabled = true)); $('#bdone', host).remove(); $('#bfb', host).innerHTML = `<div class="fb tip"><b>What happened?</b>${T(B.after)}</div>`; doneOnce(); };
+  }
+  if (B.type === 'pickone') {
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="choices two pickone">${[B.a, B.b].map(([n, e], k) => `<button class="choice" data-k="${k}"><span class="otext"><span style="font-size:2rem">${e}</span><br>${esc(n)}</span></button>`).join('')}</div><div id="bfb"></div>`;
+    $$('.pickone .choice', host).forEach(btn => (btn.onclick = () => {
+      const k = +btn.dataset.k, ch = [B.a, B.b][k], lost = [B.a, B.b][1 - k];
+      $$('.pickone .choice', host).forEach((x, j) => { x.disabled = true; x.classList.add(j === k ? 'right' : 'gone'); });
+      $('#bfb', host).innerHTML = `<div class="fb tip"><b>${lost[1]} ➜ ❌</b>${esc(B.after.replace('{chosen}', ch[0].toLowerCase()).replace('{lost}', lost[0].toLowerCase()))}</div>`; doneOnce();
+    }));
+  }
+  if (B.type === 'cards') {
+    let open = 0;
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="flipcards">${B.cards.map(([f, back], k) => `<button class="flip" data-k="${k}"><span class="f">${esc(f)}</span><span class="bk" hidden>${esc(back)}</span></button>`).join('')}</div>`;
+    $$('.flip', host).forEach(btn => (btn.onclick = () => { if (btn.classList.contains('open')) return; btn.classList.add('open'); $('.bk', btn).hidden = false; if (++open === B.cards.length) doneOnce(); }));
+  }
+  if (B.type === 'tapone') {
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="choices">${B.items.map(([n, e], k) => `<button class="choice" data-k="${k}"><span class="otext">${e} ${esc(n)}</span></button>`).join('')}</div><div id="bfb"></div>`;
+    $$('.choice', host).forEach(btn => (btn.onclick = () => { const ok = +btn.dataset.k === B.answer; $$('.choice', host).forEach((x, j) => { x.disabled = true; if (j === B.answer) x.classList.add('right'); }); if (!ok) btn.classList.add('wrong');
+      $('#bfb', host).innerHTML = `<div class="fb ${ok ? 'ok' : 'tip'}"><b>${ok ? 'Yes!' : 'Look again.'}</b>${esc(ok ? B.right : B.wrong)}</div>`; doneOnce(); }));
+  }
+  if (B.type === 'graph') {
+    let k = 0;
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="play-grid"><div class="dgwrap" id="bpg"></div><div><p id="bask" class="event"></p><div class="choices two" id="bpts"></div><div id="bfb"></div></div></div>`;
+    const pg = createPPC($('#bpg', host), { show: B.show });
+    const ask = () => {
+      if (k >= B.asks.length) { $('#bask', host).textContent = 'All done!'; $('#bpts', host).innerHTML = ''; return doneOnce(); }
+      $('#bask', host).innerHTML = `Which point shows: <b>${esc(B.asks[k][1])}</b>?`;
+      $('#bpts', host).innerHTML = B.show.map(n => `<button class="choice" data-n="${n}"><b>Point ${n}</b></button>`).join('');
+      $$('#bpts .choice', host).forEach(btn => (btn.onclick = () => { const ok = btn.dataset.n === B.asks[k][0]; pg.points(B.show, B.asks[k][0]);
+        $('#bfb', host).innerHTML = `<div class="fb ${ok ? 'ok' : 'tip'}"><b>${ok ? 'Right!' : `It is point ${B.asks[k][0]}.`}</b></div>`; k++; setTimeout(ask, 900); }));
+    };
+    ask();
+  }
+  if (B.type === 'ppcslider') {
+    const ph = x => Math.round(10 * Math.sqrt(Math.max(0, 1 - (x / 10) ** 2)) * 10) / 10;
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="play-grid"><div class="dgwrap" id="bpg"></div><div>
+      <label for="rice">Rice (million tonnes): <b id="rv">0</b></label><input type="range" id="rice" min="0" max="10" step="${B.steps ? 2 : 1}" value="0" style="width:100%">
+      <div class="stats"><div class="stat"><b id="pv">10</b><span>million phones</span></div><div class="stat"><b id="lost">0</b><span>phones given up${B.steps ? ' this step' : ' so far'}</span></div></div>
+      ${B.steps ? '<table class="lb" id="steps"><tr><th>Rice</th><th>Phones given up</th></tr></table>' : ''}<div id="bfb"></div></div></div>`;
+    const pg = createPPC($('#bpg', host), {}); pg.dot(0, 10); let prev = 0;
+    $('#rice', host).oninput = e => {
+      const x = +e.target.value, y = ph(x); pg.dot(x, y); $('#rv', host).textContent = x; $('#pv', host).textContent = y;
+      if (B.steps && x > prev) { const lost = Math.round((ph(prev) - y) * 10) / 10; $('#lost', host).textContent = lost; $('#steps', host).insertAdjacentHTML('beforeend', `<tr><td>${prev} → ${x}</td><td><b>${lost}</b></td></tr>`); }
+      else if (!B.steps) $('#lost', host).textContent = Math.round((10 - y) * 10) / 10;
+      prev = x;
+      if (x >= (B.steps ? 10 : 6) && !finished) { $('#bfb', host).innerHTML = `<div class="fb tip"><b>What happened?</b>${T(B.after)}</div>`; doneOnce(); }
+    };
+  }
+  if (B.type === 'shift') {
+    const seen = new Set();
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="play-grid"><div class="dgwrap" id="bpg"></div><div><div class="choices">${PPC_SHIFTS.map((x, k) => `<button class="choice" data-k="${k}"><b>${esc(x[0])}</b></button>`).join('')}
+      <button class="choice" data-k="m"><b>Move workers from farms to factories</b></button></div><p id="beff"></p></div></div>`;
+    const pg = createPPC($('#bpg', host), { show: ['B', 'C'] });
+    $$('.choice', host).forEach(btn => (btn.onclick = () => { $$('.choice', host).forEach(x => x.classList.remove('sel')); btn.classList.add('sel'); seen.add(btn.dataset.k);
+      if (btn.dataset.k === 'm') { pg.shift(null, false); pg.points(['B', 'C']); pg.arrow('B', 'C'); $('#beff', host).innerHTML = 'Same resources, used differently: a <b>movement along</b> the PPC (from B to C). No shift.'; }
+      else { const sh = PPC_SHIFTS[+btn.dataset.k]; pg.arrow(null); pg.shift(sh[1]); $('#beff', host).innerHTML = rich(sh[2], Math.min(band(), 2)); }
+      if (seen.size >= 3) doneOnce(); }));
+  }
+}
+// One block: builder, the idea, then checks (quiz) or a guided walkthrough. Calls back with { right, n, answers }.
+function buildBlock(box, bl, { guided = false, retry = false, depth = 0, fromExam = false, title = '' }, cb) {
+  const L = EBANK[bl], b = band(), Bk = EM.EBLOCKS[bl], answers = [];
+  const pool = E.shuffle(L.checks.map((c, k) => ({ ...c, k }))), checks = pool.slice(0, retry ? 2 : 3);
+  box.innerHTML = `<div class="bu-head"><span class="bu-floor">${depth ? '⬇️ One floor down' : '🏗️ Build it up'} · ${esc(EM.LAYERS[Bk.layer] || '')}</span><h2>${esc(Bk.name)}</h2>${title ? `<p class="note">${title}</p>` : ''}</div>
+    ${retry ? '' : '<div id="bbld" class="bu-builder"></div>'}
+    <div id="bsay" ${retry ? '' : 'hidden'}><div class="bu-say"><b>💡 The idea</b><p>${b <= 1 ? rich(L.plain, b) : autoPill(L.say, b)}</p>${b === 0 && viOn() ? `<p class="vi">${esc(L.vi)}</p>` : ''}</div>
+    <div id="bq"></div></div>`;
+  const startChecks = () => {
+    $('#bsay', box).hidden = false; let i = 0;
+    const one = () => {
+      if (i >= checks.length) return cb({ right: answers.filter(a => a.first_try).length, n: checks.length, answers });
+      const c = checks[i], plainOne = b <= 1 || (i === 0 && !guided), opts = E.shuffle(c.options.map((o, j) => ({ ...o, right: j === 0 })));
+      const q = `<p class="scen-q"><b>${guided ? 'Guided' : 'Check'} ${i + 1} of ${checks.length}</b>${i === 0 && b >= 2 && !guided ? ' <span class="chip mint">in simple English</span>' : ''}<br>${plainOne ? rich(c.plain, Math.min(b, 1)) : autoPill(c.q, b)}</p>`;
+      $('#bq', box).innerHTML = `${q}<div class="choices">${opts.map((o, j) => `<button class="choice" data-j="${j}"><span class="otext">${plainOne ? rich(o.p, Math.min(b, 1)) : esc(o.t)}</span></button>`).join('')}</div><div id="bfb2"></div>`;
+      let tries = 0;
+      $$('#bq .choice', box).forEach(btn => (btn.onclick = () => {
+        const o = opts[+btn.dataset.j]; tries++;
+        if (guided && !o.right) { btn.classList.add('wrong'); btn.disabled = true; $('#bfb2', box).innerHTML = `<div class="fb tip"><b>Look again.</b>${esc(c.why)}</div>`; return; }
+        const rec = { id: `b:${bl}:${c.k}`, eng: 1, block: bl, first_try: !guided && o.right && tries === 1, ...(guided ? { guided: true } : {}), ...(i === 0 && plainOne && fromExam && b >= 2 && !guided ? { plain: true } : {}) };
+        if (!o.right) rec.pick = o.t;
+        answers.push(rec);
+        $$('#bq .choice', box).forEach((x, j) => { x.disabled = true; if (opts[j].right) x.classList.add('right'); }); if (!o.right) btn.classList.add('wrong');
+        $('#bfb2', box).innerHTML = `<div class="fb ${o.right ? 'ok' : 'no'}"><b>${o.right ? (guided ? 'Yes, that\'s it.' : 'Right! ⭐') : 'Not this one.'}</b>${esc(c.why)}</div><button id="bnx" style="width:100%">${i + 1 < checks.length ? 'Next' : 'Finish'}</button>`;
+        $('#bnx', box).onclick = () => { i++; one(); }; $('#bnx', box).scrollIntoView({ block: 'nearest' });
+      }));
+    };
+    one();
+  };
+  if (retry) return startChecks();
+  buildBuilder($('#bbld', box), bl, () => {
+    if ($('#bgo', box)) return;
+    $('#bbld', box).insertAdjacentHTML('beforeend', `<button id="bgo" style="width:100%;margin-top:10px">${guided ? 'Show me step by step →' : 'Now try some questions →'}</button>`);
+    $('#bgo', box).onclick = () => { $('#bgo', box).remove(); startChecks(); $('#bsay', box).scrollIntoView({ block: 'start', behavior: 'smooth' }); };
+  });
+}
+/** The whole Build it up detour for block bl. opts: { fromExam, onDone(result) }. Saves one 'build' attempt. */
+function buildUp(bl, { fromExam = false, onDone = () => {} } = {}) {
+  let ov = $('#bu'); if (!ov) { ov = document.createElement('div'); ov.id = 'bu'; ov.className = 'bu-overlay'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); document.body.append(ov); }
+  ov.innerHTML = '<div class="narrow"><div class="tcard" id="bubox"></div></div>'; ov.hidden = false; document.body.classList.add('bu-open'); ov.scrollTop = 0;
+  const box = $('#bubox', ov), t0 = Date.now(), all = [], built = [], half = [];
+  let langNote = '';
+  const pass = r => r.right >= Math.ceil(r.n * 2 / 3);
+  const end = () => {
+    const st = est(), unit = UNITS.some(u => u.id === EM.EBLOCKS[bl].unit) ? EM.EBLOCKS[bl].unit : U;
+    const a = { unit, activity: 'build', level_start: 0, level_end: 0, score: all.filter(x => x.first_try).length, max_score: all.length, seconds: Math.round((Date.now() - t0) / 1000),
+      answers: [...all, ...built.map(id => ({ id: `b:${id}:built`, eng: 1, block: id, built: true }))] };
+    const xp = E.xpForNew(history, a);
+    box.innerHTML = `<div class="center"><span class="tag gold">Build it up done</span>
+      <div class="bu-result">${built.map(id => `<div class="bu-brick built">🏢 <b>${esc(EM.EBLOCKS[id].name)}</b><br><span class="note">building finished</span></div>`).join('')}
+        ${half.map(id => `<div class="bu-brick half">🏗️ <b>${esc(EM.EBLOCKS[id].name)}</b><br><span class="note">half built: it comes back tomorrow</span></div>`).join('')}</div>
+      ${langNote}${xpLine(xp)}<p class="note" id="busaved">Saving…</p>
+      <button id="buback" style="width:100%">Back to my question →</button><p><a href="#/city" id="bucity">See my city 🏙️</a></p></div>`;
+    $('#buback', box).onclick = () => close(true); $('#bucity', box).onclick = e => { e.preventDefault(); close(false); go('#/city'); };
+    saveAttempt(a).then(ok => { const el = $('#busaved', box); if (el) el.textContent = ok ? '✔ Saved' : 'Saved on this device.'; });
+    if (location.hash.startsWith('#/city')) cityView(bl);   // the skyline behind the overlay shows the new building straight away
+    if (built.length) Cel.big({ icon: '🏢', title: `New building: ${EM.EBLOCKS[built[0]].name}`, sub: 'Your city is growing', xp }); else Cel.set(xp);
+  };
+  const close = resume => { ov.hidden = true; ov.innerHTML = ''; document.body.classList.remove('bu-open'); if (resume) onDone({ built, half }); };
+  const st0 = est();
+  // 1. the block itself
+  buildBlock(box, bl, { fromExam, title: 'Let\'s build the idea you need for this question.' }, r1 => {
+    all.push(...r1.answers);
+    if (fromExam && r1.answers[0] && r1.answers[0].plain && r1.answers[0].first_try) {
+      r1.answers[0].lang = true;
+      langNote = `<div class="fb tip"><b>You know the idea 👍</b>The exam English was the hard part. Learn these words: ${(EBANK[bl].plain.match(/\[\[([^|\]]+)/g) || []).map(x => `<span class="chip mint">${esc(x.slice(2))}</span>`).join(' ')}</div>`;
+    }
+    if (pass(r1)) { built.push(bl); return end(); }
+    const under = EM.underneath(st0, bl);
+    const guidedTop = () => buildBlock(box, bl, { guided: true, retry: true, title: 'Step by step: you can\'t get this wrong. Tap the right answer.' }, rg => { all.push(...rg.answers); half.push(bl); end(); });
+    if (!under || !BUILD_OK(under)) return guidedTop();
+    // 2. one floor down, then back up
+    box.scrollIntoView?.({ block: 'start' }); ov.scrollTop = 0;
+    buildBlock(box, under, { depth: 1, title: `This idea sits under "${esc(EM.EBLOCKS[bl].name)}". Build it first.` }, r2 => {
+      all.push(...r2.answers); ov.scrollTop = 0;
+      if (pass(r2)) {
+        built.push(under);
+        return buildBlock(box, bl, { retry: true, title: 'Now back up a floor. Try again.' }, r3 => { all.push(...r3.answers); ov.scrollTop = 0; if (pass(r3)) { built.push(bl); end(); } else guidedTop(); });
+      }
+      buildBlock(box, under, { guided: true, retry: true, depth: 1, title: 'Step by step: you can\'t get this wrong.' }, rg => { all.push(...rg.answers); half.push(under); ov.scrollTop = 0; guidedTop(); });
+    });
+  });
+}
+// ---------- My city: one building per block. Built = lit windows; half built = scaffolding; ready = crane; locked = outline ----------
+const CITY_HUE = ['#F4A261', '#2A9D8F', '#E76F51', '#457B9D', '#9B5DE5', '#E9C46A', '#06D6A0'];
+function skylineSVG(st, ids, { small = false } = {}) {
+  const w = 40, gap = 8, W = ids.length * (w + gap) + gap, H = 230, G = 200;
+  const bld = (id, k) => {
+    const Bk = EM.EBLOCKS[id], x = gap + k * (w + gap), h = 46 + Bk.layer * 28, y = G - h, s = BUILD_OK(id) ? EM.stateOf(st, id) : 'soon', hue = CITY_HUE[Bk.layer % CITY_HUE.length];
+    const win = Array.from({ length: Math.floor((h - 14) / 16) }, (_, r) => [0, 1].map(c => `<rect x="${x + 8 + c * 15}" y="${y + 10 + r * 16}" width="9" height="9" rx="1.5" class="${s === 'built' ? 'lit' : 'dark'}"/>`).join('')).join('');
+    const body = s === 'built' ? `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${hue}"/>${win}<path d="M${x + w / 2} ${y} v-12" stroke="#16324F" stroke-width="2"/><path d="M${x + w / 2} ${y - 12} h10 l-3 4 l3 4 h-10z" fill="#E63946"/>`
+      : s === 'guided' ? `<rect x="${x}" y="${y + h / 2}" width="${w}" height="${h / 2}" rx="3" fill="${hue}"/><rect x="${x}" y="${y}" width="${w}" height="${h / 2}" fill="none" stroke="${hue}" stroke-width="2" stroke-dasharray="4 3"/><path d="M${x} ${y} l${w} ${h / 2} M${x + w} ${y} l${-w} ${h / 2}" stroke="${hue}" stroke-width="1.5" opacity=".7"/>`
+      : s === 'ready' ? `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="#fff" fill-opacity=".55" stroke="${hue}" stroke-width="2.5" stroke-dasharray="6 4"/><path d="M${x + 6} ${G} V${y - 26} H${x + w + 10} M${x + 6} ${y - 18} L${x + 18} ${y - 26} M${x + w + 6} ${y - 26} v12" stroke="#E9C46A" stroke-width="3" fill="none"/>`
+      : `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="none" stroke="currentColor" stroke-width="1.5" opacity="${s === 'soon' ? 0.18 : 0.35}"/>`;
+    return `<g class="bld ${s}" data-b="${id}" tabindex="${small || s === 'soon' ? -1 : 0}" role="button" aria-label="${esc(Bk.name)}: ${s}"><title>${esc(Bk.name)}</title>${body}<rect x="${x - 2}" y="${y - 30}" width="${w + 4}" height="${h + 30}" fill="transparent"/></g>`;
+  };
+  return `${small ? '' : '<div class="skyscroll">'}<svg class="skyline${small ? ' small' : ''}" viewBox="0 0 ${W} ${H}" ${small ? '' : `style="min-width:${Math.round(W * 0.9)}px"`} preserveAspectRatio="xMidYMax meet" role="img" aria-label="Your concept city">
+    <defs><linearGradient id="skyg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB88C"/><stop offset="1" stop-color="#FFE7C7"/></linearGradient></defs>
+    <rect width="${W}" height="${G}" fill="url(#skyg)"/><circle cx="${W - 40}" cy="40" r="18" fill="#FFF3B0"/>
+    <rect y="${G}" width="${W}" height="${H - G}" fill="#3E9BD6"/><path d="M0 ${G + 12} q15 -4 30 0 t30 0" stroke="#9CD6F5" stroke-width="2" fill="none" transform="scale(${W / 60} 1)"/>
+    ${ids.map(bld).join('')}</svg>${small ? '' : '</div>'}`;
+}
+const S1_BLOCKS = () => Object.values(EM.EBLOCKS).filter(b => b.unit[0] === '1').sort((a, b) => a.layer - b.layer).map(b => b.id);
+function cityView(only) {
+  const st = est(), ids = S1_BLOCKS(), s2 = Object.values(EM.EBLOCKS).filter(b => b.unit[0] === '2').sort((a, b) => a.layer - b.layer).map(b => b.id);
+  const n = ids.filter(id => EM.isMastered(st, id)).length, halfN = ids.filter(id => EM.stateOf(st, id) === 'guided').length;
+  const rep = EM.repairs(st, Date.now(), BUILD_OK), next = rep[0] || ids.find(id => EM.stateOf(st, id) === 'ready' || EM.stateOf(st, id) === 'guided') || ids.find(id => !EM.isMastered(st, id));
+  view(`<div class="narrow"><div class="hero"><p class="eyebrow">My concept city</p><h1>${n} of ${ids.length} buildings</h1>
+      <p class="lede">Every idea you master becomes a building in your Ho Chi Minh City skyline. Build from the ground up: everyday ideas first, then the ideas that stand on them.</p>
+      ${next ? `<div class="row"><a class="btn" href="#/city/${next}">${rep[0] ? 'Repair' : 'Build next'}: ${esc(EM.EBLOCKS[next].name)} →</a></div>` : ''}</div>
+    <div class="tcard"><h2 style="margin:0 0 6px">District 1: The basic economic problem</h2>${skylineSVG(st, ids)}
+      <p class="note">🏢 built ${n} · 🏗️ half built ${halfN} · dashed with a crane = ready to build · faint = build the ones underneath first. Tap a building${innerWidth < 700 ? '; swipe to see the whole street' : ''}.</p><div id="binfo"></div></div>
+    <div class="tcard"><h2 style="margin:0 0 6px">District 2: Markets <span class="chip">coming soon</span></h2>${skylineSVG(st, s2, { small: true })}
+      <p class="note">Demand, supply and prices: these buildings open with units 2.1 to 2.5.</p></div></div>`);
+  const info = id => {
+    const Bk = EM.EBLOCKS[id], s = EM.stateOf(st, id), p = Math.round(100 * EM.pOf(st, id));
+    $('#binfo').innerHTML = `<div class="fb tip"><b>${esc(Bk.name)}</b>${{ built: 'Built ✔', guided: 'Half built: finish it today', ready: 'Ready to build', locked: 'Build the ideas underneath first' }[s]} · strength ${p}%
+      ${Bk.pre.length ? `<br><span class="note">Stands on: ${Bk.pre.map(q => esc(EM.EBLOCKS[q].name)).join(', ')}</span>` : '<br><span class="note">An everyday idea: the ground floor.</span>'}
+      <div class="row" style="margin-top:8px"><a class="btn${s === 'built' ? ' alt' : ''}" href="#/city/${id}">${s === 'built' ? 'Practise again' : 'Build it'} →</a></div></div>`;
+  };
+  $$('.skyline:not(.small) .bld').forEach(g => { g.onclick = () => info(g.dataset.b); g.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); info(g.dataset.b); } }; });
+  if (only && EM.EBLOCKS[only]) info(only);
+}
+
 // ---------- router ----------
 const ACT = { learn, shift: () => shift(), eqm: () => eqm(), mcq: () => mcq(), data, check: checkpoint, p2, ppc: () => ppcRun() };
 function route() {
@@ -1388,6 +1636,10 @@ function route() {
   const [a, u, act, sub] = location.hash.replace(/^#\/?/, '').split('/');
   if (a === 'units') return unitsView();
   if (a === 'baseline') return baselineRun();
+  if (a === 'city') {
+    if (u && EM.EBLOCKS[u] && BUILD_OK(u)) { cityView(u); nav('me'); return buildUp(u, { onDone: () => cityView(u) }); }
+    nav('me'); return cityView();
+  }
   if (a === 'review') return u === 'go' ? reviewRun() : reviewView();
   if (a === 'games') return gamesView();
   if (a === 'me') return meView(u || 'stats');

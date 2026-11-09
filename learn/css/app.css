@@ -346,3 +346,24 @@ select.gap.good{border-color:var(--ok);background:var(--ok-soft)}select.gap.bad{
 .cmdtag{display:inline-block;padding:1px 10px;border-radius:99px;background:#7B4FC4;color:#fff;font:800 .8rem var(--font-body);vertical-align:middle}
 select.gap.fixgap{border-color:var(--ok);background:var(--ok-soft)}
 .card .linkbtn,.tcard .linkbtn{color:var(--teal)}#easier{font-size:.95rem}
+/* Econ engine: Build it up overlay and My city */
+.bu-overlay{position:fixed;inset:0;z-index:60;overflow-y:auto;background:color-mix(in srgb,var(--navy) 55%,transparent);padding:16px 0 40px;backdrop-filter:blur(2px)}
+body.bu-open{overflow:hidden}
+.bu-overlay .tcard{box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.bu-head{padding-bottom:8px;margin-bottom:8px;border-bottom:2px dashed var(--line)}.bu-head h2{margin:.2em 0 0}
+.bu-floor{display:inline-block;padding:2px 10px;border-radius:99px;background:#E9C46A;color:#16324F;font-weight:800;font-size:.8rem}
+.bu-builder{margin:6px 0 12px}.bu-say{padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--gold) 14%,var(--panel));border-left:5px solid var(--gold);margin:8px 0}
+.bu-say p{margin:.3em 0 0}.buildbtn{font-weight:800}
+.bu-result{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:14px 0}
+.bu-brick{padding:12px 16px;border-radius:14px;border:2px solid var(--ok);background:var(--ok-soft);min-width:200px}.bu-brick.half{border-style:dashed;border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,var(--panel))}
+.budget .purse{font-size:1.1rem;margin:4px 0 8px}.choice.gone{opacity:.35;text-decoration:line-through}
+.flipcards{display:grid;gap:10px}.flip{display:block;width:100%;text-align:left;padding:14px;border-radius:14px;border:2px solid var(--line);background:var(--panel);color:var(--ink);font-size:1rem;min-height:64px}
+.flip.open{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 8%,var(--panel))}.flip .bk{display:block;margin-top:8px;font-weight:700;color:var(--teal)}
+.ppc-guide{stroke:var(--muted);stroke-dasharray:4 4;stroke-width:1.5}
+.skyline{display:block;width:100%;height:auto;border-radius:14px;color:var(--ink);margin:4px 0}.skyline.small{opacity:.8}
+.skyline .bld{cursor:pointer;outline:none}.skyline .bld:focus-visible rect:first-child,.skyline .bld:hover rect:first-child{stroke:#16324F;stroke-width:3}
+.skyline .lit{fill:#FFF3B0}.skyline .dark{fill:rgba(255,255,255,.35)}
+.skyline .bld.ready{animation:crane 2.4s ease-in-out infinite}@keyframes crane{50%{opacity:.6}}
+@media (prefers-reduced-motion:reduce){.skyline .bld.ready{animation:none}}
+.citycard{display:block;text-decoration:none;color:var(--ink)}.citycard .skyline{margin-top:8px;max-height:120px}
+.skyscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px}

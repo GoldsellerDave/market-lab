@@ -1,26 +1,28 @@
 // Teacher dashboard, laid out like Checkpoint Quest's: class pills, four stat cards, tabs for Students, Units,
 // Skills heat map, Hardest questions, Leaderboard and Manage class, and a tracker page for each student.
-import { rpc, token, DEMO, errText } from './api.js?v=152deb46';
-import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js?v=152deb46';
-import { UNITS, ACTIVITIES } from './units.js?v=152deb46';
-import * as E from './engine.js?v=152deb46';
-import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js?v=152deb46';
-import { mission, checkBest, CHECK_PASS } from './mission.js?v=152deb46';
-import { icon, tile } from './icons.js?v=152deb46';
-import { bandOf, BANDS, BAND_NAMES } from './bands.js?v=152deb46';
-import { BASELINE_N } from './u1.js?v=152deb46';
-import { SCENARIOS } from './u1s.js?v=152deb46';
+import { rpc, token, DEMO, errText } from './api.js?v=a9a988f6';
+import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js?v=a9a988f6';
+import { UNITS, ACTIVITIES } from './units.js?v=a9a988f6';
+import * as E from './engine.js?v=a9a988f6';
+import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js?v=a9a988f6';
+import { mission, checkBest, CHECK_PASS } from './mission.js?v=a9a988f6';
+import { icon, tile } from './icons.js?v=a9a988f6';
+import { bandOf, BANDS, BAND_NAMES } from './bands.js?v=a9a988f6';
+import { BASELINE_N } from './u1.js?v=a9a988f6';
+import * as EM from './eengine.js?v=a9a988f6';
+import { EREADY } from './ebank.js?v=a9a988f6';
+import { SCENARIOS } from './u1s.js?v=a9a988f6';
 
 let me = null, classes = [], cls = null, tab = pref.get('t-tab2', 'students'), live = null, focus = null, lbMode = 'week';
 const BUILT = UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);
 let UNIT = BUILT.includes(pref.get('t-unit', '2.5')) ? pref.get('t-unit', '2.5') : BUILT[BUILT.length - 1];
-const actName = (unit, id) => (id.startsWith('sc-') ? 'Scenario: ' + ((SCENARIOS.find(s => 'sc-' + s.id === id) || {}).title || id) : id === 'check' ? 'Unit checkpoint' : id === 'review' ? 'Review' : ((ACTIVITIES[unit] || []).find(a => a.id === id) || { title: id }).title);
+const actName = (unit, id) => (id === 'build' ? 'Build it up' : id.startsWith('sc-') ? 'Scenario: ' + ((SCENARIOS.find(s => 'sc-' + s.id === id) || {}).title || id) : id === 'check' ? 'Unit checkpoint' : id === 'review' ? 'Review' : ((ACTIVITIES[unit] || []).find(a => a.id === id) || { title: id }).title);
 const LEVELED = new Set(['shift', 'eqm', 'mcq', 'ppc']);
 const pracOf = u => (ACTIVITIES[u] || []).find(a => a.id === 'shift' || a.id === 'eqm' || a.id === 'ppc');
 const engChip = bi => (bi.band == null ? '<span class="lvlchip">Not placed</span>' : `<span class="chip mint" title="${BAND_NAMES[bi.band]}">${BANDS[bi.band]}</span>${bi.source === 'teacher' ? ' <span class="note">set by you</span>' : ''}`);
 const viClass = () => (classes.find(x => x.code === cls.code) || cls).vi_a1 !== false;
 const T = () => token.get();
-const TABS = [['students', 'Students'], ['units', 'Units'], ['traps', 'Skills heat map'], ['items', 'Hardest questions'], ['leaderboard', 'Leaderboard'], ['ai', 'AI marking'], ['manage', 'Manage class']];
+const TABS = [['students', 'Students'], ['units', 'Units'], ['traps', 'Skills heat map'], ['items', 'Hardest questions'], ['leaderboard', 'Leaderboard'], ['concepts', 'Concept city'], ['ai', 'AI marking'], ['manage', 'Manage class']];
 
 function header() {
   const m = $('#meta'); if (!m) return;
@@ -126,7 +128,7 @@ function render(quiet = false) {
   $('#refresh').onclick = e => busy(e.target, async () => { try { await load(cls.code); render(); toast('Updated'); } catch (er) { fail(er); } });
   $('#live').onclick = () => { pref.set('t-live', !live); startLive(); render(); };
   const body = $('#body', app);
-  if (focus) tracker(body, focus); else ({ students, units, traps, items, leaderboard, ai: aiTab, manage })[tab](body);
+  if (focus) tracker(body, focus); else ({ students, units, traps, items, leaderboard, concepts, ai: aiTab, manage })[tab](body);
   if (quiet) window.scrollTo(0, y);
 }
 const openStudent = el => $$('[data-id]', el).forEach(r => (r.onclick = e => { e.preventDefault(); focus = r.dataset.id; render(); }));
@@ -228,6 +230,32 @@ function leaderboard(body) {
     <p class="note" style="margin-top:8px">Students see ${boardOn() ? 'the top 10 and their own place (this week and all time)' : 'only their own XP: the class leaderboard is off (Manage class)'}.</p>`;
   $$('[data-lb]', body).forEach(b => (b.onclick = () => { lbMode = b.dataset.lb; render(); }));
   openStudent(body);
+}
+
+// ---------- Concept city: for each idea (block), who has built it, who has it half built, and who is weak on it ----------
+function concepts(body) {
+  const ids = Object.values(EM.EBLOCKS).filter(b => b.unit[0] === '1' && EREADY.has(b.id)).sort((a, b) => a.layer - b.layer || a.unit.localeCompare(b.unit)).map(b => b.id);
+  const per = cls.students.map(st => { const a = mine(st.id); return { st, m: EM.mastery(a), lang: new Set(a.flatMap(x => (x.answers || []).filter(y => y.lang).map(y => y.block))) }; });
+  const rows = ids.map(id => {
+    const g = { built: [], half: [], weak: [], lang: [] };
+    per.forEach(({ st, m, lang }) => { const s = m[id];
+      if (s && s.mastered) g.built.push(st); else if (s && s.guided) g.half.push(st); else if (s && s.miss && s.p < 0.5) g.weak.push(st);
+      if (lang.has(id)) g.lang.push(st); });
+    return { id, g };
+  });
+  const names = l => l.map(st => esc(st.display_name)).join(', ') || '–';
+  const nWeak = r => r.g.weak.length + r.g.half.length;
+  const worst = rows.slice().sort((a, b) => nWeak(b) - nWeak(a)).filter(r => nWeak(r) > 0).slice(0, 3);
+  body.innerHTML = `<p class="note">Every idea in 1.1 to 1.4 is a building in the students' concept city. When a student misses a question, the app finds the idea underneath and builds it up with them.
+      <b>Weak</b> = missed recently and below 50%. <b>Half built</b> = finished only with a guided walkthrough (it comes back the next day). <b>English</b> = right in simple English but wrong in exam English: a language gap, not a concept gap.</p>
+    ${worst.length ? `<div class="tcard"><h3 style="margin:0 0 6px">Re-teach first</h3>${worst.map(r => `<p style="margin:.3em 0"><b>${esc(EM.EBLOCKS[r.id].name)}</b> (${EM.EBLOCKS[r.id].unit}): ${nWeak(r)} student${nWeak(r) === 1 ? '' : 's'} · stands on ${EM.EBLOCKS[r.id].pre.map(q => esc(EM.EBLOCKS[q].name)).join(', ') || 'everyday ideas'}</p>`).join('')}</div>` : ''}
+    <div class="tablewrap"><table class="grid"><tr><th>Idea</th><th>Unit</th><th>Built</th><th>Half built</th><th>Weak</th><th>English gap</th></tr>
+    ${rows.map(({ id, g }) => `<tr class="crow" data-b="${id}"><td><b>${esc(EM.EBLOCKS[id].name)}</b><br><span class="note">${esc(EM.LAYERS[EM.EBLOCKS[id].layer])}</span></td><td>${EM.EBLOCKS[id].unit}</td>
+      <td class="num"><span class="chip ok">${g.built.length}</span></td><td class="num">${g.half.length ? `<span class="chip gold">${g.half.length}</span>` : '0'}</td>
+      <td class="num">${g.weak.length ? `<span class="chip bad">${g.weak.length}</span>` : '0'}</td><td class="num">${g.lang.length || '0'}</td></tr>
+      <tr class="cdet" data-for="${id}" hidden><td colspan="6"><p class="note" style="margin:.2em 0"><b>Weak:</b> ${names(g.weak)}<br><b>Half built:</b> ${names(g.half)}<br><b>English gap:</b> ${names(g.lang)}<br><b>Built:</b> ${names(g.built)}</p></td></tr>`).join('')}</table></div>
+    <p class="note">Tap a row to see the students.</p>`;
+  $$('.crow', body).forEach(tr => (tr.onclick = () => { const d = $(`.cdet[data-for="${tr.dataset.b}"]`, body); d.hidden = !d.hidden; }));
 }
 
 // ---------- AI marking: every AI decision on a written answer, with a flag when the teacher disagrees ----------
