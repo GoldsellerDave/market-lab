@@ -1,6 +1,6 @@
 // Production possibility curve diagram (SVG): rice on the horizontal axis, phones on the vertical axis.
 // The main curve is a quarter ellipse through (0,10) and (10,0); a second curve shows a shift (rx, ry = the new maximums).
-import { PPC_POINTS } from './u1.js?v=19e7aff6';
+import { PPC_POINTS } from './u1.js?v=4e7248ff';
 
 const W = 360, H = 320, X0 = 56, Y0 = 270, MAX = 14, S = (300 - X0) / MAX;
 const px = x => X0 + x * S, py = y => Y0 - y * S;

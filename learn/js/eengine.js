@@ -70,8 +70,10 @@ export const TRAP_BLOCK = {
   'market-def': 'market-place', 'price-signal': 'price-signal', 'planned': 'market-3q', 'want-vs-demand': 'eff-demand', 'law-demand': 'law-demand', 'law-supply': 'law-supply',
   'hats': 'two-hats', 'move-shift': 'inside-outside', 'ext-con': 'ext-con', 'd-causes': 'demand-causes', 'subs-comp': 'demand-causes', 's-causes': 'supply-causes',
   'costs-supply': 'supply-causes', 'add-up': 'market-demand',
-  // 2.4 and 2.5 (their questions are tagged in step 3; these already send a miss to the right block)
-  'move-vs-shift': 'inside-outside', 'related-goods': 'demand-causes', 'tax-subsidy': 'supply-causes', 'market-sum': 'market-demand', 'price-mechanism': 'price-signal'
+  // 2.4 and 2.5
+  'move-vs-shift': 'inside-outside', 'related-goods': 'demand-causes', 'tax-subsidy': 'supply-causes', 'market-sum': 'market-demand', 'price-mechanism': 'market-3q',
+  'eq-def': 'equilibrium', 'shortage-surplus': 'shortage-surplus', 'price-pressure': 'shortage-surplus', 'gap-calc': 'shortage-surplus',
+  'd-vs-s': 'price-chain', 'direction': 'price-chain', 'pq-link': 'price-chain', 'two-shifts': 'price-chain'
 };
 // The block a question practises: the most common block among its wrong answers' traps (ties: the first)
 export function blockOfOptions(options) {
