@@ -1,6 +1,6 @@
 // Production possibility curve diagram (SVG): rice on the horizontal axis, phones on the vertical axis.
 // The main curve is a quarter ellipse through (0,10) and (10,0); a second curve shows a shift (rx, ry = the new maximums).
-import { PPC_POINTS } from './u1.js?v=152deb46';
+import { PPC_POINTS } from './u1.js?v=a9a988f6';
 
 const W = 360, H = 320, X0 = 56, Y0 = 270, MAX = 14, S = (300 - X0) / MAX;
 const px = x => X0 + x * S, py = y => Y0 - y * S;
@@ -44,7 +44,12 @@ export function createPPC(host, opts = {}) {
     const step = now => { const t = Math.min(1, (now - t0) / 800), e = 1 - Math.pow(1 - t, 3); cur = { x: from.x + (target.x - from.x) * e, y: from.y + (target.y - from.y) * e }; draw(cur); if (t < 1) raf = requestAnimationFrame(step); };
     raf = requestAnimationFrame(step);
   }
+  // A free point at (x rice, y phones), with dashed lines to both axes (for the PPC slider)
+  function dot(x, y, label = '') {
+    q('pts').innerHTML = `<line class="ppc-guide" x1="${px(x)}" y1="${py(y)}" x2="${px(x)}" y2="${Y0}"/><line class="ppc-guide" x1="${X0}" y1="${py(y)}" x2="${px(x)}" y2="${py(y)}"/>
+      <circle class="ppc-pt hi" cx="${px(x)}" cy="${py(y)}" r="7"/>${label ? `<text class="ppc-ptlab" x="${px(x) + 9}" y="${py(y) - 9}">${label}</text>` : ''}`;
+  }
   points(opts.show || []);
   if (opts.arrow) arrow(...opts.arrow);
-  return { points, arrow, shift };
+  return { points, arrow, shift, dot };
 }

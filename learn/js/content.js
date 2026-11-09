@@ -1,9 +1,10 @@
 // Every built unit's content, keyed by unit id, plus merged lookups for traps and items (used by the teacher console).
-import * as U24 from './u24.js?v=152deb46';
-import * as U25 from './u25.js?v=152deb46';
-import * as U1 from './u1.js?v=152deb46';
-import { SCENARIOS } from './u1s.js?v=152deb46';
-import { EQ_TITLES } from './u24.js?v=152deb46';
+import * as U24 from './u24.js?v=a9a988f6';
+import * as U25 from './u25.js?v=a9a988f6';
+import * as U1 from './u1.js?v=a9a988f6';
+import * as EM from './eengine.js?v=a9a988f6';
+import { SCENARIOS } from './u1s.js?v=a9a988f6';
+import { EQ_TITLES } from './u24.js?v=a9a988f6';
 
 // Section 1 units share one glossary and one set of traps; each has its own cards and questions. BANDED: English adapts to the band.
 const terms = u => [...new Set([...JSON.stringify([U1.LEARN[u], U1.MCQ[u], U1.P2[u]]).matchAll(/\[\[([^|\]]+)(?:\|[^\]]*)?\]\]/g)].map(m => m[1]))].filter(t => U1.GLOSSARY[t]);
@@ -22,6 +23,10 @@ for (const [u, C] of Object.entries(CONTENT)) {
   (C.P2 || []).forEach(q => (ITEMS[q.id] = { unit: u, kind: 'Paper 2', text: q.q, level: q.level }));
   (C.PPC || []).forEach(q => (ITEMS[q.id] = { unit: u, kind: 'PPC', text: q.title + ': ' + q.steps[0].q, level: q.level }));
 }
+// The econ engine: which block each Section 1 question practises (from the misconceptions on its wrong answers)
+EM.registerItems([
+  ...Object.values(U1.MCQ).flat().map(q => [q.id, EM.blockOfOptions(q.options)]),
+  ...SCENARIOS.flatMap(s => s.steps.map((st, k) => [`${s.id}-${k + 1}`, st.type === 'choice' ? EM.blockOfOptions(st.options) : st.type === 'sort' ? EM.blockOfTrap(st.trap) : null]))]);
 SCENARIOS.forEach(s => { s.steps.forEach((st, k) => (ITEMS[`${s.id}-${k + 1}`] = { unit: s.unit, kind: 'Scenario', text: `${s.title}: ${st.q}`, level: 0 }));
   if (s.explain) ITEMS[`${s.id}-x`] = { unit: s.unit, kind: 'Scenario (B2)', text: `${s.title}: ${s.explain.q}`, level: 2 }; });
 U1.BASELINE.forEach(t => t.qs.forEach((q, k) => (ITEMS[`${t.id}-${k + 1}`] = { unit: 'base', kind: `Baseline ${t.level}`, text: `${t.title}: ${q.q}`, level: 0 })));

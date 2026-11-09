@@ -221,6 +221,110 @@ def scen_round(p, unit, size=None, explain=False):
     p.goto(BASE + f'/learn/?demo=1#/u/{unit}'); p.wait_for_selector('.msteps')
     ok(p.locator('.msteps li.done').filter(has_text='Solve the scenarios').count() == 1, f'{unit}: mission step "Solve the scenarios" done')
 
+def do_builder(p):
+    """Play any intuition builder in the Build it up overlay, then go on to the questions."""
+    bb = p.locator('#bu #bbld').last
+    if bb.locator('.sortrow').count():
+        for r in bb.locator('.sortrow').all(): r.locator('.sort-b button').first.click()
+        bb.locator('#bchk').click()
+    elif bb.locator('#bdone').count(): bb.locator('.budget .choice').first.click(); bb.locator('#bdone').click()
+    elif bb.locator('.pickone').count(): bb.locator('.pickone .choice').first.click()
+    elif bb.locator('.flip').count():
+        for f in bb.locator('.flip').all(): f.click()
+    elif bb.locator('#rice').count():
+        for v in range(2, 11, 2): bb.locator('#rice').fill(str(v)); bb.locator('#rice').dispatch_event('input')
+    elif bb.locator('#bpts').count():
+        for _ in range(3): p.wait_for_selector('#bu #bpts .choice'); bb.locator('#bpts .choice').first.click(); p.wait_for_timeout(1000)
+    elif bb.locator('.choices .choice').count() >= 3 and bb.locator('.dgwrap').count():
+        for c in bb.locator('.choice').all()[:3]: c.click()
+    else: bb.locator('.choice').first.click()
+    p.wait_for_selector('#bu #bgo'); p.click('#bu #bgo')
+
+def bu_block(p, right, expect_floor=None):
+    """Answer the checks of one block in the overlay: right=True all right, False all wrong, 'guided' tap until right."""
+    block = p.locator('#bu .bu-head h2').last.inner_text()
+    if expect_floor is not None: ok(('One floor down' in p.inner_text('#bu .bu-floor')) == expect_floor, f'Build it up: floor for {block}')
+    if p.locator('#bu #bbld').count() and p.locator('#bu #bsay[hidden]').count(): do_builder(p)
+    for _ in range(6):
+        if not p.locator('#bu #bq .choice').count(): break
+        name = p.locator('#bu .bu-head h2').last.inner_text(); qtext = norm(p.locator('#bu #bq .scen-q').inner_text())
+        chk = next(c for v in D['EB'].values() if v['name'] == name for c in v['checks'] if any(norm(x) in qtext for x in c['q']))
+        rights = {norm(t) for t in chk['right']}
+        btns = p.locator('#bu #bq .choice'); texts = [norm(btns.nth(i).inner_text()) for i in range(btns.count())]
+        if right == 'guided':
+            for i, t in enumerate(texts):
+                if t not in rights: btns.nth(i).click(position={'x': 5, 'y': 5}); ok('Look again' in p.inner_text('#bu #bfb2'), 'guided: a wrong tap says look again'); break
+            p.wait_for_timeout(100); btns = p.locator('#bu #bq .choice:enabled'); texts = [norm(btns.nth(i).inner_text()) for i in range(btns.count())]
+        pick = next((i for i, t in enumerate(texts) if (t in rights) == bool(right)), 0)
+        btns.nth(pick).click(position={'x': 5, 'y': 5}); p.wait_for_selector('#bu #bnx'); p.click('#bu #bnx'); p.wait_for_timeout(150)
+        if not p.locator('#bu #bq .choice').count() or p.locator('#bu .bu-head h2').last.inner_text() != block: break
+        if ('Guided' in p.locator('#bu #bq .scen-q').inner_text()) != (right == 'guided'): break
+
+def engine_round(p, size):
+    p.goto(BASE + '/learn/teacher.html?demo=1'); p.wait_for_selector('#u, .tabs')
+    if p.locator('#u').count(): p.fill('#u', 'teacher'); p.fill('#p', 'demo'); p.click('form button'); p.wait_for_selector('.tabs')
+    p.locator('a.sname', has_text='Mia').first.click()
+    p.wait_for_selector('#band'); p.select_option('#band', '3'); p.wait_for_timeout(300); p.click('#out')
+    student(p, 'demo-03')
+    p.wait_for_selector('a.citycard .skyline'); ok(p.locator('a.citycard .skyline').count() == 1, 'home: My concept city card')
+    # 1. Paper 1 at B2: miss on purpose; the first miss offers Build it up
+    p.goto(BASE + '/learn/?demo=1#/u/1.2/mcq')
+    rights = {norm(x) for q in D['MCQ'] for x in q['right']}
+    for i in range(10):
+        p.wait_for_selector('.event'); btns = p.locator('.choice'); texts = [norm(btns.nth(k).locator('.otext').inner_text()) for k in range(btns.count())]
+        btns.nth(next(k for k, t in enumerate(texts) if t not in rights)).locator('b').click()
+        if p.locator('#bu-go').count(): break
+        p.click('#nx')
+        if p.locator('#ok').count(): p.click('#ok')
+    ok(p.locator('#bu-go').count() == 1 and p.locator('#nx').count() == 1, 'first miss: Build it up offered next to Next')
+    if size: shot(p, size, '16-build-offer')
+    p.click('#bu-go'); p.wait_for_selector('#bu .bu-head')
+    ok(p.locator('#bu').is_visible(), 'Build it up opens over the question'); no_overflow(p, f'{size} build it up')
+    if size: shot(p, size, '17-build-builder')
+    first = p.locator('#bu .bu-head h2').inner_text()
+    if p.locator('#bu #bsay[hidden]').count(): do_builder(p)
+    ok('in simple English' in p.inner_text('#bu #bq'), 'B2: the first check is in simple English')
+    if size: shot(p, size, '18-build-check')
+    # first check right (simple English), the others wrong -> one floor down
+    bu_block(p, right=False)
+    p.wait_for_timeout(300)
+    floor = p.locator('#bu .bu-floor').inner_text() if p.locator('#bu .bu-floor').count() else ''
+    if 'One floor down' in floor:
+        if size: shot(p, size, '19-build-floor')
+        bu_block(p, right=True)            # the block underneath: all right -> built
+        p.wait_for_timeout(300)
+        if p.locator('#bu #bq .choice').count(): bu_block(p, right=True)   # back up: retry, right
+    else:
+        bu_block(p, right='guided')
+    p.wait_for_selector('#bu #buback'); res = p.inner_text('#bu')
+    ok('build it up done' in res.lower() and ('building finished' in res or 'half built' in res), f'Build it up result: {res[:120]}')
+    if size: shot(p, size, '20-build-done')
+    p.click('#bu #buback'); p.wait_for_timeout(400)
+    ok(not p.locator('#bu').is_visible() if p.locator('#bu').count() else True, 'Back to my question closes the overlay')
+    p.wait_for_selector('.event')
+    # 2. the guided path from the city
+    p.goto(BASE + '/learn/?demo=1#/city/opp-cost'); p.wait_for_selector('#bu .bu-head')
+    bu_block(p, right=False); p.wait_for_timeout(300)
+    if 'One floor down' in (p.locator('#bu .bu-floor').inner_text() if p.locator('#bu .bu-floor').count() else ''):
+        bu_block(p, right=False); p.wait_for_timeout(300); bu_block(p, right='guided'); p.wait_for_timeout(300)
+    bu_block(p, right='guided')
+    p.wait_for_selector('#bu #buback'); ok('half built' in p.inner_text('#bu'), 'guided walkthrough: half built, comes back tomorrow')
+    p.click('#bu #bucity'); p.wait_for_timeout(400); p.wait_for_selector('.skyline')
+    ok(p.locator('.skyline:not(.small) .bld.guided').count() >= 1, 'city: half-built buildings shown')
+    ok(p.locator('.skyline:not(.small) .bld.built').count() >= 1, 'city: built buildings shown')
+    p.locator('.skyline:not(.small) .bld.built').first.dispatch_event('click'); ok('Built' in p.inner_text('#binfo'), 'city: tap a building for its details')
+    if size: shot(p, size, '21-city'); no_overflow(p, size + ' city')
+    logout(p)
+    p.goto(BASE + '/learn/teacher.html?demo=1'); p.fill('#u', 'teacher'); p.fill('#p', 'demo'); p.click('form button'); p.wait_for_selector('.tabs')
+    p.click('.tabs [role=tab]:has-text("Concept city"), .tabs button:has-text("Concept city")'); p.wait_for_selector('.crow')
+    ok(p.locator('.crow').count() >= 20, 'teacher: a row for every Section 1 idea')
+    ok(any(int(x) > 0 for x in p.locator('.crow td:nth-child(3) .chip').all_inner_texts()), 'teacher: built buildings counted')
+    p.locator('.crow').first.click(); ok(p.locator('.cdet:not([hidden])').count() == 1, 'teacher: tap a row for names')
+    if size: shot(p, size, '22-teacher-concepts'); no_overflow(p, size + ' teacher concepts')
+    p.click('.tabs [role=tab]:has-text("Students"), .tabs button:has-text("Students")'); p.wait_for_selector('a.sname')
+    p.locator('a.sname', has_text='Mia').first.click(); p.wait_for_selector('#band'); p.select_option('#band', ''); p.wait_for_timeout(300)
+    p.click('#out')
+
 VI_ON = [True]
 POS = []
 DONE = set()
@@ -265,6 +369,7 @@ def run(p, size):
     teacher(p, None, band='auto')
     # automatic band changes: demo-02 starts at B1 (9/12), three strong runs move them to B2
     test_accounts(p, size)
+    engine_round(p, size)
     student(p, 'demo-03')
     for u in ('1.1', '1.2', '1.3', '1.4'): scen_round(p, u, size if u == '1.2' else None)
     ok('chip' in p.evaluate('window.__cel'), 'scenario solved: XP chip')

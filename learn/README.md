@@ -18,3 +18,12 @@ Teachers see every AI decision in the **AI marking** tab and can flag one; a fla
 To try the screens without AI, open the demo with `?demo=1&aidemo=1`.
 
 Before every commit run `python3 learn/tools/stamp.py`.
+
+## Econ engine (concept city)
+`js/eengine.js` is a map of concept blocks for 1.1 to 2.5, from everyday ideas (layer 0) up to price changes; each block lists the
+blocks it stands on. Wrong answers carry a misconception (trap) that points at a block. After a miss in Paper 1 practice or a
+scenario, students can choose **Build it up**; after a second miss on the same idea it starts by itself. A block is an intuition
+builder, the idea, and 3 checks (the first in simple English, to separate a language gap from a concept gap). Failing goes one
+floor down to the weakest block underneath and back up; failing again gives a guided walkthrough (half a building, back the next
+day). Lessons for the Section 1 blocks are in `js/ebank.js`; Section 2 blocks are defined and get lessons with units 2.1 to 2.3.
+Students see their skyline at `#/city`; teachers see the **Concept city** tab.
