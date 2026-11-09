@@ -74,6 +74,16 @@ const SCENES = {
     <g><rect x="340" y="122" width="40" height="4" fill="#6F4E37"/><rect x="358" y="126" width="4" height="16" fill="#6F4E37"/></g>
     <g fill="#52B788"><circle cx="196" cy="118" r="10"/><circle cx="206" cy="112" r="9"/><rect x="194" y="124" width="14" height="16" fill="#E76F51"/></g>
     ${person(140, 166, { shirt: '#6F4E37', pants: '#333', s: .8 })}`,
+  // Chị Thu's bubble tea stall in District 3: striped umbrella, cups, price board, a customer
+  stall: () => `${sky('#FFC8DD', '#FFF0F6', 'gt')}${sun(350, 30, 14)}${cloud(80, 28)}${cloud(220, 20, .7)}
+    ${skyline(118, '#C9B6E4')}<rect y="140" width="400" height="30" fill="#E9DCC9"/>
+    <path d="M110 58 q90 -46 180 0z" fill="#FF8FAB"/>${[0, 1, 2, 3, 4, 5].map(k => `<path d="M${110 + k * 30} 58 q15 10 30 0" fill="${k % 2 ? '#FF8FAB' : '#FFFFFF'}"/>`).join('')}
+    <rect x="198" y="56" width="4" height="40" fill="#6B4F3A"/>
+    <rect x="120" y="96" width="160" height="46" rx="6" fill="#FFFFFF" stroke="#C9184A" stroke-width="3"/>
+    <text x="200" y="124" font-size="14" text-anchor="middle" fill="#C9184A" font-family="sans-serif" font-weight="800">TRÀ SỮA CHỊ THU 🧋</text>
+    ${[0, 1, 2, 3].map(k => `<g transform="translate(${140 + k * 34} 78)"><path d="M0 0 h16 l-2 18 h-12z" fill="${['#D4A373', '#B5838D', '#E9C46A', '#A3B18A'][k]}"/><rect x="-1" y="-3" width="18" height="4" rx="2" fill="#fff"/><rect x="9" y="-12" width="2" height="10" fill="#E63946"/><circle cx="5" cy="14" r="1.6" fill="#333"/><circle cx="10" cy="12" r="1.6" fill="#333"/></g>`).join('')}
+    <rect x="294" y="78" width="62" height="44" rx="4" fill="#2B2D42"/><text x="325" y="96" font-size="11" text-anchor="middle" fill="#fff" font-family="sans-serif">1 cup</text><text x="325" y="113" font-size="13" text-anchor="middle" fill="#FFD166" font-family="sans-serif" font-weight="800">40k</text>
+    ${person(70, 166, { shirt: '#FFB703', long: true, s: .85 })}${person(382, 166, { shirt: '#C9184A', long: true, s: .78 })}`,
   // Rice farm in Củ Chi: paddies, farmer in nón lá, buffalo-free, water pump
   farm: () => `${sky('#9BE7FF', '#E6FAFF', 'gf')}${sun(70, 34, 16)}${cloud(260, 30)}
     <path d="M0 80 q60 -24 130 -6 t140 -4 t130 -10 V100 H0z" fill="#7BC67E"/>

@@ -85,12 +85,15 @@ test('Section 1 units are registered with their glossary words', () => {
   assert.equal(CONTENT['1.4'].PPC.length, 8);
 });
 
-import { SCENARIOS, SCEN_BY_UNIT } from '../js/u1s.js';
+import { SCENARIOS, SCEN_BY_UNIT, CAST, SCEN_CAST } from '../js/u1s.js';
+import * as U2 from '../js/u2.js';
+import { GLOSSARY as GALL, TRAPS as TALL } from '../js/content.js';
 import { SCENE_KEYS } from '../js/scenes.js';
 test('scenarios: 5 per unit, complete, pills in the glossary, traps known, answers valid', () => {
   for (const u of UNITS) assert.equal(SCEN_BY_UNIT[u].length, 5, u);
-  assert.equal(new Set(SCENARIOS.map(s => s.id)).size, 20);
-  for (const s of SCENARIOS) {
+  const S1S = SCENARIOS.filter(s => s.unit[0] === '1');
+  assert.equal(new Set(S1S.map(s => s.id)).size, 20);
+  for (const s of S1S) {
     assert.ok(s.story && s.plain && s.vi && s.title && s.stickers.length >= 2, s.id);
     assert.ok(SCENE_KEYS.includes(s.scene), `${s.id}: scene ${s.scene}`);
     assert.ok(!/Đà Nẵng/.test(s.story + s.plain + s.vi), `${s.id}: set in Ho Chi Minh City`);
@@ -132,6 +135,7 @@ test('answer lengths: the right option is not usually the longest', () => {
   for (const u of UNITS) U1.MCQ[u].forEach(q => pools['Paper 1 (1.x)'].push([q.id, q.options]));
   SCENARIOS.forEach(s => s.steps.forEach((st, k) => st.type === 'choice' && pools.scenarios.push([`${s.id}-${k + 1}`, st.options])));
   for (const u of ['2.4', '2.5']) CONTENT[u].MCQ.forEach(q => pools['Paper 1 (2.x)'].push([q.id, q.options]));
+  pools['Paper 1 (2.1 to 2.3)'] = Object.values(U2.MCQ).flat().map(q => [q.id, q.options]);
   for (const [name, list] of Object.entries(pools)) for (const f of ['t', 'p']) {
     let longest = 0;
     for (const [id, opts] of list) {
@@ -141,4 +145,61 @@ test('answer lengths: the right option is not usually the longest', () => {
     }
     assert.ok(longest / list.length <= 0.35, `${name} (${f}): right answer is the longest in ${longest} of ${list.length}`);
   }
+});
+
+// ---------- Section 2, units 2.1 to 2.3 (same formats as Section 1)
+const U2U = ['2.1', '2.2', '2.3'];
+test('2.1 to 2.3: 9 MCQ per unit (3 per level), right answer first, plain and Vietnamese, known traps and glossary words', () => {
+  for (const u of U2U) {
+    const qs = U2.MCQ[u]; assert.equal(qs.length, 9, u); assert.equal(checkN(u), 9);
+    for (const l of [0, 1, 2]) assert.equal(qs.filter(q => q.level === l).length, 3, `${u} level ${l}`);
+    for (const q of qs) {
+      assert.ok(q.stem && q.plain && q.vi && q.hint && q.explain && q.options.length === 4, q.id);
+      assert.ok(!q.options[0].trap, q.id);
+      q.options.slice(1).forEach(o => assert.ok(U2.TRAPS[o.trap], `${q.id}: trap ${o.trap}`));
+      assert.equal(new Set(q.options.map(o => o.t)).size, 4, q.id);
+      [q.plain, ...q.options.map(o => o.p)].flatMap(pills).forEach(t => assert.ok(GALL[t], `${q.id}: [[${t}]]`));
+    }
+    assert.ok(CONTENT[u].BANDED && CONTENT[u].TERMS.length >= 8, u);
+  }
+});
+test('2.1 to 2.3: Paper 2 model answers get full marks, empty answers 0; one Analyse question per unit', () => {
+  for (const u of U2U) {
+    assert.equal(U2.P2[u].filter(q => q.cmd === 'analyse' && q.marks === 6).length, 1, u);
+    for (const q of U2.P2[u]) {
+      const m = markShort(q.chain.map(plainChain).join(' '), q.groups, q.need);
+      assert.ok(m.ok, `${q.id}: model answer scores ${m.score}/${q.marks}`);
+      assert.equal(q.groups.length, q.marks, q.id); assert.ok(q.groups.every(g => g.ask), q.id);
+      assert.ok(q.frame && q.plain && q.vi && gapsOf(q.chain).length >= 2, q.id);
+      assert.equal(markShort('I do not know.', q.groups, q.need).score, 0, q.id);
+      [q.plain].flatMap(pills).forEach(t => assert.ok(GALL[t], `${q.id}: [[${t}]]`));
+    }
+  }
+});
+test('2.1 to 2.3: learn cards and curve events use known words', () => {
+  const all = [];
+  const walk = x => (typeof x === 'string' ? all.push(x) : x && typeof x === 'object' && Object.values(x).forEach(walk));
+  walk(U2.LEARN); walk(U2.SHIFT_EVENTS);
+  all.flatMap(pills).forEach(t => assert.ok(GALL[t], `[[${t}]] is in the glossary`));
+  for (const u of U2U) U2.LEARN[u].filter(c => c.kind.startsWith('curve')).forEach(c => assert.ok(['D', 'S'].includes(c.curve), c.id));
+});
+test('2.1 to 2.3 scenarios: 4 per unit, complete, traps known, cast known', () => {
+  for (const u of U2U) assert.equal(SCEN_BY_UNIT[u].length, 4, u);
+  for (const s of SCENARIOS.filter(s => U2U.includes(s.unit))) {
+    assert.ok(s.story && s.plain && s.vi && s.stickers.length >= 2 && SCENE_KEYS.includes(s.scene), s.id);
+    (SCEN_CAST[s.id] || []).forEach(k => assert.ok(CAST[k], `${s.id}: cast ${k}`));
+    const texts = [s.plain];
+    for (const st of s.steps) {
+      texts.push(st.plain);
+      if (st.type === 'choice') { assert.ok(!st.options[0].trap && st.why, s.id); st.options.slice(1).forEach(o => assert.ok(U2.TRAPS[o.trap], `${s.id}: ${o.trap}`)); st.options.forEach(o => texts.push(o.p)); }
+      if (st.type === 'sort') { assert.ok(U2.TRAPS[st.trap], s.id); st.buckets.forEach((_, b) => assert.ok(st.items.some(i => i.b === b), `${s.id}: bucket ${b}`)); st.items.forEach(i => texts.push(i.p)); }
+      if (st.type === 'order') assert.ok(st.lines.length >= 3, s.id);
+    }
+    texts.flatMap(pills).forEach(t => assert.ok(GALL[t], `${s.id}: [[${t}]]`));
+    if (s.explain) {
+      assert.ok(markShort(s.explain.groups.map(g => g.k[0]).join('. '), s.explain.groups, s.explain.need).ok, `${s.id}: a full answer`);
+      assert.equal(markShort('I like it.', s.explain.groups, s.explain.need).score, 0, s.id);
+    }
+  }
+  Object.keys(U2.TRAPS).forEach(t => assert.ok(TALL[t], t));
 });

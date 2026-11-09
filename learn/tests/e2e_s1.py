@@ -217,7 +217,7 @@ def scen_round(p, unit, size=None, explain=False):
         n = len(sc['steps']) + (1 if explain and sc.get('explain') else 0)
         ok(f'{n} / {n}' in p.inner_text('main'), f'{sc["id"]}: all right first time ({n})')
     p.goto(BASE + f'/learn/?demo=1#/u/{unit}/tab/learn'); p.wait_for_selector('.scen-grid')
-    ok(p.locator('.scen-tile.done').count() == 5, f'{unit}: all 5 scenario tiles ticked')
+    nsc = len([x for x in D['SCEN'] if x['unit'] == unit]); ok(p.locator('.scen-tile.done').count() == nsc, f'{unit}: all {nsc} scenario tiles ticked')
     p.goto(BASE + f'/learn/?demo=1#/u/{unit}'); p.wait_for_selector('.msteps')
     ok(p.locator('.msteps li.done').filter(has_text='Solve the scenarios').count() == 1, f'{unit}: mission step "Solve the scenarios" done')
 
@@ -231,6 +231,10 @@ def do_builder(p):
     elif bb.locator('.pickone').count(): bb.locator('.pickone .choice').first.click()
     elif bb.locator('.flip').count():
         for f in bb.locator('.flip').all(): f.click()
+    elif bb.locator('#cpr').count():
+        for v in ('30', '50', '60'): bb.locator('#cpr').fill(v); bb.locator('#cpr').dispatch_event('input')
+    elif bb.locator('[data-ev]').count():
+        for c in bb.locator('[data-ev]').all(): c.click()
     elif bb.locator('#rice').count():
         for v in range(2, 11, 2): bb.locator('#rice').fill(str(v)); bb.locator('#rice').dispatch_event('input')
     elif bb.locator('#bpts').count():
@@ -325,6 +329,52 @@ def engine_round(p, size):
     p.locator('a.sname', has_text='Mia').first.click(); p.wait_for_selector('#band'); p.select_option('#band', ''); p.wait_for_timeout(300)
     p.click('#out')
 
+def s2_round(p, size):
+    """Units 2.1 to 2.3 at B2 (demo-02): the teacher opens them; learn curves, Paper 1, Paper 2, scenarios, Build it up, District 2."""
+    p.evaluate("""() => { const d = JSON.parse(localStorage.getItem('ecl:demo:db')); d.classes.forEach(c => (c.open_units = [...new Set([...c.open_units, '2.1', '2.2', '2.3'])])); localStorage.setItem('ecl:demo:db', JSON.stringify(d)); }""")
+    p.goto(BASE + '/learn/?demo=1#/units'); p.wait_for_selector('.ulist'); p.reload(); p.wait_for_selector('.ulist')
+    for u in ('2.1', '2.2', '2.3'): ok(p.locator(f'a[href="#/u/{u}"]').count() >= 1, f'units: {u} open')
+    # learn 2.2: the demand curve slider and the shift events
+    p.goto(BASE + '/learn/?demo=1#/u/2.2/learn'); p.wait_for_selector('.card h2'); p.click('#next'); p.wait_for_selector('#cpr')
+    ok(p.inner_text('#cq') == '80', '2.2 learn: 80 cups at 40k')
+    p.locator('#cpr').fill('50'); p.locator('#cpr').dispatch_event('input')
+    ok(p.inner_text('#cq') == '60' and 'quantity demanded down' in p.inner_text('#eff'), '2.2 learn: price up, quantity demanded down')
+    ok(p.locator('#cv svg .dg-mvline').count() == 1, '2.2 learn: arrow along the curve')
+    if size: shot(p, size, '30-learn-demand'); no_overflow(p, size + ' learn demand')
+    for _ in range(3): p.click('#next')
+    p.wait_for_selector('[data-ev]'); p.click('[data-ev="0"]'); p.wait_for_timeout(900)
+    ok('RIGHT' in p.inner_text('#eff') and p.locator('#cv svg .dg-old').evaluate("e => e.style.display") != 'none', '2.2 learn: pay rise shifts demand right (old curve faint)')
+    p.click('[data-ev="4"]'); p.wait_for_timeout(300); ok('NOT a shift' in p.inner_text('#eff'), '2.2 learn: own price is not a shift')
+    if size: shot(p, size, '31-learn-dshift')
+    p.click('#next'); p.wait_for_selector('text=Cards done')
+    # learn 2.3: supply
+    p.goto(BASE + '/learn/?demo=1#/u/2.3/learn'); p.wait_for_selector('.card h2'); p.click('#next'); p.wait_for_selector('#cpr')
+    p.locator('#cpr').fill('50'); p.locator('#cpr').dispatch_event('input')
+    ok(p.inner_text('#cq') == '100' and 'quantity supplied up' in p.inner_text('#eff'), '2.3 learn: price up, quantity supplied up')
+    for _ in range(3): p.click('#next')
+    p.wait_for_selector('[data-ev]'); p.click('[data-ev="0"]'); p.wait_for_timeout(900); ok('LEFT' in p.inner_text('#eff'), '2.3 learn: wages up, supply shifts left')
+    if size: shot(p, size, '32-learn-sshift'); no_overflow(p, size + ' learn supply')
+    for u in ('2.1', '2.2', '2.3'):
+        mcq_round(p, u, 3, size if u == '2.1' else None)
+        p2_round(p, u, 3, size if u == '2.3' else None)
+        scen_round(p, u, size if u == '2.2' else None, explain=True)
+    # Build it up on market blocks: a curve builder and a shift builder
+    for bl in ('law-demand', 'supply-causes', 'market-place'):
+        p.goto(BASE + f'/learn/?demo=1#/city/{bl}'); p.wait_for_selector('#bu .bu-head')
+        if p.locator('#bu #bsay[hidden]').count():
+            if size and bl != 'market-place': p.wait_for_timeout(200); shot(p, size, f'33-build-{bl}')
+            do_builder(p)
+        bu_block(p, right=True); p.wait_for_selector('#bu #buback')
+        ok('building finished' in p.inner_text('#bu'), f'Build it up {bl}: built')
+        p.click('#bu #bucity'); p.wait_for_timeout(400)
+    p.wait_for_selector('.skyline')
+    ok(p.locator('.skyline:not(.small)').count() == 2, 'city: District 2 is open (full size)')
+    ok(p.locator('.skyline:not(.small) .bld.built[data-b="law-demand"]').count() == 1, 'city: law of demand built in District 2')
+    p.locator('.bld[data-b="equilibrium"]').dispatch_event('click'); ok('Coming with unit 2.4' in p.inner_text('main'), 'city: 2.4 buildings say when they open')
+    p.wait_for_timeout(1300)
+    if size: shot(p, size, '34-city-d2'); no_overflow(p, size + ' city district 2')
+    p.goto(BASE + '/learn/?demo=1#/'); p.wait_for_selector('a.citycard'); ok('of 35 buildings' in p.inner_text('a.citycard'), 'home: the city counts the market buildings: ' + p.inner_text('a.citycard h3'))
+
 VI_ON = [True]
 POS = []
 DONE = set()
@@ -381,6 +431,7 @@ def run(p, size):
     ok('level up' in out.lower(), 'three strong activities in a row: level up message')
     p.goto(BASE + '/learn/?demo=1#/me'); p.wait_for_selector('.tcard'); ok('B2' in p.inner_text('main'), 'band moved up to B2 automatically')
     scen_round(p, '1.3', None, explain=True)
+    s2_round(p, size)
     logout(p)
 
 with sync_playwright() as pw:

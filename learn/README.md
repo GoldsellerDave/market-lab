@@ -25,5 +25,13 @@ blocks it stands on. Wrong answers carry a misconception (trap) that points at a
 scenario, students can choose **Build it up**; after a second miss on the same idea it starts by itself. A block is an intuition
 builder, the idea, and 3 checks (the first in simple English, to separate a language gap from a concept gap). Failing goes one
 floor down to the weakest block underneath and back up; failing again gives a guided walkthrough (half a building, back the next
-day). Lessons for the Section 1 blocks are in `js/ebank.js`; Section 2 blocks are defined and get lessons with units 2.1 to 2.3.
-Students see their skyline at `#/city`; teachers see the **Concept city** tab.
+day). Lessons for the Section 1 blocks are in `js/ebank.js`, and for the market blocks of 2.1 to 2.3 in `js/ebank2.js` (builders include
+a price slider along one demand or supply curve, and events that shift the curve or not). Students see their skyline at `#/city`
+(District 2 opens when the teacher opens a 2.x unit); teachers see the **Concept city** tab. Shortage, equilibrium and the
+price-change chain (2.4, 2.5) get their lessons in the next step.
+
+## Units 2.1 to 2.3
+Built like Section 1, inside the engine: `js/u2.js` (glossary, misconceptions, learn cards including the `curve` and
+`curve-shift` cards, 9 Paper 1 questions and 3 Paper 2 questions per unit, one of them a 6-mark Analyse question) and
+`js/u2s.js` (12 scenario cards in Ho Chi Minh City, with Chị Thu's bubble tea stall). Every wrong option carries a misconception
+that points at a block. The curves are drawn by `js/curve.js` (demand 160 − 2P, supply 2P; prices in thousand đồng).

@@ -1,24 +1,26 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=a9a988f6';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=a9a988f6';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=a9a988f6';
-import * as E from './engine.js?v=a9a988f6';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=a9a988f6';
-import { BASELINE, BASELINE_N } from './u1.js?v=a9a988f6';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=a9a988f6';
-import { createPPC } from './ppc.js?v=a9a988f6';
-import * as S from './sound.js?v=a9a988f6';
-import * as EM from './eengine.js?v=a9a988f6';
-import { EBANK, EREADY } from './ebank.js?v=a9a988f6';
-import * as Cel from './celebrate.js?v=a9a988f6';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=a9a988f6';
-import { scene } from './scenes.js?v=a9a988f6';
-import { SHIFTS } from './u25.js?v=a9a988f6';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=a9a988f6';
-import { createDiagram } from './diagram.js?v=a9a988f6';
-import { icon, tile } from './icons.js?v=a9a988f6';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=a9a988f6';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=19e7aff6';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=19e7aff6';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=19e7aff6';
+import * as E from './engine.js?v=19e7aff6';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=19e7aff6';
+import { BASELINE, BASELINE_N } from './u1.js?v=19e7aff6';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=19e7aff6';
+import { createPPC } from './ppc.js?v=19e7aff6';
+import * as S from './sound.js?v=19e7aff6';
+import * as EM from './eengine.js?v=19e7aff6';
+import { EBANK, EREADY } from './ebank.js?v=19e7aff6';
+import * as Cel from './celebrate.js?v=19e7aff6';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=19e7aff6';
+import { scene } from './scenes.js?v=19e7aff6';
+import { SHIFTS } from './u25.js?v=19e7aff6';
+import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=19e7aff6';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=19e7aff6';
+import { createDiagram } from './diagram.js?v=19e7aff6';
+import { createCurve } from './curve.js?v=19e7aff6';
+import { icon, tile } from './icons.js?v=19e7aff6';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=19e7aff6';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -254,7 +256,7 @@ function home() {
       <p class="note" style="font-size:1rem">Start with the Learn cards: five short cards with moving diagrams. Then work through the unit mission, step by step. It takes about 10 minutes to begin.</p>
       <div class="row"><a class="btn" href="#/u/${fu}/learn">Start the Learn cards</a></div></div>`;
     h += workoutCard();
-    if ((me.open_units || []).some(u => u[0] === '1')) { const st = est(), ids = S1_BLOCKS(), n = ids.filter(id => EM.isMastered(st, id)).length;
+    if ((me.open_units || []).some(u => u[0] === '1' || u[0] === '2')) { const st = est(), ids = CITY_IDS(), n = ids.filter(id => EM.isMastered(st, id)).length;
       h += `<a class="tcard citycard" href="#/city"><div class="uhead">${tile('city', 'm')}<div class="grow"><p class="eyebrow">My concept city</p><h3 style="margin:0">${n} of ${ids.length} buildings built</h3></div><span aria-hidden="true">→</span></div>${skylineSVG(st, ids, { small: true })}</a>`; }
     const m = mission(fu), s = E.summarise(history, fu), prac = pracOf(fu) || ACTIVITIES[fu].find(a => a.id === 'p2');
     const q = (href, ic, title, note) => `<a class="qtile" href="${href}">${tile(ic, 'm')}<b>${title}</b><span class="note">${note}</span></a>`;
@@ -495,6 +497,9 @@ function learn() {
     if (c.kind === 'ppc-shift') body += `<div class="choices">${PPC_SHIFTS.map((x, k) => `<button class="choice" data-sh="${k}"><b>${esc(x[0])}</b></button>`).join('')}</div>`;
     if (c.kind === 'four') body += `<div class="choices two">${['Demand increases', 'Demand decreases', 'Supply increases', 'Supply decreases'].map((t, k) => `<button class="choice ${k < 2 ? 'd' : 's'}" data-k="${k}">${t}</button>`).join('')}</div>`;
     if (c.kind === 'move' || c.kind === 'two') body += `<div class="choices">${c.rows.map((r, k) => `<button class="choice" data-k="${k}"><span><b>${esc(r[0])}</b><br><span class="small">${esc(r[1])}</span></span></button>`).join('')}</div>`;
+    if (c.kind === 'curve') body += `<label for="cpr">Price of a cup: <b id="cprv"></b>,000 đồng</label><input type="range" class="slider" id="cpr" min="20" max="60" step="10" value="40">
+      <div class="readout"><div class="${c.curve === 'D' ? 'd' : 's'}"><b id="cq"></b>${c.curve === 'D' ? w('quantity demanded', 'quantity demanded') : w('quantity supplied', 'quantity supplied')} (cups a day)</div></div>`;
+    if (c.kind === 'curve-shift') body += `<div class="choices">${C().SHIFT_EVENTS[c.curve].map((x, k) => `<button class="choice" data-ev="${k}"><b>${esc(x[0])}</b></button>`).join('')}</div>`;
     if (c.kind === 'rows') body += c.rows.map(r => `<div class="fb tip"><b>${R(r[0])}</b>${R(r[1])}</div>`).join('');
     if (c.kind === 'causes') body += `<div class="choices two"><div class="card" style="border-left:8px solid var(--d)"><h3>${w('Demand', 'demand')} shifts</h3><ul>${c.demand.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
       <div class="card" style="border-left:8px solid var(--s)"><h3>${w('Supply', 'supply')} shifts</h3><ul>${c.supply.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>`;
@@ -506,12 +511,12 @@ function learn() {
     if (c.kind === 'schedule') body += `<div class="scroll"><table class="sched"><tr><th>Price (${esc(M.priceUnit)})</th><th>${w('Quantity demanded', 'quantity demanded')} (kg)</th><th>${w('Quantity supplied', 'quantity supplied')} (kg)</th></tr>
       ${M.prices.map(P => `<tr data-p="${P}"><td>${P}</td><td>${fmt(M.qd(P))}</td><td>${fmt(M.qs(P))}</td></tr>`).join('')}</table></div>
       <button class="alt" id="showeq" style="width:100%">Show me the equilibrium</button><p id="eff" aria-live="polite"></p>`;
-    const hasDg = ['four', 'move', 'two', 'explorer'].includes(c.kind), hasPPC = c.kind.startsWith('ppc');
+    const hasDg = ['four', 'move', 'two', 'explorer'].includes(c.kind), hasPPC = c.kind.startsWith('ppc'), hasCv = c.kind.startsWith('curve');
     let under = '';   // the explorer's slider and readout sit directly under the diagram, so students see both while dragging
     if (c.kind === 'explorer') { const k = body.indexOf('<label for="pr">'); under = body.slice(k); body = body.slice(0, k); }
     view(`${backLink()}
       <div class="steps">${L.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
-      <div class="card"><h2>${i + 1}. ${esc(c.title)}</h2>${hasPPC ? `<div class="play-grid"><div><div class="dgwrap" id="pg"></div><p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : hasDg ? `<div class="play-grid"><div><div class="dgwrap" id="dg"></div>${under}<p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : body}</div>
+      <div class="card"><h2>${i + 1}. ${esc(c.title)}</h2>${hasCv ? `<div class="play-grid"><div><div class="dgwrap" id="cv"></div><p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : hasPPC ? `<div class="play-grid"><div><div class="dgwrap" id="pg"></div><p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : hasDg ? `<div class="play-grid"><div><div class="dgwrap" id="dg"></div>${under}<p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : body}</div>
       <div class="sticky-foot"><button class="alt" id="prev" ${i ? '' : 'disabled'}>Back</button><button id="next">${i === L.length - 1 ? 'Finish' : 'Next'}</button></div>`);
     if (hasDg) {
       const dg = createDiagram($('#dg'));
@@ -547,6 +552,7 @@ function learn() {
         $('#eff').innerHTML = a === 'B' ? 'From B to C: <b>+2 rice</b>, <b>−2 phones</b>. The opportunity cost of 2 more rice is 2 million phones.' : 'From C to D: <b>+2 rice</b>, <b>−6 phones</b>. The same extra rice now costs 6 million phones: the opportunity cost rises.'; }));
       $$('[data-sh]').forEach(x => (x.onclick = () => { $$('.choice').forEach(y => y.classList.remove('sel')); x.classList.add('sel'); const sh = PPC_SHIFTS[+x.dataset.sh]; pg.shift(sh[1]); $('#eff').innerHTML = rich(sh[2], Math.min(band(), 2)); }));
     }
+    if (hasCv) curveCard(c, $('#cv'), $('#eff'));
     $('#showeq')?.addEventListener('click', () => { $(`tr[data-p="${M.pe}"]`).classList.add('eqrow');
       $('#eff').innerHTML = `At <b>${M.pe}k</b>, quantity demanded = quantity supplied = <b>${fmt(M.qd(M.pe))} kg</b>. That is the equilibrium price and equilibrium quantity.`; });
     $('#prev').onclick = () => { i--; show(); };
@@ -563,6 +569,27 @@ function learn() {
     };
   };
   show();
+}
+
+// 2.2 and 2.3 curve cards: move the price along one curve, or tap events and watch it shift (or not)
+const CV_WORD = { D: ['demanded', 'buyers buy'], S: ['supplied', 'sellers make'] };
+function curveMove(curve, from, to, names) {
+  if (from == null || from === to) return '';
+  const up = to > from, D = curve === 'D', more = D ? !up : up;
+  return `Price ${up ? 'up' : 'down'} → quantity ${CV_WORD[curve][0]} ${more ? 'up' : 'down'}.${names ? ` A movement along the curve: <b>${more ? 'an extension' : 'a contraction'}</b>.` : ''}`;
+}
+function curveCard(c, host, eff, onSeen = () => {}) {
+  const cv = createCurve(host, { curve: c.curve }), R = t => rich(t, Math.min(band(), 2));
+  if (c.kind === 'curve' || c.type === 'curve') {
+    const sl = $('#cpr'), seen = new Set(); let prev = null;
+    const upd = () => { const P = +sl.value; if (P === prev) return; const q = cv.at(P); $('#cprv').textContent = P; $('#cq').textContent = q;
+      eff.innerHTML = `At ${P},000 đồng ${CV_WORD[c.curve][1]} <b>${q} cups</b> a day. ${curveMove(c.curve, prev, P, c.names)}`; prev = P; seen.add(P); onSeen(seen.size); };
+    sl.oninput = upd; upd();
+  } else $$('[data-ev]').forEach(b => (b.onclick = () => {
+    $$('[data-ev]').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
+    const ev = C().SHIFT_EVENTS[c.curve][+b.dataset.ev]; cv.shift(ev[1]); eff.innerHTML = R(ev[2]); onSeen(+b.dataset.ev);
+  }));
+  return cv;
 }
 
 // ---------- shared run machinery for the adaptive activities ----------
@@ -1503,6 +1530,19 @@ function buildBuilder(host, bl, onDone) {
       else { const sh = PPC_SHIFTS[+btn.dataset.k]; pg.arrow(null); pg.shift(sh[1]); $('#beff', host).innerHTML = rich(sh[2], Math.min(band(), 2)); }
       if (seen.size >= 3) doneOnce(); }));
   }
+  if (B.type === 'curve') {
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="play-grid"><div><div class="dgwrap" id="bcv"></div><p class="center" id="beff" aria-live="polite"></p></div><div>
+      <label for="cpr">Price of a cup: <b id="cprv"></b>,000 đồng</label><input type="range" class="slider" id="cpr" min="20" max="60" step="10" value="40">
+      <div class="readout"><div class="${B.curve === 'D' ? 'd' : 's'}"><b id="cq"></b>quantity ${CV_WORD[B.curve][0]} (cups a day)</div></div><p class="note">Try at least three prices.</p><div id="bfb"></div></div></div>`;
+    curveCard(B, $('#bcv', host), $('#beff', host), n => { if (n >= 3 && !finished) { $('#bfb', host).innerHTML = `<div class="fb tip"><b>What happened?</b>${T(B.after)}</div>`; doneOnce(); } });
+  }
+  if (B.type === 'curveshift') {
+    const evs = SHIFT_EVENTS2[B.curve], seen = new Set();
+    host.innerHTML = `<p class="scen-q"><b>${esc(B.q)}</b></p><div class="play-grid"><div><div class="dgwrap" id="bcv"></div></div><div><div class="choices">${evs.map((x, k) => `<button class="choice" data-ev="${k}"><b>${esc(x[0])}</b></button>`).join('')}</div><p id="beff" aria-live="polite"></p></div></div>`;
+    const cv = createCurve($('#bcv', host), { curve: B.curve });
+    $$('[data-ev]', host).forEach(btn => (btn.onclick = () => { $$('[data-ev]', host).forEach(x => x.classList.remove('sel')); btn.classList.add('sel');
+      const ev = evs[+btn.dataset.ev]; cv.shift(ev[1]); $('#beff', host).innerHTML = rich(ev[2], Math.min(band(), 2)); seen.add(btn.dataset.ev); if (seen.size >= 4) doneOnce(); }));
+  }
 }
 // One block: builder, the idea, then checks (quiz) or a guided walkthrough. Calls back with { right, n, answers }.
 function buildBlock(box, bl, { guided = false, retry = false, depth = 0, fromExam = false, title = '' }, cb) {
@@ -1607,20 +1647,25 @@ function skylineSVG(st, ids, { small = false } = {}) {
     ${ids.map(bld).join('')}</svg>${small ? '' : '</div>'}`;
 }
 const S1_BLOCKS = () => Object.values(EM.EBLOCKS).filter(b => b.unit[0] === '1').sort((a, b) => a.layer - b.layer).map(b => b.id);
+const S2_BLOCKS = () => Object.values(EM.EBLOCKS).filter(b => b.unit[0] === '2').sort((a, b) => a.layer - b.layer).map(b => b.id);
+// Buildings that count on the home card: Section 1, plus the Section 2 blocks that have a lesson once a 2.x unit is open
+const CITY_IDS = () => S1_BLOCKS().concat((me.open_units || []).some(u => u[0] === '2') ? S2_BLOCKS().filter(BUILD_OK) : []);
 function cityView(only) {
-  const st = est(), ids = S1_BLOCKS(), s2 = Object.values(EM.EBLOCKS).filter(b => b.unit[0] === '2').sort((a, b) => a.layer - b.layer).map(b => b.id);
+  const st = est(), s1 = S1_BLOCKS(), s2 = S2_BLOCKS(), ids = CITY_IDS(), on2 = ids.length > s1.length;
   const n = ids.filter(id => EM.isMastered(st, id)).length, halfN = ids.filter(id => EM.stateOf(st, id) === 'guided').length;
+  const n2 = s2.filter(id => EM.isMastered(st, id)).length;
   const rep = EM.repairs(st, Date.now(), BUILD_OK), next = rep[0] || ids.find(id => EM.stateOf(st, id) === 'ready' || EM.stateOf(st, id) === 'guided') || ids.find(id => !EM.isMastered(st, id));
   view(`<div class="narrow"><div class="hero"><p class="eyebrow">My concept city</p><h1>${n} of ${ids.length} buildings</h1>
       <p class="lede">Every idea you master becomes a building in your Ho Chi Minh City skyline. Build from the ground up: everyday ideas first, then the ideas that stand on them.</p>
       ${next ? `<div class="row"><a class="btn" href="#/city/${next}">${rep[0] ? 'Repair' : 'Build next'}: ${esc(EM.EBLOCKS[next].name)} →</a></div>` : ''}</div>
-    <div class="tcard"><h2 style="margin:0 0 6px">District 1: The basic economic problem</h2>${skylineSVG(st, ids)}
-      <p class="note">🏢 built ${n} · 🏗️ half built ${halfN} · dashed with a crane = ready to build · faint = build the ones underneath first. Tap a building${innerWidth < 700 ? '; swipe to see the whole street' : ''}.</p><div id="binfo"></div></div>
-    <div class="tcard"><h2 style="margin:0 0 6px">District 2: Markets <span class="chip">coming soon</span></h2>${skylineSVG(st, s2, { small: true })}
-      <p class="note">Demand, supply and prices: these buildings open with units 2.1 to 2.5.</p></div></div>`);
+    <div class="tcard"><h2 style="margin:0 0 6px">District 1: The basic economic problem</h2>${skylineSVG(st, s1)}
+      <p class="note">🏢 built ${n} · 🏗️ half built ${halfN} · dashed with a crane = ready to build · faint = build the ones underneath first. Tap a building${innerWidth < 700 ? '; swipe to see the whole street' : ''}.</p><div id="binfo" class="binfo"></div></div>
+    <div class="tcard"><h2 style="margin:0 0 6px">District 2: Markets ${on2 ? `<span class="chip">${n2} built</span>` : '<span class="chip">opens with unit 2.1</span>'}</h2>${skylineSVG(st, s2, { small: !on2 })}
+      <div class="binfo" aria-live="polite"></div><p class="note">${on2 ? 'Markets, demand and supply (2.1 to 2.3). The faint buildings on the right (shortage, equilibrium, price changes) open with 2.4 and 2.5.' : 'Demand, supply and prices: these buildings open when your teacher opens unit 2.1.'}</p></div></div>`);
   const info = id => {
-    const Bk = EM.EBLOCKS[id], s = EM.stateOf(st, id), p = Math.round(100 * EM.pOf(st, id));
-    $('#binfo').innerHTML = `<div class="fb tip"><b>${esc(Bk.name)}</b>${{ built: 'Built ✔', guided: 'Half built: finish it today', ready: 'Ready to build', locked: 'Build the ideas underneath first' }[s]} · strength ${p}%
+    const Bk = EM.EBLOCKS[id], s = EM.stateOf(st, id), p = Math.round(100 * EM.pOf(st, id)), box = $(`.bld[data-b="${id}"]`)?.closest('.tcard').querySelector('.binfo') || $('#binfo');
+    if (!BUILD_OK(id)) return (box.innerHTML = `<div class="fb tip"><b>${esc(Bk.name)}</b>Coming with unit ${Bk.unit}.</div>`);
+    box.innerHTML = `<div class="fb tip"><b>${esc(Bk.name)}</b>${{ built: 'Built ✔', guided: 'Half built: finish it today', ready: 'Ready to build', locked: 'Build the ideas underneath first' }[s]} · strength ${p}%
       ${Bk.pre.length ? `<br><span class="note">Stands on: ${Bk.pre.map(q => esc(EM.EBLOCKS[q].name)).join(', ')}</span>` : '<br><span class="note">An everyday idea: the ground floor.</span>'}
       <div class="row" style="margin-top:8px"><a class="btn${s === 'built' ? ' alt' : ''}" href="#/city/${id}">${s === 'built' ? 'Practise again' : 'Build it'} →</a></div></div>`;
   };

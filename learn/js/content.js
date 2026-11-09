@@ -1,17 +1,22 @@
 // Every built unit's content, keyed by unit id, plus merged lookups for traps and items (used by the teacher console).
-import * as U24 from './u24.js?v=a9a988f6';
-import * as U25 from './u25.js?v=a9a988f6';
-import * as U1 from './u1.js?v=a9a988f6';
-import * as EM from './eengine.js?v=a9a988f6';
-import { SCENARIOS } from './u1s.js?v=a9a988f6';
-import { EQ_TITLES } from './u24.js?v=a9a988f6';
+import * as U24 from './u24.js?v=19e7aff6';
+import * as U25 from './u25.js?v=19e7aff6';
+import * as U1 from './u1.js?v=19e7aff6';
+import * as U2 from './u2.js?v=19e7aff6';
+import * as EM from './eengine.js?v=19e7aff6';
+import { SCENARIOS } from './u1s.js?v=19e7aff6';
+import { EQ_TITLES } from './u24.js?v=19e7aff6';
 
 // Section 1 units share one glossary and one set of traps; each has its own cards and questions. BANDED: English adapts to the band.
-const terms = u => [...new Set([...JSON.stringify([U1.LEARN[u], U1.MCQ[u], U1.P2[u]]).matchAll(/\[\[([^|\]]+)(?:\|[^\]]*)?\]\]/g)].map(m => m[1]))].filter(t => U1.GLOSSARY[t]);
-const s1 = u => ({ BANDED: true, TRAPS: U1.TRAPS, LEARN: U1.LEARN[u], MCQ: U1.MCQ[u], P2: U1.P2[u], TERMS: terms(u), VI: {} });
-export const CONTENT = { '1.1': s1('1.1'), '1.2': s1('1.2'), '1.3': s1('1.3'), '1.4': { ...s1('1.4'), PPC: U1.PPC_ITEMS }, '2.4': U24, '2.5': U25 };
-export const GLOSSARY = U1.GLOSSARY;
-export const TRAPS = { ...U25.TRAPS, ...U24.TRAPS, ...U1.TRAPS };
+const G = { ...U1.GLOSSARY, ...U2.GLOSSARY };
+const pillsIn = x => (typeof x === 'string' ? [...x.matchAll(/\[\[([^|\]]+)(?:\|[^\]]*)?\]\]/g)].map(m => m[1]) : x && typeof x === 'object' ? Object.values(x).flatMap(pillsIn) : []);
+const terms = (S, u) => [...new Set(pillsIn([S.LEARN[u], S.MCQ[u], S.P2[u]]))].filter(t => G[t]);
+const s1 = u => ({ BANDED: true, TRAPS: U1.TRAPS, LEARN: U1.LEARN[u], MCQ: U1.MCQ[u], P2: U1.P2[u], TERMS: terms(U1, u), VI: {} });
+// Section 2 units built the same way (2.1 to 2.3): their own traps, plus the curve cards' events
+const s2 = u => ({ BANDED: true, TRAPS: U2.TRAPS, LEARN: U2.LEARN[u], MCQ: U2.MCQ[u], P2: U2.P2[u], TERMS: terms(U2, u), VI: {}, SHIFT_EVENTS: U2.SHIFT_EVENTS });
+export const CONTENT = { '1.1': s1('1.1'), '1.2': s1('1.2'), '1.3': s1('1.3'), '1.4': { ...s1('1.4'), PPC: U1.PPC_ITEMS }, '2.1': s2('2.1'), '2.2': s2('2.2'), '2.3': s2('2.3'), '2.4': U24, '2.5': U25 };
+export const GLOSSARY = G;
+export const TRAPS = { ...U25.TRAPS, ...U24.TRAPS, ...U1.TRAPS, ...U2.TRAPS };
 /** Traps that can appear in one unit (for the heat map) */
 export const unitTraps = u => Object.keys((CONTENT[u] || {}).TRAPS || {});
 /** id → {kind, text, level} for every question, across units */
@@ -23,9 +28,9 @@ for (const [u, C] of Object.entries(CONTENT)) {
   (C.P2 || []).forEach(q => (ITEMS[q.id] = { unit: u, kind: 'Paper 2', text: q.q, level: q.level }));
   (C.PPC || []).forEach(q => (ITEMS[q.id] = { unit: u, kind: 'PPC', text: q.title + ': ' + q.steps[0].q, level: q.level }));
 }
-// The econ engine: which block each Section 1 question practises (from the misconceptions on its wrong answers)
+// The econ engine: which block each Section 1 and 2.1 to 2.3 question practises (from the misconceptions on its wrong answers)
 EM.registerItems([
-  ...Object.values(U1.MCQ).flat().map(q => [q.id, EM.blockOfOptions(q.options)]),
+  ...[...Object.values(U1.MCQ), ...Object.values(U2.MCQ)].flat().map(q => [q.id, EM.blockOfOptions(q.options)]),
   ...SCENARIOS.flatMap(s => s.steps.map((st, k) => [`${s.id}-${k + 1}`, st.type === 'choice' ? EM.blockOfOptions(st.options) : st.type === 'sort' ? EM.blockOfTrap(st.trap) : null]))]);
 SCENARIOS.forEach(s => { s.steps.forEach((st, k) => (ITEMS[`${s.id}-${k + 1}`] = { unit: s.unit, kind: 'Scenario', text: `${s.title}: ${st.q}`, level: 0 }));
   if (s.explain) ITEMS[`${s.id}-x`] = { unit: s.unit, kind: 'Scenario (B2)', text: `${s.title}: ${s.explain.q}`, level: 2 }; });

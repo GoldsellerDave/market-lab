@@ -5,6 +5,7 @@
 // The cast: Lan (Grade 9, District 3), Mr Minh's café (District 1), Mrs Hoa's rice farm (Củ Chi), a phone factory (Thủ Đức),
 // the city government of Ho Chi Minh City.
 
+import { SCENARIOS2, CAST2, SCEN_CAST2, SORT_EXAMPLE2 } from './u2s.js?v=19e7aff6';
 const o = (t, p, trap) => ({ t, p: p || t, trap });
 const choice = (q, plain, options, why, ppc) => ({ type: 'choice', q, plain: plain || q, options, why, ppc });
 // items: [text, emoji, bucket, plain?]
@@ -321,5 +322,7 @@ export const SORT_EXAMPLE = {
   's12-move': 'From An Giang to the city is a move to a new PLACE: geographical.',
   's14-news': 'New technology lets Vietnam make more of both goods, so the PPC shifts out.'
 };
+// Section 2 (2.1 to 2.3) lives in u2s.js
+SCENARIOS.push(...SCENARIOS2); Object.assign(CAST, CAST2); Object.assign(SCEN_CAST, SCEN_CAST2); Object.assign(SORT_EXAMPLE, SORT_EXAMPLE2);
 export const SCEN_BY_UNIT = SCENARIOS.reduce((m, s) => ((m[s.unit] ||= []).push(s), m), {});
 export const scenAct = id => 'sc-' + id;
