@@ -1,10 +1,10 @@
 // The unit mission: six steps per unit, shared by the student app and the teacher dashboard.
-import { ACTIVITIES } from './units.js?v=a9a988f6';
-import { CONTENT } from './content.js?v=a9a988f6';
-import * as E from './engine.js?v=a9a988f6';
-import { SCEN_BY_UNIT, scenAct } from './u1s.js?v=a9a988f6';
+import { ACTIVITIES } from './units.js?v=19e7aff6';
+import { CONTENT } from './content.js?v=19e7aff6';
+import * as E from './engine.js?v=19e7aff6';
+import { SCEN_BY_UNIT, scenAct } from './u1s.js?v=19e7aff6';
 export const CHECK_PASS = 0.7, CHECK_N = 12;
-export const BADGE = { '1.1': 'Scarcity scout', '1.2': 'Factor finder', '1.3': 'Choice champion', '1.4': 'Curve master', '2.4': 'Market maker', '2.5': 'Shift spotter' };
+export const BADGE = { '1.1': 'Scarcity scout', '1.2': 'Factor finder', '1.3': 'Choice champion', '1.4': 'Curve master', '2.1': 'Market mover', '2.2': 'Demand detective', '2.3': 'Supply star', '2.4': 'Market maker', '2.5': 'Shift spotter' };
 /** Checkpoint length: 4 questions per level, or fewer if the unit has fewer */
 export const checkN = u => 3 * Math.min(4, ...[0, 1, 2].map(l => (CONTENT[u].MCQ || []).filter(q => q.level === l).length));
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);

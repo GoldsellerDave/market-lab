@@ -65,7 +65,13 @@ export const LAYERS = ['Everyday ideas', 'First concepts', 'Building on them', '
 export const TRAP_BLOCK = {
   'scarcity-def': 'scarcity', 'needs-wants': 'needs-wants', 'free-good': 'econ-free', 'three-questions': 'three-q',
   'factor-type': 'factors', 'money-capital': 'money-capital', 'reward-match': 'rewards', 'quantity-quality': 'quan-qual', 'mobility': 'mobility',
-  'oc-def': 'opp-cost', 'oc-all': 'next-best', 'ppc-point': 'ppc-points', 'ppc-oc': 'ppc-oc', 'ppc-shift': 'ppc-shift', 'ppc-dir': 'ppc-shift'
+  'oc-def': 'opp-cost', 'oc-all': 'next-best', 'ppc-point': 'ppc-points', 'ppc-oc': 'ppc-oc', 'ppc-shift': 'ppc-shift', 'ppc-dir': 'ppc-shift',
+  // 2.1 to 2.3
+  'market-def': 'market-place', 'price-signal': 'price-signal', 'planned': 'market-3q', 'want-vs-demand': 'eff-demand', 'law-demand': 'law-demand', 'law-supply': 'law-supply',
+  'hats': 'two-hats', 'move-shift': 'inside-outside', 'ext-con': 'ext-con', 'd-causes': 'demand-causes', 'subs-comp': 'demand-causes', 's-causes': 'supply-causes',
+  'costs-supply': 'supply-causes', 'add-up': 'market-demand',
+  // 2.4 and 2.5 (their questions are tagged in step 3; these already send a miss to the right block)
+  'move-vs-shift': 'inside-outside', 'related-goods': 'demand-causes', 'tax-subsidy': 'supply-causes', 'market-sum': 'market-demand', 'price-mechanism': 'price-signal'
 };
 // The block a question practises: the most common block among its wrong answers' traps (ties: the first)
 export function blockOfOptions(options) {

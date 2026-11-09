@@ -5,6 +5,8 @@ import * as EM from '../js/eengine.js';
 import { EBANK, EREADY } from '../js/ebank.js';
 import * as U1 from '../js/u1.js';
 import { SCENARIOS } from '../js/u1s.js';
+import * as U2 from '../js/u2.js';
+import { GLOSSARY as GALL } from '../js/content.js';
 
 const pills = s => [...String(s).matchAll(/\[\[([^|\]]+)(?:\|[^\]]*)?\]\]/g)].map(m => m[1]);
 const strip = s => String(s || '').replace(/\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/g, (m, k, sh) => sh || k);
@@ -27,8 +29,16 @@ test('every Section 1 misconception points at a block, and every Section 1 block
   });
 });
 
+test('every 2.1 to 2.3 misconception points at a block, and every block of those units has a lesson', () => {
+  for (const t of Object.keys(U2.TRAPS)) assert.ok(EM.TRAP_BLOCK[t] && EM.EBLOCKS[EM.TRAP_BLOCK[t]], `trap ${t}`);
+  for (const b of Object.values(EM.EBLOCKS).filter(b => ['2.1', '2.2', '2.3'].includes(b.unit))) assert.ok(EREADY.has(b.id), `${b.id} needs a lesson`);
+  for (const q of Object.values(U2.MCQ).flat()) assert.ok(EREADY.has(EM.blockOfOptions(q.options)), `${q.id}: its block has a lesson`);
+  for (const B of Object.values(EBANK).map(L => L.builder).filter(B => B.type === 'curve' || B.type === 'curveshift')) assert.ok(['D', 'S'].includes(B.curve));
+  for (const k of ['D', 'S']) { assert.ok(U2.SHIFT_EVENTS[k].length >= 4); assert.ok(U2.SHIFT_EVENTS[k].some(e => e[1] === 0), 'one event is a movement, not a shift'); }
+});
+
 test('lessons: a builder, the idea in three versions, and at least 4 fair checks', () => {
-  const G = U1.GLOSSARY;
+  const G = GALL;
   for (const [id, L] of Object.entries(EBANK)) {
     assert.ok(EM.EBLOCKS[id], id);
     assert.ok(L.say && L.plain && L.vi && L.builder && L.builder.type, id);
