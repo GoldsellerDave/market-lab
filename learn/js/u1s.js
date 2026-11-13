@@ -5,7 +5,7 @@
 // The cast: Lan (Grade 9, District 3), Mr Minh's café (District 1), Mrs Hoa's rice farm (Củ Chi), a phone factory (Thủ Đức),
 // the city government of Ho Chi Minh City.
 
-import { SCENARIOS2, CAST2, SCEN_CAST2, SORT_EXAMPLE2 } from './u2s.js?v=65021f42';
+import { SCENARIOS2, CAST2, SCEN_CAST2, SORT_EXAMPLE2 } from './u2s.js?v=e447af61';
 const o = (t, p, trap) => ({ t, p: p || t, trap });
 const choice = (q, plain, options, why, ppc) => ({ type: 'choice', q, plain: plain || q, options, why, ppc });
 // items: [text, emoji, bucket, plain?]
@@ -110,8 +110,8 @@ export const SCENARIOS = [
     'Mr Minh owns a café. He borrows 50 million đồng from a bank. He buys a new coffee machine and an oven. He pays the bank 8% extra every year.',
     'Ông Minh vay ngân hàng 50 triệu đồng. Ông dùng số tiền đó mua một máy pha espresso mới và một cái lò nướng. Ngân hàng tính lãi 8% mỗi năm.',
     [choice('Which of these is capital in economics?', 'Which one is [[capital]]?',
-      [o('The espresso machine'), o('The 50 million đồng', 'The 50 million đồng', 'money-capital'), o('The bank in District 1', 'The bank in District 1', 'money-capital'), o('The barista', 'The barista', 'factor-type')],
-      'Capital is man-made goods used to produce other goods. Money only buys capital; it cannot make coffee.'),
+      [o('The espresso machine'), o('The 50 million đồng', 'The 50 million đồng', 'money-capital'), o('The bank in District 1', 'The bank in District 1', 'money-capital'), o('The coffee beans', 'The coffee beans', 'factor-type')],
+      'Capital is man-made goods used to produce other goods. Money only buys capital; it cannot make coffee. Coffee beans come from nature, so they are land.'),
     choice('What is the 8% a year that Mr Minh pays the bank called?', 'What is the 8% called?',
       [o('Interest', '[[interest|Interest]]'), o('Rent', '[[rent|Rent]]', 'reward-match'), o('Wages', '[[wages|Wages]]', 'reward-match'), o('Profit', '[[profit|Profit]]', 'reward-match')],
       'Interest is the reward for capital.')],
