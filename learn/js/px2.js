@@ -1,5 +1,5 @@
 // Section 2 exam papers (2.1 to 2.5): two forms (A and B) of Paper 1 and Paper 2. Same format as px1.js.
-import { m, g, w } from './px1.js?v=7351257f';
+import { m, g, w } from './px1.js?v=a4c0cc27';
 const SCHED = { head: ['Price ($)', 'Quantity demanded', 'Quantity supplied'], rows: [['1', '100', '20'], ['2', '80', '40'], ['3', '60', '60'], ['4', '40', '80']] };
 
 const P1A = [
@@ -99,11 +99,11 @@ const P1A = [
       ['Price falls; quantity falls', 'That would happen if fish were a complement to chicken.', 'related-goods'],
       ['Price rises; quantity falls', 'That needs a fall in the supply of fish. Here demand has changed.', 'd-vs-s'],
       ['Price and quantity do not change', 'A change in the price of a substitute shifts demand.', 'related-goods']]),
-  m('x2a-20', '2.5', 'Over the past year, the equilibrium price of strawberries fell, while the quantity traded increased. What could have caused this?',
-    [['Good weather gave a much larger strawberry harvest', 'Supply shifted right, which lowers the equilibrium price and raises the quantity traded.'],
-      ['A rise in the wages of strawberry pickers', 'Higher costs shift supply left, which raises price and reduces quantity.', 'direction'],
-      ['A successful advertising campaign for strawberries', 'Higher demand shifts the demand curve right, which raises both price and quantity.', 'd-vs-s'],
-      ['A fall in consumers’ incomes', 'Lower demand shifts the demand curve left, which lowers both price and quantity.', 'd-vs-s']])
+  m('x2a-20', '2.5', 'In the market for electric scooters, incomes rise and, at the same time, new technology lowers the cost of making scooters. What can be said for certain about the new equilibrium?',
+    [['Quantity rises; the change in price is uncertain', 'Demand shifts right and supply shifts right. Both raise quantity. Demand pushes price up and supply pushes it down, so price depends on which shift is larger.'],
+      ['Price rises; quantity rises', 'That is the result of the rise in demand only. The rise in supply pushes price down, so price is uncertain.', 'two-shifts'],
+      ['Price falls; quantity rises', 'That is the result of the rise in supply only. The rise in demand pushes price up, so price is uncertain.', 'two-shifts'],
+      ['Price rises; the change in quantity is uncertain', 'That happens when demand rises and supply falls. Here both curves shift right, so quantity must rise.', 'two-shifts']])
 ];
 
 const P1B = [
@@ -203,11 +203,11 @@ const P1B = [
       ['Price falls; quantity falls', 'That would happen if the two goods were substitutes.', 'related-goods'],
       ['Price falls; quantity rises', 'That needs a rise in the supply of capsules. Here demand has changed.', 'd-vs-s'],
       ['Price and quantity do not change', 'A change in the price of a complement shifts demand.', 'related-goods']]),
-  m('x2b-20', '2.5', 'In the market for bicycles, both the equilibrium price and the equilibrium quantity traded increased. What must have happened?',
-    [['The demand curve for bicycles shifted to the right', 'An increase in demand raises both the equilibrium price and the quantity traded, as supply extends.'],
-      ['The supply curve for bicycles shifted to the right', 'An increase in supply lowers the equilibrium price and raises quantity.', 'd-vs-s'],
-      ['The supply curve for bicycles shifted to the left', 'A decrease in supply raises the equilibrium price but reduces quantity.', 'd-vs-s'],
-      ['The demand curve for bicycles shifted to the left', 'A decrease in demand lowers both the equilibrium price and quantity.', 'direction']])
+  m('x2b-20', '2.5', 'In the market for rice, a successful advertising campaign increases demand and, at the same time, a flood destroys part of the harvest. What can be said for certain about the new equilibrium?',
+    [['Price rises; the change in quantity is uncertain', 'Demand shifts right and supply shifts left. Both raise price. Demand pushes quantity up and supply pushes it down, so quantity depends on which shift is larger.'],
+      ['Price rises; quantity rises', 'That is the result of the rise in demand only. The fall in supply pushes quantity down, so quantity is uncertain.', 'two-shifts'],
+      ['Price rises; quantity falls', 'That is the result of the fall in supply only. The rise in demand pushes quantity up, so quantity is uncertain.', 'two-shifts'],
+      ['Quantity rises; the change in price is uncertain', 'That happens when demand and supply both rise. Here supply falls, so price must rise.', 'two-shifts']])
 ];
 
 const BREAD = { head: ['Price (đồng)', 'Quantity demanded (loaves a day)', 'Quantity supplied (loaves a day)'], rows: [['15,000', '500', '300'], ['20,000', '400', '400'], ['25,000', '300', '500']] };
