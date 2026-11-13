@@ -1,12 +1,12 @@
 // Every built unit's content, keyed by unit id, plus merged lookups for traps and items (used by the teacher console).
-import * as U24 from './u24.js?v=4e7248ff';
-import * as U25 from './u25.js?v=4e7248ff';
-import * as U1 from './u1.js?v=4e7248ff';
-import * as U2 from './u2.js?v=4e7248ff';
-import * as U245 from './u245.js?v=4e7248ff';
-import * as EM from './eengine.js?v=4e7248ff';
-import { SCENARIOS } from './u1s.js?v=4e7248ff';
-import { EQ_TITLES } from './u24.js?v=4e7248ff';
+import * as U24 from './u24.js?v=65021f42';
+import * as U25 from './u25.js?v=65021f42';
+import * as U1 from './u1.js?v=65021f42';
+import * as U2 from './u2.js?v=65021f42';
+import * as U245 from './u245.js?v=65021f42';
+import * as EM from './eengine.js?v=65021f42';
+import { SCENARIOS } from './u1s.js?v=65021f42';
+import { EQ_TITLES } from './u24.js?v=65021f42';
 
 // Section 1 units share one glossary and one set of traps; each has its own cards and questions. BANDED: English adapts to the band.
 const G = { ...U1.GLOSSARY, ...U2.GLOSSARY, ...U245.GLOSSARY };
@@ -21,7 +21,8 @@ const banded = M => M.MCQ.map(q => { const P = U245.PLAIN[q.id]; if (!P) return 
 const s3 = M => { const MCQ = banded(M); return { ...M, BANDED: true, MCQ, TERMS: [...new Set(pillsIn([MCQ.map(q => [q.plain, q.options.map(o => o.p)])]))].filter(t => G[t]) }; };
 export const CONTENT = { '1.1': s1('1.1'), '1.2': s1('1.2'), '1.3': s1('1.3'), '1.4': { ...s1('1.4'), PPC: U1.PPC_ITEMS }, '2.1': s2('2.1'), '2.2': s2('2.2'), '2.3': s2('2.3'), '2.4': s3(U24), '2.5': s3(U25) };
 export const GLOSSARY = G;
-export const TRAPS = { ...U25.TRAPS, ...U24.TRAPS, ...U1.TRAPS, ...U2.TRAPS };
+export const TRAPS = { ...U25.TRAPS, ...U24.TRAPS, ...U1.TRAPS, ...U2.TRAPS,
+  'move-vs-shift': { label: 'Movement vs shift', tip: 'A change in the good’s OWN price is a movement ALONG the curve (an extension or a contraction). The whole curve shifts only when something else changes. When the price moves towards equilibrium, the curves do not shift.' } };
 /** Traps that can appear in one unit (for the heat map) */
 export const unitTraps = u => Object.keys((CONTENT[u] || {}).TRAPS || {});
 /** id → {kind, text, level} for every question, across units */

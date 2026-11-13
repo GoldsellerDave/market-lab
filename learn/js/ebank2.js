@@ -18,14 +18,14 @@ export const EBANK2 = {
   },
   'two-hats': {
     builder: { type: 'sort', q: 'Put on a hat! Who says it: the buyer or the seller?', buckets: ['🧢 Buyer', '🎩 Seller'],
-      items: [['"I want a LOW price"', '🛒', 0], ['"I want a HIGH price"', '💰', 1], ['"If the price falls, I buy more"', '⬇️', 0], ['"If the price rises, I sell more"', '⬆️', 1], ['"I pay the money"', '💸', 0], ['"I get the money and the profit"', '🏪', 1]] },
+      items: [['"I want a LOW price"', '🛒', 0], ['"I want a HIGH price"', '💰', 1], ['"If the price falls, I buy more"', '⬇️', 0], ['"If the price rises, I want to sell more"', '⬆️', 1], ['"I pay the money"', '💸', 0], ['"I get the money and the profit"', '🏪', 1]] },
     say: 'Buyers (consumers) want low prices and buy more when the price falls. Sellers (producers) want high prices and sell more when the price rises, because they make more profit.',
     plain: '[[buyer|Buyers]] want LOW prices. [[seller|Sellers]] want HIGH prices, because they get more [[profit]].',
     vi: 'Người mua muốn giá thấp và mua nhiều hơn khi giá giảm. Người bán muốn giá cao và bán nhiều hơn khi giá tăng vì lãi nhiều hơn.',
     checks: [
       c('Who is happy when the price of rice rises?', 'The price of rice goes UP. Who is happy?', [['The rice sellers', 'The sellers'], ['The rice buyers', 'The buyers'], ['Both of them', 'Both'], ['Neither of them', 'Nobody']], 'Sellers get more money for each bag.'),
       c('The price of phở falls. What do buyers do?', 'Phở gets cheaper. What do [[buyer|buyers]] do?', [['They buy more phở', 'They buy more'], ['They buy less phở', 'They buy less'], ['They sell their phở', 'They sell phở'], ['They stop eating phở', 'They stop eating it']], 'Buyers buy more at a lower price.'),
-      c('The price of durian rises. What do sellers do?', 'Durian gets dearer. What do [[seller|sellers]] do?', [['They sell more durian', 'They sell more'], ['They sell less durian', 'They sell less'], ['They buy more durian', 'They buy more'], ['They give durian away', 'They give it away']], 'More profit: sellers offer more.'),
+      c('The price of durian rises. What do sellers want to do?', 'Durian gets dearer. What do [[seller|sellers]] want to do?', [['Offer more durian for sale', 'Sell more durian'], ['Offer less durian for sale', 'Sell less durian'], ['Buy more durian themselves', 'Buy more durian'], ['Give their durian away', 'Give durian away']], 'More profit on each one: sellers want to sell more.'),
       c('Why do sellers want a high price?', 'Why do [[seller|sellers]] like a HIGH price?', [['They make more profit', 'More [[profit]]'], ['They can buy more goods', 'They can buy more'], ['Their costs disappear', 'Their costs go away'], ['Buyers will buy more', 'Buyers buy more']], 'A higher price means more profit on each unit.')
     ]
   },
@@ -38,7 +38,7 @@ export const EBANK2 = {
     checks: [
       c('Which change is shown by a movement along the demand curve for phở?', 'Which one is a move ALONG the phở curve?', [['The price of phở rises', 'Phở costs more'], ['People earn more money', 'People earn more'], ['A TV advert for phở', 'A phở advert'], ['More people move to the city', 'More people in the city']], 'Only phở\'s own price is on the axis.'),
       c('Why does a change in income shift the demand curve?', 'Why does [[income]] SHIFT the curve?', [['Income is not on the axes', 'Income is not on the [[axis]]'], ['Income is the price of the good', 'Income is the price'], ['Income is on the price axis', 'Income is on the price axis'], ['Income never changes demand', 'Income does not matter']], 'Anything not on the axes shifts the curve.'),
-      c('The cost of milk rises. For bubble tea supply this is...', 'Milk costs more. For bubble tea [[supply]] this is...', [['a shift of the curve', 'a shift'], ['a movement along the curve', 'a movement along'], ['no change at all', 'no change'], ['a change in demand', 'a change in demand']], 'Milk cost is not bubble tea\'s own price.'),
+      c('A famous singer advertises bubble tea. For bubble tea demand this is...', 'A singer advertises bubble tea. For bubble tea [[demand]] this is...', [['a shift of the curve', 'a shift'], ['a movement along the curve', 'a movement along'], ['no change at all', 'no change'], ['a change in its price', 'a price change']], 'An advert is not the price of bubble tea itself.'),
       c('What is on the vertical axis of a demand curve?', 'What is on the UP axis?', [['The price of the good', 'The price'], ['The income of buyers', 'Income'], ['The number of sellers', 'Number of sellers'], ['The cost of production', 'The cost']], 'Price on the vertical axis, quantity on the horizontal.')
     ]
   },
@@ -77,7 +77,7 @@ export const EBANK2 = {
     vi: 'Trong hệ thống thị trường, cơ chế giá trả lời ba câu hỏi: sản xuất cái gì (hàng người tiêu dùng mua), như thế nào (cách rẻ nhất), cho ai (người sẵn lòng và có khả năng trả).',
     checks: [
       c('In a market system, who decides what is produced?', 'Who decides WHAT to make?', [['Buyers and sellers via prices', 'Buyers and sellers, by prices'], ['A central government plan', 'The government, with a plan'], ['The biggest bank in the city', 'The biggest bank in the city'], ['The workers in each firm', 'The workers in each firm']], 'The price mechanism, not a plan.'),
-      c('"For whom" is answered by...', '"FOR WHOM" means...', [['who can pay the price', 'who can pay'], ['who needs it most', 'who needs it most'], ['who asks first', 'who asks first'], ['who the state picks', 'who the government picks']], 'Goods go to those willing and able to pay.'),
+      c('In a market system, who gets the goods?', 'In a [[market system]], who gets the goods (FOR WHOM)?', [['Those who can pay the price', 'People who can pay'], ['Those who need them most', 'People who need them most'], ['Those who ask first', 'People who ask first'], ['Those the state picks', 'People the government picks']], 'Goods go to those willing and able to pay.'),
       c('Wages rise, so a factory buys robots. Which question is this?', 'Workers cost more, so a factory buys robots. Which question?', [['How to produce', 'HOW'], ['What to produce', 'WHAT'], ['For whom', 'FOR WHOM'], ['How much to tax', 'HOW MUCH TAX']], 'The method of production: HOW.'),
       c('People buy fewer DVDs and firms stop making them. Which question?', 'People buy fewer DVDs. Firms stop making them. Which question?', [['What to produce', 'WHAT'], ['How to produce', 'HOW'], ['For whom', 'FOR WHOM'], ['Where to sell', 'WHERE']], 'Which goods to make: WHAT.')
     ]
@@ -144,7 +144,7 @@ export const EBANK2 = {
     vi: 'Khi giá của chính hàng hóa thay đổi, ta di chuyển dọc đường cầu (hoặc cung). Lượng lớn hơn là mở rộng; lượng nhỏ hơn là thu hẹp.',
     checks: [
       c('The price of phở falls. On the demand curve this is...', 'Phở gets cheaper. On the demand curve this is...', [['an extension of demand', 'an [[extension]]'], ['a contraction of demand', 'a [[contraction]]'], ['a shift to the right', 'a shift right'], ['a shift to the left', 'a shift left']], 'Lower price, bigger quantity demanded: extension.'),
-      c('The price of bánh mì rises. On the supply curve this is...', 'Bánh mì gets dearer. On the [[supply curve]] this is...', [['an extension of supply', 'an [[extension]]'], ['a contraction of supply', 'a [[contraction]]'], ['a shift to the left', 'a shift left'], ['a shift to the right', 'a shift right']], 'Higher price, bigger quantity supplied: extension.'),
+      c('The price of bubble tea rises from 40,000 to 50,000 đồng. On the demand curve this is...', 'Bubble tea goes from 40,000 to 50,000 đồng. On the demand curve this is...', [['a contraction of demand', 'a [[contraction]]'], ['an extension of demand', 'an [[extension]]'], ['a shift to the left', 'a shift left'], ['a shift to the right', 'a shift right']], 'Higher price, smaller quantity demanded: contraction.'),
       c('What causes a contraction of demand?', 'What causes a [[contraction]] of demand?', [['A rise in the good\'s price', 'Its price goes up'], ['A fall in buyers\' income', 'People earn less'], ['A bad advert', 'A bad advert'], ['A fall in its price', 'Its price goes down']], 'Only the own price; a rise gives a contraction.'),
       c('During an extension of demand, the demand curve...', 'In an [[extension]], the demand curve...', [['does not move', 'stays still'], ['shifts right', 'moves right'], ['shifts left', 'moves left'], ['gets steeper', 'gets steeper']], 'Movement along: the curve stays where it is.')
     ]
@@ -197,7 +197,7 @@ export const EBANK2 = {
       c('Market equilibrium is where...', '[[equilibrium|Equilibrium]] is where...', [['Qd equals Qs', 'buyers = sellers'], ['Qd is at its highest', 'buyers want the most'], ['the price is lowest', 'the price is lowest'], ['profit is highest', 'profit is highest']], 'Quantity demanded = quantity supplied.'),
       c('Price 30k: Qd 100, Qs 60. Price 40k: Qd 80, Qs 80. The equilibrium price is...', '30k: buyers 100, sellers 60. 40k: buyers 80, sellers 80. The [[equilibrium price]] is...', [['40k', '40k'], ['30k', '30k'], ['35k', '35k'], ['80k', '80k']], 'At 40k the two quantities are equal.'),
       c('Why does the price stay at equilibrium?', 'Why does the price STAY at [[equilibrium]]?', [['No shortage or surplus pushes it', 'Nothing pushes it up or down'], ['The government fixes it there', 'The government fixes it'], ['Sellers agree on one price', 'Sellers agree on a price'], ['Buyers stop buying the good', 'Buyers stop buying']], 'With no gap, there is no pressure to change.'),
-      c('A surplus exists. As the price falls to equilibrium...', 'There is a [[surplus]]. The price falls to [[equilibrium]]. Then...', [['demand extends, supply contracts', 'buyers buy more, sellers sell less'], ['demand shifts to the right', 'the demand curve moves right'], ['supply shifts to the left', 'the supply curve moves left'], ['demand contracts, supply extends', 'buyers buy less, sellers sell more']], 'Movements along the curves, not shifts.')
+      c('A surplus exists. As the price falls to equilibrium...', 'There is a [[surplus]]. The price falls to [[equilibrium]]. Then...', [['demand extends, supply contracts', 'buyers want more, sellers offer less'], ['demand shifts to the right', 'the demand curve moves right'], ['supply shifts to the left', 'the supply curve moves left'], ['demand contracts, supply extends', 'buyers want less, sellers offer more']], 'Movements along the curves, not shifts.')
     ]
   },
   'price-chain': {

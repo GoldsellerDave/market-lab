@@ -245,3 +245,22 @@ test('2.4 and 2.5 plain options: the right answer is not usually the longest', (
   for (const q of qs) { const L = q.options.map(o => strip(o.p).length), mx = Math.max(...L.slice(1)); if (L[0] > mx) longest++; assert.ok(L[0] <= 15 || L[0] <= 1.35 * mx, `${q.id || q.q}: ${L}`); }
   assert.ok(longest <= 0.35 * qs.length, `right answer longest in ${longest} of ${qs.length}`);
 });
+
+// ---------- Audit (Nov 2026): rules that keep exercises fair
+import { readFileSync } from 'node:fs';
+test('sorting tasks are real tasks: more items than groups, and every group is used', () => {
+  for (const s of SCENARIOS) for (const st of s.steps.filter(x => x.type === 'sort')) {
+    assert.ok(st.items.length > st.buckets.length, `${s.id}: ${st.items.length} items for ${st.buckets.length} groups`);
+    st.buckets.forEach((_, b) => assert.ok(st.items.some(i => i.b === b), `${s.id}: group ${b} is empty`));
+  }
+});
+test('AI marking: no word-list cap on top of the AI, identical answers reuse the verdict, positive marking rules', () => {
+  const src = readFileSync(new URL('../supabase/functions/ecl-grade/index.ts', import.meta.url), 'utf8');
+  assert.ok(!/hits\.splice\(2\)/.test(src), 'the function must not cut Analyse answers to 2 marks by a word list');
+  assert.ok(/cached: true/.test(src) && /PROMPT_V/.test(src));
+  for (const rule of ['when it is a close call, give the mark', 'different correct point', 'Never hold back a point just because a linking word is missing', 'praise only points you put in hits'])
+    assert.ok(src.includes(rule), `marking rule: ${rule}`);
+});
+test('one clear movement-or-shift tip is shown in 2.4 and 2.5', () => {
+  assert.ok(/OWN price/.test(TALL['move-vs-shift'].tip) && /equilibrium/.test(TALL['move-vs-shift'].tip));
+});

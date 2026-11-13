@@ -15,6 +15,12 @@ If the function is not set up, or anything goes wrong, the keyword mark stands, 
 
 Only the question, its story or data, the mark scheme, the student's answer, English level and first name are sent.
 Teachers see every AI decision in the **AI marking** tab and can flag one; a flag does not change marks or XP.
+
+How it marks (the rules are the `SYSTEM` text in `functions/ecl-grade/index.ts`): positively, like a Cambridge examiner. Any wording,
+a correct example, a point applied to the story, or a valid alternative point earns the mark; wrong economics does not. For Analyse
+questions the AI itself judges whether the answer is a chain of reasoning (there is no word-list cap). The same answer to the same
+question from the same student gets the same verdict again without a new AI call. After changing the rules, raise `PROMPT_V` in the
+function and deploy it again (Supabase → Edge Functions → ecl-grade → Code → paste → Deploy).
 To try the screens without AI, open the demo with `?demo=1&aidemo=1`.
 
 Before every commit run `python3 learn/tools/stamp.py`.
