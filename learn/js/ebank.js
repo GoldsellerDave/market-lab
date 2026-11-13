@@ -4,7 +4,7 @@
 //   checks   short questions: the first option is right (shuffled on screen), each option [exam, plain?]; why = the reason.
 // The first check is always shown in plain English, to tell a language problem from a concept problem.
 // Keep the right option from usually being the longest (a test checks). Don't rename block ids.
-import { EBANK2 } from './ebank2.js?v=4e7248ff';
+import { EBANK2 } from './ebank2.js?v=65021f42';
 const c = (q, plain, options, why) => ({ q, plain: plain || q, options: options.map(o => (Array.isArray(o) ? { t: o[0], p: o[1] || o[0] } : { t: o, p: o })), why });
 
 export const EBANK = {
@@ -71,7 +71,7 @@ export const EBANK = {
       c('Anh can watch a football match or study on Saturday. He studies. What does he lose?', 'Anh studies on Saturday. He cannot watch football. What does he lose?', [['Watching the football match', 'The football match'], ['Nothing, because studying is free', 'Nothing'], ['The time spent studying', 'The study time'], ['His books and his pen', 'His books']], 'He gives up the football match.'),
       c('Why does choosing mean giving something up?', 'Why do we lose something when we choose?', [['We cannot have both at the same time', 'We cannot have both'], ['Everything we choose is always free', 'Everything is free'], ['Shops only sell one good each', 'Shops sell only one thing'], ['The government decides for us', 'The government chooses']], 'With limited money and time, we cannot have both.'),
       c('Mr Minh uses his shop for a café, not a phone shop. What does he give up?', 'Mr Minh makes a café, not a phone shop. What does he give up?', [['The phone shop he could have had', 'The phone shop'], ['The café that he chose to open', 'The café he opened'], ['The money he spent on the café', 'The money he spent'], ['Nothing, because it is his shop', 'Nothing: it is his shop']], 'He gives up the phone shop.'),
-      c('Which sentence is true?', 'Which sentence is right?', [['Every choice has something given up', 'Every choice loses something'], ['Some choices give up everything', 'Some choices lose everything'], ['Free choices never exist', 'No choice is ever free'], ['Choices only matter for firms', 'Only firms make choices']], 'Every choice means giving up the other option.')
+      c('Which sentence is true?', 'Which sentence is right?', [['Every choice has something given up', 'Every choice loses something'], ['Some choices give up everything', 'Some choices lose everything'], ['Only big choices have a cost', 'Only big choices lose a thing'], ['Choices only matter for firms', 'Only firms make choices']], 'Every choice means giving up the other option.')
     ]
   },
   'graph-read': {
@@ -183,7 +183,7 @@ export const EBANK = {
   },
   'rewards': {
     builder: { type: 'sort', q: 'Mrs Hoa\'s rice farm in Củ Chi. Which reward does each one get?', buckets: ['Rent', 'Wages', 'Interest', 'Profit'],
-      items: [['Mr Tâm, who owns the land', '🧓', 0], ['The four farm workers', '👩‍🌾', 1], ['The bank that lent money for the pump', '🏦', 2], ['Mrs Hoa, who takes the risk', '🌾', 3], ['The owner of the café building', '🏠', 0], ['A barista', '🧑‍🍳', 1]] },
+      items: [['Mr Tâm, who owns the land', '🧓', 0], ['The four farm workers', '👩‍🌾', 1], ['The bank that lent money for the pump', '🏦', 2], ['Mrs Hoa, who takes the risk', '🌾', 3], ['The owner of a field used by a fruit farmer', '🌳', 0], ['A barista', '🧑‍🍳', 1]] },
     say: 'Each factor of production earns a reward: land earns rent, labour earns wages, capital earns interest and enterprise earns profit.',
     plain: '[[land|Land]] gets [[rent]]. [[labour|Labour]] gets [[wages]]. [[capital|Capital]] gets [[interest]]. [[enterprise|Enterprise]] gets [[profit]].',
     vi: 'Đất đai nhận tiền thuê, lao động nhận tiền lương, tư bản nhận tiền lãi, doanh nhân nhận lợi nhuận.',

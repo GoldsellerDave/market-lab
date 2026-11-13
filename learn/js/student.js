@@ -1,26 +1,26 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=4e7248ff';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=4e7248ff';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=4e7248ff';
-import * as E from './engine.js?v=4e7248ff';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=4e7248ff';
-import { BASELINE, BASELINE_N } from './u1.js?v=4e7248ff';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=4e7248ff';
-import { createPPC } from './ppc.js?v=4e7248ff';
-import * as S from './sound.js?v=4e7248ff';
-import * as EM from './eengine.js?v=4e7248ff';
-import { EBANK, EREADY } from './ebank.js?v=4e7248ff';
-import * as Cel from './celebrate.js?v=4e7248ff';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=4e7248ff';
-import { scene } from './scenes.js?v=4e7248ff';
-import { SHIFTS } from './u25.js?v=4e7248ff';
-import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=4e7248ff';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=4e7248ff';
-import { createDiagram } from './diagram.js?v=4e7248ff';
-import { createCurve } from './curve.js?v=4e7248ff';
-import { icon, tile } from './icons.js?v=4e7248ff';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=4e7248ff';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=65021f42';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=65021f42';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=65021f42';
+import * as E from './engine.js?v=65021f42';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=65021f42';
+import { BASELINE, BASELINE_N } from './u1.js?v=65021f42';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=65021f42';
+import { createPPC } from './ppc.js?v=65021f42';
+import * as S from './sound.js?v=65021f42';
+import * as EM from './eengine.js?v=65021f42';
+import { EBANK, EREADY } from './ebank.js?v=65021f42';
+import * as Cel from './celebrate.js?v=65021f42';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=65021f42';
+import { scene } from './scenes.js?v=65021f42';
+import { SHIFTS } from './u25.js?v=65021f42';
+import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=65021f42';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=65021f42';
+import { createDiagram } from './diagram.js?v=65021f42';
+import { createCurve } from './curve.js?v=65021f42';
+import { icon, tile } from './icons.js?v=65021f42';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=65021f42';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -1080,7 +1080,7 @@ const P2_LEAD = {
   frame: 'Write the answer in your own words. Use the sentence frame to help you.',
   free: 'Write the answer by yourself.'
 };
-const LINKS = /\b(because|so|this means|which means|therefore|as a result|leads? to|led to|then|causing|causes|so that|meaning)\b/i;
+const LINKS = /\b(because|so|since|as|this means|which means|therefore|thus|hence|consequently|as a result|due to|leads? to|led to|results? in|then|if|when|causing|causes|so that|meaning|forced to|must|have to|has to)\b/i;
 function p2() {
   wide(true); helpCount = 0;
   const b = band(), items = C().P2.slice().sort((x, y) => x.level - y.level || x.marks - y.marks), t0 = Date.now(), answers = [];
