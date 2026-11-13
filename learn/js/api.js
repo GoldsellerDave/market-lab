@@ -1,6 +1,6 @@
 // Every database call goes through rpc(): Supabase ec_* functions, or a demo store in this browser
 // (demo mode: ?demo=1, or no Supabase settings in ../config.js). Demo logins: demo-01 / 1234, teacher / demo.
-import { xpTotals } from './engine.js?v=a433765c';
+import { xpTotals } from './engine.js?v=7351257f';
 const CFG = window.MARKET_CONFIG || {};
 const PARAMS = new URLSearchParams(location.search);
 export const DEMO = PARAMS.has('demo') || !String(CFG.supabaseUrl || '').trim();

@@ -1,11 +1,11 @@
 // Section 2 exam papers (2.1 to 2.5): two forms (A and B) of Paper 1 and Paper 2. Same format as px1.js.
-import { m, g, w } from './px1.js?v=a433765c';
+import { m, g, w } from './px1.js?v=7351257f';
 const SCHED = { head: ['Price ($)', 'Quantity demanded', 'Quantity supplied'], rows: [['1', '100', '20'], ['2', '80', '40'], ['3', '60', '60'], ['4', '40', '80']] };
 
 const P1A = [
-  m('x2a-01', '2.4', 'In a market economic system, what mainly decides how resources are allocated?',
+  m('x2a-01', '2.4', 'In a market, what signals where resources are needed and allocates them between uses?',
     [['The price mechanism', 'Prices, set by demand and supply, signal where resources are wanted.'],
-      ['Government planning', 'That describes a planned economy. In a market system the government does not direct resources.', 'planned'],
+      ['Government planning', 'In a market the government does not direct resources. Prices do.', 'planned'],
       ['Custom and tradition', 'Tradition is not how a market system allocates resources.', 'planned'],
       ['The decisions of banks', 'Banks lend money, but prices and profits decide what is produced.', 'planned']]),
   m('x2a-02', '2.1', 'In the market for mangoes, what is the role of sellers?',
@@ -99,11 +99,11 @@ const P1A = [
       ['Price falls; quantity falls', 'That would happen if fish were a complement to chicken.', 'related-goods'],
       ['Price rises; quantity falls', 'That needs a fall in the supply of fish. Here demand has changed.', 'd-vs-s'],
       ['Price and quantity do not change', 'A change in the price of a substitute shifts demand.', 'related-goods']]),
-  m('x2a-20', '2.5', 'In a market, demand increases and supply increases at the same time. What can be said for certain?',
-    [['Quantity rises; the change in price is uncertain', 'Both shifts raise quantity. Demand pushes price up and supply pushes it down.'],
-      ['Price rises; the change in quantity is uncertain', 'That is the result when demand rises and supply FALLS.', 'two-shifts'],
-      ['Price rises and quantity rises', 'The rise in supply pushes price down, so price is not certain.', 'two-shifts'],
-      ['Price falls and quantity falls', 'Both shifts increase the quantity traded.', 'two-shifts']])
+  m('x2a-20', '2.5', 'Over the past year, the equilibrium price of strawberries fell, while the quantity traded increased. What could have caused this?',
+    [['Good weather gave a much larger strawberry harvest', 'Supply shifted right, which lowers the equilibrium price and raises the quantity traded.'],
+      ['A rise in the wages of strawberry pickers', 'Higher costs shift supply left, which raises price and reduces quantity.', 'direction'],
+      ['A successful advertising campaign for strawberries', 'Higher demand shifts the demand curve right, which raises both price and quantity.', 'd-vs-s'],
+      ['A fall in consumers’ incomes', 'Lower demand shifts the demand curve left, which lowers both price and quantity.', 'd-vs-s']])
 ];
 
 const P1B = [
@@ -203,11 +203,11 @@ const P1B = [
       ['Price falls; quantity falls', 'That would happen if the two goods were substitutes.', 'related-goods'],
       ['Price falls; quantity rises', 'That needs a rise in the supply of capsules. Here demand has changed.', 'd-vs-s'],
       ['Price and quantity do not change', 'A change in the price of a complement shifts demand.', 'related-goods']]),
-  m('x2b-20', '2.5', 'In a market, demand increases and supply decreases at the same time. What can be said for certain?',
-    [['Price rises; the change in quantity is uncertain', 'Both shifts push price up. Demand raises quantity and supply lowers it.'],
-      ['Quantity rises; the change in price is uncertain', 'That is the result when demand and supply BOTH increase.', 'two-shifts'],
-      ['Price rises and quantity rises', 'The fall in supply pushes quantity down, so quantity is not certain.', 'two-shifts'],
-      ['Price falls and quantity falls', 'Both shifts push the price up.', 'two-shifts']])
+  m('x2b-20', '2.5', 'In the market for bicycles, both the equilibrium price and the equilibrium quantity traded increased. What must have happened?',
+    [['The demand curve for bicycles shifted to the right', 'An increase in demand raises both the equilibrium price and the quantity traded, as supply extends.'],
+      ['The supply curve for bicycles shifted to the right', 'An increase in supply lowers the equilibrium price and raises quantity.', 'd-vs-s'],
+      ['The supply curve for bicycles shifted to the left', 'A decrease in supply raises the equilibrium price but reduces quantity.', 'd-vs-s'],
+      ['The demand curve for bicycles shifted to the left', 'A decrease in demand lowers both the equilibrium price and quantity.', 'direction']])
 ];
 
 const BREAD = { head: ['Price (đồng)', 'Quantity demanded (loaves a day)', 'Quantity supplied (loaves a day)'], rows: [['15,000', '500', '300'], ['20,000', '400', '400'], ['25,000', '300', '500']] };
@@ -264,7 +264,7 @@ const P2B = [
         [['There is an extension in demand for electric motorbikes.', 'An extension needs a fall in the price of electric motorbikes themselves. Here another price changed.'], ['The demand curve for electric motorbikes shifts to the left.', 'Consumers switch TO electric motorbikes, so demand rises: a shift right.']],
         [g('petrol bikes cost more to use (complement)', ['complement', 'more expensive to use', 'cost more to', 'expensive to ride', 'dearer to', 'costs more to'], 'What happens to the cost of riding a petrol motorbike?'), g('consumers switch (substitute)', ['switch', 'substitut', 'instead', 'change to'], 'What do some consumers do?'),
           g('demand for electric bikes increases', ['demand for electric', 'demand increase', 'demand rise', 'increase in demand', 'more demand', 'demand will increase', 'demand will rise', 'increases at every'], 'What happens to demand for electric motorbikes?'), g('demand curve shifts right', ['right'], 'Which way does the curve move?')]),
-      w('y2b-1c', '2.5', 6, 'analyse', 'Analyse the effect of the subsidy on the market for electric motorbikes.',
+      w('y2b-1c', '2.5', 6, 'analyse', 'Analyse the effect of the subsidy, on its own, on the market for electric motorbikes.',
         ['A subsidy is a payment from the government to producers.', 'It lowers the costs of producing electric motorbikes.', 'Production is more profitable, so supply increases: the supply curve shifts to the right.', 'At the old price there is now a surplus.', 'Therefore the price of electric motorbikes falls.', 'As a result, demand extends and the quantity traded rises.'],
         [['The supply curve shifts to the left.', 'A subsidy LOWERS costs, so supply increases: a shift right.'], ['The demand curve shifts to the right.', 'The subsidy is paid to producers, so it shifts supply. Demand only extends along its curve.'], ['Therefore the price of electric motorbikes rises.', 'More supply creates a surplus at the old price, which pushes the price DOWN.']],
         [g('subsidy = government payment to producers', ['payment', 'government pays', 'money from the government', 'government gives', 'paid by the government', 'payment from'], 'What is a subsidy?'), g('lower costs of production', ['cost'], 'What happens to costs?'),
