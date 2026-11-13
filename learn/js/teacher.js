@@ -1,22 +1,22 @@
 // Teacher dashboard, laid out like Checkpoint Quest's: class pills, four stat cards, tabs for Students, Units,
 // Skills heat map, Hardest questions, Leaderboard and Manage class, and a tracker page for each student.
-import { rpc, token, DEMO, errText } from './api.js?v=e447af61';
-import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js?v=e447af61';
-import { UNITS, ACTIVITIES } from './units.js?v=e447af61';
-import * as E from './engine.js?v=e447af61';
-import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js?v=e447af61';
-import { mission, checkBest, CHECK_PASS } from './mission.js?v=e447af61';
-import { icon, tile } from './icons.js?v=e447af61';
-import { bandOf, BANDS, BAND_NAMES } from './bands.js?v=e447af61';
-import { BASELINE_N } from './u1.js?v=e447af61';
-import * as EM from './eengine.js?v=e447af61';
-import { EREADY } from './ebank.js?v=e447af61';
-import { SCENARIOS } from './u1s.js?v=e447af61';
+import { rpc, token, DEMO, errText } from './api.js?v=a433765c';
+import { $, $$, esc, view, toast, pct, ago, pref, busy } from './ui.js?v=a433765c';
+import { UNITS, ACTIVITIES } from './units.js?v=a433765c';
+import * as E from './engine.js?v=a433765c';
+import { CONTENT, TRAPS, ITEMS as ITEM, unitTraps } from './content.js?v=a433765c';
+import { mission, checkBest, CHECK_PASS } from './mission.js?v=a433765c';
+import { icon, tile } from './icons.js?v=a433765c';
+import { bandOf, BANDS, BAND_NAMES } from './bands.js?v=a433765c';
+import { BASELINE_N } from './u1.js?v=a433765c';
+import * as EM from './eengine.js?v=a433765c';
+import { EREADY } from './ebank.js?v=a433765c';
+import { SCENARIOS } from './u1s.js?v=a433765c';
 
 let me = null, classes = [], cls = null, tab = pref.get('t-tab2', 'students'), live = null, focus = null, lbMode = 'week';
 const BUILT = UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);
 let UNIT = BUILT.includes(pref.get('t-unit', '2.5')) ? pref.get('t-unit', '2.5') : BUILT[BUILT.length - 1];
-const actName = (unit, id) => (id === 'build' ? 'Build it up' : id.startsWith('sc-') ? 'Scenario: ' + ((SCENARIOS.find(s => 'sc-' + s.id === id) || {}).title || id) : id === 'check' ? 'Unit checkpoint' : id === 'review' ? 'Review' : ((ACTIVITIES[unit] || []).find(a => a.id === id) || { title: id }).title);
+const actName = (unit, id) => (/^p[12][ab]$/.test(id) ? `Paper ${id[1]} · Form ${id[2].toUpperCase()}` : id === 'build' ? 'Build it up' : id.startsWith('sc-') ? 'Scenario: ' + ((SCENARIOS.find(s => 'sc-' + s.id === id) || {}).title || id) : id === 'check' ? 'Unit checkpoint' : id === 'review' ? 'Review' : ((ACTIVITIES[unit] || []).find(a => a.id === id) || { title: id }).title);
 const LEVELED = new Set(['shift', 'eqm', 'mcq', 'ppc']);
 const pracOf = u => (ACTIVITIES[u] || []).find(a => a.id === 'shift' || a.id === 'eqm' || a.id === 'ppc');
 const engChip = bi => (bi.band == null ? '<span class="lvlchip">Not placed</span>' : `<span class="chip mint" title="${BAND_NAMES[bi.band]}">${BANDS[bi.band]}</span>${bi.source === 'teacher' ? ' <span class="note">set by you</span>' : ''}`);
@@ -174,7 +174,7 @@ function tracker(body, id) {
     <h3 style="margin-top:14px">History</h3>
     ${a.slice().reverse().map(x => `<details class="card"><summary><b>${esc(x.unit === 'review' ? 'Review' : x.unit === 'base' ? 'English baseline' : x.unit + ' ' + actName(x.unit, x.activity))}</b> · ${x.score}/${x.max_score} · ${LEVELED.has(x.activity) ? E.LEVELS[x.level_start] + ' → ' + E.LEVELS[x.level_end] + ' · ' : ''}${Math.round(x.seconds / 60)} min · <span class="note">${new Date(x.created_at).toLocaleString()}</span></summary>
       <table class="t" style="margin-top:8px">${(x.answers || []).filter(q => ITEM[q.id]).map(q => `<tr><td>${q.first_try ? '✔' : q.ok ? '◐' : '✘'}</td><td style="min-width:220px">${esc(ITEM[q.id].text)}
-        ${q.pick ? `<br><span class="note">Chose: ${esc(q.pick)}</span>` : ''}${q.text && x.activity === 'data' ? `<br><span class="note">${q.text.startsWith('{') ? 'Drew: ' + esc(drew(q.text)) : 'Wrote: ' + esc(q.text)}</span>` : ''}</td>
+        ${q.pick ? `<br><span class="note">Chose: ${esc(q.pick)}</span>` : ''}${q.build != null ? `<br><span class="note">Chain built: ${q.build}/${q.of}</span>` : ''}${q.text && /^p2[ab]$/.test(x.activity) ? `<br><span class="note">Wrote: ${esc(q.text)}</span>` : ''}${q.text && x.activity === 'data' ? `<br><span class="note">${q.text.startsWith('{') ? 'Drew: ' + esc(drew(q.text)) : 'Wrote: ' + esc(q.text)}</span>` : ''}</td>
         <td class="note">${q.score != null ? q.score + '/' + q.marks : ''} ${q.trap ? esc(TRAPS[q.trap]?.label || q.trap) : ''}${q.hinted ? ' (hint)' : ''}</td></tr>`).join('') || '<tr><td>Learning cards viewed.</td></tr>'}</table></details>`).join('') || '<p class="note">No activities yet.</p>'}
     <p class="note">✔ right first time · ◐ right after a retry or hint · ✘ wrong</p>`;
   $('#bk').onclick = () => { focus = null; render(); };
@@ -187,11 +187,13 @@ function tracker(body, id) {
 function units(body) {
   const open = new Set(cls.open_units || []);
   body.innerHTML = `<div class="ulist">${UNITS.map(u => {
-    const built = u.ready && CONTENT[u.id];
+    const built = u.ready && (CONTENT[u.id] || u.paper);
     let info = 'Activities not built yet: students see "Coming soon".';
-    if (built) { const ms = cls.students.map(s => mission(u.id, mine(s.id))), done = ms.filter(m => m.complete).length, avg = ms.length ? ms.reduce((t, m) => t + m.n, 0) / ms.length : 0, steps = mission(u.id, []).steps.length;
+    if (u.paper) { const done = k => cls.students.filter(s => mine(s.id).some(a => a.unit === u.id && a.activity === k)).length;
+      info = `Two forms of Paper 1 (20 multiple-choice) and Paper 2 (build, then write). Done so far: Paper 1 A ${done('p1a')}, B ${done('p1b')} · Paper 2 A ${done('p2a')}, B ${done('p2b')} of ${cls.students.length} students`; }
+    else if (built) { const ms = cls.students.map(s => mission(u.id, mine(s.id))), done = ms.filter(m => m.complete).length, avg = ms.length ? ms.reduce((t, m) => t + m.n, 0) / ms.length : 0, steps = mission(u.id, []).steps.length;
       info = `Average mission ${avg.toFixed(1)} of ${steps} steps · ${done} of ${cls.students.length} finished · ${cls.students.filter(s => (checkBest(u.id, mine(s.id)) || 0) >= CHECK_PASS).length} passed the checkpoint`; }
-    return `<label class="urow${built ? '' : ' locked'}" style="cursor:pointer">${tile(u.id, 'm')}<div><b>${u.id} ${esc(u.title)}</b><span class="note">${info}</span></div>
+    return `<label class="urow${built ? '' : ' locked'}" style="cursor:pointer">${tile(u.id, 'm')}<div><b>${u.paper ? '' : u.id + ' '}${esc(u.title)}</b><span class="note">${info}</span></div>
       <span class="toggle"><input type="checkbox" value="${u.id}" ${open.has(u.id) ? 'checked' : ''}> Open</span></label>`; }).join('')}</div>
     <div class="row" style="margin-top:12px"><button id="save">Save units</button><span class="note">Students see only the units you open.</span></div>`;
   $('#save').onclick = e => busy(e.target, async () => { try { const u = $$('.ulist input[type=checkbox]:checked', body).map(x => x.value).filter(v => UNITS.some(x => x.id === v)); await rpc('ec_t_set_units', { p_token: T(), p_code: cls.code, p_units: u }); cls.open_units = u; toast('Units saved'); render(); } catch (er) { fail(er); } });

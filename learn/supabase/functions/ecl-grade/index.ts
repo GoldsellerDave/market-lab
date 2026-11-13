@@ -1,5 +1,6 @@
 // AI marking for EcoLogic Learn written answers (Supabase Edge Function "ecl-grade").
-// Used for Paper 2 written answers (B1 and B2), the B2 "explain" task on scenario cards, and the 2.4/2.5 data responses.
+// Used for Paper 2 written answers (B1 and B2), the B2 "explain" task on scenario cards, the 2.4/2.5 data responses,
+// and the written answers of the section exam papers (all students; these also show the "next" advice).
 // Marking is positive (benefit of the doubt, any wording, valid alternative points); see SYSTEM below.
 // The website marks by keywords first and then asks this function; if anything fails, the keyword mark stands,
 // so the site never breaks without AI. Ported from the Checkpoint Quest "grade" function.
@@ -46,17 +47,19 @@ If the command word is "analyse": the answer should be a chain of reasoning. Giv
 
 "hits" lists the mark scheme points (exact labels) the answer makes. "ok" is true only if hits has at least the needed number of different points.
 "feedback" is one short, kind sentence to the student (max 25 words) in English simple enough for their level. It must match your marking: praise only points you put in hits, and if a needed point is missing, say which idea to add (as a hint, without giving the full answer away). Do not comment on spelling or grammar.
+"next" is one more short sentence (max 25 words): the single most useful thing this student should do to gain the next mark on a question like this (for example, name the missing step in the chain, add an example from the story, or link two points with "so"). If the answer has full marks, say what made it strong. Do not repeat the feedback sentence.
 If you get the student's first name, use it in about half of your feedback sentences, once. Never use any other name.`;
 
 const SCHEMA = {
   type: "object",
-  properties: { hits: { type: "array", items: { type: "string" } }, ok: { type: "boolean" }, feedback: { type: "string" } },
-  required: ["hits", "ok", "feedback"],
+  properties: { hits: { type: "array", items: { type: "string" } }, ok: { type: "boolean" }, feedback: { type: "string" }, next: { type: "string" } },
+  required: ["hits", "ok", "feedback", "next"],
   additionalProperties: false,
 };
 const clip = (v: unknown, n: number) => String(v ?? "").slice(0, n);
+const NEXT_SEP = " Next step: ";   // the log keeps both sentences in one column
 const squash = (t: string) => String(t || "").toLowerCase().replace(/\s+/g, " ").trim();
-const PROMPT_V = " v2";   // marking rules version, saved with the model name; change it to stop reusing older verdicts
+const PROMPT_V = " v3";   // marking rules version, saved with the model name; change it to stop reusing older verdicts
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 Deno.serve(async (req) => {
@@ -93,7 +96,8 @@ Deno.serve(async (req) => {
     const { data: prev } = await db.from("ec_ai_log").select("ok, hits, need, feedback, answer").eq("user_id", u.id).eq("item", item)
       .eq("model", MODEL + PROMPT_V).order("created_at", { ascending: false }).limit(8);
     const same = (prev || []).find((r) => squash(r.answer) === squash(answer) && r.need === need);
-    if (same) return json({ ok: same.ok, hits: (same.hits || []).filter((h: string) => points.includes(h)), feedback: same.feedback, cached: true });
+    if (same) { const [fb, nx] = String(same.feedback || "").split(NEXT_SEP);
+      return json({ ok: same.ok, hits: (same.hits || []).filter((h: string) => points.includes(h)), feedback: fb, next: nx || "", cached: true }); }
   }
 
   const prompt = `<question>${clip(b.question, 500)}</question>
@@ -105,7 +109,7 @@ Deno.serve(async (req) => {
 <student_english_level>${BANDS[band]}</student_english_level>
 <student_answer>${answer}</student_answer>${name ? `\n<student_first_name>${name}</student_first_name>` : ""}`;
 
-  let verdict: { hits: string[]; ok: boolean; feedback: string };
+  let verdict: { hits: string[]; ok: boolean; feedback: string; next?: string };
   try {
     const res = await claude.messages.create({
       model: MODEL,
@@ -128,11 +132,11 @@ Deno.serve(async (req) => {
   // The model applies the "analyse" rule itself (a word-list check here used to cut good answers to 2 marks).
   const hits = [...new Set((verdict.hits || []).filter((h) => points.includes(h)))];
   const ok = hits.length >= need;
-  const feedback = clip(verdict.feedback, 300);
+  const feedback = clip(verdict.feedback, 300), next = clip(verdict.next, 300);
 
   await db.from("ec_ai_log").insert({
     user_id: u.id, unit: clip(b.unit, 10), item, band, question: clip(b.question, 500), answer,
-    ok, hits, need, keyword_ok: !!b.keyword_ok, feedback, model: MODEL + PROMPT_V,
+    ok, hits, need, keyword_ok: !!b.keyword_ok, feedback: next ? feedback + NEXT_SEP + next : feedback, model: MODEL + PROMPT_V,
   });
-  return json({ ok, hits, feedback });
+  return json({ ok, hits, feedback, next });
 });

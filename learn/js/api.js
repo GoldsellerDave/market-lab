@@ -1,6 +1,6 @@
 // Every database call goes through rpc(): Supabase ec_* functions, or a demo store in this browser
 // (demo mode: ?demo=1, or no Supabase settings in ../config.js). Demo logins: demo-01 / 1234, teacher / demo.
-import { xpTotals } from './engine.js?v=e447af61';
+import { xpTotals } from './engine.js?v=a433765c';
 const CFG = window.MARKET_CONFIG || {};
 const PARAMS = new URLSearchParams(location.search);
 export const DEMO = PARAMS.has('demo') || !String(CFG.supabaseUrl || '').trim();
@@ -50,7 +50,7 @@ export async function aiMark(q) {
     if (!PARAMS.has('aidemo')) return null;
     await new Promise(r => setTimeout(r, 400));
     const d = db(), u = d.users.find(x => x.id === d.tokens[token.get()]);
-    const out = { ok: !!q.keyword_ok, hits: q.keyword_hits || [], feedback: q.keyword_ok ? 'Well done: your answer makes the points.' : 'Good start. Explain your idea in one more step.' };
+    const out = { ok: !!q.keyword_ok, hits: q.keyword_hits || [], feedback: q.keyword_ok ? 'Well done: your answer makes the points.' : 'Good start. Explain your idea in one more step.', next: q.keyword_ok ? 'Your links between the points made it strong.' : 'Add the missing step and link it with “so”.' };
     (d.ai = d.ai || []).push({ id: d.ai.length + 1, user_id: u && u.id, username: u && u.username, display_name: u && u.display_name, is_test: !!(u && u.is_test), unit: q.unit, item: q.item, band: q.band,
       question: q.question, answer: q.answer, ok: out.ok, hits: out.hits, need: q.need, keyword_ok: q.keyword_ok, feedback: out.feedback, model: 'demo', overruled: false, created_at: new Date().toISOString() });
     save(d); return out;

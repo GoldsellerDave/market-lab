@@ -67,7 +67,7 @@ def run_student(p, size):
     ok(p.locator('.bnav a').count() == 5, 'bottom navigation with five tabs')
     shot(p, size, '2a-home-top'); no_overflow(p, size + ' home')
     p.click('.bnav a[href="#/units"]'); p.wait_for_selector('.ulist')
-    ok(p.locator('a.urow').count() == 6, '1.1 to 1.4, 2.4 and 2.5 open in the demo'); ok(p.locator('.urow').count() == 10, 'ten units listed')
+    ok(p.locator('a.urow').count() == 6, '1.1 to 1.4, 2.4 and 2.5 open in the demo'); ok(p.locator('.urow').count() == 12, 'ten units and the two exam paper rows listed')
     shot(p, size, '2-home'); no_overflow(p, size + ' home')
     p.goto(BASE + '/learn/?demo=1#/me/settings'); p.wait_for_selector('[data-vi]'); p.click('[data-vi="true"]')
     ok(p.get_attribute('[data-vi="true"]', 'aria-selected') == 'true', 'Vietnamese words toggle')
