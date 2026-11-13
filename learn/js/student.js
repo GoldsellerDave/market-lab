@@ -1,26 +1,27 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=e447af61';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=e447af61';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=e447af61';
-import * as E from './engine.js?v=e447af61';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=e447af61';
-import { BASELINE, BASELINE_N } from './u1.js?v=e447af61';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=e447af61';
-import { createPPC } from './ppc.js?v=e447af61';
-import * as S from './sound.js?v=e447af61';
-import * as EM from './eengine.js?v=e447af61';
-import { EBANK, EREADY } from './ebank.js?v=e447af61';
-import * as Cel from './celebrate.js?v=e447af61';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=e447af61';
-import { scene } from './scenes.js?v=e447af61';
-import { SHIFTS } from './u25.js?v=e447af61';
-import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=e447af61';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=e447af61';
-import { createDiagram } from './diagram.js?v=e447af61';
-import { createCurve } from './curve.js?v=e447af61';
-import { icon, tile } from './icons.js?v=e447af61';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=e447af61';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=a433765c';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=a433765c';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=a433765c';
+import * as E from './engine.js?v=a433765c';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=a433765c';
+import { BASELINE, BASELINE_N } from './u1.js?v=a433765c';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=a433765c';
+import { createPPC } from './ppc.js?v=a433765c';
+import * as S from './sound.js?v=a433765c';
+import * as EM from './eengine.js?v=a433765c';
+import { EBANK, EREADY } from './ebank.js?v=a433765c';
+import * as Cel from './celebrate.js?v=a433765c';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=a433765c';
+import { scene } from './scenes.js?v=a433765c';
+import { SHIFTS } from './u25.js?v=a433765c';
+import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=a433765c';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=a433765c';
+import { createDiagram } from './diagram.js?v=a433765c';
+import { createCurve } from './curve.js?v=a433765c';
+import { PAPERS, PAPER_KEYS, paperHome, paperRun, paperName } from './papers.js?v=a433765c';
+import { icon, tile } from './icons.js?v=a433765c';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=a433765c';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -291,6 +292,10 @@ function unitRow(u) {
   const open = new Set(me.open_units || []);
   return [u].map(u => {
       const built = u.ready && CONTENT[u.id], isOpen = open.has(u.id);
+      if (u.paper && isOpen) { const done = PAPER_KEYS.filter(k => history.some(a => a.unit === u.id && a.activity === k)).length;
+        return `<a class="urow paperrow" href="#/u/${u.id}">${tile('p2', 'm')}<div><b>${esc(u.title)}</b><span class="note">${esc(u.sub)} · ${done} of 4 papers done</span>
+          <div class="bar" aria-hidden="true"><i style="width:${25 * done}%"></i></div></div>${done === 4 ? '<span class="chip ok">Done</span>' : ''}</a>`; }
+      if (u.paper) return `<div class="urow locked">${tile('lock', 'm')}<div><b>${esc(u.title)}</b><span class="note">Locked. Your teacher will open the exam papers at the end of the section.</span></div></div>`;
       if (!isOpen) return `<div class="urow locked">${tile('lock', 'm')}<div><b>${u.id} ${esc(u.title)}</b><span class="note">Locked. Your teacher will open ${u.id} when the class gets to it.</span></div></div>`;
       if (!built) return `<div class="urow locked">${tile(u.id, 'm')}<div><b>${u.id} ${esc(u.title)}</b><span class="note">Coming soon: the activities for this unit are being built.</span></div></div>`;
       const m = mission(u.id);
@@ -1735,6 +1740,10 @@ function route() {
   if (a === 'games') return gamesView();
   if (a === 'me') return meView(u || 'stats');
   const unit = UNITS.find(x => x.id === u);
+  if (a === 'u' && unit && unit.paper && PAPERS[u] && (me.open_units || []).includes(u)) {
+    U = null; wide(false); nav(act ? null : 'units');
+    return act ? paperRun(paperCtx(), u, act) : paperHome(paperCtx(), u);
+  }
   if (a === 'u' && unit && unit.ready && CONTENT[u] && (me.open_units || []).includes(u)) {
     U = u;
     if (act === 'tab') return unitPage(sub);
@@ -1745,6 +1754,9 @@ function route() {
   if (a === 'u') return unitsView();
   home();
 }
+// What the exam papers (papers.js) need from the app
+const paperCtx = () => ({ me, history: () => history, save: saveAttempt, aiMark, band, xpFor: a => E.xpForNew(history, a), reward: xp => Cel.set(xp),
+  sound: ok => S.play(ok ? 'ok' : 'bad'), isOpen: u => openUnits().includes(u) });
 window.addEventListener('hashchange', route);
 
 async function boot() {

@@ -1,12 +1,14 @@
 // Every built unit's content, keyed by unit id, plus merged lookups for traps and items (used by the teacher console).
-import * as U24 from './u24.js?v=e447af61';
-import * as U25 from './u25.js?v=e447af61';
-import * as U1 from './u1.js?v=e447af61';
-import * as U2 from './u2.js?v=e447af61';
-import * as U245 from './u245.js?v=e447af61';
-import * as EM from './eengine.js?v=e447af61';
-import { SCENARIOS } from './u1s.js?v=e447af61';
-import { EQ_TITLES } from './u24.js?v=e447af61';
+import * as U24 from './u24.js?v=a433765c';
+import * as U25 from './u25.js?v=a433765c';
+import * as U1 from './u1.js?v=a433765c';
+import * as U2 from './u2.js?v=a433765c';
+import { PAPERS1 } from './px1.js?v=a433765c';
+import { PAPERS2 } from './px2.js?v=a433765c';
+import * as U245 from './u245.js?v=a433765c';
+import * as EM from './eengine.js?v=a433765c';
+import { SCENARIOS } from './u1s.js?v=a433765c';
+import { EQ_TITLES } from './u24.js?v=a433765c';
 
 // Section 1 units share one glossary and one set of traps; each has its own cards and questions. BANDED: English adapts to the band.
 const G = { ...U1.GLOSSARY, ...U2.GLOSSARY, ...U245.GLOSSARY };
@@ -21,6 +23,7 @@ const banded = M => M.MCQ.map(q => { const P = U245.PLAIN[q.id]; if (!P) return 
 const s3 = M => { const MCQ = banded(M); return { ...M, BANDED: true, MCQ, TERMS: [...new Set(pillsIn([MCQ.map(q => [q.plain, q.options.map(o => o.p)])]))].filter(t => G[t]) }; };
 export const CONTENT = { '1.1': s1('1.1'), '1.2': s1('1.2'), '1.3': s1('1.3'), '1.4': { ...s1('1.4'), PPC: U1.PPC_ITEMS }, '2.1': s2('2.1'), '2.2': s2('2.2'), '2.3': s2('2.3'), '2.4': s3(U24), '2.5': s3(U25) };
 export const GLOSSARY = G;
+export const PAPER_SETS = [PAPERS1, PAPERS2];
 export const TRAPS = { ...U25.TRAPS, ...U24.TRAPS, ...U1.TRAPS, ...U2.TRAPS,
   'move-vs-shift': { label: 'Movement vs shift', tip: 'A change in the good’s OWN price is a movement ALONG the curve (an extension or a contraction). The whole curve shifts only when something else changes. When the price moves towards equilibrium, the curves do not shift.' } };
 /** Traps that can appear in one unit (for the heat map) */
@@ -41,5 +44,11 @@ EM.registerItems([
   ...SCENARIOS.flatMap(s => s.steps.map((st, k) => [`${s.id}-${k + 1}`, st.type === 'choice' ? EM.blockOfOptions(st.options) : st.type === 'sort' ? EM.blockOfTrap(st.trap) : null]))]);
 SCENARIOS.forEach(s => { s.steps.forEach((st, k) => (ITEMS[`${s.id}-${k + 1}`] = { unit: s.unit, kind: 'Scenario', text: `${s.title}: ${st.q}`, level: 0 }));
   if (s.explain) ITEMS[`${s.id}-x`] = { unit: s.unit, kind: 'Scenario (B2)', text: `${s.title}: ${s.explain.q}`, level: 2 }; });
+// Section exam papers: every question is listed for the teacher, and each multiple-choice question practises an engine block
+for (const P of [PAPERS1, PAPERS2]) for (const f of ['a', 'b']) {
+  P.p1[f].forEach(q => (ITEMS[q.id] = { unit: P.unit, kind: `Paper 1 Form ${f.toUpperCase()}`, text: q.stem, level: 1, topic: q.unit }));
+  P.p2[f].forEach(s => s.qs.forEach(q => (ITEMS[q.id] = { unit: P.unit, kind: `Paper 2 Form ${f.toUpperCase()}`, text: `${q.q} [${q.marks}]`, level: 1, topic: q.unit })));
+  EM.registerItems(P.p1[f].map(q => [q.id, EM.blockOfOptions(q.options)]));
+}
 U1.BASELINE.forEach(t => t.qs.forEach((q, k) => (ITEMS[`${t.id}-${k + 1}`] = { unit: 'base', kind: `Baseline ${t.level}`, text: `${t.title}: ${q.q}`, level: 0 })));
 Object.entries(EQ_TITLES).forEach(([k, t]) => (ITEMS[k] = { unit: '2.4', kind: 'Finder', text: t + ' (a new schedule each time)', level: U24.EQ_KINDS[k] }));

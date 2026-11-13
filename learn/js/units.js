@@ -1,5 +1,6 @@
 // Cambridge IGCSE Economics 0455, syllabus for exams in 2027 to 2029.
 // Section 1 (1.1 to 1.4) and section 2 (2.1 to 2.6; the syllabus continues to 2.10). `ready` marks units whose activities are built;
+// the teacher opens units per class. '1.P' and '2.P' are the section exam papers (papers.js), opened like units.
 // the teacher opens units per class. Section 1 and Section 2 (to 2.5) adapt their English to each student's band (see bands.js).
 export const SECTIONS = { '1': 'The basic economic problem', '2': 'The allocation of resources' };
 export const UNITS = [
@@ -7,11 +8,13 @@ export const UNITS = [
   { id: '1.2', title: 'The factors of production', sub: 'Land, labour, capital, enterprise and their rewards', ready: true },
   { id: '1.3', title: 'Opportunity cost', sub: 'The next best alternative, and how it affects decisions', ready: true },
   { id: '1.4', title: 'Production possibility curve diagrams', sub: 'Points, movements and shifts of the PPC', ready: true },
+  { id: '1.P', title: 'Section 1 exam papers', sub: 'Paper 1 and Paper 2 on units 1.1 to 1.4, two forms of each, with a timer', ready: true, paper: true },
   { id: '2.1', title: 'The role of markets in allocating resources', sub: 'The market system, buyers and sellers, the price mechanism', ready: true },
   { id: '2.2', title: 'Demand', sub: 'The demand curve, movements and shifts', ready: true },
   { id: '2.3', title: 'Supply', sub: 'The supply curve, movements and shifts', ready: true },
   { id: '2.4', title: 'Price determination', sub: 'The price mechanism, equilibrium, shortages and surpluses', ready: true },
   { id: '2.5', title: 'Price changes', sub: 'Shifts in demand and supply: what happens to price and quantity', ready: true },
+  { id: '2.P', title: 'Section 2 exam papers (2.1 to 2.5)', sub: 'Paper 1 and Paper 2 on units 2.1 to 2.5, two forms of each, with a timer', ready: true, paper: true },
   { id: '2.6', title: 'Price elasticity of demand (PED)', sub: 'How much quantity demanded reacts to a price change', ready: false }
 ];
 const S1 = [
