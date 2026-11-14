@@ -169,7 +169,7 @@ test('2.1 to 2.3: Paper 2 model answers get full marks, empty answers 0; one Ana
     for (const q of U2.P2[u]) {
       const m = markShort(q.chain.map(plainChain).join(' '), q.groups, q.need);
       assert.ok(m.ok, `${q.id}: model answer scores ${m.score}/${q.marks}`);
-      assert.equal(q.groups.length, q.marks, q.id); assert.ok(q.groups.every(g => g.ask), q.id);
+      assert.ok(q.groups.length > q.marks && q.need === q.marks, `${q.id}: more valid points than marks`); assert.ok(q.groups.every(g => g.ask), q.id);
       assert.ok(q.frame && q.plain && q.vi && gapsOf(q.chain).length >= 2, q.id);
       assert.equal(markShort('I do not know.', q.groups, q.need).score, 0, q.id);
       [q.plain].flatMap(pills).forEach(t => assert.ok(GALL[t], `${q.id}: [[${t}]]`));
@@ -266,4 +266,19 @@ test('AI marking: no word-list cap on top of the AI, identical answers reuse the
 });
 test('one clear movement-or-shift tip is shown in 2.4 and 2.5', () => {
   assert.ok(/OWN price/.test(TALL['move-vs-shift'].tip) && /equilibrium/.test(TALL['move-vs-shift'].tip));
+});
+import { SCENARIOS2 } from '../js/u2s.js';
+import { DATA as D24 } from '../js/u24.js';
+import { DATA as D25 } from '../js/u25.js';
+test('practice written answers: more valid points than marks ("any N from"); a model answer still earns full marks', () => {
+  const items = [...Object.values(U1.P2).flat(), ...Object.values(U2.P2).flat(), ...[...SCENARIOS, ...SCENARIOS2].map(s => s.explain).filter(Boolean),
+    D24.questions.find(q => q.id === 'd'), D25.questions.find(q => q.id === 'd')];
+  assert.ok(items.length >= 40);
+  for (const q of items) {
+    // Define / Identify questions mark exactly what they ask for (each factor with its reward; a definition and an example).
+    if (!/^(Define|Identify)/.test(q.q)) assert.ok(q.groups.length > q.need, `${q.q}: ${q.groups.length} points for ${q.need} marks`);
+    assert.equal(new Set(q.groups.map(g => g.label)).size, q.groups.length, `${q.q}: point labels are all different`);
+    assert.ok(q.groups.every(g => g.ask && g.k.length), q.q);
+    assert.equal(markShort('I do not know.', q.groups, q.need).score, 0, q.q);
+  }
 });

@@ -4,7 +4,7 @@
 //   checks   short questions: the first option is right (shuffled on screen), each option [exam, plain?]; why = the reason.
 // The first check is always shown in plain English, to tell a language problem from a concept problem.
 // Keep the right option from usually being the longest (a test checks). Don't rename block ids.
-import { EBANK2 } from './ebank2.js?v=e2db1928';
+import { EBANK2 } from './ebank2.js?v=b37cc519';
 const c = (q, plain, options, why) => ({ q, plain: plain || q, options: options.map(o => (Array.isArray(o) ? { t: o[0], p: o[1] || o[0] } : { t: o, p: o })), why });
 
 export const EBANK = {

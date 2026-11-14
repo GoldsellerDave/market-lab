@@ -1,5 +1,5 @@
 // Section 2 exam papers (2.1 to 2.5): two forms (A and B) of Paper 1 and Paper 2. Same format as px1.js.
-import { m, g, w } from './px1.js?v=e2db1928';
+import { m, g, w } from './px1.js?v=b37cc519';
 const SCHED = { head: ['Price ($)', 'Quantity demanded', 'Quantity supplied'], rows: [['1', '100', '20'], ['2', '80', '40'], ['3', '60', '60'], ['4', '40', '80']] };
 
 const P1A = [

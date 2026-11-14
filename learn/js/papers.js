@@ -3,12 +3,12 @@
 // key words if AI is not available). A timer runs (it never cuts a student off), and the score is saved at the end.
 // Content: px1.js (Section 1) and px2.js (Section 2). Unit ids '1.P' and '2.P'; activities p1a, p1b, p2a, p2b.
 // The student app (student.js) passes in `ctx`: its helpers and the signed-in student.
-import { PAPERS1 } from './px1.js?v=e2db1928';
-import { PAPERS2 } from './px2.js?v=e2db1928';
-import { $, $$, esc, view, toast } from './ui.js?v=e2db1928';
-import * as E from './engine.js?v=e2db1928';
-import { createPPC } from './ppc.js?v=e2db1928';
-import { UNITS } from './units.js?v=e2db1928';
+import { PAPERS1 } from './px1.js?v=b37cc519';
+import { PAPERS2 } from './px2.js?v=b37cc519';
+import { $, $$, esc, view, toast } from './ui.js?v=b37cc519';
+import * as E from './engine.js?v=b37cc519';
+import { createPPC } from './ppc.js?v=b37cc519';
+import { UNITS } from './units.js?v=b37cc519';
 
 export const PAPERS = { '1.P': PAPERS1, '2.P': PAPERS2 };
 export const PAPER_KEYS = ['p1a', 'p1b', 'p2a', 'p2b'];

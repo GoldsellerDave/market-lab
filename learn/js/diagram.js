@@ -1,5 +1,5 @@
 // An animated demand and supply diagram (SVG). Curves shift horizontally; the new equilibrium is marked.
-import { equilibrium } from './engine.js?v=e2db1928';
+import { equilibrium } from './engine.js?v=b37cc519';
 
 const X0 = 56, X1 = 336, Y0 = 268, Y1 = 22;
 const px = x => X0 + (X1 - X0) * x, py = y => Y0 - (Y0 - Y1) * y;

@@ -5,7 +5,7 @@
 // The cast: Lan (Grade 9, District 3), Mr Minh's café (District 1), Mrs Hoa's rice farm (Củ Chi), a phone factory (Thủ Đức),
 // the city government of Ho Chi Minh City.
 
-import { SCENARIOS2, CAST2, SCEN_CAST2, SORT_EXAMPLE2 } from './u2s.js?v=e2db1928';
+import { SCENARIOS2, CAST2, SCEN_CAST2, SORT_EXAMPLE2 } from './u2s.js?v=b37cc519';
 const o = (t, p, trap) => ({ t, p: p || t, trap });
 const choice = (q, plain, options, why, ppc) => ({ type: 'choice', q, plain: plain || q, options, why, ppc });
 // items: [text, emoji, bucket, plain?]
@@ -30,7 +30,7 @@ export const SCENARIOS = [
       'Scarcity: wants are greater than the resources available, so she must choose.')],
     { q: 'Explain why Lan faces the basic economic problem.', groups: [g('limited money / resources', ['limited', 'finite', 'scarce', 'only has 200', 'not enough money'], 'What is true about her money?'),
       g('unlimited wants', ['unlimited want', 'many want', 'wants more', 'infinite want', 'wants are greater', 'too many things'], 'What is true about her wants?'),
-      g('she must choose', ['choose', 'choice', 'decide', 'cannot buy everything', 'can\'t buy everything'], 'So what must she do?')], need: 3 }),
+      g('she must choose', ['choose', 'choice', 'decide', 'cannot buy everything', 'can\'t buy everything'], 'So what must she do?'), g('example: the items cost more than 200,000', ['650', '895', '795', 'trainers', 'cost more', 'too expensive', 'cinema', 'book'], 'What does the story show about prices?'), g('so she has an opportunity cost', ['opportunity cost', 'give up', 'gives up', 'given up', 'next best'], 'What happens to what she does not buy?')], need: 3 }),
 
   S('s11-needs', '1.1', 'Needs or wants at Bến Thành', 'market', ['🍚', '💧', '📱', '🧋'],
     'Lan goes to Bến Thành Market with her mother. They see many things for sale. Some are needs: people must have them to live. Others are wants: people would like them, but can live without them.',
@@ -45,7 +45,7 @@ export const SCENARIOS = [
       'Resources are limited (finite). Wants are unlimited.')],
     { q: 'Explain the difference between a need and a want, using an example of each.', groups: [g('need = must have to live', ['survive', 'to live', 'must have', 'necessary', 'essential'], 'What is a need?'),
       g('want = would like, not necessary', ['would like', 'not necessary', 'can live without', 'not essential', 'desire'], 'What is a want?'),
-      g('examples', ['rice', 'water', 'food', 'medicine', 'home', 'phone', 'bubble tea', 'game', 'bag'], 'Give an example of each.')], need: 3 }),
+      g('examples', ['rice', 'water', 'food', 'medicine', 'home', 'phone', 'bubble tea', 'game', 'bag'], 'Give an example of each.'), g('example of a want', ['phone', 'game', 'bubble tea', 'trainer', 'bag', 'toy', 'cinema'], 'Give an example of a want.'), g('wants are unlimited, needs are basic', ['unlimited', 'basic', 'survival', 'always want more'], 'How do needs and wants differ in size?')], need: 3 }),
 
   S('s11-who', '1.1', 'Everyone faces scarcity', 'city', ['👧', '☕', '🌾', '🏛️'],
     'Scarcity affects everyone in Ho Chi Minh City. Lan has limited pocket money. Mr Minh\'s café in District 1 has one coffee machine and three baristas. A barista must choose between two jobs. The city government has enough money for a new metro line or 20 new schools this year, but not both.',
@@ -77,7 +77,7 @@ export const SCENARIOS = [
       'Water, plastic, machines and workers are used to make it: those resources could have made something else.')],
     { q: 'Explain why a free school lunch is an economic good, not a free good.', groups: [g('uses scarce resources', ['scarce', 'resources', 'food', 'cook', 'workers', 'labour'], 'What is used to make the lunch?'),
       g('has an opportunity cost', ['opportunity cost', 'could be used', 'give up', 'instead', 'other use'], 'What is given up?'),
-      g('someone pays (government / taxes)', ['government pay', 'taxes', 'tax', 'someone pay', 'paid by'], 'Who pays for it?')], need: 2 }),
+      g('someone pays (government / taxes)', ['government pay', 'taxes', 'tax', 'someone pay', 'paid by'], 'Who pays for it?'), g('not unlimited: it could run out', ['not unlimited', 'run out', 'limited', 'not enough for everyone'], 'Is there enough for everyone without cost?'), g('example of a free good (air, sunshine)', ['air', 'sunshine', 'sunlight', 'sea water'], 'Give an example of a free good.')], need: 2 }),
 
   S('s11-three', '1.1', "The city's three big questions", 'city', ['🏗️', '🚇', '🏫', '🏥'],
     'Ho Chi Minh City has a large piece of land in Thủ Đức and a limited budget. Like every economy, it must answer three questions: what to produce, how to produce it and for whom to produce it.',
@@ -117,7 +117,7 @@ export const SCENARIOS = [
       'Interest is the reward for capital.')],
     { q: 'Explain why money is not a factor of production.', groups: [g('money cannot produce by itself', ['cannot produce', 'can\'t produce', 'cannot make', 'does not make', 'not used to make'], 'Can money make goods by itself?'),
       g('money buys factors / capital', ['buy', 'pay for', 'used to get'], 'What is money used for?'),
-      g('capital = man-made goods used in production', ['machine', 'man-made', 'equipment', 'tools'], 'What is capital?')], need: 2 }),
+      g('capital = man-made goods used in production', ['machine', 'man-made', 'equipment', 'tools'], 'What is capital?'), g('money is only a means of exchange', ['exchange', 'medium', 'means of payment', 'to pay', 'swap'], 'What is money used for?'), g('money is not used up in production', ['not used up', 'not used in', 'does not produce', 'is not a resource'], 'Is money itself used to make things?')], need: 2 }),
 
   S('s12-rewards', '1.2', 'Who gets paid what?', 'farm', ['🌾', '💰', '🏦', '👩‍🌾'],
     'Mrs Hoa grows rice in Củ Chi. She rents two hectares of land from Mr Tâm. She pays four farm workers each month. She borrowed money from a bank to buy a water pump. At the end of the year, she keeps what is left after paying everyone.',
@@ -145,7 +145,7 @@ export const SCENARIOS = [
       'Training and education give workers more skills, so each worker can produce more.')],
     { q: 'Explain one way the government could increase the quality of labour.', groups: [g('education / training', ['education', 'train', 'school', 'course', 'university', 'healthcare', 'health'], 'What could the government provide?'),
       g('more skills', ['skill', 'knowledge', 'learn'], 'What do workers gain?'),
-      g('more productive', ['productive', 'produce more', 'make more', 'better work', 'efficient'], 'So what happens to output?')], need: 2 }),
+      g('more productive', ['productive', 'produce more', 'make more', 'better work', 'efficient'], 'So what happens to output?'), g('health care: fewer sick days', ['health', 'hospital', 'medical', 'sick', 'fit'], 'Name another way, such as health care.'), g('better quality output', ['better quality', 'fewer mistakes', 'higher quality', 'better products'], 'What happens to what workers make?')], need: 2 }),
 
   S('s12-move', '1.2', 'Chị Mai moves to the city', 'move', ['🚌', '🏭', '👩‍🌾'],
     'Chị Mai grew rice in An Giang. She moves to Ho Chi Minh City to work in a phone factory in Thủ Đức. She has to find a room to rent in the city and learn new skills for the factory.',
@@ -171,7 +171,7 @@ export const SCENARIOS = [
       'Opportunity cost is the next best alternative given up: the cinema ticket.')],
     { q: 'Explain the opportunity cost of Lan\'s choice.', groups: [g('next best alternative', ['next best', 'best alternative', 'alternative'], 'What does opportunity cost mean?'),
       g('the cinema ticket / film', ['cinema', 'film', 'movie', 'ticket'], 'What did Lan give up?'),
-      g('given up / forgone', ['give up', 'gave up', 'given up', 'forgo', 'sacrific', 'lose'], 'What happens to the cinema?')], need: 3 }),
+      g('given up / forgone', ['give up', 'gave up', 'given up', 'forgo', 'sacrific', 'lose'], 'What happens to the cinema?'), g('it is not the money (120,000)', ['not the money', 'not 120', 'not money', 'not the price', 'not the cost'], 'Is the opportunity cost the money?'), g('she can only have one (scarcity)', ['only one', 'only have one', 'cannot have both', 'can\'t have both', 'limited', 'scarce'], 'Why can she not have both?')], need: 3 }),
 
   S('s13-rank', '1.3', 'Next best, not all', 'lan', ['1️⃣', '2️⃣', '3️⃣', '4️⃣'],
     'On Sunday evening Lan has time for one activity. Her list, from best to worst: 1 study for her test, 2 go to Bến Thành night market with friends, 3 play video games, 4 watch TV. She studies.',
@@ -212,7 +212,7 @@ export const SCENARIOS = [
       'The extra profit (3 million) is greater than the opportunity cost (2 million).')],
     { q: 'Discuss whether Mr Minh should open his café at night.', groups: [g('opportunity cost = guitar lessons / 2 million', ['guitar', '2 million', 'two million'], 'What does he give up?'),
       g('profit 3 million is greater', ['3 million', 'three million', 'more than', 'greater', 'better off', 'gain'], 'How does the profit compare?'),
-      g('other costs: tired, time, family, risk', ['tired', 'sleep', 'family', 'health', 'risk', 'may not', 'might not', 'not sure', 'uncertain'], 'What could go wrong, or what else does he lose?')], need: 3 }),
+      g('other costs: tired, time, family, risk', ['tired', 'sleep', 'family', 'health', 'risk', 'may not', 'might not', 'not sure', 'uncertain'], 'What could go wrong, or what else does he lose?'), g('net gain is 1 million', ['1 million', 'one million', '1,000,000', 'difference'], 'How much better off would he be?'), g('profit is not certain', ['not certain', 'uncertain', 'may not', 'might not', 'think', 'estimate', 'guess'], 'Is the 3 million certain?'), g('a judgement: he should / should not', ['should', 'should not', 'shouldn\'t', 'worth it', 'not worth', 'i think', 'depends'], 'What is your decision, and why?')], need: 3 }),
 
   S('s13-free', '1.3', 'A day at Cần Giờ', 'beach', ['🥥', '🥖', '🌬️'],
     'At Cần Giờ beach, Lan breathes the sea air and enjoys the sunshine. Then she buys a coconut for 30,000 đồng instead of a bánh mì.',
@@ -256,7 +256,7 @@ export const SCENARIOS = [
       'Each extra tonne of rice costs more phones: increasing opportunity cost.')],
     { q: 'Explain why the opportunity cost of rice rises as Vietnam produces more rice.', groups: [g('resources not equally good at both', ['not equally', 'not as good', 'not suited', 'less suitable', 'not good at', 'specialised', 'skilled'], 'Are all resources equally good at both goods?'),
       g('more phones given up for each extra unit of rice', ['more phones', 'give up more', 'lose more', 'more of the other'], 'What happens to the number of phones given up?'),
-      g('so the PPC is curved', ['curve', 'bowed', 'concave'], 'What does this do to the shape of the PPC?')], need: 2 }),
+      g('so the PPC is curved', ['curve', 'bowed', 'concave'], 'What does this do to the shape of the PPC?'), g('example: phone workers are not good farmers', ['phone worker', 'factory worker', 'not good farmer', 'skills', 'not skilled', 'land not good'], 'Give an example of a resource that is better at phones.'), g('increasing opportunity cost', ['increasing opportunity cost', 'rising opportunity cost', 'opportunity cost rises', 'opportunity cost increases', 'opportunity cost gets bigger'], 'What is this called?')], need: 2 }),
 
   S('s14-curve', '1.4', 'Why is the curve bent?', 'move', ['👷', '🌾', '📱'],
     'To grow more rice, Vietnam moves workers from phone factories to rice farms. First it moves workers who already know farming. Later it has to move skilled phone engineers who know very little about rice.',
@@ -295,7 +295,7 @@ export const SCENARIOS = [
       'The economy can now produce more: economic growth.')],
     { q: 'Explain how new rice seeds affect Vietnam\'s PPC.', groups: [g('shifts out on the rice axis', ['rice axis', 'out', 'outward', 'shift'], 'Which way does the curve move, and where?'),
       g('more rice can be produced', ['more rice', 'bigger harvest', 'produce more'], 'What can Vietnam now produce?'),
-      g('economic growth', ['growth'], 'What is this called?')], need: 2 })
+      g('economic growth', ['growth'], 'What is this called?'), g('phone axis does not change', ['phone', 'same', 'does not change', 'not change', 'stays'], 'What happens on the phone axis?'), g('pivots / not a parallel shift', ['pivot', 'rotate', 'not parallel', 'one axis', 'only rice', 'only on'], 'Does the whole curve move out equally?'), g('more of both possible (resources freed)', ['more of both', 'more phones', 'free', 'move resources'], 'Could more phones also be made, by moving some resources?')], need: 2 })
 ];
 // The people in the stories ("Meet the people" card and the Who's who? button)
 export const CAST = {
