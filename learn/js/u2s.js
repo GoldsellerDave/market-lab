@@ -37,7 +37,7 @@ export const SCENARIOS2 = [
       'Demand rises → price rises → more profit (incentive) → more is grown → resources move: the market allocates resources.')],
     { q: 'Explain how the price of durian allocates resources.', groups: [g('price rises / signal', ['price rise', 'higher price', 'signal', 'price goes up', 'price double'], 'What happens to the price, and what does it tell farmers?'),
       g('more profit / incentive', ['profit', 'incentive'], 'Why does Anh Phúc want to grow more?'),
-      g('resources move to durian', ['land', 'workers', 'labour', 'resources', 'move', 'hire', 'plant'], 'What happens to land and workers?')], need: 3 }),
+      g('resources move to durian', ['land', 'workers', 'labour', 'resources', 'move', 'hire', 'plant'], 'What happens to land and workers?'), g('less rice is produced', ['less rice', 'fewer', 'rice falls', 'instead of rice', 'used for rice', 'from rice'], 'What happens to rice?'), g('demand is high (buyers want durian)', ['demand', 'buyers want', 'abroad', 'popular'], 'Why did the price double?')], need: 3 }),
 
   S('s21-who', '2.1', 'Who decides?', 'city', ['🏭', '🧑‍💼', '💰', '❓'],
     'In a market system, nobody gives firms orders about what to make. A shoe factory in Thủ Đức makes trainers because many teenagers buy them. Wages are rising, so it buys new machines. Its trainers cost 900,000 đồng, so they go to the people who are willing and able to pay that price.',
@@ -108,7 +108,7 @@ export const SCENARIOS2 = [
       'Tastes change against the good, so less is demanded at every price: shift left.')],
     { q: 'Explain why a pay rise for parents shifts the demand curve for bubble tea.', groups: [g('higher income', ['income', 'more money', 'pay rise', 'earn more'], 'What changes for families?'),
       g('more demanded at every price', ['every price', 'each price', 'buy more', 'more demand', 'demand rise', 'demand increase'], 'What do they do at every price?'),
-      g('shifts right', ['right'], 'Which way does the curve move?')], need: 3 }),
+      g('shifts right', ['right'], 'Which way does the curve move?'), g('bubble tea is a normal good', ['normal good', 'normal'], 'What kind of good sells more when incomes rise?'), g('price stays the same, conditions change', ['not the price', 'not a price', 'condition', 'same price', 'price did not'], 'Why is this a shift, not a movement?')], need: 3 }),
 
   S('s22-coffee', '2.2', 'Coffee gets dearer', 'cafe', ['☕', '🍵', '🏍️', '⛑️'],
     'A drought in the Central Highlands makes coffee much more expensive in Mr Minh\'s café. Some customers start ordering iced tea instead. In the same month, the price of new motorbikes rises sharply.',
@@ -124,7 +124,7 @@ export const SCENARIOS2 = [
       'Helmets are complements: fewer new motorbikes are bought, so fewer helmets are needed.')],
     { q: 'Explain why a rise in the price of coffee increases the demand for tea.', groups: [g('substitutes', ['substitut', 'instead', 'alternative'], 'How are coffee and tea related?'),
       g('consumers switch', ['switch', 'buy tea', 'drink tea', 'change to'], 'What do customers do?'),
-      g('demand for tea rises / shifts right', ['right', 'demand for tea rise', 'demand rises', 'more demand', 'demand increase'], 'What happens to demand for tea?')], need: 3 }),
+      g('demand for tea rises / shifts right', ['right', 'demand for tea rise', 'demand rises', 'more demand', 'demand increase'], 'What happens to demand for tea?'), g('coffee is more expensive', ['expensive', 'price of coffee', 'coffee rise', 'dearer', 'coffee costs more'], 'What happened to coffee?'), g('more tea demanded at every price', ['every price', 'each price'], 'What does a shift in demand mean?')], need: 3 }),
 
   // ---------------- 2.3 Supply ----------------
   S('s23-thu', '2.3', 'Chị Thu\'s price', 'stall', ['🧋', '👩', '📈', '💰'],
@@ -178,7 +178,7 @@ export const SCENARIOS2 = [
       'A subsidy lowers costs, so more is supplied at every price.')],
     { q: 'Explain how a tax on soft drinks affects their supply.', groups: [g('higher costs', ['cost'], 'What does the tax do to the seller\'s costs?'),
       g('less profit / supply less at every price', ['less profit', 'supply less', 'produce less', 'less is supplied', 'every price', 'supply falls', 'supply decrease'], 'What do firms do?'),
-      g('shifts left', ['left'], 'Which way does the supply curve move?')], need: 3 }),
+      g('shifts left', ['left'], 'Which way does the supply curve move?'), g('tax is paid by producers to the government', ['paid by', 'producers pay', 'firms pay', 'pay the government', 'per bottle', '2,000'], 'Who pays the tax?'), g('price rises / quantity falls', ['price rise', 'higher price', 'price increase', 'quantity falls', 'quantity fall', 'less sold', 'fewer'], 'What happens to the price and quantity?')], need: 3 }),
 
   // ---------- 2.4 Price determination ----------
   { ...S('s24-street', '2.4', 'One street, one price', 'stall', ['🧋', '⚖️', '📋', '🎯'],
@@ -195,7 +195,7 @@ export const SCENARIOS2 = [
       [o('A surplus of 80 cups', 'A [[surplus]] of 80 cups'), o('A shortage of 80 cups', 'A [[shortage]] of 80 cups', 'shortage-surplus'), o('A surplus of 120 cups', 'A [[surplus]] of 120 cups', 'gap-calc'), o('Equilibrium at 60,000 đồng', '[[equilibrium|Equilibrium]] at 60,000 đồng', 'eq-def')],
       'Stalls make 120, buyers want 40: a surplus of 80.')],
     { q: 'Explain why 40,000 đồng is the equilibrium price.', groups: [g('quantity demanded = quantity supplied', ['equal', 'same', '80 and 80', 'demanded = supplied', 'qd = qs'], 'What is true about the two quantities?'),
-      g('80 cups', ['80'], 'How many cups?'), g('no shortage or surplus', ['no shortage', 'no surplus', 'clears'], 'What is missing at this price?')], need: 2 }), table: { head: ['Price (đồng)', 'Cups demanded', 'Cups supplied'], rows: [['20,000', '120', '40'], ['30,000', '100', '60'], ['40,000', '80', '80'], ['50,000', '60', '100'], ['60,000', '40', '120']] } },
+      g('80 cups', ['80'], 'How many cups?'), g('no shortage or surplus', ['no shortage', 'no surplus', 'clears'], 'What is missing at this price?'), g('no pressure to change the price', ['no pressure', 'no reason', 'stay', 'stable', 'no change'], 'Why does the price stay at 40,000?'), g('below it a shortage, above it a surplus', ['below', 'above', 'lower price', 'higher price', '30,000', '50,000'], 'What happens at other prices?')], need: 2 }), table: { head: ['Price (đồng)', 'Cups demanded', 'Cups supplied'], rows: [['20,000', '120', '40'], ['30,000', '100', '60'], ['40,000', '80', '80'], ['50,000', '60', '100'], ['60,000', '40', '120']] } },
 
   S('s24-cheap', '2.4', 'Too cheap!', 'stall', ['🧋', '🏃', '⬆️', '😮'],
     'To celebrate her stall\'s birthday, Chị Thu sells bubble tea for 20,000 đồng. A long queue forms. Buyers want 120 cups a day, but the stalls make only 40. Customers at the back of the queue say they would happily pay more.',
@@ -209,7 +209,7 @@ export const SCENARIOS2 = [
       'A shortage pushes the price up until quantity demanded equals quantity supplied.')],
     { q: 'Explain how the shortage of bubble tea is removed.', groups: [g('price rises', ['price rise', 'price goes up', 'higher price', 'raise the price', 'price increase'], 'What happens to the price?'),
       g('quantity demanded falls / contracts', ['contract', 'buy less', 'buy fewer', 'demand falls', 'quantity demanded fall'], 'What do buyers do?'),
-      g('quantity supplied rises / extends', ['extend', 'make more', 'supply more', 'sell more', 'quantity supplied rise'], 'What do sellers do?')], need: 3 }),
+      g('quantity supplied rises / extends', ['extend', 'make more', 'supply more', 'sell more', 'quantity supplied rise'], 'What do sellers do?'), g('shortage of 80 cups at 20,000', ['80', 'shortage of', '120', '40'], 'How big is the shortage?'), g('buyers compete: willing to pay more', ['compete', 'pay more', 'willing to pay', 'queue'], 'What do buyers do?'), g('until equilibrium at 40,000', ['equilibrium', '40,000', '40000', 'equal', '80 cups'], 'Where does it end?')], need: 3 }),
 
   S('s24-mango', '2.4', 'Too many mangoes', 'market', ['🥭', '📦', '⬇️', '🛒'],
     'At a market in District 8, mango sellers ask 45,000 đồng a kg. At that price they bring 675 kg a day, but buyers want only 375 kg. By evening, boxes of mangoes are left over and starting to go soft.',
@@ -255,7 +255,7 @@ export const SCENARIOS2 = [
       [o('Price rises; quantity rises', 'Price up; quantity up'), o('Price rises; quantity falls', 'Price up; quantity down', 'pq-link'), o('Price falls; quantity rises', 'Price down; quantity up', 'pq-link'), o('Price falls; quantity falls', 'Price down; quantity down', 'direction')],
       'At the old price there is a shortage, so the price rises; quantity rises too. A demand shift moves P and Q the same way.')],
     { q: 'Explain the effect of the video on the market for bubble tea.', groups: [g('demand increases / shifts right', ['demand increase', 'demand rise', 'shifts right', 'shift right', 'more demand', 'demand goes up'], 'What happens to demand?'),
-      g('shortage at the old price', ['shortage'], 'What is there at the old price?'), g('price and quantity rise', ['price rise', 'price goes up', 'higher price', 'quantity rise', 'price increase'], 'What happens to price and quantity?')], need: 3 }),
+      g('shortage at the old price', ['shortage'], 'What is there at the old price?'), g('price and quantity rise', ['price rise', 'price goes up', 'higher price', 'quantity rise', 'price increase'], 'What happens to price and quantity?'), g('tastes change (the video)', ['taste', 'popular', 'fashion', 'video', 'singer', 'trend'], 'What changed for consumers?'), g('supply extends', ['extend', 'make more', 'supply more', 'sell more', 'quantity supplied'], 'How do sellers react?')], need: 3 }),
 
   S('s25-typhoon', '2.5', 'Typhoon in the Mekong', 'farm', ['🌀', '🍈', '⬅️', '💸'],
     'A typhoon hits Bến Tre and destroys many of Anh Phúc\'s durian trees, and those of his neighbours. Fewer durians reach Ho Chi Minh City at every price.',

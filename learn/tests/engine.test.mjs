@@ -30,7 +30,7 @@ test('markNumber and markShort', () => {
   const full = E.markShort('The drought cut the harvest so supply fell. Coffee drinking in China grew so demand increased. There was a shortage so the price rose.', d.groups, d.need);
   assert.equal(full.score, 4);
   const part = E.markShort('Because of the drought supply decreased.', d.groups, d.need);
-  assert.equal(part.score, 2); assert.equal(part.missing.length, 2);
+  assert.equal(part.score, 2); assert.equal(part.missing.length, d.groups.length - 2); assert.ok(d.groups.length > d.need, 'any 4 from');
   assert.equal(E.markShort('it rained a lot less, dry weather', DATA.questions[1].groups, 1).score, 1);
 });
 test('equilibrium moves the right way for each shift', () => {
