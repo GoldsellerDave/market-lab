@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
   const answer = clip(b.answer, 2500).trim();
   const name = clip(b.name, 30).replace(/[^\p{L} \-]/gu, "").trim();   // first name only: letters, spaces, hyphens
   const words = answer.split(/\s+/).filter(Boolean).length;
-  const points = Array.isArray(b.points) ? b.points.slice(0, 8).map((p) => clip(p, 160)) : [];
+  const points = Array.isArray(b.points) ? b.points.slice(0, 12).map((p) => clip(p, 160)) : [];
   const need = Math.max(1, Math.min(Number(b.need) || 1, points.length || 1));
   const band = Math.max(0, Math.min(3, Number(b.band) || 0));
   if (words < 2 || words > 400 || !points.length) return json({ error: "Not markable" }, 400);

@@ -258,6 +258,7 @@ test('AI marking: no word-list cap on top of the AI, identical answers reuse the
   const src = readFileSync(new URL('../supabase/functions/ecl-grade/index.ts', import.meta.url), 'utf8');
   assert.ok(!/hits\.splice\(2\)/.test(src), 'the function must not cut Analyse answers to 2 marks by a word list');
   assert.ok(/cached: true/.test(src) && /PROMPT_V = " v4"/.test(src));
+  assert.ok(/b\.points\.slice\(0, 12\)/.test(src), 'up to 12 mark points reach the AI');
   assert.ok(/hits\.length \+ other\.length >= need/.test(src) && /Math\.floor\(need \/ 2\)/.test(src), 'valid points outside the list count, up to half the marks');
   for (const rule of ['when it is a close call, give the mark', 'Cambridge mark schemes accept any valid point', 'goes in "other"', 'Never hold back a point just because a linking word is missing', 'praise only points you put in hits',
     'Only the command word "discuss" asks for a judgement', 'a full-mark answer is complete'])
