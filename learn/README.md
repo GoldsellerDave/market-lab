@@ -18,7 +18,10 @@ Teachers see every AI decision in the **AI marking** tab and can flag one; a fla
 
 How it marks (the rules are the `SYSTEM` text in `functions/ecl-grade/index.ts`): positively, like a Cambridge examiner. Any wording,
 a correct example, a point applied to the story, or a valid alternative point earns the mark; wrong economics does not. For Analyse
-questions the AI itself judges whether the answer is a chain of reasoning (there is no word-list cap). The same answer to the same
+questions the AI itself judges whether the answer is a chain of reasoning (there is no word-list cap). A correct, relevant point
+that is not on the mark scheme at all is returned in `other` and counts like a listed point, for Explain, Analyse and Discuss, up to
+half the marks. Only Discuss asks for a judgement, and a full-mark answer gets no "add more" advice. Exam Paper 2 questions of 4 and
+6 marks list more valid points than marks ("any 4 from" / "any 6 from"). The same answer to the same
 question from the same student gets the same verdict again without a new AI call. After changing the rules, raise `PROMPT_V` in the
 function and deploy it again (Supabase → Edge Functions → ecl-grade → Code → paste → Deploy).
 To try the screens without AI, open the demo with `?demo=1&aidemo=1`.

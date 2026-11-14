@@ -3,12 +3,12 @@
 // key words if AI is not available). A timer runs (it never cuts a student off), and the score is saved at the end.
 // Content: px1.js (Section 1) and px2.js (Section 2). Unit ids '1.P' and '2.P'; activities p1a, p1b, p2a, p2b.
 // The student app (student.js) passes in `ctx`: its helpers and the signed-in student.
-import { PAPERS1 } from './px1.js?v=a4c0cc27';
-import { PAPERS2 } from './px2.js?v=a4c0cc27';
-import { $, $$, esc, view, toast } from './ui.js?v=a4c0cc27';
-import * as E from './engine.js?v=a4c0cc27';
-import { createPPC } from './ppc.js?v=a4c0cc27';
-import { UNITS } from './units.js?v=a4c0cc27';
+import { PAPERS1 } from './px1.js?v=e2db1928';
+import { PAPERS2 } from './px2.js?v=e2db1928';
+import { $, $$, esc, view, toast } from './ui.js?v=e2db1928';
+import * as E from './engine.js?v=e2db1928';
+import { createPPC } from './ppc.js?v=e2db1928';
+import { UNITS } from './units.js?v=e2db1928';
 
 export const PAPERS = { '1.P': PAPERS1, '2.P': PAPERS2 };
 export const PAPER_KEYS = ['p1a', 'p1b', 'p2a', 'p2b'];
@@ -226,7 +226,7 @@ function paper2(ctx, unit, key) {
         ${w.text ? `<blockquote class="pans">${esc(w.text)}</blockquote>` : ''}
         ${w.feedback ? `<p class="ainote">🤖 ${esc(w.feedback)}</p>` : ''}${w.next ? `<p class="ainote"><b>Next step:</b> ${esc(w.next)}</p>` : ''}
         ${w.listOnly ? '<p class="note">For “Analyse”, link your points with words like because, so, therefore: a list of points gets 2 marks at most.</p>' : ''}
-        <p><b>Mark scheme points</b>${q.need < labels.length ? ` (any ${q.need})` : ''}</p><ul class="ppoints">${labels.map(l => `<li class="${w.hits.includes(l) ? 'good' : 'bad'}">${w.hits.includes(l) ? '✓' : '✗'} ${esc(l)}</li>`).join('')}</ul>
+        <p><b>Mark scheme points</b>${q.need < labels.length ? ` (any ${q.need})` : ''}</p><ul class="ppoints">${labels.map(l => `<li class="${w.hits.includes(l) ? 'good' : 'bad'}">${w.hits.includes(l) ? '✓' : '✗'} ${esc(l)}</li>`).join('')}${(w.other || []).map(o => `<li class="good other">✓ Another valid point: ${esc(o)}</li>`).join('')}</ul>
         <div class="fb tip"><b>Model answer</b><p>${esc(q.model)}</p></div>
         <button id="pnx" style="width:100%">${st.pos + 1 < FLAT.length ? 'Next question' : 'See my score'}</button>`;
       $('#pnx').onclick = () => { st.pos++; st.phase = 'build'; save(); show(); };
@@ -266,12 +266,14 @@ function paper2(ctx, unit, key) {
   show();
 }
 
-/** Mark one written answer: key words first, then AI (which decides when it answers). Returns { score, hits, by, feedback, next, listOnly } */
+/** Mark one written answer: key words first, then AI (which decides when it answers). Returns { score, hits, other, by, feedback, next, listOnly }.
+ *  other = valid points the AI found that are not on the mark scheme; they count like listed points (Cambridge marks any valid point). */
 export async function markPaper(ctx, unit, set, q, text) {
   const kw = E.markShort(text, q.groups, q.need), cmd = q.cmd === 'analyse' ? 'analyse' : 'explain';
-  const ai = await ctx.aiMark({ unit, item: q.id, question: q.q, context: set.case + tableText(set.table), model: q.model, command: cmd, points: q.groups.map(g => g.label), need: q.need,
+  const ai = await ctx.aiMark({ unit, item: q.id, question: q.q, context: set.case + tableText(set.table), model: q.model, command: q.cmd || cmd, points: q.groups.map(g => g.label), need: q.need,
     answer: text, band: ctx.band(), name: String(ctx.me.display_name || '').split(/\s+/)[0], keyword_ok: kw.ok, keyword_hits: kw.hits, detail: true });
-  if (ai) { const hits = q.groups.map(g => g.label).filter(l => ai.hits.includes(l)); return { score: Math.min(hits.length, q.need), hits, by: 'ai', feedback: ai.feedback || '', next: ai.next || '' }; }
+  if (ai) { const hits = q.groups.map(g => g.label).filter(l => ai.hits.includes(l)), other = (ai.other || []).map(String).slice(0, q.need);
+    return { score: Math.min(hits.length + other.length, q.need), hits, other, by: 'ai', feedback: ai.feedback || '', next: ai.next || '' }; }
   if (cmd === 'analyse' && kw.score > 2 && !LINKS.test(text)) return { score: 2, hits: kw.hits.slice(0, 2), by: 'keywords', listOnly: true };
   return { score: kw.score, hits: kw.hits, by: 'keywords' };
 }

@@ -1,6 +1,6 @@
 // Every database call goes through rpc(): Supabase ec_* functions, or a demo store in this browser
 // (demo mode: ?demo=1, or no Supabase settings in ../config.js). Demo logins: demo-01 / 1234, teacher / demo.
-import { xpTotals } from './engine.js?v=a4c0cc27';
+import { xpTotals } from './engine.js?v=e2db1928';
 const CFG = window.MARKET_CONFIG || {};
 const PARAMS = new URLSearchParams(location.search);
 export const DEMO = PARAMS.has('demo') || !String(CFG.supabaseUrl || '').trim();
@@ -42,7 +42,7 @@ export async function rpc(fn, args = {}) {
   return body;
 }
 
-// AI marking of a written answer by the "ecl-grade" Edge Function. Returns { ok, hits, feedback },
+// AI marking of a written answer by the "ecl-grade" Edge Function. Returns { ok, hits, other, feedback, next },
 // or null on any problem (not deployed, no key, daily limit, slow), so the keyword mark stands.
 // Demo mode has no AI; ?demo=1&aidemo=1 imitates it (it agrees with the keywords) so the screens can be tried.
 export async function aiMark(q) {

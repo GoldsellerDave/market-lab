@@ -50,6 +50,8 @@ test('Paper 2: two sets of 2, 4 and 6 marks; chains, trap tiles with reasons, ma
         assert.ok(q.traps.length >= 2 && q.traps.every(t => t.why && !q.chain.includes(t.t)), `${q.id}: trap tiles with reasons`);
         assert.equal(new Set([...q.chain, ...q.traps.map(t => t.t)]).size, q.chain.length + q.traps.length, `${q.id}: tiles are all different`);
         assert.ok(q.groups.length >= q.need && q.need === q.marks && q.groups.every(g => g.label && g.k.length && g.ask), `${q.id}: mark points`);
+        if (q.marks >= 4) assert.ok(q.groups.length > q.need, `${q.id}: more valid points than marks ("any ${q.need} from")`);
+        if (q.cmd === 'analyse') assert.ok(!q.groups.some(g => /decision:|greater than opportunity cost|right decision|worth it/i.test(g.label)), `${q.id}: no judgement point in an Analyse question`);
         assert.ok(markShort(q.model, q.groups, q.need).ok, `${q.id}: the model answer earns ${q.marks}: ` + markShort(q.model, q.groups, q.need).missing.map(g => g.label));
         assert.equal(markShort('I am not sure about this one.', q.groups, q.need).score, 0, `${q.id}: an empty answer earns 0`);
         for (const t of q.traps) assert.ok(markShort(t.t, q.groups, q.need).score < q.need, `${q.id}: a trap tile alone is not a full answer`);
@@ -65,6 +67,9 @@ test('Paper 2 marking: AI decides when it answers; without AI a bare list is cap
   const m = await markPaper(ai, P.unit, s, q, q.model);
   assert.deepEqual([m.score, m.by, m.next, m.hits.length], [3, 'ai', 'Add the shortage.', 3]);
   assert.ok(sent.command === 'analyse' && sent.detail && sent.name === 'An' && sent.need === 6 && sent.context.includes('500') && sent.model === q.model, 'the AI gets the case, the table, the model answer and the command word');
+  // Valid points outside the mark scheme count like listed points, up to the marks.
+  const ai2 = { ...ai, aiMark: async () => ({ ok: true, hits: labels.slice(0, 4), other: ['bakers may switch to cheaper bread', 'buyers switch to substitutes', 'a third'], feedback: 'Good.', next: '' }) };
+  const m2 = await markPaper(ai2, P.unit, s, q, q.model); assert.deepEqual([m2.score, m2.other.length], [6, 3]);
   const none = { ...ai, aiMark: async () => null };
   const list = 'cost. profit. left. shortage. price rise. quantity falls.';
   const capped = await markPaper(none, P.unit, s, q, list); assert.deepEqual([capped.score, capped.listOnly], [2, true]);
