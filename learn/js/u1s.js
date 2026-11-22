@@ -5,7 +5,7 @@
 // The cast: Lan (Grade 9, District 3), Mr Minh's café (District 1), Mrs Hoa's rice farm (Củ Chi), a phone factory (Thủ Đức),
 // the city government of Ho Chi Minh City.
 
-import { SCENARIOS2, CAST2, SCEN_CAST2, SORT_EXAMPLE2 } from './u2s.js?v=e0877eb5';
+import { SCENARIOS2, CAST2, SCEN_CAST2, SORT_EXAMPLE2 } from './u2s.js?v=20a66333';
 const o = (t, p, trap) => ({ t, p: p || t, trap });
 const choice = (q, plain, options, why, ppc) => ({ type: 'choice', q, plain: plain || q, options, why, ppc });
 // items: [text, emoji, bucket, plain?]
@@ -47,7 +47,7 @@ export const SCENARIOS = [
       g('want = would like, not necessary', ['would like', 'not necessary', 'can live without', 'not essential', 'desire'], 'What is a want?'),
       g('examples', ['rice', 'water', 'food', 'medicine', 'home', 'phone', 'bubble tea', 'game', 'bag'], 'Give an example of each.'), g('example of a want', ['phone', 'game', 'bubble tea', 'trainer', 'bag', 'toy', 'cinema'], 'Give an example of a want.'), g('wants are unlimited, needs are basic', ['unlimited', 'basic', 'survival', 'always want more'], 'How do needs and wants differ in size?')], need: 3 }),
 
-  S('s11-who', '1.1', 'Everyone faces scarcity', 'city', ['👧', '☕', '🌾', '🏛️'],
+  S('s11-who', '1.1', 'Everyone faces scarcity', 'street', ['👧', '☕', '🌾', '🏛️'],
     'Scarcity affects everyone in Ho Chi Minh City. Lan has limited pocket money. Mr Minh\'s café in District 1 has one coffee machine and three baristas. A barista must choose between two jobs. The city government has enough money for a new metro line or 20 new schools this year, but not both.',
     'Everyone has limited [[resources]], so everyone must choose.\n👧 Lan is a student: she buys things.\n☕ Mr Minh owns a café: he makes and sells drinks.\n🌾 Mrs Hoa is a farmer: she grows rice.\n🧑‍🍳 A barista works in a café.\n🏛️ The city [[government]] spends the city\'s money.',
     'Sự khan hiếm ảnh hưởng đến mọi người ở TP. Hồ Chí Minh. Lan có ít tiền tiêu vặt. Quán cà phê của ông Minh ở Quận 1 chỉ có một máy pha cà phê và ba nhân viên. Một nhân viên pha chế phải chọn giữa hai công việc. Chính quyền thành phố chỉ đủ tiền xây một tuyến metro mới hoặc 20 trường học mới trong năm nay.',
@@ -130,7 +130,7 @@ export const SCENARIOS = [
         ['Mrs Hoa, who takes the risk', '🌾', 3, 'Mrs Hoa (farm owner: she takes the risk)']], 'reward-match',
       'Land → rent. Labour → wages. Capital → interest. Enterprise → profit.')]),
 
-  S('s12-change', '1.2', 'More or better?', 'city', ['🎓', '🌊', '🤖', '🚌'],
+  S('s12-change', '1.2', 'More or better?', 'factory', ['🎓', '🌊', '🤖', '🚌'],
     'The factors of production in Ho Chi Minh City change all the time. Some changes give the city more factors (quantity). Others make the factors better (quality).',
     'Factors can change. Sometimes there are MORE of them ([[quantity]]). Sometimes they become BETTER ([[quality]]).',
     'Các yếu tố sản xuất ở TP. Hồ Chí Minh luôn thay đổi. Có thay đổi làm tăng số lượng yếu tố sản xuất. Có thay đổi làm chất lượng của chúng tốt hơn.',
@@ -185,7 +185,7 @@ export const SCENARIOS = [
       ['List the choices', 'Rank them from best to worst', 'Choose the best one', 'The opportunity cost is the next one on the list'],
       'List, rank, choose: the opportunity cost is the next best one.')]),
 
-  S('s13-four', '1.3', 'Four decisions in the city', 'city', ['🌾', '👷', '🏛️'],
+  S('s13-four', '1.3', 'Four decisions in the city', 'street', ['🌾', '👷', '🏛️'],
     'Opportunity cost affects producers, workers and the government. Mrs Hoa, a factory worker called Anh and the city government each make a choice.',
     'Producers, [[worker|workers]] and the [[government]] all have an [[opportunity cost]] when they choose.\n🌾 Mrs Hoa is a rice farmer.\n👷 Anh works in a phone factory.\n🏛️ The city government spends the city\'s money.',
     'Chi phí cơ hội ảnh hưởng đến nhà sản xuất, người lao động và chính phủ. Bà Hoa, anh công nhân tên Anh và chính quyền thành phố đều phải đưa ra lựa chọn.',
