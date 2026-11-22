@@ -72,5 +72,9 @@ boxes before and after a 20% price cut for an elastic and an inelastic good.
 to Challenge (total revenue before and after, advising a firm). A PED typed without its minus sign is accepted with a reminder.
 Each good gets realistic values (petrol, rice and electricity always inelastic; one brand or one cinema elastic or unitary),
 and revenue questions use only numbers where the revenue change agrees with the PED class.
+Every calculation (Paper 1, Paper 2, scenario steps and the PED lab) shows a **formula box** with the formulas it needs
+(`F` in `js/u26.js`) and a **Calculation hint** button that sets up the sum with the question's numbers but leaves the last
+step to the student. The box shows at every English level; using the hint counts as help (not right first time). The unit
+checkpoint has no formula box, and the question that asks for the PED formula does not show it.
 Four scenario cards are in `js/u2s.js`; seven engine blocks (percentage change up to using PED in decisions) have lessons in
 `js/ebank2.js`. Tests: `tests/u26.test.mjs`, and the 2.6 round in `tests/e2e_s1.py`.

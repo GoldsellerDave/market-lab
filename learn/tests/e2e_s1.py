@@ -407,6 +407,7 @@ def s2_round(p, size):
 def ped_lab(p, size):
     '''The PED lab: six generated questions, answered from the question data (demo mode exposes it). The first negative answer is typed without its minus sign.'''
     p.goto(BASE + '/learn/?demo=1#/u/2.6/ped'); p.wait_for_selector('#step h3')
+    ok('Formula' in p.inner_text('.calc'), 'PED lab: a formula box')
     no_sign_tried = False
     for q in range(6):
         p.wait_for_selector('#step h3')
@@ -445,6 +446,14 @@ def s26_round(p, size):
     p.click('#next'); p.click('#next'); p.wait_for_selector('#next:has-text("Finish")'); p.click('#next'); p.wait_for_selector('text=Cards done')
     mcq_round(p, '2.6', 3, size)
     p2_round(p, '2.6', 3, None)
+    # the formula box on a scenario calculation: formula shown, hint hidden until asked for, at the top English level too
+    p.goto(BASE + '/learn/?demo=1#/u/2.6/scen/s26-petrol'); p.wait_for_selector('#sstep h3')
+    ok('PED = % change in quantity demanded ÷ % change in price' in p.inner_text('#sstep .calc'), 's26-petrol: the PED formula is shown with the question')
+    ok(p.locator('#sstep .calc-ht[hidden]').count() == 1, 's26-petrol: the calculation hint waits until asked for')
+    p.click('#sstep .calc-h'); ok('−2 ÷ 10' in p.inner_text('#sstep .calc'), 's26-petrol: the calculation hint sets up the sum')
+    if size: shot(p, size, '44-scen-formula'); no_overflow(p, size + ' scenario formula')
+    p.goto(BASE + '/learn/?demo=1#/u/2.6/check'); p.wait_for_selector('.event')
+    ok(p.locator('.calc').count() == 0, '2.6 checkpoint: no formula box (no hints)')
     scen_round(p, '2.6', size, explain=True)
     ped_lab(p, size)
     for bl in ('pct-change', 'ped-revenue'):

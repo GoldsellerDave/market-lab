@@ -6,7 +6,18 @@
 // a trap on every wrong option. PED = % change in quantity demanded ÷ % change in price. It is negative for a normal
 // demand curve; elastic / inelastic compares the number WITHOUT the minus sign with 1.
 // genPed() makes the PED lab questions (new numbers every time), like genEq() in u24.js.
-import { rng } from './u24.js?v=9c916a59';
+import { rng } from './u24.js?v=ee8b9a45';
+
+// The formulas students use, shown in a formula box on every calculation (with a calculation hint that sets up the sum
+// with the question's numbers but leaves the last step to the student).
+export const F = {
+  ped: 'PED = % change in quantity demanded ÷ % change in price',
+  pct: '% change = (new − old) ÷ old × 100',
+  tr: 'Total revenue = price × quantity sold',
+  qd: '% change in quantity demanded = PED × % change in price',
+  newq: 'New quantity = old quantity + (% change ÷ 100 × old quantity)'
+};
+const calc = (f, h) => ({ calc: { f, h } });
 
 export const GLOSSARY = {
   'price elasticity of demand': { def: 'How much the quantity demanded of a good changes when its own price changes.', ex: 'Bubble tea rises 10% and cups sold fall 20%: PED is −2.', vi: 'độ co giãn của cầu theo giá' },
@@ -85,6 +96,7 @@ export const MCQ = [
   Q('q26-calc', 0, 'The price of bubble tea rises by 10% and the quantity demanded falls by 20%. What is the PED?', 'Bubble tea costs 10% more. People buy 20% fewer cups. What is the [[PED]]?', 'Giá trà sữa tăng 10% và lượng cầu giảm 20%. PED bằng bao nhiêu?',
     [o('−2'), o('−0.5', null, 'ped-formula'), o('−10', null, 'ped-formula'), o('−30', null, 'ped-formula')],
     'Divide the % change in quantity by the % change in price.', '−20% ÷ 10% = −2.'),
+  // (calculation questions also get a formula box and a calculation hint: MCQ_CALC below)
   Q('q26-elastic', 0, 'The PED for cinema tickets is −2.5. What does this mean?', '[[PED]] for cinema tickets is −2.5. What does it mean?', 'PED của vé xem phim là −2,5. Điều này có nghĩa là gì?',
     [o('Demand is elastic', 'Demand is [[elastic]]'), o('Demand is inelastic', 'Demand is [[inelastic]]', 'ped-class'),
       o('Demand is unitary elastic', 'Demand is [[unitary elastic]]', 'ped-class'), o('Demand is inelastic as PED is negative', 'Demand is [[inelastic]]: the number is negative', 'ped-sign')],
@@ -130,6 +142,15 @@ export const MCQ = [
 
 const P = (id, level, marks, q, plain, vi, chain, bank, frame, groups, cmd) => ({ id, level, marks, q, plain, vi, chain, bank, frame, groups, need: marks, ...(cmd ? { cmd } : {}) });
 const g = (label, k, ask) => ({ label, k, ask });
+// Formula boxes and calculation hints for the Paper 1 calculation questions
+const MCQ_CALC = {
+  'q26-calc': calc([F.ped], 'Quantity demanded falls by 20%, so its change is −20. The price rises by 10%, so its change is +10. Now work out −20 ÷ 10.'),
+  'q26-pct': calc([F.pct], 'The old price is 40,000 and the new price is 50,000. Work out (50,000 − 40,000) ÷ 40,000 × 100.'),
+  'q26-unit': calc([F.ped], 'Quantity demanded changes by +10 and the price by −10. Work out +10 ÷ −10, then compare the number without its minus sign with 1.'),
+  'q26-rev-calc': calc([F.tr, F.ped], 'Revenue before = 100,000 × 400. Revenue after = 80,000 × 600. The price fell: did revenue move the same way (inelastic) or the opposite way (elastic)?')
+};
+MCQ.forEach(q => Object.assign(q, MCQ_CALC[q.id] || {}));
+
 export const P2 = [
   P('p26-define', 0, 2, 'Define price elasticity of demand.', 'What is [[price elasticity of demand]]? Give its meaning.', 'Định nghĩa độ co giãn của cầu theo giá.',
     ['PED measures how much the {quantity demanded} of a good changes', 'when its own {price} changes.'],
@@ -176,6 +197,13 @@ export const P2 = [
       g('smokers spend more, less for other goods', ['spend more', 'less money for', 'less to spend', 'expenditure', 'other goods'], 'What happens to smokers\' spending?'),
       g('few substitutes', ['few substitutes', 'no substitute', 'no close substitute'], 'Can smokers switch to something else?')]), cmd: 'analyse' }
 ];
+// Formula boxes for the Paper 2 calculation questions (the hint walks through the steps without doing the last one)
+const P2_CALC = {
+  'p26-calc': calc([F.pct, F.ped], 'Step 1: % change in price = (50,000 − 40,000) ÷ 40,000 × 100. Step 2: % change in quantity demanded = (70 − 80) ÷ 80 × 100 (a fall, so negative). Step 3: divide step 2 by step 1. Step 4: compare the number without its minus sign with 1.'),
+  'p26-rev': calc([F.tr], 'Make up an example: price 10,000 đồng and 100 sold. Cut the price by 10% and let sales rise by 30%. Work out price × quantity before and after, and compare.')
+};
+P2.forEach(q => Object.assign(q, P2_CALC[q.id] || {}));
+
 
 // ---------- PED lab: generated questions (a new set of numbers every time) ----------
 // kind -> level. Steps: { q, type: 'number', answer, unit, tol, signFree, trap, why } or { q, type: 'choice', answer, options: [{t, v, trap}], why }
@@ -295,5 +323,7 @@ export function genPed(kind, seed) {
     it.hint = 'Inelastic: price and revenue move the same way. Elastic: opposite ways.';
     it.why = c === 'el' ? 'With elastic demand, cutting the price raises total revenue.' : 'With inelastic demand, raising the price raises total revenue.';
   }
+  const LAB_F = { 'ped-pct': [F.ped], 'ped-read': [F.qd], 'ped-raw': [F.pct, F.ped], 'ped-find': [F.qd, F.newq], 'ped-rev': [F.tr], 'ped-advice': [F.tr] };
+  it.calc = { f: LAB_F[kind], h: it.hint };
   return it;
 }
