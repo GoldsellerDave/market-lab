@@ -1,29 +1,29 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=9c916a59';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=9c916a59';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=9c916a59';
-import * as E from './engine.js?v=9c916a59';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=9c916a59';
-import { BASELINE, BASELINE_N } from './u1.js?v=9c916a59';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=9c916a59';
-import { createPPC } from './ppc.js?v=9c916a59';
-import * as S from './sound.js?v=9c916a59';
-import * as EM from './eengine.js?v=9c916a59';
-import { EBANK, EREADY } from './ebank.js?v=9c916a59';
-import * as Cel from './celebrate.js?v=9c916a59';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=9c916a59';
-import { scene } from './scenes.js?v=9c916a59';
-import { SHIFTS } from './u25.js?v=9c916a59';
-import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=9c916a59';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=9c916a59';
-import { genPed, nextPedKind, fmt as pfmt } from './u26.js?v=9c916a59';
-import { PED_SHAPES, pedCurveSVG, REV_GOODS, revenueSVG, revM } from './peddia.js?v=9c916a59';
-import { createDiagram } from './diagram.js?v=9c916a59';
-import { createCurve } from './curve.js?v=9c916a59';
-import { PAPERS, PAPER_KEYS, paperHome, paperRun, paperName } from './papers.js?v=9c916a59';
-import { icon, tile } from './icons.js?v=9c916a59';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=9c916a59';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=ee8b9a45';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=ee8b9a45';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=ee8b9a45';
+import * as E from './engine.js?v=ee8b9a45';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=ee8b9a45';
+import { BASELINE, BASELINE_N } from './u1.js?v=ee8b9a45';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=ee8b9a45';
+import { createPPC } from './ppc.js?v=ee8b9a45';
+import * as S from './sound.js?v=ee8b9a45';
+import * as EM from './eengine.js?v=ee8b9a45';
+import { EBANK, EREADY } from './ebank.js?v=ee8b9a45';
+import * as Cel from './celebrate.js?v=ee8b9a45';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=ee8b9a45';
+import { scene } from './scenes.js?v=ee8b9a45';
+import { SHIFTS } from './u25.js?v=ee8b9a45';
+import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=ee8b9a45';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=ee8b9a45';
+import { genPed, nextPedKind, fmt as pfmt } from './u26.js?v=ee8b9a45';
+import { PED_SHAPES, pedCurveSVG, REV_GOODS, revenueSVG, revM } from './peddia.js?v=ee8b9a45';
+import { createDiagram } from './diagram.js?v=ee8b9a45';
+import { createCurve } from './curve.js?v=ee8b9a45';
+import { PAPERS, PAPER_KEYS, paperHome, paperRun, paperName } from './papers.js?v=ee8b9a45';
+import { icon, tile } from './icons.js?v=ee8b9a45';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=ee8b9a45';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -378,7 +378,7 @@ function reviewRun() {
     const rec = { id: it.id, level: it.level, first_try: false, trap: null, ok: false, hinted: false };
     view(`<p><a href="#/review">← Review</a></p><div class="row"><b class="grow">Question ${i + 1} of ${ids.length}</b><span class="chip mint">${it.unit}</span></div>
       <div class="steps" style="margin-top:8px">${ids.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
-      <div class="card"><p class="event">${P.stem}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
+      <div class="card"><p class="event">${P.stem}</p>${calcBox(it.calc)}<div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
       <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> <span class="otext">${P.text(o)}</span></button>`).join('')}</div>
       ${toolsHTML(it)}<div id="fb" aria-live="polite"></div></div></div></div>`);
     if (it.diagram) createDiagram($('#dg'), { start: it.diagram });
@@ -843,9 +843,10 @@ function ped(run = newRun('ped', 6)) {
   const rec = { id: it.id, seed: it.seed, level: it.level, first_try: true, trap: null, ok: false };
   if (DEMO) window.__pedItem = it;   // lets the automated tests read the generated question (demo mode only)
   view(`${runHead(run, 'Question')}<div class="card"><div class="small muted">Market: <b>${esc(it.good)}</b></div>${it.lines.map(l => `<p class="event">${esc(l)}</p>`).join('')}
-    ${it.table ? pedTable(it) : ''}<p class="small muted">PED = % change in quantity demanded ÷ % change in price. Percentage change = (new − old) ÷ old × 100.</p>
+    ${it.table ? pedTable(it) : ''}${calcBox(it.calc)}
     <ul class="done-steps" id="done"></ul><div id="step"></div><div id="fb" aria-live="polite"></div></div>`);
   let si = 0, tries = 0;
+  bindCalc(() => { rec.first_try = false; });
   const nextBtn = () => `<button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next question' : 'See my results'}</button>`;
   const bindNext = () => { $('#nx').onclick = () => afterItem(run, rec, () => ped(run)); $('#nx').focus(); };
   const reveal = () => {
@@ -900,7 +901,7 @@ function mcq(run = newRun('mcq', 10)) {
   if (run.i === 0 && !run.help0) { helpCount = 0; run.help0 = true; run.bandBefore = bandInfo().band; }
   const P = mcqParts(it), opts = P.options;
   const rec = { id: it.id, level: it.level, first_try: false, trap: null, ok: false, hinted: false };
-  view(`${runHead(run, 'Question')}<div class="card">${it.plain ? `<div class="row" style="justify-content:flex-end">${bandChip(P.band)}</div>` : ''}<p class="event">${P.stem}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
+  view(`${runHead(run, 'Question')}<div class="card">${it.plain ? `<div class="row" style="justify-content:flex-end">${bandChip(P.band)}</div>` : ''}<p class="event">${P.stem}</p>${calcBox(it.calc)}<div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
     <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> <span class="otext">${P.text(o)}</span></button>`).join('')}</div>
     ${toolsHTML(it)}<div id="fb" aria-live="polite"></div></div></div></div>`);
   if (it.diagram) createDiagram($('#dg'), { start: it.diagram });
@@ -1095,6 +1096,14 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { const p = e.target.closest && e.target.closest('.pillterm'); if (p && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openPill(p); } });
 const say = text => { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(stripMarks(text)); u.lang = 'en-GB'; u.rate = 0.85; speechSynthesis.speak(u); } catch { } };
 const canSay = () => 'speechSynthesis' in window;
+// A formula box for a calculation (2.6): the formulas, and a calculation hint that sets up the sum with the question's numbers.
+// The hint is offered at every English level (the formula is economics, not English). Using it counts as help.
+// The unit checkpoint shows no formula box: it is the no-hints test.
+const calcBox = c => (c ? `<div class="calc"><p class="calc-f"><b>📐 Formula</b>${c.f.map(x => `<span>${esc(x)}</span>`).join('')}</p>
+  ${c.h ? `<button class="alt small calc-h" type="button">Calculation hint</button><p class="calc-ht" hidden><b>Hint:</b> ${esc(c.h)}</p>` : ''}</div>` : '');
+function bindCalc(onHint) {
+  $$('.calc-h').forEach(b => (b.onclick = () => { helpCount++; onHint && onHint(); b.nextElementSibling.hidden = false; b.remove(); }));
+}
 // The tools under a question: hint, Vietnamese (A1) and read aloud (A1)
 function toolsHTML(it, hints = true) {
   const b = band();
@@ -1106,6 +1115,7 @@ function bindTools(it, onHint) {
   $('#vibtn')?.addEventListener('click', () => { $('#vitext').hidden = false; $('#vibtn').remove(); helpCount++; });
   $('#say')?.addEventListener('click', () => say((band() <= 1 && it.plain) || it.stem || it.q));
   $('#hint')?.addEventListener('click', () => { helpCount++; onHint && onHint(); $('#hint').outerHTML = `<div class="fb tip"><b>Hint</b>${esc(it.hint)}</div>`; });
+  bindCalc(onHint);
 }
 // A Paper 1 question at the student's band: plain words for A1 and A2 (3 options at A1), exam words for B1 and B2.
 function mcqParts(it) {
@@ -1191,7 +1201,7 @@ function p2() {
       view(`${backLink()}<div class="row"><b class="grow">Paper 2 builder · question ${i + 1} of ${items.length}</b>${bandChip(b)}</div>
         <div class="steps" style="margin-top:8px">${items.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
         <div class="card"><div class="row"><p class="event grow">${q.cmd === 'analyse' ? '<span class="cmdtag">Analyse</span> ' : ''}${plainQ ? rich(q.plain, b) : autoPill(q.q, b)}</p><span class="badge">${q.marks} marks</span></div>
-        ${ladder()}
+        ${ladder()}${calcBox(q.calc)}
         ${toolsHTML({ ...q, hint: q.groups.map(x => x.ask).join(' '), stem: q.q }, mode === 'free')}
         <p class="note">${P2_LEAD[mode]}${q.cmd === 'analyse' && mode !== 'order' ? ' Analyse = explain each step and link it to the next one (because… so… this means…).' : ''}</p>
         <div id="work"></div><div id="fb" aria-live="polite"></div>
@@ -1413,13 +1423,14 @@ function scenRun(id) {
       if (b === 0) opts = opts.slice(0, 3);
       opts = E.shuffle(opts);
       let tries = 0;
-      el().innerHTML = `${st.ppc ? '<div class="dgwrap" id="spg"></div>' : ''}${q}<div class="choices">${opts.map((o, j) => `<button class="choice" data-j="${j}"><span class="otext">${T(o.t, o.p)}</span></button>`).join('')}</div>`;
+      el().innerHTML = `${st.ppc ? '<div class="dgwrap" id="spg"></div>' : ''}${q}${calcBox(st.calc)}<div class="choices">${opts.map((o, j) => `<button class="choice" data-j="${j}"><span class="otext">${T(o.t, o.p)}</span></button>`).join('')}</div>`;
       const pg = st.ppc ? createPPC($('#spg'), { show: st.ppc.show || [] }) : null;
+      bindCalc(() => { rec.hinted = true; });
       const after = () => { if (!pg) return; if (st.ppc.arrow) pg.arrow(...st.ppc.arrow); if (st.ppc.shift) pg.shift(st.ppc.shift); };
       $$('#sstep .choice').forEach(btn => (btn.onclick = () => {
         const o = opts[+btn.dataset.j]; tries++;
         if (o.right) {
-          rec.ok = true; rec.first_try = tries === 1; btn.classList.add('right'); $$('#sstep .choice').forEach(x => (x.disabled = true)); after();
+          rec.ok = true; rec.first_try = tries === 1 && !rec.hinted; btn.classList.add('right'); $$('#sstep .choice').forEach(x => (x.disabled = true)); after();
           fb().innerHTML = `<div class="fb ok"><b>${tries === 1 ? 'Right! ⭐' : 'Right.'}</b>${esc(st.why)}</div>`; answers.push(rec); return nextBtn();
         }
         btn.classList.add('wrong'); btn.disabled = true; rec.trap ||= o.trap || null; rec.pick ||= o.t;

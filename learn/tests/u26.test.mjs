@@ -169,3 +169,26 @@ test('no mark-scheme keyword anywhere is empty once normalised (it would match e
   const bad = groups.flatMap(g => (g.k || []).filter(k => norm(k).length < 2).map(k => `${g.label}: "${k}"`));
   assert.deepEqual(bad, []);
 });
+
+test('formula boxes: every PED calculation shows its formula and a calculation hint that does not give the answer away', () => {
+  const formulas = new Set(Object.values(U26.F));
+  const known = f => formulas.has(f) || [...formulas].some(x => f.startsWith(x));
+  const giveaway = (hint, ans) => new RegExp(`(^|[^\\d.,])${ans.replace(/[.+]/g, m => '\\' + m)}(?![\\d.,])`).test(hint);
+  const mcq = id => U26.MCQ.find(q => q.id === id);
+  for (const id of ['q26-calc', 'q26-pct', 'q26-unit', 'q26-rev-calc']) {
+    const q = mcq(id); assert.ok(q.calc && q.calc.f.every(known) && q.calc.h, id);
+    const ans = q.options[0].t.split(':')[0].replace(/^\+/, '').replace(/%$/, '');
+    assert.ok(!giveaway(q.calc.h, ans), `${id}: the hint gives away ${ans}`);
+  }
+  assert.ok(!mcq('q26-formula').calc, 'the question that asks for the formula does not show it');
+  for (const id of ['p26-calc', 'p26-rev']) { const q = U26.P2.find(x => x.id === id); assert.ok(q.calc && q.calc.f.every(known) && q.calc.h, id); }
+  assert.ok(!giveaway(U26.P2.find(x => x.id === 'p26-calc').calc.h, '−0.5'));
+  const steps = SCEN_BY_UNIT['2.6'].flatMap(s => s.steps.map((st, k) => ({ s: s.id, k: k + 1, st }))).filter(x => x.st.calc);
+  assert.deepEqual(steps.map(x => `${x.s}-${x.k}`), ['s26-thu-1', 's26-thu-2', 's26-thu-3', 's26-thu-5', 's26-petrol-1', 's26-petrol-4', 's26-shirts-2']);
+  for (const { s, k, st } of steps) {
+    assert.ok(st.calc.f.every(known) && st.calc.h, `${s}-${k}`);
+    const ans = st.options[0].t.split(':')[0].replace(/^\+/, '').replace(/%$/, '');
+    assert.ok(!giveaway(st.calc.h, ans), `${s}-${k}: the hint gives away ${ans}`);
+  }
+  for (const k of Object.keys(U26.PED_KINDS)) { const it = U26.genPed(k, 99); assert.ok(it.calc.f.length && it.calc.f.every(known) && it.calc.h === it.hint, k); }
+});

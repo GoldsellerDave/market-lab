@@ -1,6 +1,7 @@
 // Section 2 scenario cards (2.1 to 2.6), same format as u1s.js: stories in Ho Chi Minh City where students APPLY the ideas.
 // New people: Chị Thu (a bubble tea stall in District 3) and Anh Phúc (a durian farmer in Bến Tre, Mekong Delta).
 // Numbers match u2.js: bubble tea in District 3, demand 160 − 2P, supply 2P (P in thousand đồng, cups a day).
+import { F as PF } from './u26.js?v=ee8b9a45';
 const o = (t, p, trap) => ({ t, p: p || t, trap });
 const choice = (q, plain, options, why) => ({ type: 'choice', q, plain: plain || q, options, why });
 const sort = (q, plain, buckets, items, trap, why) => ({ type: 'sort', q, plain: plain || q, buckets, trap, why,
@@ -393,6 +394,21 @@ export const SCENARIOS2 = [
       g('fewer workers needed: jobs lost', ['lose their job', 'job loss', 'lose jobs', 'fewer workers', 'unemploy', 'fired', 'sack'], 'What happens to the jobs?'),
       g('revenue falls', ['revenue fall', 'less revenue', 'revenue decrease', 'lower revenue'], 'What happens to revenue?')], need: 3 })
 ];
+
+// 2.6: a formula box and a calculation hint on each calculation step (step numbers count from 1)
+const SCEN_CALC = {
+  's26-thu': {
+    1: { f: [PF.pct], h: 'The old price is 40,000 and the new price is 50,000. Work out (50,000 − 40,000) ÷ 40,000 × 100.' },
+    2: { f: [PF.pct], h: 'Old sales 80, new sales 40. Work out (40 − 80) ÷ 80 × 100. It is a fall, so the answer is negative.' },
+    3: { f: [PF.ped], h: 'Use your two answers: % change in quantity demanded (−50) ÷ % change in price (+25). Then compare the number without its minus sign with 1.' },
+    5: { f: [PF.tr], h: 'Revenue before = 40,000 × 80. Revenue after = 50,000 × 40. Which is bigger?' } },
+  's26-petrol': {
+    1: { f: [PF.ped], h: 'Quantity demanded falls by 2%, so its change is −2. The price rises by 10%, so its change is +10. Work out −2 ÷ 10.' },
+    4: { f: [PF.tr + ' (what firms receive = what consumers spend)'], h: 'The price goes up by 10% but the quantity falls by only 2%. Which change is bigger? So does price × quantity go up or down?' } },
+  's26-shirts': {
+    2: { f: [PF.qd], h: 'Turn the PED formula round: multiply the PED by the % change in price, −3 × (+10).' } }
+};
+SCENARIOS2.forEach(s => Object.entries(SCEN_CALC[s.id] || {}).forEach(([k, c]) => (s.steps[k - 1].calc = c)));
 
 export const CAST2 = {
   thu: { e: '🧋', name: 'Chị Thu', role: 'a bubble tea seller', line: 'Chị Thu has a bubble tea stall in District 3. She buys milk, tea and cups, and sells bubble tea.', vi: 'Chị Thu có một quầy trà sữa ở Quận 3. Chị mua sữa, trà, ly và bán trà sữa.' },
