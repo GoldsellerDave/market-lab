@@ -6,7 +6,7 @@
 // a trap on every wrong option. PED = % change in quantity demanded ÷ % change in price. It is negative for a normal
 // demand curve; elastic / inelastic compares the number WITHOUT the minus sign with 1.
 // genPed() makes the PED lab questions (new numbers every time), like genEq() in u24.js.
-import { rng } from './u24.js?v=ee8b9a45';
+import { rng } from './u24.js?v=e0877eb5';
 
 // The formulas students use, shown in a formula box on every calculation (with a calculation hint that sets up the sum
 // with the question's numbers but leaves the last step to the student).

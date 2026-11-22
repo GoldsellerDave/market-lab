@@ -1,7 +1,7 @@
 // Section 2 scenario cards (2.1 to 2.6), same format as u1s.js: stories in Ho Chi Minh City where students APPLY the ideas.
 // New people: Chị Thu (a bubble tea stall in District 3) and Anh Phúc (a durian farmer in Bến Tre, Mekong Delta).
 // Numbers match u2.js: bubble tea in District 3, demand 160 − 2P, supply 2P (P in thousand đồng, cups a day).
-import { F as PF } from './u26.js?v=ee8b9a45';
+import { F as PF } from './u26.js?v=e0877eb5';
 const o = (t, p, trap) => ({ t, p: p || t, trap });
 const choice = (q, plain, options, why) => ({ type: 'choice', q, plain: plain || q, options, why });
 const sort = (q, plain, buckets, items, trap, why) => ({ type: 'sort', q, plain: plain || q, buckets, trap, why,
@@ -334,9 +334,9 @@ export const SCENARIOS2 = [
     [choice('What is the PED for petrol?', 'What is the [[PED]] for petrol?',
       [o('−0.2'), o('−5', null, 'ped-formula'), o('−8', null, 'ped-formula'), o('−12', null, 'ped-formula')], '−2 ÷ 10 = −0.2. Ignoring the sign, 0.2 is less than 1: inelastic.'),
     sort('Which of these help to explain why demand for petrol is inelastic?', 'Why do people keep buying petrol?', ['Makes demand inelastic', 'Does not explain it'],
-      [['Few substitutes for riding to work', '🏍️', 0], ['People need it every day (a necessity)', '📅', 0], ['No time yet to buy an electric motorbike', '⏱️', 0],
+      [['Few substitutes for riding to work', '🏍️', 0], ['People need it every day (a necessity)', '📅', 0], ['Short run: people cannot switch to electric motorbikes quickly', '⏱️', 0, 'In a short time, people cannot change to electric motorbikes'],
         ['Petrol has many close substitutes', '🔁', 1], ['Petrol is a luxury', '💎', 1], ['The price of petrol fell', '📉', 1]], 'ped-det',
-      'Few substitutes, a necessity and a short time to react make demand inelastic.'),
+      'Few substitutes, a necessity and a short time to react make demand inelastic. Over a longer time, people can buy electric motorbikes or take the bus, so demand becomes more elastic.'),
     choice('If the government puts a tax on petrol, what is likely to happen?', 'There is a [[tax]] on petrol. What happens?',
       [o('Lots of tax revenue; sales fall only a little', 'Lots of tax money; people buy a bit less'), o('Little tax revenue; people stop buying', 'Little tax money; people stop buying', 'ped-decide'),
         o('Sales fall a lot, so pollution ends', 'People buy much less; no more pollution', 'ped-decide'), o('The price of petrol falls', 'Petrol gets cheaper', 'ped-revenue')],
