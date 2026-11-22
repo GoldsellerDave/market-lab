@@ -1,4 +1,4 @@
-// Cartoon scenes for the Section 1 scenario cards: flat, colourful SVG drawn here (no image files), set in Ho Chi Minh City.
+// Cartoon scenes for the scenario cards (Sections 1 and 2): flat, colourful SVG drawn here (no image files), set in Ho Chi Minh City.
 // scene(key) returns an <svg> 400×170; the scenario's emoji stickers are laid over it by the student app.
 
 const sky = (a, b, id) => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="400" height="170" fill="url(#${id})"/>`;
@@ -108,7 +108,75 @@ const SCENES = {
     <rect x="260" y="130" width="140" height="40" fill="#D3DCE6"/>
     <g transform="translate(150 22)"><rect width="104" height="118" rx="12" fill="#fff" stroke="#1E8C87" stroke-width="3"/>
       <path d="M18 14 V100 H96" stroke="#16324F" stroke-width="3" fill="none"/><path d="M18 28 A70 70 0 0 1 86 100" stroke="#1E8C87" stroke-width="4" fill="none"/>
-      <circle cx="54" cy="52" r="5" fill="#D9622B"/><text x="22" y="14" font-size="11" font-family="sans-serif">📱</text><text x="84" y="114" font-size="11" font-family="sans-serif">🌾</text></g>`
+      <circle cx="54" cy="52" r="5" fill="#D9622B"/><text x="22" y="14" font-size="11" font-family="sans-serif">📱</text><text x="84" y="114" font-size="11" font-family="sans-serif">🌾</text></g>`,
+  // Petrol station: red canopy, two pumps, the price board with a rising price, motorbikes queuing
+  petrol: () => `${sky('#FFD9A8', '#FFF4E0', 'gq')}${sun(250, 26, 13)}${cloud(120, 22, .7)}
+    ${skyline(122, '#F2CFA8')}
+    <rect y="122" width="400" height="48" fill="#C3C8CE"/><rect y="122" width="400" height="5" fill="#9AA3AD"/>
+    <rect x="150" y="56" width="236" height="17" rx="3" fill="#E63946"/><rect x="150" y="71" width="236" height="5" fill="#FFD166"/>
+    <text x="268" y="69" font-size="11.5" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="800">CÂY XĂNG · PETROL</text>
+    <rect x="166" y="76" width="7" height="50" fill="#ADB5BD"/><rect x="362" y="76" width="7" height="50" fill="#ADB5BD"/>
+    ${[214, 296].map(x => `<g><rect x="${x}" y="88" width="34" height="38" rx="4" fill="#F8F9FA" stroke="#E63946" stroke-width="2.5"/><rect x="${x + 6}" y="94" width="22" height="10" rx="2" fill="#1D3557"/>
+      <rect x="${x + 9}" y="97" width="16" height="4" rx="1" fill="#8AC926"/><rect x="${x + 4}" y="110" width="26" height="4" rx="2" fill="#E63946"/><path d="M${x + 34} 98 q12 4 8 22" stroke="#333" stroke-width="2.5" fill="none"/></g>`).join('')}
+    <rect x="70" y="62" width="6" height="62" fill="#6C757D"/>
+    <rect x="32" y="20" width="88" height="56" rx="7" fill="#1D3557" stroke="#FFD166" stroke-width="2"/>
+    <text x="72" y="37" font-size="10.5" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="700">GIÁ XĂNG</text>
+    <text x="66" y="61" font-size="16" text-anchor="middle" fill="#FFD166" font-family="sans-serif" font-weight="800">25.000</text>
+    <path d="M108 64 v-18 m-6 6 l6 -7 l6 7" stroke="#FF6B6B" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    ${[[188, '#E63946', '#FFB703'], [262, '#457B9D', '#06D6A0'], [338, '#2A9D8F', '#F72585']].map(([x, c, sh]) => `${motorbike(x, 156, c)}${person(x - 2, 150, { shirt: sh, hat: 'cap', s: .55 })}`).join('')}`,
+  // Garment factory in Thủ Đức: saw-tooth roof, sign, a rail of shirts, workers and boxes
+  factory: () => `${sky('#BDE0FE', '#EEF7FF', 'gw')}${sun(40, 28, 13)}${cloud(120, 24, .8)}
+    <rect y="130" width="400" height="40" fill="#CED4DA"/><rect y="130" width="400" height="4" fill="#ADB5BD"/>
+    <rect x="150" y="62" width="236" height="70" fill="#F1F3F5" stroke="#ADB5BD" stroke-width="2"/>
+    <path d="M150 62 ${Array.from({ length: 10 }, () => 'l23.6 -18 v18').join(' ')} z" fill="#6C9BCF"/>
+    <rect x="196" y="70" width="144" height="20" rx="4" fill="#1D3557"/>
+    <text x="268" y="84.5" font-size="11.5" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="800">XƯỞNG MAY 👕</text>
+    ${[160, 186, 212, 290, 316, 342].map(x => `<rect x="${x}" y="98" width="20" height="14" rx="2" fill="#A8DADC"/>`).join('')}
+    <rect x="248" y="100" width="32" height="32" fill="#457B9D"/><rect x="263" y="100" width="2" height="32" fill="#1D3557"/>
+    <rect x="24" y="74" width="104" height="4" rx="2" fill="#6C757D"/><rect x="26" y="74" width="4" height="60" fill="#6C757D"/><rect x="122" y="74" width="4" height="60" fill="#6C757D"/>
+    ${['#E63946', '#F4A261', '#FFFFFF', '#2A9D8F', '#9B5DE5'].map((c, k) => `<g transform="translate(${40 + k * 18} 80)"><path d="M0 2 l6 -4 h8 l6 4 l-3 7 h-2 v16 h-12 v-16 h-2z" fill="${c}" stroke="#555" stroke-width=".8"/></g>`).join('')}
+    <g fill="#D4A373" stroke="#A47148" stroke-width="1"><rect x="330" y="140" width="22" height="18"/><rect x="354" y="140" width="22" height="18"/><rect x="342" y="122" width="22" height="18"/></g>
+    ${person(196, 166, { shirt: '#2A9D8F', long: true, s: .78 })}${person(300, 166, { shirt: '#E76F51', hat: 'cap', s: .78 })}`,
+  // Convenience store for the sugar tax: drinks fridge, a sugar tax price tag, the counter, a shopper
+  shop: () => `${sky('#C7F9CC', '#F1FFF3', 'gs')}
+    <rect x="16" y="26" width="368" height="118" fill="#FFFFFF" stroke="#2A9D8F" stroke-width="2"/>
+    <rect x="16" y="18" width="368" height="22" fill="#2A9D8F"/>
+    <text x="30" y="34" font-size="12.5" text-anchor="start" fill="#fff" font-family="sans-serif" font-weight="800">CỬA HÀNG TIỆN LỢI</text>
+    <rect x="34" y="50" width="128" height="88" rx="6" fill="#E9F5FF" stroke="#457B9D" stroke-width="3"/><rect x="96" y="50" width="3" height="88" fill="#457B9D"/>
+    ${[66, 92, 118].map((y, r) => `<rect x="38" y="${y + 16}" width="120" height="3" fill="#ADB5BD"/>${Array.from({ length: 8 }, (_, k) => `<rect x="${42 + k * 14 + (k > 3 ? 6 : 0)}" y="${y - 2}" width="8" height="18" rx="3" fill="${['#E63946', '#F4A261', '#8AC926', '#FFCA3A'][(k + r) % 4]}"/><rect x="${44 + k * 14 + (k > 3 ? 6 : 0)}" y="${y - 6}" width="4" height="5" rx="1" fill="#555"/>`).join('')}`).join('')}
+    <g transform="rotate(-6 236 76)"><rect x="186" y="52" width="104" height="50" rx="7" fill="#FFD166" stroke="#C99A2E" stroke-width="2"/>
+      <text x="238" y="70" font-size="10" text-anchor="middle" fill="#333" font-family="sans-serif" font-weight="700">NƯỚC NGỌT</text>
+      <text x="238" y="90" font-size="13" text-anchor="middle" fill="#C1121F" font-family="sans-serif" font-weight="800">+ THUẾ ĐƯỜNG</text></g>
+    <rect x="200" y="114" width="168" height="30" fill="#8D6346"/><rect x="200" y="110" width="168" height="6" fill="#6F4E37"/>
+    <rect x="330" y="94" width="28" height="18" rx="3" fill="#495057"/><rect x="334" y="97" width="20" height="7" rx="1" fill="#8ECAE6"/>
+    <rect y="144" width="400" height="26" fill="#E9DCC9"/>
+    ${person(254, 166, { shirt: '#9B5DE5', long: true, s: .82 })}<rect x="266" y="114" width="8" height="18" rx="3" fill="#E63946"/>`,
+  // A Ho Chi Minh City street: tube houses with shops underneath, tangled power lines, motorbikes, a tamarind tree
+  street: () => `${sky('#A0D8FF', '#E8F6FF', 'gr')}${sun(372, 26, 12)}${cloud(190, 18, .7)}
+    ${[[6, 62, 56, '#F4A261', 'PHỞ'], [70, 58, 42, '#E9C46A', 'BÁNH MÌ'], [130, 60, 66, '#90BE6D', 'NHÀ THUỐC'], [192, 64, 48, '#F28482', 'ĐIỆN THOẠI'], [258, 60, 58, '#84A59D', 'TRƯỜNG HỌC'], [320, 74, 44, '#BDB2FF', 'SIÊU THỊ']].map(([x, w, top, c, sign]) => `<g>
+      <rect x="${x}" y="${top}" width="${w}" height="${128 - top}" fill="${c}"/><rect x="${x}" y="${top - 4}" width="${w}" height="5" fill="#6D597A" opacity=".5"/>
+      <rect x="${x + 8}" y="${top + 8}" width="${w - 16}" height="14" rx="2" fill="#FFF3B0" opacity=".85"/><rect x="${x + 4}" y="${top + 24}" width="${w - 8}" height="3" fill="#6D597A"/>
+      <rect x="${x + 3}" y="96" width="${w - 6}" height="13" rx="2" fill="#FFFFFF"/><text x="${x + w / 2}" y="106" font-size="${w < 64 ? 7.5 : 8.5}" text-anchor="middle" fill="#333" font-family="sans-serif" font-weight="800">${sign}</text>
+      <rect x="${x + 6}" y="110" width="${w - 12}" height="18" fill="#3D405B" opacity=".55"/></g>`).join('')}
+    <path d="M0 50 q100 18 200 6 t200 10 M0 58 q120 10 220 -2 t180 14 M0 44 q80 26 180 10 t220 2" stroke="#2B2D42" stroke-width="1.2" fill="none"/>
+    <rect x="0" y="40" width="4" height="92" fill="#6C757D"/><rect x="396" y="40" width="4" height="92" fill="#6C757D"/>
+    <rect y="126" width="400" height="8" fill="#D6CCC2"/><rect y="134" width="400" height="36" fill="#8D99AE"/>
+    <path d="M10 154 H390" stroke="#F1FAEE" stroke-width="2" stroke-dasharray="14 10"/>
+    ${[[70, '#E63946', '#FFB703'], [200, '#457B9D', '#06D6A0'], [320, '#F77F00', '#F72585']].map(([x, c, sh]) => `${motorbike(x, 162, c)}${person(x - 2, 156, { shirt: sh, hat: 'cap', s: .52 })}`).join('')}`,
+  // Goodbye DVD shop: shelves of DVDs, a closing-down banner, a customer streaming on a phone outside
+  dvd: () => `${sky('#E0C3FC', '#F6EDFF', 'gd')}${cloud(320, 22, .8)}${sun(380, 54, 11)}
+    <rect x="40" y="40" width="250" height="104" fill="#FFF8F0" stroke="#6A4C93" stroke-width="2"/>
+    <rect x="34" y="28" width="262" height="22" fill="#6A4C93"/>
+    <text x="48" y="44" font-size="12.5" text-anchor="start" fill="#fff" font-family="sans-serif" font-weight="800">ĐĨA DVD 📀</text>
+    <rect x="56" y="60" width="132" height="76" fill="#E9ECEF" stroke="#ADB5BD" stroke-width="2"/>
+    ${[70, 94, 118].map((y, r) => `<rect x="58" y="${y + 14}" width="128" height="3" fill="#ADB5BD"/>${Array.from({ length: 10 }, (_, k) => `<rect x="${62 + k * 12}" y="${y}" width="9" height="14" rx="1" fill="${['#E63946', '#457B9D', '#F4A261', '#2A9D8F', '#9B5DE5'][(k + r) % 5]}"/>`).join('')}`).join('')}
+    <rect x="214" y="80" width="56" height="64" fill="#8D5524"/><circle cx="260" cy="114" r="2.5" fill="#FFD166"/>
+    <g transform="rotate(-10 150 74)"><rect x="80" y="60" width="150" height="28" rx="4" fill="#E63946"/>
+      <text x="155" y="79" font-size="12" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="800">ĐÓNG CỬA · CLOSING</text></g>
+    <rect y="144" width="400" height="26" fill="#D9C2A7"/>
+    ${person(340, 166, { shirt: '#06D6A0', hat: 'cap', s: .85 })}
+    <g transform="translate(352 104)"><rect width="16" height="26" rx="3" fill="#2B2D42"/><rect x="2" y="3" width="12" height="18" rx="1" fill="#8ECAE6"/><path d="M6 9 l5 3 l-5 3z" fill="#E63946"/></g>
+    <path d="M374 98 a8 8 0 0 1 8 8 M374 92 a14 14 0 0 1 14 14" stroke="#6A4C93" stroke-width="2" fill="none" stroke-linecap="round"/>`,
 };
 export const SCENE_KEYS = Object.keys(SCENES);
 export function scene(key, label = '') {

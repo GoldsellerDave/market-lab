@@ -1,7 +1,7 @@
 // Section 2 scenario cards (2.1 to 2.6), same format as u1s.js: stories in Ho Chi Minh City where students APPLY the ideas.
 // New people: Chị Thu (a bubble tea stall in District 3) and Anh Phúc (a durian farmer in Bến Tre, Mekong Delta).
 // Numbers match u2.js: bubble tea in District 3, demand 160 − 2P, supply 2P (P in thousand đồng, cups a day).
-import { F as PF } from './u26.js?v=e0877eb5';
+import { F as PF } from './u26.js?v=20a66333';
 const o = (t, p, trap) => ({ t, p: p || t, trap });
 const choice = (q, plain, options, why) => ({ type: 'choice', q, plain: plain || q, options, why });
 const sort = (q, plain, buckets, items, trap, why) => ({ type: 'sort', q, plain: plain || q, buckets, trap, why,
@@ -40,7 +40,7 @@ export const SCENARIOS2 = [
       g('more profit / incentive', ['profit', 'incentive'], 'Why does Anh Phúc want to grow more?'),
       g('resources move to durian', ['land', 'workers', 'labour', 'resources', 'move', 'hire', 'plant'], 'What happens to land and workers?'), g('less rice is produced', ['less rice', 'fewer', 'rice falls', 'instead of rice', 'used for rice', 'from rice'], 'What happens to rice?'), g('demand is high (buyers want durian)', ['demand', 'buyers want', 'abroad', 'popular'], 'Why did the price double?')], need: 3 }),
 
-  S('s21-who', '2.1', 'Who decides?', 'city', ['🏭', '🧑‍💼', '💰', '❓'],
+  S('s21-who', '2.1', 'Who decides?', 'street', ['🏭', '🧑‍💼', '💰', '❓'],
     'In a market system, nobody gives firms orders about what to make. A shoe factory in Thủ Đức makes trainers because many teenagers buy them. Wages are rising, so it buys new machines. Its trainers cost 900,000 đồng, so they go to the people who are willing and able to pay that price.',
     'In a [[market system]], [[buyer|buyers]] and [[seller|sellers]] decide, through prices. A shoe factory makes trainers because teenagers buy them. Workers cost more, so it buys machines. The trainers go to people who can pay 900,000 đồng.',
     'Trong hệ thống thị trường, không ai ra lệnh cho doanh nghiệp phải sản xuất gì. Một nhà máy giày ở Thủ Đức làm giày thể thao vì nhiều thanh thiếu niên mua. Tiền lương tăng nên nhà máy mua máy móc mới. Giày giá 900.000 đồng, nên ai sẵn lòng và có khả năng trả giá đó sẽ có giày.',
@@ -53,7 +53,7 @@ export const SCENARIOS2 = [
         o('The workers, by voting on it each year', 'The workers, by voting each year', 'planned'), o('Nobody: factories make things at random', 'Nobody: they make things at random', 'market-def')],
       'In a market system, buyers and sellers decide through the price mechanism.')]),
 
-  S('s21-dvd', '2.1', 'Goodbye, DVD shop', 'city', ['📀', '📉', '📺', '🔄'],
+  S('s21-dvd', '2.1', 'Goodbye, DVD shop', 'dvd', ['📀', '📉', '📺', '🔄'],
     'Ten years ago a shop in District 5 sold hundreds of DVDs a week. Now most families watch films online, so fewer people buy DVDs. The shop cuts its prices, but it still makes a loss. It closes, and the owner opens a shop selling phone accessories instead.',
     'Fewer people buy DVDs now, so the shop lowers its prices. It still loses money. It closes and the owner sells phone things instead. A lower price is a [[signal]] too.',
     'Mười năm trước, một cửa hàng ở Quận 5 bán hàng trăm đĩa DVD mỗi tuần. Nay hầu hết các gia đình xem phim trực tuyến nên ít người mua DVD. Cửa hàng giảm giá nhưng vẫn lỗ, rồi đóng cửa; chủ cửa hàng chuyển sang bán phụ kiện điện thoại.',
@@ -165,7 +165,7 @@ export const SCENARIOS2 = [
         o('A shift right: more is supplied at every price', 'Shift right: more at every price', 'costs-supply'), o('A shift of the demand curve to the left', 'The demand curve moves left', 'hats')],
       'A cost changed, not the price of bubble tea, so the whole supply curve shifts, to the left.')]),
 
-  S('s23-tax', '2.3', 'A sugar tax', 'city', ['🏛️', '🥤', '🌾', '💸'],
+  S('s23-tax', '2.3', 'A sugar tax', 'shop', ['🏛️', '🥤', '🌾', '💸'],
     'The government puts a tax of 2,000 đồng on every bottle of sugary soft drink. At the same time, it gives rice farmers a subsidy of 500,000 đồng for every tonne of rice they grow.',
     'The [[government]] puts a [[tax]] on sugary drinks. It also gives rice farmers a [[subsidy]]: money for every tonne of rice.',
     'Chính phủ đánh thuế 2.000 đồng trên mỗi chai nước ngọt có đường. Đồng thời, chính phủ trợ cấp cho nông dân trồng lúa 500.000 đồng cho mỗi tấn lúa.',
@@ -272,7 +272,7 @@ export const SCENARIOS2 = [
       [o('Price rises; quantity falls', 'Price up; quantity down'), o('Price rises; quantity rises', 'Price up; quantity up', 'pq-link'), o('Price falls; quantity falls', 'Price down; quantity down', 'direction'), o('Price falls; quantity rises', 'Price down; quantity up', 'direction')],
       'At the old price there is a shortage, so the price rises and the quantity bought falls. A supply shift moves P and Q opposite ways.')]),
 
-  S('s25-sugar', '2.5', 'The sugar tax', 'city', ['🏛️', '🥤', '⬅️', '🧮'],
+  S('s25-sugar', '2.5', 'The sugar tax', 'shop', ['🏛️', '🥤', '⬅️', '🧮'],
     'The government adds a tax of 2,000 đồng to every bottle of sugary soft drink. Shops in Ho Chi Minh City now pay more for each bottle they sell.',
     'The [[government]] adds a [[tax]] to every bottle of sugary drink. Shops pay more for each bottle.',
     'Chính phủ đánh thuế 2.000 đồng trên mỗi chai nước ngọt có đường. Các cửa hàng ở TP. Hồ Chí Minh phải trả nhiều hơn cho mỗi chai bán ra.',
@@ -327,7 +327,7 @@ export const SCENARIOS2 = [
       g('revenue fell from 3.2 to 2 million', ['3.2', '2 million', '2,000,000', 'less revenue', 'revenue fell', 'revenue fall'], 'What were the numbers?'),
       g('customers switch to other stalls', ['switch', 'go to', 'buy from', 'move to'], 'What do the customers do?')], need: 3 }),
 
-  S('s26-petrol', '2.6', 'Petrol goes up', 'city', ['⛽', '🏍️', '📈', '🏛️'],
+  S('s26-petrol', '2.6', 'Petrol goes up', 'petrol', ['⛽', '🏍️', '📈', '🏛️'],
     'The price of petrol in Ho Chi Minh City rises by 10%. Most people still ride their motorbikes to school and work, so petrol sales fall by only 2%. The government is thinking about a new tax on petrol.',
     'Petrol costs 10% more. People still ride motorbikes to work and school. They buy only 2% less petrol. The [[government]] is thinking about a new [[tax]] on petrol.',
     'Giá xăng ở TP. Hồ Chí Minh tăng 10%. Hầu hết mọi người vẫn đi xe máy đến trường và nơi làm việc nên lượng xăng bán ra chỉ giảm 2%. Chính phủ đang xem xét một loại thuế mới đối với xăng.',
@@ -372,7 +372,7 @@ export const SCENARIOS2 = [
       g('habit: eaten at every meal', ['habit', 'every meal', 'tradition'], 'Is eating rice a habit?'),
       g('people keep buying when the price rises', ['keep buying', 'still buy', 'continue', 'buy the same'], 'What do families do when the price rises?')], need: 2 }),
 
-  S('s26-shirts', '2.6', 'A pay rise at the shirt factory', 'city', ['👕', '💵', '🏭', '📉'],
+  S('s26-shirts', '2.6', 'A pay rise at the shirt factory', 'factory', ['👕', '💵', '🏭', '📉'],
     'Workers at a shirt factory in Thủ Đức ask for higher wages. To pay them, the factory would raise the price of its shirts by 10%. Many other factories in Vietnam make similar shirts, and the shops that buy them can easily switch.',
     'Workers at a shirt factory want more pay. Then the factory must make its shirts 10% dearer. Many other factories make shirts like these. Shops can buy from them instead.',
     'Công nhân một xưởng may áo sơ mi ở Thủ Đức đòi tăng lương. Để trả lương, xưởng phải tăng giá áo 10%. Nhiều xưởng khác ở Việt Nam may áo tương tự, và các cửa hàng mua áo có thể dễ dàng chuyển sang mua nơi khác.',
