@@ -1,4 +1,4 @@
-// Econ engine: one map of concept blocks for IGCSE Economics 0455, sections 1 and 2 (to 2.5), like the Checkpoint Quest
+// Econ engine: one map of concept blocks for IGCSE Economics 0455, sections 1 and 2 (to 2.6), like the Checkpoint Quest
 // grammar engine. A block is an idea a student needs; pre lists the blocks it builds on (layer 0 = everyday intuition).
 //   EBLOCKS        name, layer, unit (where it is first needed), pre. Blocks with a lesson in ebank.js are "ready".
 //   TRAP_BLOCK     each misconception (trap) on a wrong answer -> the block that the mistake shows is weak.
@@ -53,13 +53,21 @@ export const EBLOCKS = {
   'ppc-shift': B('Shifts and movements of a PPC', 4, '1.4', ['ppc-points', 'quan-qual']),
   'shortage-surplus': B('Shortage and surplus', 4, '2.4', ['law-demand', 'law-supply', 'scarcity']),
   'equilibrium': B('Market equilibrium', 5, '2.4', ['shortage-surplus', 'graph-read']),
-  'price-chain': B('The price-change chain', 6, '2.5', ['demand-causes', 'supply-causes', 'equilibrium'])
+  'price-chain': B('The price-change chain', 6, '2.5', ['demand-causes', 'supply-causes', 'equilibrium']),
+  // ---- 2.6 price elasticity of demand
+  'pct-change': B('Percentage change', 0, '2.6', []),
+  'ped-calc': B('Calculating PED', 3, '2.6', ['pct-change', 'law-demand']),
+  'ped-values': B('Elastic or inelastic?', 4, '2.6', ['ped-calc']),
+  'ped-curves': B('PED on a demand curve', 5, '2.6', ['ped-values', 'graph-read']),
+  'ped-det': B('What makes demand elastic?', 5, '2.6', ['ped-values', 'demand-causes']),
+  'ped-revenue': B('PED and total revenue', 5, '2.6', ['ped-values']),
+  'ped-use': B('Using PED in decisions', 6, '2.6', ['ped-revenue', 'ped-det'])
 };
 for (const [id, b] of Object.entries(EBLOCKS)) b.id = id;
 // A block's layer is one above the highest block it stands on (the layer numbers above are only a guide when reading)
 const layerOf = id => (EBLOCKS[id].pre.length ? 1 + Math.max(...EBLOCKS[id].pre.map(layerOf)) : 0);
 for (const b of Object.values(EBLOCKS)) b.layer = layerOf(b.id);
-export const LAYERS = ['Everyday ideas', 'First concepts', 'Building on them', 'Diagrams and markets', 'Advanced', 'Equilibrium', 'Price changes'];
+export const LAYERS = ['Everyday ideas', 'First concepts', 'Building on them', 'Diagrams and markets', 'Advanced', 'Equilibrium and elasticity', 'Price changes and PED decisions'];
 
 // Misconceptions on wrong answers -> the block they show is weak
 export const TRAP_BLOCK = {
@@ -73,7 +81,10 @@ export const TRAP_BLOCK = {
   // 2.4 and 2.5
   'move-vs-shift': 'inside-outside', 'related-goods': 'demand-causes', 'tax-subsidy': 'supply-causes', 'market-sum': 'market-demand', 'price-mechanism': 'market-3q',
   'eq-def': 'equilibrium', 'shortage-surplus': 'shortage-surplus', 'price-pressure': 'shortage-surplus', 'gap-calc': 'shortage-surplus',
-  'd-vs-s': 'price-chain', 'direction': 'price-chain', 'pq-link': 'price-chain', 'two-shifts': 'price-chain'
+  'd-vs-s': 'price-chain', 'direction': 'price-chain', 'pq-link': 'price-chain', 'two-shifts': 'price-chain',
+  // 2.6
+  'ped-def': 'ped-calc', 'ped-formula': 'ped-calc', 'ped-pct': 'pct-change', 'ped-class': 'ped-values', 'ped-sign': 'ped-values', 'ped-diagram': 'ped-curves',
+  'ped-vs-shift': 'inside-outside', 'ped-det': 'ped-det', 'ped-revenue': 'ped-revenue', 'ped-decide': 'ped-use'
 };
 // The block a question practises: the most common block among its wrong answers' traps (ties: the first)
 export function blockOfOptions(options) {

@@ -1,27 +1,29 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=b37cc519';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=b37cc519';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=b37cc519';
-import * as E from './engine.js?v=b37cc519';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=b37cc519';
-import { BASELINE, BASELINE_N } from './u1.js?v=b37cc519';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=b37cc519';
-import { createPPC } from './ppc.js?v=b37cc519';
-import * as S from './sound.js?v=b37cc519';
-import * as EM from './eengine.js?v=b37cc519';
-import { EBANK, EREADY } from './ebank.js?v=b37cc519';
-import * as Cel from './celebrate.js?v=b37cc519';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=b37cc519';
-import { scene } from './scenes.js?v=b37cc519';
-import { SHIFTS } from './u25.js?v=b37cc519';
-import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=b37cc519';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=b37cc519';
-import { createDiagram } from './diagram.js?v=b37cc519';
-import { createCurve } from './curve.js?v=b37cc519';
-import { PAPERS, PAPER_KEYS, paperHome, paperRun, paperName } from './papers.js?v=b37cc519';
-import { icon, tile } from './icons.js?v=b37cc519';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=b37cc519';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=9c916a59';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=9c916a59';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=9c916a59';
+import * as E from './engine.js?v=9c916a59';
+import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=9c916a59';
+import { BASELINE, BASELINE_N } from './u1.js?v=9c916a59';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=9c916a59';
+import { createPPC } from './ppc.js?v=9c916a59';
+import * as S from './sound.js?v=9c916a59';
+import * as EM from './eengine.js?v=9c916a59';
+import { EBANK, EREADY } from './ebank.js?v=9c916a59';
+import * as Cel from './celebrate.js?v=9c916a59';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=9c916a59';
+import { scene } from './scenes.js?v=9c916a59';
+import { SHIFTS } from './u25.js?v=9c916a59';
+import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=9c916a59';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=9c916a59';
+import { genPed, nextPedKind, fmt as pfmt } from './u26.js?v=9c916a59';
+import { PED_SHAPES, pedCurveSVG, REV_GOODS, revenueSVG, revM } from './peddia.js?v=9c916a59';
+import { createDiagram } from './diagram.js?v=9c916a59';
+import { createCurve } from './curve.js?v=9c916a59';
+import { PAPERS, PAPER_KEYS, paperHome, paperRun, paperName } from './papers.js?v=9c916a59';
+import { icon, tile } from './icons.js?v=9c916a59';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=9c916a59';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -53,8 +55,8 @@ const fmt = n => Number(n).toLocaleString('en-US');
 const go = h => { if (location.hash === h) route(); else location.hash = h; };
 const wide = on => document.getElementById('app').classList.toggle('play', on);
 window.addEventListener('hashchange', () => wide(false));
-const LEVELED = new Set(['shift', 'eqm', 'mcq', 'ppc']);
-const pracOf = u => (ACTIVITIES[u] || []).find(a => a.id === 'shift' || a.id === 'eqm' || a.id === 'ppc');
+const LEVELED = new Set(['shift', 'eqm', 'ped', 'mcq', 'ppc']);
+const pracOf = u => (ACTIVITIES[u] || []).find(a => ['shift', 'eqm', 'ped', 'ppc'].includes(a.id));
 const TICK = `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const BUILT = () => UNITS.filter(u => u.ready && CONTENT[u.id]).map(u => u.id);
 const openUnits = () => BUILT().filter(u => (me.open_units || []).includes(u));
@@ -310,7 +312,7 @@ function aTile(ic, href, title, note, done = false) {
   return `<a class="atile" href="${href}"><span class="ahead" style="--hue:${hueOf(ic)}">${icon(ic, 34)}${done ? `<span class="adone">${TICK}</span>` : ''}</span>
     <span class="abody"><b>${esc(title)}</b><span class="note">${note}</span></span></a>`;
 }
-const hueOf = ic => ({ city: '#E76F51', scen: '#FF7A59', p2: '#7B4FC4', ppc: '#2F6FB5', learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', market: '#B8432F', words: '#2A7A4B' }[ic] || '#1E8C87');
+const hueOf = ic => ({ city: '#E76F51', scen: '#FF7A59', p2: '#7B4FC4', ppc: '#2F6FB5', learn: '#1E8C87', shift: '#2F6FB5', eqm: '#2F6FB5', ped: '#2F6FB5', mcq: '#D9622B', data: '#7B4FC4', check: '#D29A0F', market: '#B8432F', words: '#2A7A4B' }[ic] || '#1E8C87');
 function missionHTML(u) {
   const m = mission(u);
   return `<div class="mission"><div class="row" style="justify-content:space-between"><p class="eyebrow">Unit ${u} mission · ${m.n} of ${m.steps.length} steps</p>${m.complete ? '<span class="chip ok">Badge won</span>' : ''}</div>
@@ -455,8 +457,8 @@ function meView(tab = 'stats') {
     <div class="stats"><div class="stat gold"><b>${xp.total}</b><span>XP in total</span></div><div class="stat"><b>${xp.week}</b><span>XP this week</span></div>
       <div class="stat"><b>${st.weeks} wk</b><span>streak (${Math.min(st.thisWeek, 2)}/2 this week)</span></div><div class="stat"><b>${history.length}</b><span>activities finished</span></div></div>
     <div class="panel"><h3>Skills</h3><div class="skills">
-      ${skill('Practice games', rft(['shift', 'eqm']))}${skill('Paper 1 questions', rft(['mcq', 'check', 'review']))}${skill('Data response', rft(['data']))}
-      ${us.map(u => skill(`${u} overall`, rft(['shift', 'eqm', 'mcq', 'check', 'data'], u))).join('')}</div>
+      ${skill('Practice games', rft(['shift', 'eqm', 'ped']))}${skill('Paper 1 questions', rft(['mcq', 'check', 'review']))}${skill('Data response', rft(['data']))}
+      ${us.map(u => skill(`${u} overall`, rft(['shift', 'eqm', 'ped', 'mcq', 'check', 'data'], u))).join('')}</div>
       <p class="note">Right first time, from your last 20 answers of each kind.</p></div>
     <div class="panel"><h3>Mistakes to watch</h3>${traps.length ? traps.map(([t, n]) => `<div class="fb tip"><b>${esc(TRAPS[t].label)} · ${n}×</b>${esc(TRAPS[t].tip)}</div>`).join('') : '<p class="note">No mistakes recorded yet.</p>'}</div>
     <div class="panel"><h3>History</h3>${history.length ? `<ul class="hist">${history.slice().reverse().slice(0, 15).map(a => `<li>${tile(a.activity === 'review' ? 'review' : a.activity === 'check' ? 'check' : a.activity, 's')}<span>${esc(a.unit === 'review' ? 'Review' : `${a.unit} ${ACT[a.unit + a.activity] || (a.activity === 'check' ? 'Unit checkpoint' : a.activity)}`)}</span><span class="note">${a.score}/${a.max_score} · ${ago(a.created_at)}</span></li>`).join('')}</ul>` : '<p class="note">Nothing yet.</p>'}</div></div>`);
@@ -506,6 +508,10 @@ function learn() {
       <div class="readout"><div class="${c.curve === 'D' ? 'd' : 's'}"><b id="cq"></b>${c.curve === 'D' ? w('quantity demanded', 'quantity demanded') : w('quantity supplied', 'quantity supplied')} (cups a day)</div></div>`;
     if (c.kind === 'curve-shift') body += `<div class="choices">${C().SHIFT_EVENTS[c.curve].map((x, k) => `<button class="choice" data-ev="${k}"><b>${esc(x[0])}</b></button>`).join('')}</div>`;
     if (c.kind === 'rows') body += c.rows.map(r => `<div class="fb tip"><b>${R(r[0])}</b>${R(r[1])}</div>`).join('');
+    // 2.6: the five kinds of PED (tap one to draw its demand curve), and total revenue boxes before and after a price cut
+    if (c.kind === 'pedcurves') body += `<div class="choices">${Object.entries(PED_SHAPES).map(([k, x]) => `<button class="choice" data-pk="${k}"><span><b>${esc(x[0])}</b><br><span class="small">${esc(x[1])}</span></span></button>`).join('')}</div>`;
+    if (c.kind === 'revenue') body += `<p class="small muted" style="margin:10px 0 4px"><b>Which good?</b></p><div class="seg" id="rvg"><button data-g="el" class="sel">Cinema tickets (elastic)</button><button data-g="in">Rice (inelastic)</button></div>
+      <p class="small muted" style="margin:10px 0 4px"><b>Price</b></p><div class="seg" id="rvp"><button data-i="0" class="sel">100k (before)</button><button data-i="1">80k (after a 20% cut)</button></div>`;
     if (c.kind === 'causes') body += `<div class="choices two"><div class="card" style="border-left:8px solid var(--d)"><h3>${w('Demand', 'demand')} shifts</h3><ul>${c.demand.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
       <div class="card" style="border-left:8px solid var(--s)"><h3>${w('Supply', 'supply')} shifts</h3><ul>${c.supply.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>`;
     if (c.kind === 'method') body += `<ol>${c.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol><p><b>Sentence frame</b></p><p class="frame">${esc(c.frame)}</p>`;
@@ -516,12 +522,12 @@ function learn() {
     if (c.kind === 'schedule') body += `<div class="scroll"><table class="sched"><tr><th>Price (${esc(M.priceUnit)})</th><th>${w('Quantity demanded', 'quantity demanded')} (kg)</th><th>${w('Quantity supplied', 'quantity supplied')} (kg)</th></tr>
       ${M.prices.map(P => `<tr data-p="${P}"><td>${P}</td><td>${fmt(M.qd(P))}</td><td>${fmt(M.qs(P))}</td></tr>`).join('')}</table></div>
       <button class="alt" id="showeq" style="width:100%">Show me the equilibrium</button><p id="eff" aria-live="polite"></p>`;
-    const hasDg = ['four', 'move', 'two', 'explorer'].includes(c.kind), hasPPC = c.kind.startsWith('ppc'), hasCv = c.kind.startsWith('curve');
+    const hasDg = ['four', 'move', 'two', 'explorer'].includes(c.kind), hasPPC = c.kind.startsWith('ppc'), hasCv = c.kind.startsWith('curve'), hasSv = c.kind === 'pedcurves' || c.kind === 'revenue';
     let under = '';   // the explorer's slider and readout sit directly under the diagram, so students see both while dragging
     if (c.kind === 'explorer') { const k = body.indexOf('<label for="pr">'); under = body.slice(k); body = body.slice(0, k); }
     view(`${backLink()}
       <div class="steps">${L.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
-      <div class="card"><h2>${i + 1}. ${esc(c.title)}</h2>${hasCv ? `<div class="play-grid"><div><div class="dgwrap" id="cv"></div><p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : hasPPC ? `<div class="play-grid"><div><div class="dgwrap" id="pg"></div><p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : hasDg ? `<div class="play-grid"><div><div class="dgwrap" id="dg"></div>${under}<p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : body}</div>
+      <div class="card"><h2>${i + 1}. ${esc(c.title)}</h2>${hasSv ? `<div class="play-grid"><div><div class="dgwrap" id="sv"></div><p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : hasCv ? `<div class="play-grid"><div><div class="dgwrap" id="cv"></div><p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : hasPPC ? `<div class="play-grid"><div><div class="dgwrap" id="pg"></div><p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : hasDg ? `<div class="play-grid"><div><div class="dgwrap" id="dg"></div>${under}<p class="center" id="eff" aria-live="polite"></p></div><div>${body}</div></div>` : body}</div>
       <div class="sticky-foot"><button class="alt" id="prev" ${i ? '' : 'disabled'}>Back</button><button id="next">${i === L.length - 1 ? 'Finish' : 'Next'}</button></div>`);
     if (hasDg) {
       const dg = createDiagram($('#dg'));
@@ -558,6 +564,21 @@ function learn() {
       $$('[data-sh]').forEach(x => (x.onclick = () => { $$('.choice').forEach(y => y.classList.remove('sel')); x.classList.add('sel'); const sh = PPC_SHIFTS[+x.dataset.sh]; pg.shift(sh[1]); $('#eff').innerHTML = rich(sh[2], Math.min(band(), 2)); }));
     }
     if (hasCv) curveCard(c, $('#cv'), $('#eff'));
+    if (c.kind === 'pedcurves') {
+      const pick = k => { $$('[data-pk]').forEach(x => x.classList.toggle('sel', x.dataset.pk === k)); const x = PED_SHAPES[k];
+        $('#sv').innerHTML = pedCurveSVG(k); $('#eff').innerHTML = `<b>${esc(x[0])}: ${esc(x[1])}.</b> ${esc(x[2])} <span class="muted">${esc(x[3])}</span>`; };
+      $$('[data-pk]').forEach(b => (b.onclick = () => pick(b.dataset.pk))); pick('in');
+    }
+    if (c.kind === 'revenue') {
+      let gk = 'el', pi = 0;
+      const upd = () => { const G = REV_GOODS[gk], r0 = revM(gk, 0), r1 = revM(gk, 1);
+        $('#sv').innerHTML = revenueSVG(gk, pi);
+        $('#eff').innerHTML = `At ${G.P[pi]}k, ${G.Q[pi]} are sold: revenue = ${G.P[pi]},000 × ${G.Q[pi]} = <b>${revM(gk, pi)} million đồng</b>.`
+          + (pi ? ` Before the cut it was ${r0} million, so revenue <b>${r1 > r0 ? 'rose' : 'fell'}</b>: ${gk === 'el' ? 'sales rose by 50%, more than the 20% price cut (elastic).' : 'sales rose by only 10%, less than the 20% price cut (inelastic).'}` : ' Now cut the price.'); };
+      $$('#rvg button').forEach(b => (b.onclick = () => { $$('#rvg button').forEach(x => x.classList.toggle('sel', x === b)); gk = b.dataset.g; upd(); }));
+      $$('#rvp button').forEach(b => (b.onclick = () => { $$('#rvp button').forEach(x => x.classList.toggle('sel', x === b)); pi = +b.dataset.i; upd(); }));
+      upd();
+    }
     $('#showeq')?.addEventListener('click', () => { $(`tr[data-p="${M.pe}"]`).classList.add('eqrow');
       $('#eff').innerHTML = `At <b>${M.pe}k</b>, quantity demanded = quantity supplied = <b>${fmt(M.qd(M.pe))} kg</b>. That is the equilibrium price and equilibrium quantity.`; });
     $('#prev').onclick = () => { i--; show(); };
@@ -647,6 +668,10 @@ function rescue(run, trap, atCore, next) {
   if (atCore && U === '2.4') {
     const it = genEq('eq-find', Math.floor(Math.random() * 2 ** 31));
     ex = `<div class="small muted">Market: <b>${esc(it.good)}</b></div>${schedTable(it, true)}${eqSteps(it)}`;
+  }
+  if (atCore && U === '2.6') {
+    const it = genPed('ped-pct', Math.floor(Math.random() * 2 ** 31));
+    ex = `<div class="small muted">Market: <b>${esc(it.good)}</b></div>${it.lines.map(l => `<p class="event">${esc(l)}</p>`).join('')}${pedSteps(it)}`;
   }
   const method = C().LEARN.find(c => c.kind === 'method');
   view(`<div class="card"><h2>Strategy card 🧭</h2><p>Two tricky ones in a row. Use this before the next question.</p>${trapBox(trap)}
@@ -796,6 +821,69 @@ function eqm(run = newRun('eqm', 6)) {
     } else {
       el.innerHTML = `<h3>${esc(st.q)}</h3><div class="numrow"><input id="num" inputmode="numeric" aria-label="Your answer"><span>${esc(st.unit)}</span></div><button id="chk" style="width:100%;margin-top:10px">Check</button>`;
       const check = () => { const v = $('#num').value; if (!v.trim()) return; if (E.markNumber(v, st.answer, 0).ok) right(); else { wrong(st.trap); $('#num').select(); } };
+      $('#chk').onclick = check; $('#num').onkeydown = e => { if (e.key === 'Enter') check(); }; $('#num').focus();
+    }
+  };
+  render();
+}
+
+// ---------- 2.6 PED lab (generated questions: new numbers every time) ----------
+const pedAnswer = st => (st.type === 'number' ? `${pfmt(st.answer)}${st.unit === '%' ? '%' : st.unit ? ' ' + st.unit : ''}` : st.options.find(o => o.v === st.answer).t);
+const pedSteps = it => `<ol class="worked">${it.steps.map(st => `<li>${esc(st.q)} <b>${esc(pedAnswer(st))}</b><br><span class="muted">${esc(st.why)}</span></li>`).join('')}</ol>`;
+function pedTable(it) {
+  return `<div class="scroll"><table class="sched"><tr><th></th><th>Price (${esc(it.priceUnit)})</th><th>Quantity (${esc(it.unit)})</th></tr>
+    <tr><td>Before</td><td>${pfmt(it.P0)}</td><td>${pfmt(it.Q0)}</td></tr><tr><td>After</td><td>${pfmt(it.P1)}</td><td>${pfmt(it.Q1)}</td></tr></table></div>`;
+}
+function ped(run = newRun('ped', 6)) {
+  wide(true);
+  if (run.i >= run.n) return finish(run, 'PED lab', () => ped());
+  run.k ||= {};
+  const lvl = run.lad.level, n = (run.k[lvl] = (run.k[lvl] || 0) + 1);
+  const it = genPed(nextPedKind(lvl, n - 1 + (run.i % 2)), Math.floor(Math.random() * 2 ** 31));
+  const rec = { id: it.id, seed: it.seed, level: it.level, first_try: true, trap: null, ok: false };
+  if (DEMO) window.__pedItem = it;   // lets the automated tests read the generated question (demo mode only)
+  view(`${runHead(run, 'Question')}<div class="card"><div class="small muted">Market: <b>${esc(it.good)}</b></div>${it.lines.map(l => `<p class="event">${esc(l)}</p>`).join('')}
+    ${it.table ? pedTable(it) : ''}<p class="small muted">PED = % change in quantity demanded ÷ % change in price. Percentage change = (new − old) ÷ old × 100.</p>
+    <ul class="done-steps" id="done"></ul><div id="step"></div><div id="fb" aria-live="polite"></div></div>`);
+  let si = 0, tries = 0;
+  const nextBtn = () => `<button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next question' : 'See my results'}</button>`;
+  const bindNext = () => { $('#nx').onclick = () => afterItem(run, rec, () => ped(run)); $('#nx').focus(); };
+  const reveal = () => {
+    rec.revealed = true; rec.ok = false; $('#fb').innerHTML = '';
+    $('#step').innerHTML = `<div class="fb tip"><b>Here is the answer. Read it, then try the next one.</b><ol class="worked" start="${si + 1}">${it.steps.slice(si).map(st => `<li>${esc(st.q)} <b>${esc(pedAnswer(st))}</b><br><span class="muted">${esc(st.why)}</span></li>`).join('')}</ol></div>${trapBox(rec.trap)}${nextBtn()}`;
+    bindNext();
+  };
+  const wrong = trap => {
+    rec.first_try = false; rec.trap ||= trap || null; tries++;
+    if (tries >= 2) return reveal();
+    $('#fb').innerHTML = `<div class="fb no"><b>Not yet. Try again.</b>Hint: ${esc(it.hint)}</div>${trapBox(trap)}`;
+  };
+  const right = note => {
+    const st = it.steps[si];
+    $('#done').insertAdjacentHTML('beforeend', `<li>✔ ${esc(st.q)} <b>${esc(pedAnswer(st))}</b>${note ? `<br><span class="muted">${esc(note)}</span>` : ''}</li>`);
+    si++; tries = 0; $('#fb').innerHTML = '';
+    if (si < it.steps.length) return render();
+    rec.ok = true;
+    $('#step').innerHTML = `<div class="fb ok"><b>${rec.first_try ? 'Right first time! ⭐' : 'Solved.'}</b>${esc(it.why)}</div>${nextBtn()}`;
+    bindNext();
+  };
+  const render = () => {
+    const st = it.steps[si], el = $('#step');
+    if (st.type === 'choice') {
+      el.innerHTML = `<h3>${esc(st.q)}</h3><div class="choices ${st.options.length > 3 && st.options.every(o => o.t.length < 18) ? 'two' : ''}">${st.options.map((o, k) => `<button class="choice" data-k="${k}">${esc(o.t)}</button>`).join('')}</div>`;
+      $$('.choice', el).forEach(b => (b.onclick = () => { const o = st.options[+b.dataset.k];
+        if (o.v === st.answer) return right();
+        b.classList.add('wrong'); b.disabled = true; wrong(o.trap); }));
+    } else {
+      el.innerHTML = `<h3>${esc(st.q)}</h3><div class="numrow"><input id="num" inputmode="decimal" aria-label="Your answer"><span>${esc(st.unit)}</span></div><button id="chk" style="width:100%;margin-top:10px">Check</button>`;
+      const check = () => {
+        const v = $('#num').value.replace(/[−–]/g, '-'); if (!v.trim()) return;
+        const tol = st.tol ?? 0, exact = E.markNumber(v, st.answer, tol).ok, flip = (st.signFree || st.anySign) && st.answer !== 0 && E.markNumber(v, -st.answer, tol).ok;
+        if (exact) return right();
+        if (flip) return right(st.anySign ? '' : st.unit === '' ? `Remember the minus sign: PED is ${pfmt(st.answer)}, because price and quantity demanded move in opposite directions.`
+          : st.answer < 0 ? `Remember the sign: it is a fall, so the change is ${pfmt(st.answer)}%.` : `It is a rise, so the change is +${pfmt(st.answer)}${st.unit === '%' ? '%' : ''} (no minus sign).`);
+        wrong(st.trap); $('#num').select();
+      };
       $('#chk').onclick = check; $('#num').onkeydown = e => { if (e.key === 'Enter') check(); }; $('#num').focus();
     }
   };
@@ -1714,7 +1802,7 @@ function cityView(only) {
     <div class="tcard"><h2 style="margin:0 0 6px">District 1: The basic economic problem</h2>${skylineSVG(st, s1)}
       <p class="note">🏢 built ${n} · 🏗️ half built ${halfN} · dashed with a crane = ready to build · faint = build the ones underneath first. Tap a building${innerWidth < 700 ? '; swipe to see the whole street' : ''}.</p><div id="binfo" class="binfo"></div></div>
     <div class="tcard"><h2 style="margin:0 0 6px">District 2: Markets ${on2 ? `<span class="chip">${n2} built</span>` : '<span class="chip">opens with Section 2</span>'}</h2>${skylineSVG(st, s2, { small: !on2 })}
-      <div class="binfo" aria-live="polite"></div><p class="note">${on2 ? 'Markets, demand, supply, equilibrium and price changes (2.1 to 2.5).' : 'Demand, supply and prices: these buildings open when your teacher opens a unit in Section 2.'}</p></div></div>`);
+      <div class="binfo" aria-live="polite"></div><p class="note">${on2 ? 'Markets, demand, supply, equilibrium, price changes and price elasticity (2.1 to 2.6).' : 'Demand, supply and prices: these buildings open when your teacher opens a unit in Section 2.'}</p></div></div>`);
   const info = id => {
     const Bk = EM.EBLOCKS[id], s = EM.stateOf(st, id), p = Math.round(100 * EM.pOf(st, id)), box = $(`.bld[data-b="${id}"]`)?.closest('.tcard').querySelector('.binfo') || $('#binfo');
     if (!BUILD_OK(id)) return (box.innerHTML = `<div class="fb tip"><b>${esc(Bk.name)}</b>Coming with unit ${Bk.unit}.</div>`);
@@ -1727,7 +1815,7 @@ function cityView(only) {
 }
 
 // ---------- router ----------
-const ACT = { learn, shift: () => shift(), eqm: () => eqm(), mcq: () => mcq(), data, check: checkpoint, p2, ppc: () => ppcRun() };
+const ACT = { learn, shift: () => shift(), eqm: () => eqm(), ped: () => ped(), mcq: () => mcq(), data, check: checkpoint, p2, ppc: () => ppcRun() };
 function route() {
   if (!me) return login();
   if (me.must_change) return changePin(true);
