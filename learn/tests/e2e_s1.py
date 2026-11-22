@@ -385,7 +385,7 @@ def s2_round(p, size):
     ok(p.locator('.skyline:not(.small) .bld.built[data-b="law-demand"]').count() == 1, 'city: law of demand built in District 2')
     p.wait_for_timeout(1300)
     if size: shot(p, size, '34-city-d2'); no_overflow(p, size + ' city district 2')
-    p.goto(BASE + '/learn/?demo=1#/'); p.wait_for_selector('a.citycard'); ok('of 38 buildings' in p.inner_text('a.citycard'), 'home: the city counts the market buildings: ' + p.inner_text('a.citycard h3'))
+    p.goto(BASE + '/learn/?demo=1#/'); p.wait_for_selector('a.citycard'); ok('of 45 buildings' in p.inner_text('a.citycard'), 'home: the city counts the market buildings: ' + p.inner_text('a.citycard h3'))
     # 2.4 and 2.5: banded Paper 1 (with the price-change chain), scenarios, and the three new buildings
     p.evaluate("""() => { const d = JSON.parse(localStorage.getItem('ecl:demo:db')); d.classes.forEach(c => (c.open_units = [...new Set([...c.open_units, '2.4', '2.5'])])); localStorage.setItem('ecl:demo:db', JSON.stringify(d)); }""")
     p.goto(BASE + '/learn/?demo=1#/u/2.4/learn'); p.wait_for_selector('.card h2'); p.reload(); p.wait_for_selector('.card h2')
@@ -402,6 +402,62 @@ def s2_round(p, size):
         p.click('#bu #bucity'); p.wait_for_timeout(400)
     p.wait_for_selector('.skyline'); ok(p.locator('.skyline .bld.built[data-b="price-chain"]').count() == 1, 'city: the price-change chain is built')
     ok('Coming with unit' not in p.inner_text('main'), 'city: no building is waiting for a unit')
+    s26_round(p, size)
+
+def ped_lab(p, size):
+    '''The PED lab: six generated questions, answered from the question data (demo mode exposes it). The first negative answer is typed without its minus sign.'''
+    p.goto(BASE + '/learn/?demo=1#/u/2.6/ped'); p.wait_for_selector('#step h3')
+    no_sign_tried = False
+    for q in range(6):
+        p.wait_for_selector('#step h3')
+        it = p.evaluate('window.__pedItem')
+        for st in it['steps']:
+            p.wait_for_selector('#step h3')
+            if st['type'] == 'number':
+                v, check_note = st['answer'], False
+                if st.get('signFree') and v < 0 and not no_sign_tried: v, no_sign_tried, check_note = -v, True, True
+                p.fill('#num', str(round(v, 2))); p.click('#chk'); p.wait_for_timeout(120)
+                if check_note: ok('sign' in p.inner_text('#done'), 'PED lab: a missing minus sign is accepted with a reminder')
+            else:
+                t = next(o['t'] for o in st['options'] if o['v'] == st['answer'])
+                p.locator('#step .choice', has_text=t).first.click(); p.wait_for_timeout(120)
+        ok('Right first time' in p.inner_text('#step'), f'PED lab question {q + 1} ({it["kind"]}): solved first time')
+        if size and q == 1: shot(p, size, '40-ped-lab'); no_overflow(p, size + ' ped lab')
+        p.click('#nx')
+    p.wait_for_selector('text=PED lab done'); ok('6 / 6' in p.inner_text('main'), 'PED lab: 6 / 6')
+
+def s26_round(p, size):
+    '''2.6 Price elasticity of demand: learn cards with the five curves and the revenue boxes, Paper 1, Paper 2, scenarios, the PED lab, Build it up.'''
+    p.evaluate("() => { const d = JSON.parse(localStorage.getItem('ecl:demo:db')); d.classes.forEach(c => (c.open_units = [...new Set([...c.open_units, '2.6'])])); localStorage.setItem('ecl:demo:db', JSON.stringify(d)); }")
+    p.goto(BASE + '/learn/?demo=1#/u/2.6'); p.reload(); p.wait_for_selector('.utabs')
+    tabs = ' '.join(p.locator('.utabs a').all_inner_texts()); ok('Practice' in tabs and 'Paper 2' in tabs, f'2.6 tabs: {tabs}')
+    p.goto(BASE + '/learn/?demo=1#/u/2.6/learn'); p.wait_for_selector('.card h2')
+    p.click('#next'); p.click('#next'); p.wait_for_selector('[data-pk]')
+    ok(p.locator('#sv svg path').count() >= 1 and 'Inelastic' in p.inner_text('#eff'), '2.6 learn: the inelastic curve is drawn first')
+    p.click('[data-pk="pi"]'); ok('vertical' in p.inner_text('#eff'), '2.6 learn: perfectly inelastic is vertical')
+    p.click('[data-pk="el"]'); ok('flat' in p.inner_text('#eff'), '2.6 learn: elastic is drawn flat')
+    if size: shot(p, size, '41-learn-ped-curves'); no_overflow(p, size + ' learn ped curves')
+    p.click('#next'); p.click('#next'); p.wait_for_selector('#rvp')
+    ok('40 million' in p.inner_text('#eff'), '2.6 learn: revenue 40 million before the cut')
+    p.click('#rvp button[data-i="1"]'); ok('48 million' in p.inner_text('#eff') and 'rose' in p.inner_text('#eff'), '2.6 learn: elastic, the price cut raises revenue to 48 million')
+    p.click('#rvg button[data-g="in"]'); ok('35.2 million' in p.inner_text('#eff') and 'fell' in p.inner_text('#eff'), '2.6 learn: inelastic, the price cut lowers revenue to 35.2 million')
+    if size: shot(p, size, '42-learn-revenue'); no_overflow(p, size + ' learn revenue')
+    p.click('#next'); p.click('#next'); p.wait_for_selector('#next:has-text("Finish")'); p.click('#next'); p.wait_for_selector('text=Cards done')
+    mcq_round(p, '2.6', 3, size)
+    p2_round(p, '2.6', 3, None)
+    scen_round(p, '2.6', size, explain=True)
+    ped_lab(p, size)
+    for bl in ('pct-change', 'ped-revenue'):
+        p.goto(BASE + f'/learn/?demo=1#/city/{bl}'); p.wait_for_selector('#bu .bu-head')
+        if p.locator('#bu #bsay[hidden]').count():
+            if size: p.wait_for_timeout(200); shot(p, size, f'43-build-{bl}'); no_overflow(p, f'{size} build {bl}')
+            do_builder(p)
+        bu_block(p, right=True); p.wait_for_selector('#bu #buback')
+        ok('building finished' in p.inner_text('#bu'), f'Build it up {bl}: built')
+        p.click('#bu #bucity'); p.wait_for_timeout(400)
+    p.wait_for_selector('.skyline'); ok(p.locator('.skyline .bld.built[data-b="ped-revenue"]').count() == 1, 'city: PED and total revenue is built')
+    p.goto(BASE + '/learn/?demo=1#/u/2.6'); p.wait_for_selector('.mission')
+    ok('Elasticity expert' in p.inner_text('.mission'), '2.6 mission: the badge is Elasticity expert')
 
 VI_ON = [True]
 POS = []

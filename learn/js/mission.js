@@ -1,15 +1,15 @@
 // The unit mission: six steps per unit, shared by the student app and the teacher dashboard.
-import { ACTIVITIES } from './units.js?v=b37cc519';
-import { CONTENT } from './content.js?v=b37cc519';
-import * as E from './engine.js?v=b37cc519';
-import { SCEN_BY_UNIT, scenAct } from './u1s.js?v=b37cc519';
+import { ACTIVITIES } from './units.js?v=9c916a59';
+import { CONTENT } from './content.js?v=9c916a59';
+import * as E from './engine.js?v=9c916a59';
+import { SCEN_BY_UNIT, scenAct } from './u1s.js?v=9c916a59';
 export const CHECK_PASS = 0.7, CHECK_N = 12;
-export const BADGE = { '1.1': 'Scarcity scout', '1.2': 'Factor finder', '1.3': 'Choice champion', '1.4': 'Curve master', '2.1': 'Market mover', '2.2': 'Demand detective', '2.3': 'Supply star', '2.4': 'Market maker', '2.5': 'Shift spotter' };
+export const BADGE = { '1.1': 'Scarcity scout', '1.2': 'Factor finder', '1.3': 'Choice champion', '1.4': 'Curve master', '2.1': 'Market mover', '2.2': 'Demand detective', '2.3': 'Supply star', '2.4': 'Market maker', '2.5': 'Shift spotter', '2.6': 'Elasticity expert' };
 /** Checkpoint length: 4 questions per level, or fewer if the unit has fewer */
 export const checkN = u => 3 * Math.min(4, ...[0, 1, 2].map(l => (CONTENT[u].MCQ || []).filter(q => q.level === l).length));
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
 export function mission(u, hist) {
-  const acts = ACTIVITIES[u], s = E.summarise(hist, u), prac = acts.find(a => a.id === 'shift' || a.id === 'eqm' || a.id === 'ppc'), cont = CONTENT[u];
+  const acts = ACTIVITIES[u], s = E.summarise(hist, u), prac = acts.find(a => ['shift', 'eqm', 'ped', 'ppc'].includes(a.id)), cont = CONTENT[u];
   const written = acts.find(a => a.id === 'data' || a.id === 'p2'), n = checkN(u);
   const best = id => (s[id] ? pct(s[id].bestScore, s[id].max) : null);
   const steps = [

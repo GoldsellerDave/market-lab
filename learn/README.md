@@ -30,12 +30,12 @@ To try the screens without AI, open the demo with `?demo=1&aidemo=1`.
 Before every commit run `python3 learn/tools/stamp.py`.
 
 ## Econ engine (concept city)
-`js/eengine.js` is a map of concept blocks for 1.1 to 2.5, from everyday ideas (layer 0) up to price changes; each block lists the
+`js/eengine.js` is a map of concept blocks for 1.1 to 2.6, from everyday ideas (layer 0) up to price changes and PED; each block lists the
 blocks it stands on. Wrong answers carry a misconception (trap) that points at a block. After a miss in Paper 1 practice or a
 scenario, students can choose **Build it up**; after a second miss on the same idea it starts by itself. A block is an intuition
 builder, the idea, and 3 checks (the first in simple English, to separate a language gap from a concept gap). Failing goes one
 floor down to the weakest block underneath and back up; failing again gives a guided walkthrough (half a building, back the next
-day). Lessons for the Section 1 blocks are in `js/ebank.js`, and for the market blocks of 2.1 to 2.3 in `js/ebank2.js` (builders include
+day). Lessons for the Section 1 blocks are in `js/ebank.js`, and for the market blocks of 2.1 to 2.6 in `js/ebank2.js` (builders include
 a price slider along one demand or supply curve, and events that shift the curve or not). Students see their skyline at `#/city`
 (District 2 opens when the teacher opens a 2.x unit); teachers see the **Concept city** tab. Shortage, equilibrium and the
 price-change chain (2.4, 2.5) get their lessons in the next step.
@@ -59,3 +59,18 @@ Built like Section 1, inside the engine: `js/u2.js` (glossary, misconceptions, l
 `curve-shift` cards, 9 Paper 1 questions and 3 Paper 2 questions per unit, one of them a 6-mark Analyse question) and
 `js/u2s.js` (12 scenario cards in Ho Chi Minh City, with Chị Thu's bubble tea stall). Every wrong option carries a misconception
 that points at a block. The curves are drawn by `js/curve.js` (demand 160 − 2P, supply 2P; prices in thousand đồng).
+
+## Unit 2.6 Price elasticity of demand
+Syllabus 2.6.1 to 2.6.5 (exams 2027 to 2029): definition, calculation and the five kinds of value, demand curve diagrams,
+determinants, PED and consumer expenditure / firms' revenue (diagram and calculation), and its significance for consumers,
+workers, firms and government. Built like 2.1 to 2.3, in `js/u26.js`: glossary, misconceptions, 7 learn cards, 12 Paper 1
+questions (4 per level) and 5 Paper 2 questions (one 6-mark Analyse, a calculation, and "any N from" mark schemes).
+Two learn cards are interactive (`js/peddia.js`): tap each kind of PED to draw its demand curve, and compare the total revenue
+boxes before and after a 20% price cut for an elastic and an inelastic good.
+**PED lab** (`#/u/2.6/ped`) is the practice game: generated questions with new numbers every time (`genPed`), from Core
+(PED from two percentages, reading a value) through Stretch (percentage changes from prices and quantities, predicting sales)
+to Challenge (total revenue before and after, advising a firm). A PED typed without its minus sign is accepted with a reminder.
+Each good gets realistic values (petrol, rice and electricity always inelastic; one brand or one cinema elastic or unitary),
+and revenue questions use only numbers where the revenue change agrees with the PED class.
+Four scenario cards are in `js/u2s.js`; seven engine blocks (percentage change up to using PED in decisions) have lessons in
+`js/ebank2.js`. Tests: `tests/u26.test.mjs`, and the 2.6 round in `tests/e2e_s1.py`.

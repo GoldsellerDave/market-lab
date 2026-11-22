@@ -7,8 +7,8 @@ import { SCENARIOS } from '../js/u1s.js';
 import { EBANK } from '../js/ebank.js';
 import { EBLOCKS } from '../js/eengine.js';
 const strip = s => String(s || '').replace(/\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/g, (m, k, sh) => sh || k);
-const MCQ = [...Object.entries(U1.MCQ), ...Object.entries(U2.MCQ), ['2.4', CONTENT['2.4'].MCQ], ['2.5', CONTENT['2.5'].MCQ]].flatMap(([u, qs]) => qs.map(q => ({ unit: u, id: q.id, stem: q.stem, plain: strip(q.plain), right: [q.options[0].t, strip(q.options[0].p)], chain: !!q.chain })));
-const P2 = [...Object.entries(U1.P2), ...Object.entries(U2.P2)].flatMap(([u, qs]) => qs.map(q => ({ unit: u, id: q.id, chain: q.chain.map(c => strip(plainChain(c))), gaps: q.chain.flatMap(c => [...c.matchAll(/\{([^}]*)\}/g)].map(m => m[1])), groups: q.groups, marks: q.marks })));
+const MCQ = [...Object.entries(U1.MCQ), ...Object.entries(U2.MCQ), ['2.4', CONTENT['2.4'].MCQ], ['2.5', CONTENT['2.5'].MCQ], ['2.6', CONTENT['2.6'].MCQ]].flatMap(([u, qs]) => qs.map(q => ({ unit: u, id: q.id, stem: q.stem, plain: strip(q.plain), right: [q.options[0].t, strip(q.options[0].p)], chain: !!q.chain })));
+const P2 = [...Object.entries(U1.P2), ...Object.entries(U2.P2), ['2.6', CONTENT['2.6'].P2]].flatMap(([u, qs]) => qs.map(q => ({ unit: u, id: q.id, chain: q.chain.map(c => strip(plainChain(c))), gaps: q.chain.flatMap(c => [...c.matchAll(/\{([^}]*)\}/g)].map(m => m[1])), groups: q.groups, marks: q.marks })));
 const SCEN = SCENARIOS.map(x => ({ id: x.id, unit: x.unit, title: x.title, explain: x.explain && { answer: x.explain.groups.map(g => g.k[0]).join(', ') },
   steps: x.steps.map(st => ({ type: st.type, right: st.options ? [st.options[0].t, strip(st.options[0].p)] : null,
     items: st.items ? st.items.map(i => ({ t: [i.t, strip(i.p)], b: i.b })) : null, lines: st.lines || null })) }));

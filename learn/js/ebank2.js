@@ -1,4 +1,4 @@
-// Lessons for the econ engine's market blocks (2.1 to 2.3). Same format as ebank.js; builders: sort, budget, cards, tapone,
+// Lessons for the econ engine's market blocks (2.1 to 2.3) and the price elasticity blocks (2.6). Same format as ebank.js; builders: sort, budget, cards, tapone,
 // curve (move the price along one demand or supply curve) and curveshift (tap events and watch the curve shift or not).
 const c = (q, plain, options, why) => ({ q, plain: plain || q, options: options.map(o => (Array.isArray(o) ? { t: o[0], p: o[1] || o[0] } : { t: o, p: o })), why });
 
@@ -211,6 +211,98 @@ export const EBANK2 = {
       c('Supply shifts left. What happens to price and quantity?', 'Supply moves LEFT. Price and quantity?', [['Price up, quantity down', 'Price up, quantity down'], ['Price up, quantity up', 'Price up, quantity up'], ['Price down, quantity down', 'Price down, quantity down'], ['Price down, quantity up', 'Price down, quantity up']], 'A supply shift: price and quantity move in opposite ways.'),
       c('Incomes rise. What happens in the market for restaurant meals?', 'People earn more. Restaurant meals?', [['D right: P up, Q up', 'Demand right: price up, quantity up'], ['S right: P down, Q up', 'Supply right: price down, quantity up'], ['D left: P down, Q down', 'Demand left: price down, quantity down'], ['D right: P up, Q down', 'Demand right: price up, quantity down']], 'Demand shifts right; P and Q both rise.'),
       c('Demand shifts right and supply shifts left at once. The price...', 'Demand moves right AND supply moves left. The price...', [['rises for sure', 'goes up for sure'], ['falls for sure', 'goes down for sure'], ['stays the same', 'stays the same'], ['might rise or fall', 'might go up or down']], 'Both shifts push the price up; only quantity depends.')
+    ]
+  },
+  // ---------------- 2.6 Price elasticity of demand ----------------
+  'pct-change': {
+    builder: { type: 'sort', q: 'Each price rises. Is it a rise of 25% or of 50%? (Divide by the OLD price.)', buckets: ['A 25% rise', 'A 50% rise'],
+      items: [['40 → 50', '📈', 0], ['20 → 25', '📈', 0], ['80 → 100', '📈', 0], ['20 → 30', '📈', 1], ['40 → 60', '📈', 1], ['100 → 150', '📈', 1]] },
+    say: 'A percentage change compares the change with the starting value: (new − old) ÷ old × 100. A rise from 40 to 50 is 10 ÷ 40 × 100 = 25%. Always divide by the old value.',
+    plain: 'A [[percentage change]] is (new − old) ÷ OLD × 100. From 40 to 50: 10 ÷ 40 × 100 = 25%.',
+    vi: 'Phần trăm thay đổi = (giá trị mới − giá trị cũ) ÷ giá trị cũ × 100. Từ 40 lên 50: 10 ÷ 40 × 100 = 25%. Luôn chia cho giá trị cũ.',
+    checks: [
+      c('The price rises from 20 to 30. What is the percentage change?', 'From 20 to 30. What is the [[percentage change]]?', [['+50%'], ['+33%'], ['+10%'], ['+150%']], '10 ÷ 20 × 100 = 50%.'),
+      c('Sales fall from 200 to 150. What is the percentage change?', 'Sales go from 200 to 150. What is the % change?', [['−25%'], ['−33%'], ['−50%'], ['−150%']], '−50 ÷ 200 × 100 = −25%.'),
+      c('In a percentage change, which number do you divide by?', 'Which number do you divide by?', [['The old (starting) value', 'The OLD number'], ['The new (final) value', 'The NEW number'], ['The change itself', 'The change'], ['Always 100', 'Always 100']], 'Divide by the starting value, then multiply by 100.'),
+      c('A price falls from 50 to 40. What is the percentage change?', 'From 50 down to 40. What is the % change?', [['−20%'], ['−25%'], ['−10%'], ['+20%']], '−10 ÷ 50 × 100 = −20%.')
+    ]
+  },
+  'ped-calc': {
+    builder: { type: 'sort', q: 'Work out the PED: is it −2 or −0.5? (% change in quantity ÷ % change in price)', buckets: ['PED = −2', 'PED = −0.5'],
+      items: [['Price +10%, quantity −20%', '🧋', 0], ['Price +5%, quantity −10%', '🎬', 0], ['Price −20%, quantity +40%', '📱', 0], ['Price +20%, quantity −10%', '⛽', 1], ['Price +10%, quantity −5%', '🍚', 1], ['Price −40%, quantity +20%', '💡', 1]] },
+    say: 'Price elasticity of demand (PED) measures how much the quantity demanded responds to a change in the good\'s own price. PED = % change in quantity demanded ÷ % change in price. Quantity goes on top.',
+    plain: '[[PED]] = % change in [[quantity demanded]] ÷ % change in price. Quantity goes on TOP.',
+    vi: 'Độ co giãn của cầu theo giá (PED) = % thay đổi lượng cầu ÷ % thay đổi giá. Lượng cầu ở trên, giá ở dưới.',
+    checks: [
+      c('The price rises by 10% and quantity demanded falls by 30%. What is the PED?', 'Price +10%, quantity −30%. What is the [[PED]]?', [['−3'], ['−0.3'], ['−20'], ['−40']], '−30 ÷ 10 = −3.'),
+      c('What goes on top of the PED formula?', 'What goes on TOP of the [[PED]] formula?', [['% change in quantity demanded', '% change in quantity'], ['% change in the price of the good', '% change in price'], ['The new price of the good', 'The new price'], ['The total revenue of the firm', 'Total revenue']], 'PED = % change in quantity demanded ÷ % change in price.'),
+      c('The price falls by 20% and quantity demanded rises by 10%. What is the PED?', 'Price −20%, quantity +10%. What is the [[PED]]?', [['−0.5'], ['−2'], ['+0.5'], ['−30']], '+10 ÷ −20 = −0.5.'),
+      c('What does PED measure?', 'What does [[PED]] measure?', [['How buyers react to a price change', 'How much buyers react to the price'], ['How sellers react to a price change', 'How much sellers react to the price'], ['How far the demand curve shifts', 'How far the demand curve moves'], ['How much profit a firm makes', 'How much profit firms make']], 'PED is about buyers (quantity demanded) and the good\'s own price.')
+    ]
+  },
+  'ped-values': {
+    builder: { type: 'sort', q: 'Elastic or inelastic? Ignore the minus sign and compare the number with 1.', buckets: ['Elastic', 'Inelastic'],
+      items: [['PED −2', '🔺', 0], ['PED −1.5', '🔺', 0], ['PED −4', '🔺', 0], ['PED −0.3', '🔻', 1], ['PED −0.8', '🔻', 1], ['PED −0.5', '🔻', 1]] },
+    say: 'To read a PED value, ignore the minus sign and compare the number with 1. More than 1: elastic. Less than 1: inelastic. Exactly 1: unitary elastic. 0: perfectly inelastic. Infinite: perfectly elastic. The minus sign only shows that price and quantity demanded move in opposite directions.',
+    plain: 'Ignore the minus sign. More than 1: [[elastic]]. Less than 1: [[inelastic]]. Exactly 1: [[unitary elastic]].',
+    vi: 'Bỏ dấu trừ và so sánh với 1. Lớn hơn 1: co giãn. Nhỏ hơn 1: kém co giãn. Bằng 1: co giãn đơn vị. Bằng 0: hoàn toàn không co giãn.',
+    checks: [
+      c('PED = −0.4. Demand is...', '[[PED]] = −0.4. Demand is...', [['inelastic'], ['elastic'], ['unitary elastic'], ['perfectly elastic']], '0.4 is less than 1.'),
+      c('PED = −3. Demand is...', '[[PED]] = −3. Demand is...', [['elastic'], ['inelastic'], ['unitary elastic'], ['perfectly inelastic']], '3 is more than 1.'),
+      c('Why is PED usually a negative number?', 'Why does [[PED]] have a minus sign?', [['Price and quantity move opposite ways', 'Price and quantity go opposite ways'], ['Demand is always inelastic', 'Demand is always inelastic'], ['Firms lose money on each sale', 'Firms lose money on each sale'], ['Price and quantity move the same way', 'Price and quantity go the same way']], 'Price up, quantity demanded down: the two changes have opposite signs.'),
+      c('PED = 0. Demand is...', '[[PED]] = 0. Demand is...', [['perfectly inelastic'], ['perfectly elastic'], ['unitary elastic'], ['elastic']], 'Quantity demanded does not change at all.')
+    ]
+  },
+  'ped-curves': {
+    builder: { type: 'sort', q: 'Would you draw the demand curve steep or flat?', buckets: ['Steep (inelastic)', 'Flat (elastic)'],
+      items: [['Petrol', '⛽', 0], ['Salt', '🧂', 0], ['Electricity', '💡', 0], ['One brand of bubble tea', '🧋', 1], ['A holiday in Phú Quốc', '🏝️', 1], ['One cinema\'s tickets', '🎬', 1]] },
+    say: 'On a diagram, inelastic demand is drawn as a steep demand curve and elastic demand as a flat one. Perfectly inelastic demand is a vertical line (PED = 0), perfectly elastic demand is a horizontal line (PED infinite), and unitary elastic demand is a curve on which total revenue is the same at every price. A price change is shown by a movement along one curve; it does not shift the curve.',
+    plain: '[[inelastic|Inelastic]]: a steep curve. [[elastic|Elastic]]: a flat curve. [[perfectly inelastic|Perfectly inelastic]]: vertical. [[perfectly elastic|Perfectly elastic]]: horizontal.',
+    vi: 'Cầu kém co giãn: đường cầu dốc. Cầu co giãn: đường cầu thoải. Hoàn toàn không co giãn: đường thẳng đứng. Co giãn hoàn toàn: đường nằm ngang.',
+    checks: [
+      c('A vertical demand curve shows...', 'A demand curve that goes straight UP shows...', [['perfectly inelastic demand', 'perfectly inelastic'], ['perfectly elastic demand', 'perfectly elastic'], ['unitary elastic demand', 'unitary elastic'], ['a fall in demand', 'demand going down']], 'Quantity demanded is the same at every price: PED = 0.'),
+      c('A horizontal demand curve shows...', 'A flat, level demand curve shows...', [['perfectly elastic demand', 'perfectly elastic'], ['perfectly inelastic demand', 'perfectly inelastic'], ['inelastic demand', 'inelastic'], ['a rise in demand', 'demand going up']], 'Any higher price and quantity demanded falls to zero.'),
+      c('On a flat demand curve, a small price change causes...', 'On a FLAT curve, a small price change causes...', [['a big change in quantity demanded', 'a big change in quantity'], ['a small change in quantity demanded', 'a small change in quantity'], ['a shift of the demand curve', 'the curve to move'], ['no change in quantity demanded', 'no change at all']], 'Flat means elastic: buyers react a lot.'),
+      c('The price of petrol rises. What happens on the diagram?', 'Petrol costs more. What happens on the diagram?', [['A movement along a steep curve', 'Move along a steep curve'], ['The curve shifts to the left', 'The curve moves left'], ['A movement along a flat curve', 'Move along a flat curve'], ['The curve becomes horizontal', 'The curve goes flat']], 'A price change is a movement along the curve; petrol has inelastic (steep) demand.')
+    ]
+  },
+  'ped-det': {
+    builder: { type: 'sort', q: 'Is demand likely to be elastic or inelastic?', buckets: ['Elastic', 'Inelastic'],
+      items: [['One brand of shampoo (many substitutes)', '🧴', 0], ['A new car (a big share of income)', '🚗', 0], ['A holiday abroad (a luxury)', '✈️', 0], ['Salt (a tiny share of income)', '🧂', 1], ['Cigarettes (habit-forming)', '🚬', 1], ['Rice (a necessity)', '🍚', 1]] },
+    say: 'Demand is more elastic when a good has many close substitutes, takes a large share of income, is a luxury, or when buyers have a long time to react. It is more inelastic when there are few substitutes, it takes a small share of income, it is a necessity, or it is habit-forming.',
+    plain: 'Many [[substitute|substitutes]], a big [[proportion of income]], a [[luxury]]: [[elastic]]. Few substitutes, a [[necessity]], [[habit-forming]]: [[inelastic]].',
+    vi: 'Cầu co giãn hơn khi có nhiều hàng thay thế gần, chiếm phần lớn thu nhập, là hàng xa xỉ hoặc người mua có nhiều thời gian. Cầu kém co giãn khi ít hàng thay thế, chiếm phần nhỏ thu nhập, là hàng thiết yếu hoặc gây thói quen.',
+    checks: [
+      c('Why is demand for one brand of bubble tea elastic?', 'Why is demand for ONE brand of bubble tea [[elastic]]?', [['It has many close substitutes', 'Many other stalls sell it'], ['It is a necessity', 'People must have it'], ['It is habit-forming', 'People drink it from habit'], ['It is a tiny share of income', 'It costs very little']], 'Buyers switch to the stall next door.'),
+      c('Which makes demand more inelastic?', 'Which one makes demand more [[inelastic]]?', [['The good is a necessity', 'It is a [[necessity]]'], ['The good has many substitutes', 'It has many substitutes'], ['The good is a luxury', 'It is a [[luxury]]'], ['Buyers have a long time to react', 'People have a long time']], 'People keep buying necessities when the price rises.'),
+      c('Over a longer time, demand for petrol becomes...', 'After a few years, demand for petrol becomes...', [['more elastic'], ['more inelastic'], ['perfectly inelastic'], ['unitary elastic']], 'People find substitutes: electric motorbikes, the bus.'),
+      c('Which good probably has the most inelastic demand?', 'Which one has the most [[inelastic]] demand?', [['Salt'], ['A holiday'], ['Designer jeans'], ['One phone case brand']], 'Salt is a necessity, a tiny share of income, with few substitutes.')
+    ]
+  },
+  'ped-revenue': {
+    builder: { type: 'sort', q: 'Does total revenue rise or fall?', buckets: ['Revenue rises', 'Revenue falls'],
+      items: [['Inelastic demand, price rises', '⬆️', 0], ['Elastic demand, price falls', '⬇️', 0], ['Petrol (inelastic), price rises', '⛽', 0], ['Inelastic demand, price falls', '⬇️', 1], ['Elastic demand, price rises', '⬆️', 1], ['Cinema (elastic), price rises', '🎬', 1]] },
+    say: 'Total revenue (the same as consumer expenditure) is price × quantity. If demand is inelastic, price and total revenue move in the same direction. If demand is elastic, they move in opposite directions. If demand is unitary elastic, total revenue does not change.',
+    plain: '[[total revenue|Total revenue]] = price × quantity. [[inelastic|Inelastic]]: price and revenue move the SAME way. [[elastic|Elastic]]: OPPOSITE ways.',
+    vi: 'Tổng doanh thu (bằng chi tiêu của người tiêu dùng) = giá × lượng. Cầu kém co giãn: giá và doanh thu thay đổi cùng chiều. Cầu co giãn: ngược chiều. Co giãn đơn vị: doanh thu không đổi.',
+    checks: [
+      c('Demand is inelastic and the price rises. Total revenue...', '[[inelastic|Inelastic]] demand, the price goes up. Revenue...', [['rises'], ['falls'], ['stays the same'], ['becomes zero']], 'Inelastic: price and revenue move the same way.'),
+      c('Demand is elastic and the price falls. Total revenue...', '[[elastic|Elastic]] demand, the price goes down. Revenue...', [['rises'], ['falls'], ['stays the same'], ['becomes zero']], 'Elastic: price and revenue move opposite ways.'),
+      c('Price 10k, 100 sold. Then price 12k, 90 sold. What happened to revenue?', '10k × 100, then 12k × 90. What happened to [[total revenue]]?', [['It rose from 1,000k to 1,080k'], ['It fell from 1,000k to 900k'], ['It stayed at 1,000k'], ['It rose from 1,000k to 1,200k']], '10 × 100 = 1,000k; 12 × 90 = 1,080k. Price and revenue rose together: inelastic.'),
+      c('Total revenue is the same as...', '[[total revenue|Total revenue]] is the same as...', [['consumer expenditure', 'what consumers spend on it'], ['the firm\'s profit', 'the profit the firm makes'], ['the price of one unit', 'the price of one of them'], ['the firm\'s costs', 'what the firm pays for it']], 'What firms receive is what consumers spend: price × quantity.')
+    ]
+  },
+  'ped-use': {
+    builder: { type: 'sort', q: 'To earn more revenue, should the seller raise the price or cut it?', buckets: ['Raise the price', 'Cut the price'],
+      items: [['Petrol station (inelastic)', '⛽', 0], ['Electricity company (inelastic)', '💡', 0], ['Rice seller (inelastic)', '🍚', 0], ['One bubble tea stall (elastic)', '🧋', 1], ['One cinema (elastic)', '🎬', 1], ['One phone case shop (elastic)', '📱', 1]] },
+    say: 'PED helps decision makers. A firm that wants more revenue raises its price if demand is inelastic and cuts it if demand is elastic. A government raises most tax revenue from goods with inelastic demand, but a tax cuts consumption more when demand is elastic. Consumers spend more on goods with inelastic demand when their prices rise. Workers\' jobs are safer when demand for the product is inelastic, because a higher price after a pay rise loses few sales.',
+    plain: 'Firms: raise the price if demand is [[inelastic]], cut it if [[elastic]]. [[government|Governments]] get most [[tax]] from goods with inelastic demand.',
+    vi: 'Doanh nghiệp: tăng giá nếu cầu kém co giãn, giảm giá nếu cầu co giãn. Chính phủ thu được nhiều thuế nhất từ hàng có cầu kém co giãn. Việc làm của công nhân an toàn hơn khi cầu về sản phẩm kém co giãn.',
+    checks: [
+      c('Demand for one café\'s coffee is elastic. To raise revenue the café should...', 'Demand is [[elastic]]. To get more revenue the café should...', [['cut its price', 'make it cheaper'], ['raise its price', 'make it dearer'], ['keep the price the same', 'change nothing'], ['stop selling coffee', 'stop selling it']], 'Elastic: a price cut brings a bigger % rise in sales.'),
+      c('Why does a tax on petrol raise a lot of tax revenue?', 'Why does a [[tax]] on petrol bring in a lot of money?', [['Demand for petrol is inelastic', 'People keep buying petrol'], ['Demand for petrol is elastic', 'People stop buying petrol'], ['Petrol has many substitutes', 'There are many other fuels'], ['The tax shifts demand right', 'Demand for petrol moves right']], 'People keep buying petrol, so tax is paid on almost the same quantity.'),
+      c('Demand for cigarettes is inelastic. A tax on them will...', 'Demand is [[inelastic]]. A [[tax]] on cigarettes will...', [['raise revenue; smoking falls a little', 'bring in money; smoking falls a little'], ['cut smoking by a large amount', 'make most people stop smoking'], ['raise almost no tax revenue', 'bring in almost no money at all'], ['make cigarettes much cheaper', 'make cigarettes a lot cheaper']], 'Smokers keep buying: lots of tax, but smoking falls only a little.'),
+      c('When are factory workers\' jobs safest after a pay rise?', 'Workers get more pay. When are their jobs SAFEST?', [['When demand for the product is inelastic', 'When demand is [[inelastic]]'], ['When demand for the product is elastic', 'When demand is [[elastic]]'], ['When the product has many substitutes', 'When there are many substitutes'], ['When demand is perfectly elastic', 'When demand is [[perfectly elastic]]']], 'The firm raises its price and loses few sales, so it keeps its workers.')
     ]
   }
 };
