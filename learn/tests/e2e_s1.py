@@ -404,28 +404,83 @@ def s2_round(p, size):
     ok('Coming with unit' not in p.inner_text('main'), 'city: no building is waiting for a unit')
     s26_round(p, size)
 
+PED_VOCAB = {'elastic': 'Quantity demanded changes by a bigger % than the price', 'inelastic': 'Quantity demanded changes by a smaller % than the price',
+    'unitary elastic': 'Quantity demanded changes by the same % as the price', 'quantity demanded': 'How much people want to buy at one price',
+    'total revenue': 'Price × quantity sold: all the money a seller receives', 'percentage change': '(new − old) ÷ old × 100'}
+
+def ped_answer(p, it, mistake=False):
+    '''Answer one PED lab question from its data: skips faded steps, rates confidence on the last step, optionally makes one diagnosed mistake.'''
+    made = None
+    if mistake and it.get('fade') and p.locator('#showsteps').count():
+        p.click('#showsteps'); p.wait_for_timeout(100)
+        ok(p.inner_text('#step h3') == it['steps'][0]['q'], 'PED lab: "Show me the steps" brings the first step back')
+    for j, st in enumerate(it['steps']):
+        p.wait_for_selector('#step h3')
+        if it.get('fade') and j in it['fade'] and p.inner_text('#step h3') != st['q']: continue
+        if p.locator('#step .conf button').count():
+            ok(p.locator('#step .choice:disabled, #step #chk:disabled').count() >= 1, 'PED lab: confidence is asked before checking')
+            p.click('#step .conf button[data-c="3"]')
+        if st['type'] == 'number':
+            if mistake and not made and st.get('diag'):
+                d = st['diag'][0]; p.fill('#num', str(round(d['v'], 2))); p.click('#chk'); p.wait_for_timeout(120)
+                ok('Check your method' in p.inner_text('#fb'), f'PED lab: the {d["id"]} mistake gets named feedback'); made = d['id']
+            p.fill('#num', str(round(st['answer'], 2))); p.click('#chk'); p.wait_for_timeout(120)
+        else:
+            t = next(o['t'] for o in st['options'] if o['v'] == st['answer'])
+            p.locator('#step .choice', has_text=t).first.click(); p.wait_for_timeout(120)
+    return made
+
 def ped_lab(p, size):
-    '''The PED lab: six generated questions, answered from the question data (demo mode exposes it). The first negative answer is typed without its minus sign.'''
-    p.goto(BASE + '/learn/?demo=1#/u/2.6/ped'); p.wait_for_selector('#step h3')
+    '''The PED lab: the key-word warm-up, six generated questions answered from the question data (demo mode exposes it), the
+    first negative answer typed without its minus sign, confidence ratings; then a second run with no warm-up and a diagnosed mistake;
+    then the step log in the demo store.'''
+    p.goto(BASE + '/learn/?demo=1#/u/2.6/ped'); p.wait_for_selector('.vocab')
+    ok(p.locator('.vocab select').count() == 4, 'PED lab: key-word warm-up with 4 words')
+    if size: shot(p, size, '39-ped-warmup'); no_overflow(p, size + ' ped warm-up')
+    for row in p.locator('.vrow').all():
+        row.locator('select').select_option(PED_VOCAB[row.locator('b').inner_text()])
+    p.click('#chk'); ok('All right' in p.inner_text('#fb'), 'PED lab: warm-up all right'); p.click('#nx')
+    p.wait_for_selector('#step h3')
     ok('Formula' in p.inner_text('.calc'), 'PED lab: a formula box')
     no_sign_tried = False
     for q in range(6):
         p.wait_for_selector('#step h3')
         it = p.evaluate('window.__pedItem')
-        for st in it['steps']:
-            p.wait_for_selector('#step h3')
-            if st['type'] == 'number':
-                v, check_note = st['answer'], False
-                if st.get('signFree') and v < 0 and not no_sign_tried: v, no_sign_tried, check_note = -v, True, True
-                p.fill('#num', str(round(v, 2))); p.click('#chk'); p.wait_for_timeout(120)
-                if check_note: ok('sign' in p.inner_text('#done'), 'PED lab: a missing minus sign is accepted with a reminder')
-            else:
-                t = next(o['t'] for o in st['options'] if o['v'] == st['answer'])
-                p.locator('#step .choice', has_text=t).first.click(); p.wait_for_timeout(120)
+        if not no_sign_tried:
+            st0 = it['steps'][0]
+            if st0['type'] == 'number' and st0.get('signFree') and st0['answer'] < 0 and not it.get('fade'):
+                p.fill('#num', str(round(-st0['answer'], 2))); p.click('#chk'); p.wait_for_timeout(120); no_sign_tried = True
+                ok('sign' in p.inner_text('#done'), 'PED lab: a missing minus sign is accepted with a reminder')
+                it = {**it, 'steps': it['steps'][1:]}
+        ped_answer(p, it)
         ok('Right first time' in p.inner_text('#step'), f'PED lab question {q + 1} ({it["kind"]}): solved first time')
         if size and q == 1: shot(p, size, '40-ped-lab'); no_overflow(p, size + ' ped lab')
         p.click('#nx')
     p.wait_for_selector('text=PED lab done'); ok('6 / 6' in p.inner_text('main'), 'PED lab: 6 / 6')
+    p.wait_for_timeout(300)
+    # second run: no warm-up (passed), one diagnosed mistake
+    p.click('text=Try again'); p.wait_for_selector('#step h3')
+    ok(p.locator('.vocab').count() == 0, 'PED lab: the warm-up is skipped once passed')
+    made = None
+    for q in range(6):
+        p.wait_for_selector('#step h3'); it = p.evaluate('window.__pedItem')
+        if it.get('fade') and p.locator('#showsteps').count(): ok(True, f'PED lab: {it["kind"]} faded after two first-time solutions')
+        made = ped_answer(p, it, mistake=not made) or made
+        if made and p.locator('#bu-go').count() and size: shot(p, size, '45-ped-diagnosis'); no_overflow(p, size + ' ped diagnosis')
+        p.click('#nx')
+        if made: break
+    ok(made is not None, 'PED lab: a mistake was tried')
+    # the step log: flushed to the demo store
+    p.evaluate("() => new Promise(r => setTimeout(r, 4500))")
+    rows = p.evaluate("() => (JSON.parse(localStorage.getItem('ecl:demo:db')).steps || []).filter(s => s.activity === 'ped')")
+    ok(any(r['item_id'] == 'ped-vocab' for r in rows), 'step log: warm-up words logged')
+    ok(any(r.get('diagnosis') == made for r in rows), f'step log: the {made} mistake logged')
+    ok(any(r.get('confidence') == 3 for r in rows), 'step log: confidence logged')
+    ok(all(r['kc'] and r['session_id'] and r['item_version'] and r['step'] for r in rows), 'step log: every PED row has kc, session, version and step')
+    acts = p.evaluate("() => [...new Set((JSON.parse(localStorage.getItem('ecl:demo:db')).steps || []).map(s => s.activity))]")
+    ok(all(a in acts for a in ('mcq', 'scen', 'p2', 'ped')), f'step log: Paper 1, scenarios, Paper 2 and the PED lab are logged ({acts})')
+    nokc = p.evaluate("() => (JSON.parse(localStorage.getItem('ecl:demo:db')).steps || []).filter(s => !s.kc.length).map(s => s.item_id)")
+    ok(not nokc, f'step log: every row has a knowledge component (missing: {sorted(set(nokc))[:8]})')
 
 def s26_round(p, size):
     '''2.6 Price elasticity of demand: learn cards with the five curves and the revenue boxes, Paper 1, Paper 2, scenarios, the PED lab, Build it up.'''
@@ -534,7 +589,7 @@ with sync_playwright() as pw:
         ctx = b.new_context(viewport={'width': w, 'height': h}); p = ctx.new_page(); p.set_default_timeout(8000); p.add_init_script(CEL)
         p.on('pageerror', lambda e: errors.append(str(e)))
         try: run(p, size)
-        except Exception as e: fails.append(f'{size}: {e}'); print('  ERROR', e); shot(p, size, 'zz-error')
+        except Exception as e: fails.append(f'{size}: {e}'); print('  ERROR', e); import traceback; traceback.print_exc(); shot(p, size, 'zz-error')
         ctx.close()
     b.close()
 ok(not errors, f'no page errors: {errors[:3]}')

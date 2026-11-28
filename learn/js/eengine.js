@@ -86,6 +86,16 @@ export const TRAP_BLOCK = {
   'ped-def': 'ped-calc', 'ped-formula': 'ped-calc', 'ped-pct': 'pct-change', 'ped-class': 'ped-values', 'ped-sign': 'ped-values', 'ped-diagram': 'ped-curves',
   'ped-vs-shift': 'inside-outside', 'ped-det': 'ped-det', 'ped-revenue': 'ped-revenue', 'ped-decide': 'ped-use'
 };
+// Skill dimensions for multidimensional models (DATA-SPEC.md): 'math' (calculation), 'both' (calculation inside an economic
+// idea, or reading numbers off a graph), 'concept' (all other blocks). English is measured by band and help, not by blocks.
+const DIM_MATH = ['pct-change', 'ped-calc'], DIM_BOTH = ['ped-revenue', 'ped-values', 'market-demand', 'market-supply', 'shortage-surplus', 'graph-read', 'ppc-points'];
+export const KC_DIM = Object.fromEntries(Object.keys(EBLOCKS).map(id => [id, DIM_MATH.includes(id) ? 'math' : DIM_BOTH.includes(id) ? 'both' : 'concept']));
+// The knowledge components of an item for the step log: its registered block plus the blocks of its options' traps
+export function kcOf(id, options) {
+  const s = new Set(); const b = itemBlock(id); if (b) s.add(b);
+  for (const o of (options || [])) { const t = TRAP_BLOCK[o && o.trap]; if (t) s.add(t); }
+  return [...s].slice(0, 8);
+}
 // The block a question practises: the most common block among its wrong answers' traps (ties: the first)
 export function blockOfOptions(options) {
   const n = {};

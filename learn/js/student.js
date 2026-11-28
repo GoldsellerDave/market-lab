@@ -1,29 +1,30 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=20a66333';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=20a66333';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=20a66333';
-import * as E from './engine.js?v=20a66333';
-import { CONTENT, TRAPS, GLOSSARY } from './content.js?v=20a66333';
-import { BASELINE, BASELINE_N } from './u1.js?v=20a66333';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=20a66333';
-import { createPPC } from './ppc.js?v=20a66333';
-import * as S from './sound.js?v=20a66333';
-import * as EM from './eengine.js?v=20a66333';
-import { EBANK, EREADY } from './ebank.js?v=20a66333';
-import * as Cel from './celebrate.js?v=20a66333';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=20a66333';
-import { scene } from './scenes.js?v=20a66333';
-import { SHIFTS } from './u25.js?v=20a66333';
-import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=20a66333';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=20a66333';
-import { genPed, nextPedKind, fmt as pfmt } from './u26.js?v=20a66333';
-import { PED_SHAPES, pedCurveSVG, REV_GOODS, revenueSVG, revM } from './peddia.js?v=20a66333';
-import { createDiagram } from './diagram.js?v=20a66333';
-import { createCurve } from './curve.js?v=20a66333';
-import { PAPERS, PAPER_KEYS, paperHome, paperRun, paperName } from './papers.js?v=20a66333';
-import { icon, tile } from './icons.js?v=20a66333';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=20a66333';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=2fc9fcde';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=2fc9fcde';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=2fc9fcde';
+import * as E from './engine.js?v=2fc9fcde';
+import { CONTENT, TRAPS, GLOSSARY, P2_KC } from './content.js?v=2fc9fcde';
+import { BASELINE, BASELINE_N } from './u1.js?v=2fc9fcde';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=2fc9fcde';
+import { createPPC } from './ppc.js?v=2fc9fcde';
+import * as S from './sound.js?v=2fc9fcde';
+import * as EM from './eengine.js?v=2fc9fcde';
+import { EBANK, EREADY } from './ebank.js?v=2fc9fcde';
+import * as Cel from './celebrate.js?v=2fc9fcde';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=2fc9fcde';
+import { scene } from './scenes.js?v=2fc9fcde';
+import { SHIFTS } from './u25.js?v=2fc9fcde';
+import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=2fc9fcde';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=2fc9fcde';
+import { genPed, nextPedKind, fmt as pfmt, PED_BLOCK, PED_DIAG, diagnosePed, PED_VERSION, PED_VOCAB } from './u26.js?v=2fc9fcde';
+import * as L from './log.js?v=2fc9fcde';
+import { PED_SHAPES, pedCurveSVG, REV_GOODS, revenueSVG, revM } from './peddia.js?v=2fc9fcde';
+import { createDiagram } from './diagram.js?v=2fc9fcde';
+import { createCurve } from './curve.js?v=2fc9fcde';
+import { PAPERS, PAPER_KEYS, paperHome, paperRun, paperName } from './papers.js?v=2fc9fcde';
+import { icon, tile } from './icons.js?v=2fc9fcde';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=2fc9fcde';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -371,11 +372,12 @@ function reviewRun() {
   const ids = reviewDue(history).slice(0, 10);
   if (!ids.length) return go('#/review');
   nav(null); wide(true);
-  const t0 = Date.now(), answers = []; let i = 0, score = 0;
+  const t0 = Date.now(), answers = []; let i = 0, score = 0; L.newSession();
   const show = () => {
     if (i >= ids.length) return done();
     const it = MCQ_BY_ID[ids[i]], P = mcqParts(it), opts = P.options;
     const rec = { id: it.id, level: it.level, first_try: false, trap: null, ok: false, hinted: false };
+    queueMicrotask(() => { stepStart(); if (it.plain && P.band <= 1) used('plain'); });
     view(`<p><a href="#/review">← Review</a></p><div class="row"><b class="grow">Question ${i + 1} of ${ids.length}</b><span class="chip mint">${it.unit}</span></div>
       <div class="steps" style="margin-top:8px">${ids.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
       <div class="card"><p class="event">${P.stem}</p>${calcBox(it.calc)}<div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
@@ -387,6 +389,7 @@ function reviewRun() {
       const o = opts[+b.dataset.k];
       $$('.choice').forEach((x, k) => { x.disabled = true; if (opts[k].right) x.classList.add('right'); });
       rec.pick = o.t; rec.ok = o.right; rec.first_try = o.right && !rec.hinted; if (!o.right) { b.classList.add('wrong'); rec.trap = o.trap || null; }
+      logAns({ unit: it.unit, activity: 'review', mode: 'review', item_id: it.id, item: itemOf(it), kc: EM.kcOf(it.id, it.options), outcome: o.right ? 'correct' : 'incorrect', response: o.t, diagnosis: o.right ? undefined : o.trap, level: it.level });
       if (rec.first_try) score++;
       answers.push(rec); $('#hint')?.remove();
       $('#fb').innerHTML = `<div class="fb ${o.right ? 'ok' : 'no'}"><b>${o.right ? 'Right! ⭐' : 'Not this time. It will come back soon.'}</b>${esc(it.explain)}</div>${o.right ? '' : trapBox(o.trap)}
@@ -685,7 +688,7 @@ async function finish(run, title, again) {
   wide(false);
   const traps = [...new Set(run.answers.map(a => a.trap).filter(Boolean))];
   const a = { unit: U, activity: run.activity, level_start: run.levelStart, level_end: run.lad.level, score: run.score, max_score: run.n, seconds: Math.round((Date.now() - run.t0) / 1000),
-    answers: [...run.answers, { id: 'meta', rescues: run.rescues || 0, ...(C().BANDED ? { band: band(), help: helpCount } : {}) }] };
+    answers: [...run.answers, { id: 'meta', rescues: run.rescues || 0, ...(run.meta || {}), ...(C().BANDED ? { band: band(), help: helpCount } : {}) }] };
   const xp = E.xpForNew(history, a), before = run.bandBefore ?? bandInfo().band, wasDone = missionDone();
   view(`<div class="card center"><h1>${esc(title)} done</h1><p style="font:800 2.4rem var(--font-display);margin:.2em 0">${run.score} / ${run.n}</p>
     <p class="muted">right first time · finished at ${levelBadge(run.lad.level)}</p>${xpLine(xp)}<p class="small" id="saved">Saving…</p><p id="lvl"></p></div>
@@ -834,59 +837,125 @@ function pedTable(it) {
   return `<div class="scroll"><table class="sched"><tr><th></th><th>Price (${esc(it.priceUnit)})</th><th>Quantity (${esc(it.unit)})</th></tr>
     <tr><td>Before</td><td>${pfmt(it.P0)}</td><td>${pfmt(it.Q0)}</td></tr><tr><td>After</td><td>${pfmt(it.P1)}</td><td>${pfmt(it.Q1)}</td></tr></table></div>`;
 }
+// Experiment arms (PILOT.md). The arm comes from the logger's condition ('fade:B,warm:B'); with no experiment every
+// student gets version A, the designed version.
+const arm = name => ((L.conditionOf().match(new RegExp(`(?:^|,)${name}:([AB])`)) || [])[1] || 'A');
+// Fading (worked examples → independent work): after two right-first-time solutions of a kind, the setting-up steps are
+// hidden and come back on request.
+const pedFluent = kind => history.reduce((n, a) => n + (a.answers || []).filter(x => x.id === kind && x.first_try && !x.faded).length, 0) >= 2;
+const pedWarmDone = () => history.some(a => a.activity === 'ped' && (a.answers || []).some(x => x.id === 'meta' && x.vocab));
+const CONF = [[1, '😟 Not sure'], [2, '🙂 Fairly sure'], [3, '😎 Sure']];
+function pedWarm(run) {
+  const pick = E.shuffle(PED_VOCAB).slice(0, 4), defs = E.shuffle(pick.map(v => v.d));
+  stepStart();
+  view(`${runHead(run, 'Warm-up')}<div class="card"><h3>Key words first</h3><p class="note">Match each word to its meaning. You need these words for the PED questions.</p>
+    <div class="vocab">${pick.map((v, k) => `<div class="vrow"><b>${esc(v.w)}</b><select data-k="${k}" aria-label="Meaning of ${esc(v.w)}"><option value="">Choose the meaning…</option>${defs.map(d => `<option>${esc(d)}</option>`).join('')}</select></div>`).join('')}</div>
+    <button id="chk" style="width:100%;margin-top:10px">Check</button><div id="fb" aria-live="polite"></div></div>`);
+  $('#chk').onclick = () => {
+    const sel = $$('.vocab select'); if (sel.some(x => !x.value)) return ($('#fb').innerHTML = '<div class="fb tip"><b>Choose a meaning for every word first.</b></div>');
+    let right = 0;
+    sel.forEach((x, k) => { const v = pick[k], ok = x.value === v.d; right += ok;
+      logAns({ activity: 'ped', item_id: 'ped-vocab', step: v.w, item: v, kc: [v.kc], outcome: ok ? 'correct' : 'incorrect', response: x.value, diagnosis: ok ? undefined : 'vocab', level: 0 });
+      x.classList.add(ok ? 'good' : 'bad'); if (!ok) { x.value = v.d; x.classList.add('fixgap'); } x.disabled = true; });
+    if (right === pick.length) run.meta = { ...(run.meta || {}), vocab: true };
+    $('#chk').remove();
+    $('#fb').innerHTML = `<div class="fb ${right === pick.length ? 'ok' : 'no'}"><b>${right === pick.length ? 'All right! ⭐' : `${right} of ${pick.length} right. The right meanings are shown.`}</b>${right === pick.length ? 'You will skip this warm-up next time.' : 'Read them once more. The warm-up comes back next time.'}</div>
+      <button id="nx" style="width:100%">Start the PED questions →</button>`;
+    $('#nx').onclick = () => { run.warmed = true; ped(run); }; $('#nx').focus();
+  };
+}
 function ped(run = newRun('ped', 6)) {
   wide(true);
+  if (run.i === 0 && !run.sess) { run.sess = L.newSession(); helpCount = 0; }
+  if (run.i === 0 && !run.warmed && !pedWarmDone() && arm('warm') === 'A') return pedWarm(run);
   if (run.i >= run.n) return finish(run, 'PED lab', () => ped());
   run.k ||= {};
   const lvl = run.lad.level, n = (run.k[lvl] = (run.k[lvl] || 0) + 1);
   const it = genPed(nextPedKind(lvl, n - 1 + (run.i % 2)), Math.floor(Math.random() * 2 ** 31));
-  const rec = { id: it.id, seed: it.seed, level: it.level, first_try: true, trap: null, ok: false };
+  const faded = !!it.fade && arm('fade') === 'A' && pedFluent(it.kind);
+  const rec = { id: it.id, seed: it.seed, level: it.level, first_try: true, trap: null, ok: false, faded };
   if (DEMO) window.__pedItem = it;   // lets the automated tests read the generated question (demo mode only)
+  const askConf = arm('conf') === 'A';
+  // the steps the student does: all of them, or (faded) without the setting-up steps
+  let order = it.steps.map((_, j) => j).filter(j => !faded || !it.fade.includes(j)), si = 0, tries = 0, conf = null;
   view(`${runHead(run, 'Question')}<div class="card"><div class="small muted">Market: <b>${esc(it.good)}</b></div>${it.lines.map(l => `<p class="event">${esc(l)}</p>`).join('')}
     ${it.table ? pedTable(it) : ''}${calcBox(it.calc)}
+    ${faded ? '<p class="note" id="fadenote">You have solved these before, so the first steps are left to you. <button class="linkbtn" id="showsteps">Show me the steps</button></p>' : ''}
     <ul class="done-steps" id="done"></ul><div id="step"></div><div id="fb" aria-live="polite"></div></div>`);
-  let si = 0, tries = 0;
+  stepStart();
   bindCalc(() => { rec.first_try = false; });
-  const nextBtn = () => `<button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next question' : 'See my results'}</button>`;
-  const bindNext = () => { $('#nx').onclick = () => afterItem(run, rec, () => ped(run)); $('#nx').focus(); };
+  $('#showsteps')?.addEventListener('click', () => {
+    used('steps'); rec.first_try = false; rec.faded = false;
+    order = it.steps.map((_, j) => j); si = 0; tries = 0; $('#done').innerHTML = ''; $('#fb').innerHTML = ''; $('#fadenote').remove(); render();
+  });
+  const diags = new Set();
+  const nextBtn = () => {
+    const bl = [...diags].map(d => PED_DIAG[d] && PED_DIAG[d].block).find(x => x && BUILD_OK(x));
+    return `<button id="nx" style="width:100%">${run.i + 1 < run.n ? 'Next question' : 'See my results'}</button>${bl ? buildBtn(bl, false).replace('id="bu-go"', `id="bu-go" data-bl="${bl}"`) : ''}`;
+  };
+  const bindNext = () => {
+    $('#nx').onclick = () => afterItem(run, rec, () => ped(run)); $('#nx').focus();
+    $('#bu-go')?.addEventListener('click', e => buildUp(e.currentTarget.dataset.bl, { onDone: () => afterItem(run, rec, () => ped(run)) }));
+  };
+  const step = () => it.steps[order[si]];
+  const isLast = () => si === order.length - 1;
+  const log = (outcome, response, diagnosis) => {
+    const st = step(), tb = EM.blockOfTrap(st.trap);
+    logAns({ activity: 'ped', item_id: it.id, item_version: PED_VERSION, template: it.kind, step: String(order[si] + 1),
+      params: { seed: it.seed, good: it.good, P0: it.P0, P1: it.P1, Q0: it.Q0, Q1: it.Q1, faded: faded && !helpNow.has('steps') },
+      kc: [...new Set([...(tb ? [tb] : []), PED_BLOCK[it.kind]])], level: it.level, attempt: tries + 1, outcome, response, diagnosis,
+      confidence: isLast() && tries === 0 ? conf ?? undefined : undefined });
+    stepT0 = Date.now();
+  };
   const reveal = () => {
     rec.revealed = true; rec.ok = false; $('#fb').innerHTML = '';
-    $('#step').innerHTML = `<div class="fb tip"><b>Here is the answer. Read it, then try the next one.</b><ol class="worked" start="${si + 1}">${it.steps.slice(si).map(st => `<li>${esc(st.q)} <b>${esc(pedAnswer(st))}</b><br><span class="muted">${esc(st.why)}</span></li>`).join('')}</ol></div>${trapBox(rec.trap)}${nextBtn()}`;
+    $('#step').innerHTML = `<div class="fb tip"><b>Here is the answer. Read it, then try the next one.</b><ol class="worked">${order.slice(si).map(j => it.steps[j]).map(st => `<li>${esc(st.q)} <b>${esc(pedAnswer(st))}</b><br><span class="muted">${esc(st.why)}</span></li>`).join('')}</ol></div>${trapBox(rec.trap)}${nextBtn()}`;
     bindNext();
   };
-  const wrong = trap => {
-    rec.first_try = false; rec.trap ||= trap || null; tries++;
+  const wrong = (trap, diag) => {
+    rec.first_try = false; rec.trap ||= trap || null; tries++; if (diag) { diags.add(diag); rec.diag ||= diag; }
     if (tries >= 2) return reveal();
-    $('#fb').innerHTML = `<div class="fb no"><b>Not yet. Try again.</b>Hint: ${esc(it.hint)}</div>${trapBox(trap)}`;
+    const named = diag && PED_DIAG[diag];
+    $('#fb').innerHTML = `<div class="fb no"><b>${named ? 'Not yet. Check your method.' : 'Not yet. Try again.'}</b>${named ? esc(named.t) : `Hint: ${esc(it.hint)}`}</div>${named ? '' : trapBox(trap)}`;
   };
   const right = note => {
-    const st = it.steps[si];
-    $('#done').insertAdjacentHTML('beforeend', `<li>✔ ${esc(st.q)} <b>${esc(pedAnswer(st))}</b>${note ? `<br><span class="muted">${esc(note)}</span>` : ''}</li>`);
+    const st = step();
+    $('#done').insertAdjacentHTML('beforeend', `<li data-j="${order[si]}">✔ ${esc(st.q)} <b>${esc(pedAnswer(st))}</b>${note ? `<br><span class="muted">${esc(note)}</span>` : ''}</li>`);
     si++; tries = 0; $('#fb').innerHTML = '';
-    if (si < it.steps.length) return render();
+    if (si < order.length) return render();
     rec.ok = true;
     $('#step').innerHTML = `<div class="fb ok"><b>${rec.first_try ? 'Right first time! ⭐' : 'Solved.'}</b>${esc(it.why)}</div>${nextBtn()}`;
     bindNext();
   };
+  // Confidence before checking (last step, first attempt): metacognition and calibration data
+  const confRow = () => (askConf && isLast() && tries === 0 ? `<div class="conf" role="group" aria-label="How sure are you?"><span class="small muted">How sure are you?</span>${CONF.map(([v, t]) => `<button class="alt small" data-c="${v}">${t}</button>`).join('')}</div>` : '');
+  const needConf = () => askConf && isLast() && tries === 0 && conf == null;
+  const bindConf = el => $$('.conf button', el).forEach(x => (x.onclick = () => {
+    conf = +x.dataset.c; $$('.conf button', el).forEach(y => y.classList.toggle('sel', y === x));
+    $$('.choice, #num, #chk', el).forEach(y => (y.disabled = false)); $('#num', el)?.focus();
+  }));
   const render = () => {
-    const st = it.steps[si], el = $('#step');
+    const st = step(), el = $('#step'), lock = needConf() ? ' disabled' : '';
     if (st.type === 'choice') {
-      el.innerHTML = `<h3>${esc(st.q)}</h3><div class="choices ${st.options.length > 3 && st.options.every(o => o.t.length < 18) ? 'two' : ''}">${st.options.map((o, k) => `<button class="choice" data-k="${k}">${esc(o.t)}</button>`).join('')}</div>`;
+      el.innerHTML = `<h3>${esc(st.q)}</h3>${confRow()}<div class="choices ${st.options.length > 3 && st.options.every(o => o.t.length < 18) ? 'two' : ''}">${st.options.map((o, k) => `<button class="choice" data-k="${k}"${lock}>${esc(o.t)}</button>`).join('')}</div>`;
       $$('.choice', el).forEach(b => (b.onclick = () => { const o = st.options[+b.dataset.k];
-        if (o.v === st.answer) return right();
-        b.classList.add('wrong'); b.disabled = true; wrong(o.trap); }));
+        if (o.v === st.answer) { log('correct', o.t); return right(); }
+        log('incorrect', o.t, o.trap); b.classList.add('wrong'); b.disabled = true; wrong(o.trap); }));
     } else {
-      el.innerHTML = `<h3>${esc(st.q)}</h3><div class="numrow"><input id="num" inputmode="decimal" aria-label="Your answer"><span>${esc(st.unit)}</span></div><button id="chk" style="width:100%;margin-top:10px">Check</button>`;
+      el.innerHTML = `<h3>${esc(st.q)}</h3>${confRow()}<div class="numrow"><input id="num" inputmode="decimal" aria-label="Your answer"${lock}><span>${esc(st.unit)}</span></div><button id="chk" style="width:100%;margin-top:10px"${lock}>Check</button>`;
       const check = () => {
         const v = $('#num').value.replace(/[−–]/g, '-'); if (!v.trim()) return;
         const tol = st.tol ?? 0, exact = E.markNumber(v, st.answer, tol).ok, flip = (st.signFree || st.anySign) && st.answer !== 0 && E.markNumber(v, -st.answer, tol).ok;
-        if (exact) return right();
-        if (flip) return right(st.anySign ? '' : st.unit === '' ? `Remember the minus sign: PED is ${pfmt(st.answer)}, because price and quantity demanded move in opposite directions.`
-          : st.answer < 0 ? `Remember the sign: it is a fall, so the change is ${pfmt(st.answer)}%.` : `It is a rise, so the change is +${pfmt(st.answer)}${st.unit === '%' ? '%' : ''} (no minus sign).`);
-        wrong(st.trap); $('#num').select();
+        if (exact) { log('correct', v); return right(); }
+        if (flip) { log('correct', v, st.anySign ? undefined : 'sign-dropped');
+          return right(st.anySign ? '' : st.unit === '' ? `Remember the minus sign: PED is ${pfmt(st.answer)}, because price and quantity demanded move in opposite directions.`
+          : st.answer < 0 ? `Remember the sign: it is a fall, so the change is ${pfmt(st.answer)}%.` : `It is a rise, so the change is +${pfmt(st.answer)}${st.unit === '%' ? '%' : ''} (no minus sign).`); }
+        const d = diagnosePed(st, v); log('incorrect', v, d || st.trap);
+        wrong(st.trap, d); $('#num').select();
       };
-      $('#chk').onclick = check; $('#num').onkeydown = e => { if (e.key === 'Enter') check(); }; $('#num').focus();
+      $('#chk').onclick = check; $('#num').onkeydown = e => { if (e.key === 'Enter') check(); }; if (!lock) $('#num').focus();
     }
+    bindConf(el);
   };
   render();
 }
@@ -898,9 +967,10 @@ function mcq(run = newRun('mcq', 10)) {
   run.n = Math.min(run.n, C().MCQ.length);
   const forced = run.force && C().MCQ.find(q => q.id === run.force); run.force = null;
   const it = forced || E.pickItem(C().MCQ, run.lad.level, run.used, run.seen); run.used.add(it.id);
-  if (run.i === 0 && !run.help0) { helpCount = 0; run.help0 = true; run.bandBefore = bandInfo().band; }
+  if (run.i === 0 && !run.help0) { helpCount = 0; run.help0 = true; run.bandBefore = bandInfo().band; L.newSession(); }
   const P = mcqParts(it), opts = P.options;
   const rec = { id: it.id, level: it.level, first_try: false, trap: null, ok: false, hinted: false };
+  queueMicrotask(() => { stepStart(); if (it.plain && P.band <= 1) used('plain'); });
   view(`${runHead(run, 'Question')}<div class="card">${it.plain ? `<div class="row" style="justify-content:flex-end">${bandChip(P.band)}</div>` : ''}<p class="event">${P.stem}</p>${calcBox(it.calc)}<div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
     <div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><b style="margin-right:8px">${'ABCD'[k]}</b> <span class="otext">${P.text(o)}</span></button>`).join('')}</div>
     ${toolsHTML(it)}<div id="fb" aria-live="polite"></div></div></div></div>`);
@@ -910,6 +980,7 @@ function mcq(run = newRun('mcq', 10)) {
     const o = opts[+b.dataset.k];
     $$('.choice').forEach((x, k) => { x.disabled = true; if (opts[k].right) x.classList.add('right'); });
     rec.pick = o.t; rec.ok = o.right; rec.first_try = o.right && !rec.hinted; if (!o.right) { b.classList.add('wrong'); rec.trap = o.trap || null; }
+    logAns({ activity: 'mcq', mode: 'practice', item_id: it.id, item: itemOf(it), kc: EM.kcOf(it.id, it.options), outcome: o.right ? 'correct' : 'incorrect', response: o.t, diagnosis: o.right ? undefined : o.trap, level: it.level });
     $('#hint')?.remove();
     const bl = !o.right && C().BANDED ? (EM.blockOfTrap(o.trap) || EM.itemBlock(it.id)) : null, canBuild = bl && BUILD_OK(bl);
     if (canBuild) { run.miss = run.miss || {}; run.miss[bl] = (run.miss[bl] || 0) + 1; }
@@ -1019,10 +1090,11 @@ function data() {
 function checkpoint() {
   wide(true);
   const pool = C().MCQ, qs = [0, 1, 2].flatMap(l => E.shuffle(pool.filter(q => q.level === l)).slice(0, checkN(U) / 3)), before = bandInfo().band;
-  const t0 = Date.now(), answers = []; let i = 0;
+  const t0 = Date.now(), answers = []; let i = 0; L.newSession();
   const show = () => {
     if (i >= qs.length) return done();
     const it = qs[i], P = mcqParts(it), opts = P.options;
+    queueMicrotask(() => { stepStart(); if (it.plain && P.band <= 1) used('plain'); });
     view(`${backLink()}<div class="row"><b class="grow">${esc(U)} checkpoint · question ${i + 1} of ${qs.length}</b><span class="chip gold">No hints</span></div>
       <div class="steps" style="margin-top:8px">${qs.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('')}</div>
       <div class="card"><p class="event">${P.stem}</p><div class="${it.diagram ? 'play-grid' : ''}">${it.diagram ? '<div class="dgwrap" id="dg"></div>' : ''}<div>
@@ -1032,6 +1104,7 @@ function checkpoint() {
     $$('.choice').forEach(b => (b.onclick = () => {
       const o = opts[+b.dataset.k];
       answers.push({ id: it.id, level: it.level, first_try: o.right, ok: o.right, trap: o.right ? null : o.trap || null, pick: o.t });
+      logAns({ activity: 'check', mode: 'checkpoint', item_id: it.id, item: itemOf(it), kc: EM.kcOf(it.id, it.options), outcome: o.right ? 'correct' : 'incorrect', response: o.t, diagnosis: o.right ? undefined : o.trap, level: it.level });
       i++; show();
     }));
   };
@@ -1079,10 +1152,19 @@ function autoPill(text, b = band()) {
     return `<span class="pillterm soft" role="button" tabindex="0" data-term="${esc(key)}">${m}</span>`; });
 }
 let helpCount = 0;   // hints and translations used in the current activity
+// Step log (DATA-SPEC.md): the help used and the time since the current step was shown
+let helpNow = new Set(), stepT0 = Date.now();
+const stepStart = () => { helpNow = new Set(); stepT0 = Date.now(); };
+const used = k => helpNow.add(k);
+// The item's content for its version hash: what the student reads and chooses from
+const itemOf = it => ({ q: it.q || it.stem || '', plain: it.plain || '', options: (it.options || []).map(o => [o.t, o.p || '', o.trap || '']), steps: it.steps ? it.steps.map(x => [x.q, x.answer]) : undefined });
+function logAns(f) {
+  return L.logStep({ unit: U, band: C() && C().BANDED ? band() : undefined, duration_ms: Date.now() - stepT0, help: [...helpNow], ...f });
+}
 function openPill(el) {
   const old = $('.gloss'); const same = old && old.dataset.for === el.dataset.term && old.previousElementSibling === el;
   if (old) old.remove(); if (same) return;
-  const g = GLOSSARY[el.dataset.term]; if (!g) return;
+  const g = GLOSSARY[el.dataset.term]; if (!g) return; used('glossary');
   const pop = document.createElement('span'); pop.className = 'gloss'; pop.dataset.for = el.dataset.term; pop.setAttribute('role', 'note');
   pop.innerHTML = `<b>${esc(el.dataset.term)}:</b> ${esc(g.def)}<span class="gx"><i>Example:</i> ${esc(g.ex)}</span>${viOn() && g.vi ? `<span class="vi">Tiếng Việt: ${esc(g.vi)}</span>` : ''}`;
   el.after(pop);
@@ -1102,7 +1184,7 @@ const canSay = () => 'speechSynthesis' in window;
 const calcBox = c => (c ? `<div class="calc"><p class="calc-f"><b>📐 Formula</b>${c.f.map(x => `<span>${esc(x)}</span>`).join('')}</p>
   ${c.h ? `<button class="alt small calc-h" type="button">Calculation hint</button><p class="calc-ht" hidden><b>Hint:</b> ${esc(c.h)}</p>` : ''}</div>` : '');
 function bindCalc(onHint) {
-  $$('.calc-h').forEach(b => (b.onclick = () => { helpCount++; onHint && onHint(); b.nextElementSibling.hidden = false; b.remove(); }));
+  $$('.calc-h').forEach(b => (b.onclick = () => { helpCount++; used('calc_hint'); onHint && onHint(); b.nextElementSibling.hidden = false; b.remove(); }));
 }
 // The tools under a question: hint, Vietnamese (A1) and read aloud (A1)
 function toolsHTML(it, hints = true) {
@@ -1112,9 +1194,9 @@ function toolsHTML(it, hints = true) {
     ${it.vi && viOn() ? `<p class="vi" id="vitext" hidden>${esc(it.vi)}</p>` : ''}`;
 }
 function bindTools(it, onHint) {
-  $('#vibtn')?.addEventListener('click', () => { $('#vitext').hidden = false; $('#vibtn').remove(); helpCount++; });
-  $('#say')?.addEventListener('click', () => say((band() <= 1 && it.plain) || it.stem || it.q));
-  $('#hint')?.addEventListener('click', () => { helpCount++; onHint && onHint(); $('#hint').outerHTML = `<div class="fb tip"><b>Hint</b>${esc(it.hint)}</div>`; });
+  $('#vibtn')?.addEventListener('click', () => { $('#vitext').hidden = false; $('#vibtn').remove(); helpCount++; used('vi'); });
+  $('#say')?.addEventListener('click', () => used('audio') && say((band() <= 1 && it.plain) || it.stem || it.q));
+  $('#hint')?.addEventListener('click', () => { helpCount++; used('hint'); onHint && onHint(); $('#hint').outerHTML = `<div class="fb tip"><b>Hint</b>${esc(it.hint)}</div>`; });
   bindCalc(onHint);
 }
 // A Paper 1 question at the student's band: plain words for A1 and A2 (3 options at A1), exam words for B1 and B2.
@@ -1188,7 +1270,7 @@ function p2() {
   wide(true); helpCount = 0;
   const b = band(), items = C().P2.slice().sort((x, y) => x.level - y.level || x.marks - y.marks), t0 = Date.now(), answers = [];
   const start = Math.min(3, b ?? 1);
-  let i = 0;
+  let i = 0; L.newSession();
   const show = () => {
     if (i >= items.length) return done();
     const q = items[i], rec = { id: q.id, level: q.level, first_try: false, ok: false, score: 0, marks: q.marks, start, steps: [] };
@@ -1207,12 +1289,16 @@ function p2() {
         <div id="work"></div><div id="fb" aria-live="polite"></div>
         ${s > 0 ? `<p class="center" style="margin:10px 0 0"><button class="linkbtn" id="easier">Need more help? Go back to: ${P2_STEPS[s - 1][2]} ${P2_STEPS[s - 1][1]}</button></p>` : ''}</div>`);
       bindTools({ ...q, hint: q.groups.map(x => x.ask).join(' '), stem: q.q });
+      stepStart(); if (plainQ) used('plain'); if (mode === 'frame') used('frame');
       $$('[data-step]').forEach(x => (x.onclick = () => { s = +x.dataset.step; stage(); }));
       $('#easier')?.addEventListener('click', () => { s--; stage(); });
       const W = $('#work'), fb = $('#fb'), n = q.chain.length;
       // one step finished: record it, then offer the next step (or the next question after writing it yourself)
       const stepDone = (score, first, note = '', model = false) => {
         if (s === start && !rec.steps.some(x => x.s === s)) rec.first_try = first;
+        logAns({ activity: 'p2', item_id: q.id, step: mode, item: { q: q.q, chain: q.chain, groups: q.groups.map(x => x.label) }, kc: P2_KC[q.id] || EM.kcOf(q.id), level: q.level,
+          attempt: first ? 1 : 2, outcome: score === q.marks ? 'correct' : score > 0 ? 'partial' : 'incorrect', score, max_score: q.marks,
+          response: $('#ans') ? $('#ans').value : undefined, diagnosis: rec.by === 'ai' && (mode === 'frame' || mode === 'free') ? 'ai-marked' : undefined });
         rec.steps.push({ s, score, first });
         const last = s === 3, full = score === q.marks;
         if (last) { rec.score = Math.max(rec.score, score); rec.ok = rec.score === q.marks; }
@@ -1387,7 +1473,7 @@ function scenRun(id) {
   if (!id) return scenGroup();
   const s = list.find(x => x.id === id); if (!s) return unitPage('learn');
   wide(true); helpCount = 0;
-  const b = band(), idx = list.indexOf(s), t0 = Date.now(), answers = [], wasDone = missionDone(), plain = b <= 1;
+  const b = band(), idx = list.indexOf(s), t0 = Date.now(), answers = [], wasDone = missionDone(), plain = b <= 1; L.newSession();
   const steps = [...s.steps, ...(b === 3 && s.explain ? [{ type: 'explain', ...s.explain }] : [])];
   const T = (exam, simple) => (plain ? rich(simple, b) : autoPill(exam, b));
   const firstTime = !history.some(a => a.activity.startsWith('sc-')), cast = SCEN_CAST[s.id] || [];
@@ -1417,6 +1503,11 @@ function scenRun(id) {
   const show = () => {
     fb().innerHTML = ''; if (k >= steps.length) return done(); dots();
     const st = steps[k], rec = { id: st.type === 'explain' ? `${s.id}-x` : `${s.id}-${k + 1}`, ok: false, first_try: false, trap: null };
+    stepStart(); if (plain && st.plain) used('plain');
+    // a step's own components; an ordering or written step without its own takes the scenario's (all its steps' blocks)
+    const stepKc = (x, id) => { const t = EM.blockOfTrap(x.trap); return [...new Set([...EM.kcOf(id, x.options), ...(t ? [t] : [])])]; };
+    const own = st.type === 'explain' ? [] : stepKc(st, rec.id), skc = own.length ? own : [...new Set(s.steps.flatMap((x, j) => stepKc(x, `${s.id}-${j + 1}`)))].slice(0, 8);
+    const slog = f => logAns({ activity: 'scen', item_id: s.id, step: st.type === 'explain' ? 'x' : String(k + 1), item: itemOf(st), kc: skc, ...f });
     const q = `<h3 class="scen-q">${T(st.q, st.plain || st.q)}</h3>`;
     if (st.type === 'choice') {
       let opts = st.options.map((o, j) => ({ ...o, right: j === 0 }));
@@ -1429,6 +1520,7 @@ function scenRun(id) {
       const after = () => { if (!pg) return; if (st.ppc.arrow) pg.arrow(...st.ppc.arrow); if (st.ppc.shift) pg.shift(st.ppc.shift); };
       $$('#sstep .choice').forEach(btn => (btn.onclick = () => {
         const o = opts[+btn.dataset.j]; tries++;
+        slog({ attempt: tries, outcome: o.right ? 'correct' : 'incorrect', response: o.t, diagnosis: o.right ? undefined : o.trap });
         if (o.right) {
           rec.ok = true; rec.first_try = tries === 1 && !rec.hinted; btn.classList.add('right'); $$('#sstep .choice').forEach(x => (x.disabled = true)); after();
           fb().innerHTML = `<div class="fb ok"><b>${tries === 1 ? 'Right! ⭐' : 'Right.'}</b>${esc(st.why)}</div>`; answers.push(rec); return nextBtn();
@@ -1456,6 +1548,8 @@ function scenRun(id) {
       $('#chk').onclick = () => {
         tries++;
         const wrong = items.filter(it => pick[it.j] !== it.b);
+        slog({ attempt: tries, outcome: !wrong.length ? 'correct' : wrong.length < items.length ? 'partial' : 'incorrect', score: items.length - wrong.length, max_score: items.length,
+          response: items.map(it => `${it.j}:${pick[it.j]}`).join(','), diagnosis: wrong.length ? st.trap : undefined });
         $$('#sstep .sortrow').forEach(row => { const it = st.items[+row.dataset.j], good = pick[row.dataset.j] === it.b; row.classList.toggle('good', good); row.classList.toggle('bad', !good); if (good) $$('button', row).forEach(x => (x.disabled = true)); });
         if (!wrong.length || tries >= 2) {
           rec.ok = !wrong.length; rec.first_try = !wrong.length && tries === 1; if (!rec.first_try) rec.trap = st.trap;
@@ -1479,6 +1573,7 @@ function scenRun(id) {
         $$('#sstep [data-down]').forEach(x => (x.onclick = () => swap(+x.dataset.down, +x.dataset.down + 1)));
         $('#chk').onclick = () => {
           tries++; const frac = orderScore(ord, n);
+          slog({ attempt: tries, outcome: frac === 1 ? 'correct' : frac > 0 ? 'partial' : 'incorrect', score: Math.round(frac * n), max_score: n, response: ord.join(',') });
           if (frac === 1 || tries >= 2) {
             if (frac < 1) ord = st.lines.map((_, j) => j);
             marked = true; draw(); $('#chk').remove(); $$('#sstep .cmove button').forEach(x => (x.disabled = true));
@@ -1498,6 +1593,7 @@ function scenRun(id) {
         const v = $('#ans').value; if (!v.trim()) return (fb().innerHTML = '<div class="fb tip"><b>Write an answer first.</b></div>');
         tries++; rec.text = v.slice(0, 600);
         const m = await markWritten(v, st.groups, st.need, { item: rec.id, q: st.q, context: s.story }, $('#chk')); best = Math.max(best, m.score); rec.by = m.by;
+        slog({ attempt: tries, outcome: m.ok ? 'correct' : m.score > 0 ? 'partial' : 'incorrect', score: m.score, max_score: st.need, response: v, diagnosis: m.by === 'ai' ? 'ai-marked' : undefined });
         const pills = `<div>${st.groups.map(x => `<span class="pill ${m.hits.includes(x.label) ? 'hit' : 'miss'}">${m.hits.includes(x.label) ? '✔' : '…'} ${esc(x.label)}</span>`).join('')}${otherPills(m)}</div>`;
         if (m.ok || tries >= 2) {
           rec.ok = m.ok; rec.first_try = m.ok && tries === 1; rec.score = best; rec.marks = st.need; $('#chk').remove(); $('#ans').disabled = true;

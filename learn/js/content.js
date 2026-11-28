@@ -1,15 +1,15 @@
 // Every built unit's content, keyed by unit id, plus merged lookups for traps and items (used by the teacher console).
-import * as U24 from './u24.js?v=20a66333';
-import * as U25 from './u25.js?v=20a66333';
-import * as U1 from './u1.js?v=20a66333';
-import * as U2 from './u2.js?v=20a66333';
-import { PAPERS1 } from './px1.js?v=20a66333';
-import { PAPERS2 } from './px2.js?v=20a66333';
-import * as U245 from './u245.js?v=20a66333';
-import * as U26 from './u26.js?v=20a66333';
-import * as EM from './eengine.js?v=20a66333';
-import { SCENARIOS } from './u1s.js?v=20a66333';
-import { EQ_TITLES } from './u24.js?v=20a66333';
+import * as U24 from './u24.js?v=2fc9fcde';
+import * as U25 from './u25.js?v=2fc9fcde';
+import * as U1 from './u1.js?v=2fc9fcde';
+import * as U2 from './u2.js?v=2fc9fcde';
+import { PAPERS1 } from './px1.js?v=2fc9fcde';
+import { PAPERS2 } from './px2.js?v=2fc9fcde';
+import * as U245 from './u245.js?v=2fc9fcde';
+import * as U26 from './u26.js?v=2fc9fcde';
+import * as EM from './eengine.js?v=2fc9fcde';
+import { SCENARIOS } from './u1s.js?v=2fc9fcde';
+import { EQ_TITLES } from './u24.js?v=2fc9fcde';
 
 // Section 1 units share one glossary and one set of traps; each has its own cards and questions. BANDED: English adapts to the band.
 const G = { ...U1.GLOSSARY, ...U2.GLOSSARY, ...U245.GLOSSARY, ...U26.GLOSSARY };
@@ -54,6 +54,18 @@ for (const P of [PAPERS1, PAPERS2]) for (const f of ['a', 'b']) {
   P.p2[f].forEach(s => s.qs.forEach(q => (ITEMS[q.id] = { unit: P.unit, kind: `Paper 2 Form ${f.toUpperCase()}`, text: `${q.q} [${q.marks}]`, level: 1, topic: q.unit })));
   EM.registerItems(P.p1[f].map(q => [q.id, EM.blockOfOptions(q.options)]));
 }
+// Paper 2 practice questions -> knowledge components, for the step log (DATA-SPEC.md). Kept apart from registerItems, so
+// written answers do not change the engine's mastery rule.
+export const P2_KC = {
+  'p11-explain': ['scarcity', 'choose-lose'], 'p11-free': ['econ-free', 'goods-services'], 'p11-analyse': ['scarcity', 'choose-lose', 'agents'],
+  'p12-define': ['factors', 'rewards'], 'p12-quality': ['quan-qual'], 'p12-analyse': ['mobility'],
+  'p13-define': ['opp-cost', 'next-best'], 'p13-gov': ['opp-cost', 'oc-decide'], 'p13-analyse': ['opp-cost', 'oc-decide'],
+  'p14-inside': ['ppc-points'], 'p14-shift': ['ppc-shift'], 'p14-analyse': ['ppc-shift', 'money-capital'],
+  'p21-market': ['market-place'], 'p21-signal': ['price-signal'], 'p21-analyse': ['market-3q', 'price-signal'],
+  'p22-slope': ['law-demand'], 'p22-shift': ['inside-outside', 'ext-con'], 'p22-analyse': ['demand-causes'],
+  'p23-slope': ['law-supply'], 'p23-costs': ['supply-causes'], 'p23-analyse': ['supply-causes'],
+  'p26-define': ['ped-calc'], 'p26-calc': ['pct-change', 'ped-calc', 'ped-values'], 'p26-det': ['ped-det'], 'p26-rev': ['ped-revenue'], 'p26-analyse': ['ped-use', 'ped-values']
+};
 U1.BASELINE.forEach(t => t.qs.forEach((q, k) => (ITEMS[`${t.id}-${k + 1}`] = { unit: 'base', kind: `Baseline ${t.level}`, text: `${t.title}: ${q.q}`, level: 0 })));
 Object.entries(EQ_TITLES).forEach(([k, t]) => (ITEMS[k] = { unit: '2.4', kind: 'Finder', text: t + ' (a new schedule each time)', level: U24.EQ_KINDS[k] }));
 Object.entries(U26.PED_TITLES).forEach(([k, t]) => (ITEMS[k] = { unit: '2.6', kind: 'PED lab', text: t + ' (new numbers each time)', level: U26.PED_KINDS[k] }));
