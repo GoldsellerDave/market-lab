@@ -6,7 +6,7 @@
 // a trap on every wrong option. PED = % change in quantity demanded ÷ % change in price. It is negative for a normal
 // demand curve; elastic / inelastic compares the number WITHOUT the minus sign with 1.
 // genPed() makes the PED lab questions (new numbers every time), like genEq() in u24.js.
-import { rng } from './u24.js?v=20a66333';
+import { rng } from './u24.js?v=2fc9fcde';
 
 // The formulas students use, shown in a formula box on every calculation (with a calculation hint that sets up the sum
 // with the question's numbers but leaves the last step to the student).
@@ -248,6 +248,7 @@ export function genPed(kind, seed) {
     it.steps = [
       { q: 'What is the PED?', type: 'number', answer: ped, unit: '', tol: 0.01, signFree: true, trap: 'ped-formula', why: `PED = % change in quantity demanded ÷ % change in price = ${up ? '−' : '+'}${qq} ÷ ${up ? '+' : '−'}${pp} = ${fmt(ped)}.` },
       { q: 'How would you describe demand?', type: 'choice', answer: classOf(ped), options: CLASS.map(c => ({ ...c, trap: 'ped-class' })), why: `Ignore the minus sign: ${fmt(e)} is ${CLASS_WHY[classOf(ped)]}` }];
+    it.steps[0].diag = [{ id: 'inverted', v: -pp / qq }];
     it.hint = 'Quantity on top: % change in quantity demanded ÷ % change in price.';
     it.why = `PED = ${fmt(ped)}, so demand is ${CLASS.find(c => c.v === classOf(ped)).t.toLowerCase()}.`;
   }
@@ -258,6 +259,7 @@ export function genPed(kind, seed) {
       { q: 'How would you describe demand?', type: 'choice', answer: classOf(ped), options: CLASS5.map(c => ({ ...c, trap: c.v === 'pe' || c.v === 'pi' ? 'ped-class' : 'ped-sign' })), why: `Ignore the minus sign: ${fmt(e)} is ${CLASS_WHY[classOf(ped)]}` },
       { q: `If the price rises by ${pp}%, by what percentage does the quantity demanded fall?`, type: 'number', answer: e * pp, unit: '%', tol: 0.01, anySign: true, trap: 'ped-formula',
         why: `% change in quantity demanded = PED × % change in price = ${fmt(ped)} × ${pp} = ${fmt(-e * pp)}%. It falls by ${fmt(e * pp)}%.` }];
+    if (e) it.steps[1].diag = [{ id: 'inverted', v: pp / e }];
     it.hint = 'Compare the number (without the minus sign) with 1. Then: % change in Qd = PED × % change in price.';
     it.why = e === 0 ? 'PED 0: quantity demanded does not change at all.' : `A PED of ${fmt(ped)} means quantity demanded changes ${fmt(e)} times as much as the price, in percentage terms.`;
   }
@@ -282,6 +284,10 @@ export function genPed(kind, seed) {
         { q: 'What is the percentage change in quantity demanded?', type: 'number', answer: dQ, unit: '%', tol: 0.01, signFree: true, trap: 'ped-pct', why: `(${fmt(Q1)} − ${fmt(Q0)}) ÷ ${fmt(Q0)} × 100 = ${fmt(dQ)}%.` },
         { q: 'What is the PED?', type: 'number', answer: ped, unit: '', tol: 0.01, signFree: true, trap: 'ped-formula', why: `${fmt(dQ)} ÷ ${fmt(dP)} = ${fmt(ped)}.` },
         { q: 'How would you describe demand?', type: 'choice', answer: classOf(ped), options: CLASS.map(c => ({ ...c, trap: 'ped-class' })), why: `Ignore the minus sign: ${fmt(Math.abs(ped))} is ${CLASS_WHY[classOf(ped)]}` }];
+      it.steps[0].diag = [{ id: 'wrong-base', v: (P1 - P0) / P1 * 100 }, { id: 'raw-change', v: P1 - P0 }];
+      it.steps[1].diag = [{ id: 'wrong-base', v: (Q1 - Q0) / Q1 * 100 }, { id: 'raw-change', v: Q1 - Q0 }];
+      it.steps[2].diag = [{ id: 'inverted', v: dP / dQ }, { id: 'raw-change', v: (Q1 - Q0) / (P1 - P0) }];
+      it.fade = [0, 1];   // once the student is fluent: straight to the PED (the % steps come back on request)
       it.hint = 'Percentage change = (new − old) ÷ OLD × 100. Then PED = % change in quantity ÷ % change in price.';
       it.why = `PED = ${fmt(dQ)}% ÷ ${fmt(dP)}% = ${fmt(ped)}.`;
     } else {
@@ -293,6 +299,9 @@ export function genPed(kind, seed) {
           why: `${fmt(R0)} → ${fmt(R1)} thousand đồng.` },
         { q: 'So, over this price change, demand is…', type: 'choice', answer: classOf(ped), options: CLASS.map(c => ({ ...c, trap: 'ped-revenue' })),
           why: way === 'same' ? 'Revenue did not change: unitary elastic.' : (way === 'up') === (P1 > P0) ? 'Price and revenue moved the SAME way: inelastic.' : 'Price and revenue moved OPPOSITE ways: elastic.' }];
+      it.steps[0].diag = [{ id: 'revenue-added', v: P0 + Q0 }];
+      it.steps[1].diag = [{ id: 'revenue-added', v: P1 + Q1 }];
+      it.fade = [0, 1];
       it.hint = 'Total revenue = price × quantity. Did price and revenue move the same way (inelastic) or opposite ways (elastic)?';
       it.why = `Revenue went from ${fmt(R0)} to ${fmt(R1)} thousand đồng, and PED = ${fmt(ped)}.`;
     }
@@ -305,6 +314,8 @@ export function genPed(kind, seed) {
     it.steps = [
       { q: 'By what percentage will the quantity demanded change?', type: 'number', answer: up ? -dq : dq, unit: '%', tol: 0.01, signFree: true, trap: 'ped-formula', why: `% change in Qd = PED × % change in price = ${fmt(-e)} × ${up ? '+' : '−'}${pp} = ${up ? '−' : '+'}${fmt(dq)}%.` },
       { q: 'What will sales be after the change?', type: 'number', answer: Q1, unit: G.unit, tol: 0.5, trap: 'ped-pct', why: `${fmt(Q0)} ${up ? '−' : '+'} ${fmt(dq)}% of ${fmt(Q0)} = ${fmt(Q1)}.` }];
+    it.steps[0].diag = [{ id: 'inverted', v: pp / e }];
+    it.steps[1].diag = [{ id: 'pct-as-units', v: Q0 - (up ? 1 : -1) * dq }, { id: 'change-only', v: Q0 * dq / 100 }];
     it.hint = 'Turn the formula round: % change in quantity demanded = PED × % change in price.';
     it.why = `Sales go from ${fmt(Q0)} to ${fmt(Q1)} ${G.unit}.`;
   }
@@ -325,5 +336,38 @@ export function genPed(kind, seed) {
   }
   const LAB_F = { 'ped-pct': [F.ped], 'ped-read': [F.qd], 'ped-raw': [F.pct, F.ped], 'ped-find': [F.qd, F.newq], 'ped-rev': [F.tr], 'ped-advice': [F.tr] };
   it.calc = { f: LAB_F[kind], h: it.hint };
+  for (const st of it.steps) if (st.diag) st.diag = st.diag.filter(d => isFinite(d.v) && Math.abs(Math.abs(d.v) - Math.abs(st.answer)) > Math.max(st.tol || 0, 0.02));
   return it;
 }
+
+// ---------- PED lab: named mistakes (DATA-SPEC.md `diagnosis`) ----------
+// Each wrong number is compared with the result of a known wrong method. A match gives named feedback and a lesson link.
+export const PED_DIAG = {
+  inverted: { t: 'You divided the wrong way round. Quantity goes on top: % change in quantity demanded ÷ % change in price.', block: 'ped-calc' },
+  'wrong-base': { t: 'You divided by the NEW value. Percentage change = (new − old) ÷ OLD value × 100.', block: 'pct-change' },
+  'raw-change': { t: 'That is the change in units, not the percentage change. Divide the change by the old value, then × 100.', block: 'pct-change' },
+  'revenue-added': { t: 'You added price and quantity. Total revenue = price × quantity.', block: 'ped-revenue' },
+  'pct-as-units': { t: 'You took the percentage away as if it were units. Work out that percentage OF the old sales first.', block: 'pct-change' },
+  'change-only': { t: 'That is only the change in sales. Add it to (or take it from) the old sales to get the new sales.', block: 'pct-change' },
+  'sign-dropped': { t: 'Right number. Remember the sign: PED is negative because price and quantity demanded move in opposite directions.', block: 'ped-values' }
+};
+const num = v => parseFloat(String(v ?? '').replace(/[−–]/g, '-').replace(/,/g, '').replace(/[^0-9.\-]/g, ''));
+/** The named mistake behind a wrong number on a PED lab step, or null. Signs are ignored (the sign is diagnosed separately). */
+export function diagnosePed(st, value) {
+  const v = num(value); if (!isFinite(v) || !st || !st.diag) return null;
+  const tol = Math.max(st.tol || 0, 0.02);
+  const d = st.diag.find(x => Math.abs(Math.abs(v) - Math.abs(x.v)) <= tol || Math.abs(Math.abs(v) - Math.round(Math.abs(x.v) * 100) / 100) <= 0.005);
+  return d ? d.id : null;
+}
+// The version of the PED lab generator, for the step log (change it when the templates change)
+export const PED_VERSION = 'g2';
+
+// ---------- PED lab: key-word warm-up (pre-training: the words before the maths) ----------
+export const PED_VOCAB = [
+  { w: 'elastic', d: 'Quantity demanded changes by a bigger % than the price', kc: 'ped-values' },
+  { w: 'inelastic', d: 'Quantity demanded changes by a smaller % than the price', kc: 'ped-values' },
+  { w: 'unitary elastic', d: 'Quantity demanded changes by the same % as the price', kc: 'ped-values' },
+  { w: 'quantity demanded', d: 'How much people want to buy at one price', kc: 'law-demand' },
+  { w: 'total revenue', d: 'Price × quantity sold: all the money a seller receives', kc: 'ped-revenue' },
+  { w: 'percentage change', d: '(new − old) ÷ old × 100', kc: 'pct-change' }
+];

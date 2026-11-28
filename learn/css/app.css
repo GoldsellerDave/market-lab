@@ -398,3 +398,8 @@ body.bu-open{overflow:hidden}
 .pans{margin:.5em 0;padding:8px 12px;border-left:4px solid var(--line);background:var(--paper);border-radius:8px;white-space:pre-wrap}
 #ptext{width:100%;font:inherit;padding:10px;border-radius:10px;border:2px solid var(--line);margin:0 0 10px}
 .paper .choice:disabled{opacity:1;color:var(--ink);cursor:default}
+/* PED lab: key-word warm-up and confidence rating */
+.vocab{display:grid;gap:8px;margin-top:8px}.vrow{display:grid;grid-template-columns:minmax(120px,30%) 1fr;gap:8px;align-items:center}
+.vrow select{width:100%;min-width:0}.vrow select.good,.vrow select.fixgap{border-color:var(--ok);background:var(--ok-soft)}.vrow select.bad:not(.fixgap){border-color:var(--bad);background:var(--bad-soft)}
+@media (max-width:520px){.vrow{grid-template-columns:1fr}}
+.conf{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 10px}.conf button.sel{outline:3px solid var(--teal);outline-offset:1px}

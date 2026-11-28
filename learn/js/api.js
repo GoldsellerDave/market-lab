@@ -1,6 +1,6 @@
 // Every database call goes through rpc(): Supabase ec_* functions, or a demo store in this browser
 // (demo mode: ?demo=1, or no Supabase settings in ../config.js). Demo logins: demo-01 / 1234, teacher / demo.
-import { xpTotals } from './engine.js?v=20a66333';
+import { xpTotals } from './engine.js?v=2fc9fcde';
 const CFG = window.MARKET_CONFIG || {};
 const PARAMS = new URLSearchParams(location.search);
 export const DEMO = PARAMS.has('demo') || !String(CFG.supabaseUrl || '').trim();
@@ -102,6 +102,11 @@ function demo(fn, a) {
     case 'ec_save_attempt': { const u = me(); if (u.role !== 'student') return null;
       const at = { id: d.seq++, user_id: u.id, class_code: u.class_code, unit: a.p_unit, activity: a.p_activity, level_start: a.p_level_start, level_end: a.p_level_end, score: a.p_score, max_score: a.p_max, seconds: a.p_seconds, answers: a.p_answers, created_at: now };
       d.attempts.push(at); out = at.id; break; }
+    case 'ec_log_steps': { const u = me(); if (u.role !== 'student') return 0; d.steps = d.steps || [];
+      const rows = Array.isArray(a.p_rows) ? a.p_rows.slice(0, 100) : [], ok = ['correct', 'incorrect', 'hint', 'partial', 'skip'];
+      const kept = rows.filter(r => r && r.item_id && ok.includes(r.outcome)).map(r => ({ ...r, user_id: u.id, class_code: u.class_code, created_at: now }));
+      d.steps.push(...kept); if (d.steps.length > 5000) d.steps = d.steps.slice(-5000); out = kept.length; break; }
+    case 'ec_t_steps': { teacher(); const c = cls(a.p_code); out = (d.steps || []).filter(s => s.class_code === c.code).slice().reverse(); break; }
     case 'ec_history': { const u = me(); out = d.attempts.filter(x => x.user_id === u.id); break; }
     case 'ec_t_classes': { const t = teacher(); out = d.classes.filter(c => c.teacher_id === t.id || t.is_admin).map(c => ({ ...c, vi_a1: c.vi_a1 !== false, students: d.users.filter(u => u.class_code === c.code && u.role === 'student').length })); break; }
     case 'ec_t_add_class': { const t = teacher(), code = String(a.p_code).trim().toLowerCase(); if (!/^[a-z0-9]{2,12}$/.test(code)) throw new Error('bad-class-code'); if (d.classes.some(c => c.code === code)) throw new Error('class-exists');
