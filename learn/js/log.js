@@ -2,7 +2,7 @@
 // Rows wait in a queue (kept in localStorage, so nothing is lost offline or before schema_steps.sql has been run) and go to
 // the server in batches of up to 100 through ec_log_steps. Logging never blocks or interrupts the student: every failure
 // is silent and the rows are tried again later.
-import { rpc, token } from './api.js?v=2fc9fcde';
+import { rpc, token } from './api.js?v=d157cccb';
 
 const QKEY = 'ecl:steps:queue', CAP = 1000, BATCH = 100;
 const FIELDS = ['session_id', 'client_t', 'unit', 'activity', 'mode', 'item_id', 'item_version', 'step', 'template', 'params', 'kc', 'attempt',

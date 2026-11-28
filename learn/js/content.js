@@ -1,15 +1,15 @@
 // Every built unit's content, keyed by unit id, plus merged lookups for traps and items (used by the teacher console).
-import * as U24 from './u24.js?v=2fc9fcde';
-import * as U25 from './u25.js?v=2fc9fcde';
-import * as U1 from './u1.js?v=2fc9fcde';
-import * as U2 from './u2.js?v=2fc9fcde';
-import { PAPERS1 } from './px1.js?v=2fc9fcde';
-import { PAPERS2 } from './px2.js?v=2fc9fcde';
-import * as U245 from './u245.js?v=2fc9fcde';
-import * as U26 from './u26.js?v=2fc9fcde';
-import * as EM from './eengine.js?v=2fc9fcde';
-import { SCENARIOS } from './u1s.js?v=2fc9fcde';
-import { EQ_TITLES } from './u24.js?v=2fc9fcde';
+import * as U24 from './u24.js?v=d157cccb';
+import * as U25 from './u25.js?v=d157cccb';
+import * as U1 from './u1.js?v=d157cccb';
+import * as U2 from './u2.js?v=d157cccb';
+import { PAPERS1 } from './px1.js?v=d157cccb';
+import { PAPERS2 } from './px2.js?v=d157cccb';
+import * as U245 from './u245.js?v=d157cccb';
+import * as U26 from './u26.js?v=d157cccb';
+import * as EM from './eengine.js?v=d157cccb';
+import { SCENARIOS } from './u1s.js?v=d157cccb';
+import { EQ_TITLES } from './u24.js?v=d157cccb';
 
 // Section 1 units share one glossary and one set of traps; each has its own cards and questions. BANDED: English adapts to the band.
 const G = { ...U1.GLOSSARY, ...U2.GLOSSARY, ...U245.GLOSSARY, ...U26.GLOSSARY };

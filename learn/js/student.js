@@ -1,30 +1,30 @@
 // Student app, laid out like Checkpoint Quest: navy header with XP, bottom tabs (Home, Units, Review, Games, Me),
 // Home with Today's workout, unit pages with a Mission, and the activities of every built unit (2.4, 2.5).
-import { rpc, token, DEMO, errText, aiMark } from './api.js?v=2fc9fcde';
-import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=2fc9fcde';
-import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=2fc9fcde';
-import * as E from './engine.js?v=2fc9fcde';
-import { CONTENT, TRAPS, GLOSSARY, P2_KC } from './content.js?v=2fc9fcde';
-import { BASELINE, BASELINE_N } from './u1.js?v=2fc9fcde';
-import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=2fc9fcde';
-import { createPPC } from './ppc.js?v=2fc9fcde';
-import * as S from './sound.js?v=2fc9fcde';
-import * as EM from './eengine.js?v=2fc9fcde';
-import { EBANK, EREADY } from './ebank.js?v=2fc9fcde';
-import * as Cel from './celebrate.js?v=2fc9fcde';
-import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=2fc9fcde';
-import { scene } from './scenes.js?v=2fc9fcde';
-import { SHIFTS } from './u25.js?v=2fc9fcde';
-import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=2fc9fcde';
-import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=2fc9fcde';
-import { genPed, nextPedKind, fmt as pfmt, PED_BLOCK, PED_DIAG, diagnosePed, PED_VERSION, PED_VOCAB } from './u26.js?v=2fc9fcde';
-import * as L from './log.js?v=2fc9fcde';
-import { PED_SHAPES, pedCurveSVG, REV_GOODS, revenueSVG, revM } from './peddia.js?v=2fc9fcde';
-import { createDiagram } from './diagram.js?v=2fc9fcde';
-import { createCurve } from './curve.js?v=2fc9fcde';
-import { PAPERS, PAPER_KEYS, paperHome, paperRun, paperName } from './papers.js?v=2fc9fcde';
-import { icon, tile } from './icons.js?v=2fc9fcde';
-import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=2fc9fcde';
+import { rpc, token, DEMO, errText, aiMark } from './api.js?v=d157cccb';
+import { $, $$, esc, view, toast, pct, pref, busy, ago } from './ui.js?v=d157cccb';
+import { UNITS, ACTIVITIES, SECTIONS } from './units.js?v=d157cccb';
+import * as E from './engine.js?v=d157cccb';
+import { CONTENT, TRAPS, GLOSSARY, P2_KC } from './content.js?v=d157cccb';
+import { BASELINE, BASELINE_N } from './u1.js?v=d157cccb';
+import { bandOf, BANDS, BAND_NAMES, BASE_UNIT, baselineBand, plainChain, gapsOf, orderScore, marksFor, UP_AFTER } from './bands.js?v=d157cccb';
+import { createPPC } from './ppc.js?v=d157cccb';
+import * as S from './sound.js?v=d157cccb';
+import * as EM from './eengine.js?v=d157cccb';
+import { EBANK, EREADY } from './ebank.js?v=d157cccb';
+import * as Cel from './celebrate.js?v=d157cccb';
+import { SCEN_BY_UNIT, scenAct, CAST, SCEN_CAST, SORT_EXAMPLE } from './u1s.js?v=d157cccb';
+import { scene } from './scenes.js?v=d157cccb';
+import { SHIFTS } from './u25.js?v=d157cccb';
+import { SHIFT_EVENTS as SHIFT_EVENTS2 } from './u2.js?v=d157cccb';
+import { genEq, nextEqKind, LEARN_MARKET } from './u24.js?v=d157cccb';
+import { genPed, nextPedKind, fmt as pfmt, PED_BLOCK, PED_DIAG, diagnosePed, PED_VERSION, PED_VOCAB } from './u26.js?v=d157cccb';
+import * as L from './log.js?v=d157cccb';
+import { PED_SHAPES, pedCurveSVG, REV_GOODS, revenueSVG, revM } from './peddia.js?v=d157cccb';
+import { createDiagram } from './diagram.js?v=d157cccb';
+import { createCurve } from './curve.js?v=d157cccb';
+import { PAPERS, PAPER_KEYS, paperHome, paperRun, paperName } from './papers.js?v=d157cccb';
+import { icon, tile } from './icons.js?v=d157cccb';
+import { mission as missionOf, checkBest as checkBestOf, CHECK_PASS, checkN, BADGE } from './mission.js?v=d157cccb';
 const mission = (u, hist = history) => missionOf(u, hist), checkBest = (u, hist = history) => checkBestOf(u, hist);
 
 let me = null, history = [], U = '2.5';
@@ -846,20 +846,40 @@ const pedFluent = kind => history.reduce((n, a) => n + (a.answers || []).filter(
 const pedWarmDone = () => history.some(a => a.activity === 'ped' && (a.answers || []).some(x => x.id === 'meta' && x.vocab));
 const CONF = [[1, '😟 Not sure'], [2, '🙂 Fairly sure'], [3, '😎 Sure']];
 function pedWarm(run) {
-  const pick = E.shuffle(PED_VOCAB).slice(0, 4), defs = E.shuffle(pick.map(v => v.d));
+  // Tap a word, then tap its meaning. Tapping a filled meaning gives its word back.
+  const pick = E.shuffle(PED_VOCAB).slice(0, 4), defs = E.shuffle(pick.map((v, k) => k));   // defs: meaning slots, in a new order
+  const place = {}; let sel = null, checked = false;
   stepStart();
-  view(`${runHead(run, 'Warm-up')}<div class="card"><h3>Key words first</h3><p class="note">Match each word to its meaning. You need these words for the PED questions.</p>
-    <div class="vocab">${pick.map((v, k) => `<div class="vrow"><b>${esc(v.w)}</b><select data-k="${k}" aria-label="Meaning of ${esc(v.w)}"><option value="">Choose the meaning…</option>${defs.map(d => `<option>${esc(d)}</option>`).join('')}</select></div>`).join('')}</div>
-    <button id="chk" style="width:100%;margin-top:10px">Check</button><div id="fb" aria-live="polite"></div></div>`);
+  view(`${runHead(run, 'Warm-up')}<div class="card"><h3>Key words first</h3><p class="note">Tap a word, then tap its meaning. You need these words for the PED questions.</p>
+    <div class="vwords" role="group" aria-label="Words">${pick.map((v, k) => `<button class="vword" data-w="${k}" aria-pressed="false">${esc(v.w)}</button>`).join('')}</div>
+    <div class="vmeans">${defs.map(k => `<button class="vmean" data-m="${k}"><span class="vslot">?</span><span class="vdef">${esc(pick[k].d)}</span></button>`).join('')}</div>
+    <button id="chk" style="width:100%;margin-top:12px" disabled>Check</button><div id="fb" aria-live="polite"></div></div>`);
+  const draw = () => {
+    const usedW = new Set(Object.values(place));
+    $$('.vword').forEach(b => { const w = +b.dataset.w; b.classList.toggle('placed', usedW.has(w)); b.classList.toggle('sel', sel === w); b.setAttribute('aria-pressed', String(sel === w)); });
+    $$('.vmean').forEach(b => { const w = place[b.dataset.m]; $('.vslot', b).textContent = w == null ? '?' : pick[w].w; b.classList.toggle('filled', w != null);
+      b.setAttribute('aria-label', `${w == null ? 'Empty' : pick[w].w}: ${pick[+b.dataset.m].d}`); });
+    $('#chk').disabled = Object.keys(place).length < pick.length;
+  };
+  $$('.vword').forEach(b => (b.onclick = () => { if (checked) return; const w = +b.dataset.w; sel = sel === w ? null : w; draw(); }));
+  $$('.vmean').forEach(b => (b.onclick = () => {
+    if (checked) return; const m = b.dataset.m;
+    if (sel == null) { delete place[m]; return draw(); }                       // no word chosen: empty this meaning
+    for (const k of Object.keys(place)) if (place[k] === sel) delete place[k];  // a word sits in one meaning only
+    place[m] = sel; sel = null; draw();
+    if ($('#chk').disabled) $$('.vword:not(.placed)')[0]?.focus(); else $('#chk').focus();
+  }));
+  draw();
   $('#chk').onclick = () => {
-    const sel = $$('.vocab select'); if (sel.some(x => !x.value)) return ($('#fb').innerHTML = '<div class="fb tip"><b>Choose a meaning for every word first.</b></div>');
-    let right = 0;
-    sel.forEach((x, k) => { const v = pick[k], ok = x.value === v.d; right += ok;
-      logAns({ activity: 'ped', item_id: 'ped-vocab', step: v.w, item: v, kc: [v.kc], outcome: ok ? 'correct' : 'incorrect', response: x.value, diagnosis: ok ? undefined : 'vocab', level: 0 });
-      x.classList.add(ok ? 'good' : 'bad'); if (!ok) { x.value = v.d; x.classList.add('fixgap'); } x.disabled = true; });
+    checked = true; let right = 0;
+    pick.forEach((v, w) => { const m = Object.keys(place).find(k => place[k] === w), ok = +m === w; right += ok;
+      logAns({ activity: 'ped', item_id: 'ped-vocab', step: v.w, item: v, kc: [v.kc], outcome: ok ? 'correct' : 'incorrect', response: pick[+m].d, diagnosis: ok ? undefined : 'vocab', level: 0 }); });
+    $$('.vmean').forEach(b => { const m = +b.dataset.m, ok = place[m] === m; b.classList.add(ok ? 'good' : 'bad'); b.disabled = true;
+      if (!ok) $('.vslot', b).innerHTML = `<s>${esc(pick[place[m]].w)}</s> ${esc(pick[m].w)}`; });
+    $$('.vword').forEach(b => (b.disabled = true));
     if (right === pick.length) run.meta = { ...(run.meta || {}), vocab: true };
     $('#chk').remove();
-    $('#fb').innerHTML = `<div class="fb ${right === pick.length ? 'ok' : 'no'}"><b>${right === pick.length ? 'All right! ⭐' : `${right} of ${pick.length} right. The right meanings are shown.`}</b>${right === pick.length ? 'You will skip this warm-up next time.' : 'Read them once more. The warm-up comes back next time.'}</div>
+    $('#fb').innerHTML = `<div class="fb ${right === pick.length ? 'ok' : 'no'}"><b>${right === pick.length ? 'All right! ⭐' : `${right} of ${pick.length} right. The right words are shown.`}</b>${right === pick.length ? 'You will skip this warm-up next time.' : 'Read them once more. The warm-up comes back next time.'}</div>
       <button id="nx" style="width:100%">Start the PED questions →</button>`;
     $('#nx').onclick = () => { run.warmed = true; ped(run); }; $('#nx').focus();
   };

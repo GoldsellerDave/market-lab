@@ -1,7 +1,7 @@
 // Section 2 scenario cards (2.1 to 2.6), same format as u1s.js: stories in Ho Chi Minh City where students APPLY the ideas.
 // New people: Chị Thu (a bubble tea stall in District 3) and Anh Phúc (a durian farmer in Bến Tre, Mekong Delta).
 // Numbers match u2.js: bubble tea in District 3, demand 160 − 2P, supply 2P (P in thousand đồng, cups a day).
-import { F as PF } from './u26.js?v=2fc9fcde';
+import { F as PF } from './u26.js?v=d157cccb';
 const o = (t, p, trap) => ({ t, p: p || t, trap });
 const choice = (q, plain, options, why) => ({ type: 'choice', q, plain: plain || q, options, why });
 const sort = (q, plain, buckets, items, trap, why) => ({ type: 'sort', q, plain: plain || q, buckets, trap, why,
