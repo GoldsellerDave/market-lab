@@ -399,7 +399,12 @@ body.bu-open{overflow:hidden}
 #ptext{width:100%;font:inherit;padding:10px;border-radius:10px;border:2px solid var(--line);margin:0 0 10px}
 .paper .choice:disabled{opacity:1;color:var(--ink);cursor:default}
 /* PED lab: key-word warm-up and confidence rating */
-.vocab{display:grid;gap:8px;margin-top:8px}.vrow{display:grid;grid-template-columns:minmax(120px,30%) 1fr;gap:8px;align-items:center}
-.vrow select{width:100%;min-width:0}.vrow select.good,.vrow select.fixgap{border-color:var(--ok);background:var(--ok-soft)}.vrow select.bad:not(.fixgap){border-color:var(--bad);background:var(--bad-soft)}
-@media (max-width:520px){.vrow{grid-template-columns:1fr}}
+.vwords{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 12px}
+.vword{background:var(--panel);color:var(--title);border:2px solid var(--teal);border-radius:999px;padding:8px 14px;font-weight:700;min-height:44px}
+.vword.sel{background:var(--teal);color:#fff}.vword.placed{opacity:.35;border-style:dashed}
+.vmeans{display:grid;gap:8px}@media (min-width:700px){.vmeans{grid-template-columns:1fr 1fr}}
+.vmean{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--panel);color:var(--ink);border:2px dashed var(--line);border-radius:12px;padding:10px 12px;min-height:64px;font-weight:400}
+.vmean .vslot{font-weight:800;color:var(--teal)}.vmean.filled{border-style:solid;border-color:var(--teal)}
+.vmean.good{border-color:var(--ok);background:var(--ok-soft)}.vmean.bad{border-color:var(--bad);background:var(--bad-soft)}.vmean.bad .vslot s{color:var(--bad);font-weight:400;margin-right:4px}
+.vmean:disabled,.vword:disabled{cursor:default}.vmean.good:disabled,.vmean.bad:disabled{opacity:1}
 .conf{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 10px}.conf button.sel{outline:3px solid var(--teal);outline-offset:1px}

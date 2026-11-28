@@ -434,11 +434,18 @@ def ped_lab(p, size):
     '''The PED lab: the key-word warm-up, six generated questions answered from the question data (demo mode exposes it), the
     first negative answer typed without its minus sign, confidence ratings; then a second run with no warm-up and a diagnosed mistake;
     then the step log in the demo store.'''
-    p.goto(BASE + '/learn/?demo=1#/u/2.6/ped'); p.wait_for_selector('.vocab')
-    ok(p.locator('.vocab select').count() == 4, 'PED lab: key-word warm-up with 4 words')
+    p.goto(BASE + '/learn/?demo=1#/u/2.6/ped'); p.wait_for_selector('.vwords')
+    ok(p.locator('.vword').count() == 4 and p.locator('.vmean').count() == 4, 'PED lab: key-word warm-up with 4 words')
+    ok(p.locator('#chk:disabled').count() == 1, 'PED lab warm-up: Check waits until every meaning has a word')
+    words = p.locator('.vword').all_inner_texts()
+    # a wrong placement, moved: tap word 1 into word 0's meaning, then put each word in its own meaning
+    mean_of = lambda w: p.locator('.vmean', has_text=PED_VOCAB[w])
+    p.locator('.vword').filter(has_text=re.compile('^' + re.escape(words[1]) + '$')).click(); mean_of(words[0]).click()
+    ok(words[1] in mean_of(words[0]).inner_text(), 'PED lab warm-up: tap a word, then a meaning')
+    for w in words:
+        p.locator('.vword').filter(has_text=re.compile('^' + re.escape(w) + '$')).click(); mean_of(w).click()
+    ok(all(w in mean_of(w).inner_text() for w in words), 'PED lab warm-up: a word moves when placed again; each meaning holds one word')
     if size: shot(p, size, '39-ped-warmup'); no_overflow(p, size + ' ped warm-up')
-    for row in p.locator('.vrow').all():
-        row.locator('select').select_option(PED_VOCAB[row.locator('b').inner_text()])
     p.click('#chk'); ok('All right' in p.inner_text('#fb'), 'PED lab: warm-up all right'); p.click('#nx')
     p.wait_for_selector('#step h3')
     ok('Formula' in p.inner_text('.calc'), 'PED lab: a formula box')
@@ -460,7 +467,7 @@ def ped_lab(p, size):
     p.wait_for_timeout(300)
     # second run: no warm-up (passed), one diagnosed mistake
     p.click('text=Try again'); p.wait_for_selector('#step h3')
-    ok(p.locator('.vocab').count() == 0, 'PED lab: the warm-up is skipped once passed')
+    ok(p.locator('.vwords').count() == 0, 'PED lab: the warm-up is skipped once passed')
     made = None
     for q in range(6):
         p.wait_for_selector('#step h3'); it = p.evaluate('window.__pedItem')
